@@ -1,99 +1,92 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
- * rate-limiter.test.ts
- *
- * Since the new rate-limiter uses @upstash/redis, we mock the module and the
- * Redis client so tests run offline without any real network calls.
+ * rate-limiter.test.ts — Tests for the in-memory sliding-window rate limiter.
  *
  * Strategy:
- *  - Mock @upstash/redis to expose a controllable `eval` spy.
- *  - Set env vars to make getRedis() return the mock client.
  *  - Test the public contract (allowed / remaining / resetAt).
+ *  - Verify that the window resets after timeout.
+ *  - Confirm constants are correct.
  */
-
-const evalMock = jest.fn();
-
-jest.mock('@upstash/redis', () => ({
-  Redis: jest.fn().mockImplementation(() => ({
-    eval: evalMock,
-  })),
-}));
 
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 
-// Simulate a running counter per key across calls
-function makeCounter(initial = 0) {
-  let count = initial;
-  return () => ++count;
-}
+const SECOND = 1000;
 
-describe('checkRateLimit (Redis-backed)', () => {
-  const OLD_ENV = process.env;
-
-  beforeEach(() => {
-    jest.resetModules();
-    process.env = {
-      ...OLD_ENV,
-      UPSTASH_REDIS_REST_URL: 'https://fake.upstash.io',
-      UPSTASH_REDIS_REST_TOKEN: 'fake-token',
-    };
-    evalMock.mockReset();
-  });
-
+describe('checkRateLimit (in-memory)', () => {
   afterEach(() => {
-    process.env = OLD_ENV;
+    jest.useRealTimers();
   });
 
   it('allows first request (count = 1, maxRequests = 5)', async () => {
-    evalMock.mockResolvedValueOnce(1); // first INCR → 1
-    const result = await checkRateLimit('rl-a1', { windowMs: 60_000, maxRequests: 5 });
+    const result = await checkRateLimit('test-a1', { windowMs: 60_000, maxRequests: 5 });
     expect(result.allowed).toBe(true);
     expect(result.remaining).toBe(4);
   });
 
   it('tracks remaining correctly (count = 2, maxRequests = 3)', async () => {
-    evalMock.mockResolvedValueOnce(2);
-    const result = await checkRateLimit('rl-b1', { windowMs: 60_000, maxRequests: 3 });
+    const key = 'test-b1';
+    await checkRateLimit(key, { windowMs: 60_000, maxRequests: 3 });
+    const result = await checkRateLimit(key, { windowMs: 60_000, maxRequests: 3 });
     expect(result.allowed).toBe(true);
     expect(result.remaining).toBe(1);
   });
 
   it('allows last allowed request (count = maxRequests)', async () => {
-    evalMock.mockResolvedValueOnce(3);
-    const result = await checkRateLimit('rl-b2', { windowMs: 60_000, maxRequests: 3 });
+    const key = 'test-b2';
+    await checkRateLimit(key, { windowMs: 60_000, maxRequests: 3 });
+    await checkRateLimit(key, { windowMs: 60_000, maxRequests: 3 });
+    const result = await checkRateLimit(key, { windowMs: 60_000, maxRequests: 3 });
     expect(result.allowed).toBe(true);
     expect(result.remaining).toBe(0);
   });
 
   it('blocks when count exceeds maxRequests', async () => {
-    evalMock.mockResolvedValueOnce(3); // count = maxRequests + 1 = 3 for max=2
-    const result = await checkRateLimit('rl-c1', { windowMs: 60_000, maxRequests: 2 });
+    const key = 'test-c1';
+    await checkRateLimit(key, { windowMs: 60_000, maxRequests: 2 });
+    await checkRateLimit(key, { windowMs: 60_000, maxRequests: 2 });
+    const result = await checkRateLimit(key, { windowMs: 60_000, maxRequests: 2 });
     expect(result.allowed).toBe(false);
     expect(result.remaining).toBe(0);
   });
 
-  it('returns correct resetAt (approx now + windowMs)', async () => {
-    evalMock.mockResolvedValueOnce(1);
+  it('returns correct resetAt (approximately now + windowMs)', async () => {
     const before = Date.now();
-    const result = await checkRateLimit('rl-f1', { windowMs: 30_000, maxRequests: 5 });
-    expect(result.resetAt).toBeGreaterThanOrEqual(before + 30_000);
-    expect(result.resetAt).toBeLessThanOrEqual(Date.now() + 31_000);
+    const result = await checkRateLimit('test-d1', { windowMs: 30_000, maxRequests: 5 });
+    expect(result.resetAt).toBeGreaterThanOrEqual(before + 30_000 - 5);
+    expect(result.resetAt).toBeLessThanOrEqual(before + 30_000 + 5);
   });
 
-  it('falls back to allow-all when env vars are absent', async () => {
-    delete process.env.UPSTASH_REDIS_REST_URL;
-    delete process.env.UPSTASH_REDIS_REST_TOKEN;
+  it('resets after window expires', async () => {
+    jest.useFakeTimers();
 
-    // Must re-import the module with cleared module registry so the singleton is rebuilt.
-    jest.resetModules();
-    // Re-mock after reset
-    jest.mock('@upstash/redis', () => ({ Redis: jest.fn() }));
-    const { checkRateLimit: rl } = await import('@/lib/rate-limiter');
+    const key = 'test-e1';
+    await checkRateLimit(key, { windowMs: 10 * SECOND, maxRequests: 1 });
+    let result = await checkRateLimit(key, { windowMs: 10 * SECOND, maxRequests: 1 });
+    expect(result.allowed).toBe(false);
 
-    const result = await rl('rl-g1', { windowMs: 60_000, maxRequests: 5 });
+    // Advance past the window
+    jest.advanceTimersByTime(10 * SECOND + 1);
+
+    // Should reset
+    result = await checkRateLimit(key, { windowMs: 10 * SECOND, maxRequests: 1 });
     expect(result.allowed).toBe(true);
-    expect(result.remaining).toBe(4);
-    expect(evalMock).not.toHaveBeenCalled();
+    expect(result.remaining).toBe(0);
+  });
+
+  it('handles multiple keys independently', async () => {
+    const r1 = await checkRateLimit('key-a', { windowMs: 60_000, maxRequests: 2 });
+    const r2 = await checkRateLimit('key-b', { windowMs: 60_000, maxRequests: 2 });
+    expect(r1.allowed).toBe(true);
+    expect(r2.allowed).toBe(true);
+
+    // key-a hits limit
+    await checkRateLimit('key-a', { windowMs: 60_000, maxRequests: 2 });
+    const r3 = await checkRateLimit('key-a', { windowMs: 60_000, maxRequests: 2 });
+    expect(r3.allowed).toBe(false);
+
+    // key-b still has one remaining
+    const r4 = await checkRateLimit('key-b', { windowMs: 60_000, maxRequests: 2 });
+    expect(r4.allowed).toBe(true);
+    expect(r4.remaining).toBe(0);
   });
 
   it('RATE_LIMITS constants are correct', () => {

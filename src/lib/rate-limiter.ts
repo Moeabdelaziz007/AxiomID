@@ -1,47 +1,25 @@
 /**
- * rate-limiter.ts — Distributed rate limiter backed by Upstash Redis.
+ * rate-limiter.ts — In-memory sliding-window rate limiter.
  *
- * Uses a sliding-window counter via Redis INCR + EXPIRE so counts survive
- * cold starts and horizontal scale-out (Vercel Edge / Lambda).
- *
- * Falls back to allow-all (with a warning) when UPSTASH_REDIS_REST_URL is
- * not set, so local dev without a Redis instance keeps working.
+ * Uses a process-local Map so it doesn't depend on any external service.
+ * In serverless (Vercel) each cold-start gets a fresh Map, which is fine for
+ * per-instance rate limiting. For distributed rate limiting across many
+ * concurrent instances, add a shared backend (Redis, Postgres, etc.).
  */
 
-import { Redis } from "@upstash/redis";
-
 // ---------------------------------------------------------------------------
-// Redis client (lazy singleton — constructed once per cold start)
+// Types
 // ---------------------------------------------------------------------------
-let _redis: Redis | null = null;
 
-function getRedis(): Redis | null {
-  if (_redis) return _redis;
-
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-  if (!url || !token) {
-    // Warn once per cold start; allow-all in dev.
-    if (process.env.NODE_ENV !== "test") {
-      console.warn(
-        "[rate-limiter] UPSTASH_REDIS_REST_URL / TOKEN not set — " +
-          "rate limiting is DISABLED. Set them in .env for production."
-      );
-    }
-    return null;
-  }
-
-  _redis = new Redis({ url, token });
-  return _redis;
-}
-
-// ---------------------------------------------------------------------------
-// Public types & constants
-// ---------------------------------------------------------------------------
 export interface RateLimitConfig {
   windowMs: number;
   maxRequests: number;
+}
+
+export interface RateLimitResult {
+  allowed: boolean;
+  remaining: number;
+  resetAt: number;
 }
 
 export const RATE_LIMITS = {
@@ -51,53 +29,70 @@ export const RATE_LIMITS = {
   payment:       { windowMs: 60_000, maxRequests: 10  },
 } as const satisfies Record<string, RateLimitConfig>;
 
-export interface RateLimitResult {
-  allowed:  boolean;
-  remaining: number;
-  resetAt:  number;
+// ---------------------------------------------------------------------------
+// In-memory store (process-local Map)
+// ---------------------------------------------------------------------------
+
+interface WindowEntry {
+  count: number;
+  resetAt: number;
 }
+
+const store = new Map<string, WindowEntry>();
+
+function cleanupExpired(): void {
+  const now = Date.now();
+  for (const [key, entry] of store) {
+    if (now >= entry.resetAt) store.delete(key);
+  }
+}
+
+// Cleanup runs every 50 writes to keep the map lean
+let writeCounter = 0;
+const CLEANUP_INTERVAL = 50;
 
 // ---------------------------------------------------------------------------
 // Core function
 // ---------------------------------------------------------------------------
+
 /**
- * Increments the request counter for `key` inside a sliding window.
+ * Check whether `key` has exceeded its rate limit.
  *
- * @param key       Unique identifier (e.g. `"rl:anon:<ip>"`)
- * @param config    Window size and max request count
- * @returns         `{ allowed, remaining, resetAt }`
+ * Uses a sliding-ish fixed window: counts reset when `resetAt` elapses.
+ * Perfectly accurate per process; across processes the window is
+ * approximate (each instance has its own counter).
  */
 export async function checkRateLimit(
   key: string,
-  config: RateLimitConfig
+  config: RateLimitConfig,
 ): Promise<RateLimitResult> {
-  const redis = getRedis();
-  const windowSec = Math.ceil(config.windowMs / 1_000);
-  const now       = Date.now();
-  const resetAt   = now + config.windowMs;
+  const now = Date.now();
+  const resetAt = now + config.windowMs;
 
-  // ── Fallback: no Redis ──────────────────────────────────────────────────
-  if (!redis) {
+  const existing = store.get(key);
+
+  if (!existing || now >= existing.resetAt) {
+    store.set(key, { count: 1, resetAt });
+    maybeCleanup();
     return { allowed: true, remaining: config.maxRequests - 1, resetAt };
   }
 
-  // ── Sliding window via INCR + EXPIRE (atomic on the same key) ──────────
-  const redisKey = `rl:${key}`;
+  const newCount = existing.count + 1;
+  store.set(key, { count: newCount, resetAt: existing.resetAt });
+  maybeCleanup();
 
-  // Lua script guarantees INCR + conditional EXPIRE are atomic.
-  // Returns the NEW counter value after increment.
-  const count = await redis.eval(
-    `local c = redis.call('INCR', KEYS[1])
-     if c == 1 then
-       redis.call('EXPIRE', KEYS[1], ARGV[1])
-     end
-     return c`,
-    [redisKey],
-    [String(windowSec)]
-  ) as unknown as number;
+  const allowed = newCount <= config.maxRequests;
+  return {
+    allowed,
+    remaining: Math.max(0, config.maxRequests - newCount),
+    resetAt: existing.resetAt,
+  };
+}
 
-  const allowed   = count <= config.maxRequests;
-  const remaining = Math.max(0, config.maxRequests - count);
-
-  return { allowed, remaining, resetAt };
+function maybeCleanup(): void {
+  writeCounter++;
+  if (writeCounter >= CLEANUP_INTERVAL) {
+    writeCounter = 0;
+    cleanupExpired();
+  }
 }
