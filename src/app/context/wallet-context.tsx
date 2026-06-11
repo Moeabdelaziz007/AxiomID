@@ -370,7 +370,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     } else {
       const storedWallet = localStorage.getItem("axiomid_wallet");
       const storedToken = localStorage.getItem("pi_access_token");
-      if (!storedWallet && !storedToken) {
+      if (!storedWallet) {
         setIsLoading(false);
         return;
       }
