@@ -72,6 +72,13 @@ describe('UserStatusSchema', () => {
     expect(result.success).toBe(true);
   });
 
+  it('accepts Stellar G-address', () => {
+    const result = UserStatusSchema.safeParse({
+      walletAddress: 'G' + 'A'.repeat(54),
+    });
+    expect(result.success).toBe(true);
+  });
+
   it('rejects invalid wallet address format', () => {
     const result = UserStatusSchema.safeParse({
       walletAddress: 'not-a-wallet',

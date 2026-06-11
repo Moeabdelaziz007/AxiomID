@@ -7,9 +7,12 @@ import { connectPi, runWalletTest, isPiSdkLoaded } from "@/lib/pi-sdk";
 export interface User {
   id: string;
   walletAddress: string;
+  stellarAddress?: string | null;
   piUsername?: string | null;
   xp: number;
   tier: Tier;
+  trustScore: number;
+  createdAt: string;
   actions: { type: string; xp: number; timestamp: string }[];
   agent?: {
     id: string;
@@ -107,7 +110,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         if (!res.ok) throw new Error("Demo auth failed");
         const data = await res.json();
         pushLog(`تم تسجيل الدخول بنجاح ✅`);
-        setUser(data.user);
+        setUser({
+          ...data.user,
+          trustScore: data.user.trustScore ?? Math.min(100, Math.floor((data.user.xp || 0) / 10)),
+          createdAt: data.user.createdAt ?? new Date().toISOString(),
+        });
         return;
       }
 
@@ -116,7 +123,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setPiAccessToken(accessToken);
       localStorage.setItem("pi_access_token", accessToken);
       const walletAddress = `pi:${piUser.uid}`;
+      const stellarAddress = (piUser as any).wallet_address || null;
       pushLog(`عنوان المحفظة: ${walletAddress}`);
+      if (stellarAddress) pushLog(`Stellar Address: ${stellarAddress}`);
 
       pushLog("جاري التحقق من صحة التوثيق مع السيرفر...");
       const res = await fetch("/api/auth/pi", {
@@ -127,6 +136,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           uid: piUser.uid,
           username: piUser.username,
           walletAddress,
+          stellarAddress,
         }),
       });
 
@@ -137,7 +147,18 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
       const data = await res.json();
       localStorage.setItem("axiomid_wallet", walletAddress);
-      setUser(data.user);
+      setUser({
+        id: data.userId,
+        walletAddress: data.walletAddress,
+        stellarAddress: stellarAddress,
+        xp: data.xp,
+        tier: data.tier,
+        trustScore: Math.min(100, Math.floor((data.xp || 0) / 10)),
+        createdAt: new Date().toISOString(),
+        piUsername: data.piUsername || piUser.username,
+        actions: [],
+        agent: null,
+      });
       pushLog(`✅ تم توثيق المحفظة بنجاح!`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Connection failed";
@@ -214,8 +235,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         setUser({
           id: data.userId,
           walletAddress: data.walletAddress,
+          stellarAddress: data.stellarAddress || user?.stellarAddress || null,
           xp: data.xp,
           tier: data.tier,
+          trustScore: data.trustScore ?? Math.min(100, Math.floor((data.xp || 0) / 10)),
+          createdAt: data.createdAt || user?.createdAt || new Date().toISOString(),
           piUsername: data.piUsername,
           actions: user?.actions || [],
           agent: data.agent || null,

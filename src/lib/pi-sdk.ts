@@ -71,11 +71,11 @@ export async function connectPi(onLog?: LogFn): Promise<PiAuthResult> {
     onLog?.("[PI-SDK] ⏩ Pi.init() غير متاح — الساندبوكس يدير init بنفسه");
   }
 
-  onLog?.("[PI-SDK] 🔄 Calling Pi.authenticate(['payments', 'username'])...");
+  onLog?.("[PI-SDK] 🔄 Calling Pi.authenticate(['payments', 'username', 'wallet_address'])...");
   let authResult: any;
   try {
     authResult = await Pi.authenticate(
-      ["payments", "username"],
+      ["payments", "username", "wallet_address"],
       (payment: any) => {
         onLog?.(`[PI-SDK] ⚠️ Incomplete payment found: ${payment?.identifier}`);
       },
@@ -165,7 +165,7 @@ export async function runWalletTest(onLog: LogFn): Promise<void> {
   onLog?.("[WALLET-TEST] 4/7 محاولة المصادقة عبر Pi.authenticate()...");
   let authResult: any;
   try {
-    authResult = await piReady.authenticate(["payments", "username"], (payment: any) => {
+    authResult = await piReady.authenticate(["payments", "username", "wallet_address"], (payment: any) => {
       onLog?.(`[WALLET-TEST] ⚠️ دفعة غير مكتملة: ${payment?.identifier}`);
     });
     onLog?.("[WALLET-TEST] ✅ Pi.authenticate() نجح!");
@@ -183,6 +183,7 @@ export async function runWalletTest(onLog: LogFn): Promise<void> {
   onLog?.(`    UID: ${uid}`);
   onLog?.(`    اسم المستخدم: ${username}`);
   onLog?.(`    Stellar Wallet: ${authResult?.user?.wallet_address || "غير معروف"}`);
+  onLog?.(`    Pi App Wallet: pi:${uid}`);
   onLog?.(`    Access Token: ${token.slice(0, 30)}...`);
 
   onLog?.("[WALLET-TEST] ====== ✅ انتهى الاختبار بنجاح ======");

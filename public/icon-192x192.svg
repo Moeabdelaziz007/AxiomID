@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="32" fill="#0a0a0a"/>
+  <rect x="16" y="16" width="160" height="160" rx="24" fill="none" stroke="#00ff41" stroke-width="2" opacity="0.3"/>
+  <rect x="32" y="32" width="128" height="128" rx="16" fill="none" stroke="#00ff41" stroke-width="1.5" opacity="0.15"/>
+  <!-- A letter -->
+  <path d="M96 48 L60 144 L76 144 L84 120 L108 120 L116 144 L132 144 L96 48Z M88 108 L96 72 L104 108 Z" fill="#00ff41"/>
+  <!-- Small circle -->
+  <circle cx="96" cy="152" r="4" fill="#00d4ff"/>
+</svg>

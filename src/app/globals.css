@@ -1,26 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --background: #060608;
-  --foreground: #f4f4f6;
   --neon-green: #00ff41;
   --neon-green-glow: rgba(0, 255, 65, 0.15);
   --electric-blue: #00d4ff;
-  --axiom-purple: #00ff41; /* Map purple to neon green for unified branding */
-  --axiom-gold: #fbbf24;
-  --ghost-grey: #121217;
-  --card-bg: rgba(9, 9, 11, 0.75);
+  --axiom-purple: #a855f7;
+  --bg-deep: #0a0a0a;
+  --bg-card: #111118;
+  --bg-card-hover: #1a1a2e;
   --card-border: rgba(0, 255, 65, 0.08);
+  --card-border-hover: rgba(0, 255, 65, 0.25);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
   --font-mono: var(--font-geist-mono), 'SF Mono', monospace;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --color-neon-green: var(--neon-green);
   --color-electric-blue: var(--electric-blue);
   --color-axiom-purple: var(--axiom-purple);
-  --color-axiom-gold: var(--axiom-gold);
+  --color-bg-deep: var(--bg-deep);
+  --color-bg-card: var(--bg-card);
   --font-mono: var(--font-mono);
 }
 
@@ -33,8 +34,8 @@ html {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg-deep);
+  color: var(--text-primary);
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
@@ -57,8 +58,8 @@ body {
   left: 0;
   width: 100%;
   height: 4px;
-  background: linear-gradient(to bottom, rgba(139, 92, 246, 0.1), transparent);
-  opacity: 0.3;
+  background: linear-gradient(to bottom, rgba(0, 255, 65, 0.08), transparent);
+  opacity: 0.4;
   animation: scanline 8s linear infinite;
   pointer-events: none;
   z-index: 50;
@@ -73,7 +74,7 @@ body {
    BENTO GRID ITEMS (PREMIUM GLASS)
    ============================================ */
 .bento-card {
-  background: var(--card-bg);
+  background: var(--bg-card);
   border: 1px solid var(--card-border);
   backdrop-filter: blur(16px);
   border-radius: 20px;
@@ -84,7 +85,7 @@ body {
 }
 
 .bento-card:hover {
-  border-color: rgba(0, 255, 65, 0.3);
+  border-color: var(--card-border-hover);
   transform: translateY(-2px);
   box-shadow: 
     0 15px 45px -10px rgba(0, 0, 0, 0.6),
@@ -155,6 +156,114 @@ body {
 }
 
 /* ============================================
+   PASSPORT CARD
+   ============================================ */
+.passport-card {
+  background: linear-gradient(145deg, #111118 0%, #0a0a0a 50%, #111118 100%);
+  border: 1px solid rgba(0, 255, 65, 0.12);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.passport-card:hover {
+  border-color: rgba(0, 255, 65, 0.3);
+  box-shadow: 
+    0 0 40px rgba(0, 255, 65, 0.1),
+    0 20px 60px -15px rgba(0, 0, 0, 0.5);
+  transform: perspective(800px) rotateY(2deg) translateY(-4px);
+}
+
+.passport-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 255, 65, 0.03),
+    rgba(0, 212, 255, 0.03),
+    transparent
+  );
+  transition: left 0.8s ease;
+  pointer-events: none;
+}
+
+.passport-card:hover::after {
+  left: 100%;
+}
+
+/* ============================================
+   VERIFICATION BADGES
+   ============================================ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+
+.badge-verified {
+  background: rgba(0, 255, 65, 0.1);
+  color: #00ff41;
+  border-color: rgba(0, 255, 65, 0.25);
+}
+
+.badge-pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.badge-denied {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+/* ============================================
+   TRUST GAUGE
+   ============================================ */
+.trust-gauge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trust-gauge-ring {
+  transform: rotate(-90deg);
+}
+
+.trust-gauge-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.05);
+}
+
+.trust-gauge-fill {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.trust-gauge-text {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+/* ============================================
    TYPOGRAPHY & GLOWS
    ============================================ */
 .font-mono {
@@ -163,16 +272,16 @@ body {
 
 .text-neon {
   color: var(--neon-green);
-  text-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
 }
 
 .text-electric {
   color: var(--electric-blue);
-  text-shadow: 0 0 10px rgba(0, 212, 255, 0.25);
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
 }
 
 .text-purple-glow {
-  color: #c084fc;
+  color: var(--axiom-purple);
   text-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
 }
 
@@ -184,6 +293,14 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(12px);
   border-radius: 14px;
+}
+
+.glow-green {
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.15);
+}
+
+.glow-blue {
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
 }
 
 /* Custom Scrollbar */
@@ -199,7 +316,7 @@ body {
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--axiom-purple);
+  background: var(--neon-green);
 }
 
 /* Animation utilities */
@@ -210,4 +327,40 @@ body {
 
 .animate-pulse-slow {
   animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes holographic {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-holographic {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 255, 65, 0.03) 25%,
+    rgba(0, 212, 255, 0.03) 50%,
+    rgba(168, 85, 247, 0.03) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: holographic 8s linear infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 65, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(0, 255, 65, 0.4); }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
 }

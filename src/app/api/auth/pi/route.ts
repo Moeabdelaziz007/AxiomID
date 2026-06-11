@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     return apiError('VALIDATION_ERROR', parsed.error.issues[0].message, parsed.error.issues);
   }
 
-  const { accessToken, uid, username } = parsed.data;
+  const { accessToken, uid, username, walletAddress: clientWalletAddress, stellarAddress } = parsed.data;
 
   try {
     const piResponse = await fetch('https://api.minepi.com/v2/me', {
@@ -50,6 +50,8 @@ export async function POST(request: NextRequest) {
       include: { agent: true },
     });
 
+    const walletAddress = clientWalletAddress || `pi:${uid}`;
+
     let user;
     if (existingUser) {
       user = await prisma.user.update({
@@ -57,12 +59,12 @@ export async function POST(request: NextRequest) {
         data: {
           piAccessToken: accessToken,
           piUsername: username,
+          walletAddress,
           lastActive: new Date(),
         },
         include: { agent: true },
       });
     } else {
-      const walletAddress = `0x${uid.slice(0, 40).padEnd(40, '0')}`;
       user = await prisma.user.create({
         data: {
           walletAddress,
@@ -81,6 +83,7 @@ export async function POST(request: NextRequest) {
     return apiSuccess({
       userId: user.id,
       walletAddress: user.walletAddress,
+      stellarAddress: stellarAddress || null,
       piUid: user.piUid,
       piUsername: user.piUsername,
       tier,

@@ -1,7 +1,7 @@
 {
-  "name": "AxiomID - The Human Authorization Protocol",
+  "name": "AxiomID - Agent Identity Protocol",
   "short_name": "AxiomID",
-  "description": "Verify your humanity without sacrificing anonymity. Establish your on-chain reputation score.",
+  "description": "DID-based Agent Passport. KYA + KYC verification for humans and AI agents on Pi Network.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
@@ -9,19 +9,19 @@
   "theme_color": "#00ff41",
   "icons": [
     {
-      "src": "/icon-192x192.png",
+      "src": "/icon-192x192.svg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "/icon-512x512.svg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
-  "categories": ["identity", "utilities", "blockchain"],
+  "categories": ["identity", "utilities", "finance"],
   "lang": "en-US",
   "dir": "ltr"
 }
