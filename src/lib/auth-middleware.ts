@@ -27,13 +27,14 @@ export async function requireAuth(request: NextRequest): Promise<
   try {
     const piResponse = await fetch('https://api.minepi.com/v2/me', {
       headers: { Authorization: `Bearer ${accessToken}` },
+      signal: AbortSignal.timeout(5000),
     });
 
     if (!piResponse.ok) {
       return { error: apiError('UNAUTHORIZED', 'Invalid Pi access token'), user: null };
     }
 
-    const piUser = await piResponse.json();
+    const piUser: { uid?: string; username?: string } = await piResponse.json();
     if (!piUser.uid) {
       return { error: apiError('UNAUTHORIZED', 'Pi token missing uid'), user: null };
     }

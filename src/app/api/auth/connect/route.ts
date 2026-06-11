@@ -38,25 +38,20 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const existingUser = await prisma.user.findUnique({
+    const user = await prisma.user.upsert({
       where: { walletAddress },
+      update: { lastActive: new Date() },
+      create: {
+        walletAddress,
+        tier: 'Visitor',
+        xp: 0,
+      },
     });
 
-    let user;
-    if (existingUser) {
-      user = await prisma.user.update({
-        where: { id: existingUser.id },
-        data: { lastActive: new Date() },
-      });
-    } else {
-      user = await prisma.user.create({
-        data: {
-          walletAddress,
-          tier: 'Visitor',
-          xp: 0,
-        },
-      });
-    }
+    const existingUser = await prisma.user.findUnique({
+      where: { walletAddress },
+      select: { did: true, kycStatus: true },
+    });
 
     const tier = calculateTier(user.xp);
 
@@ -65,9 +60,9 @@ export async function POST(request: NextRequest) {
       walletAddress: user.walletAddress,
       tier,
       xp: user.xp,
-      did: user.did,
-      kycStatus: user.kycStatus,
-      isNewUser: !existingUser,
+      did: existingUser?.did ?? null,
+      kycStatus: existingUser?.kycStatus ?? null,
+      isNewUser: user.createdAt.getTime() === user.updatedAt.getTime(),
     });
   } catch (error) {
     console.error('[WALLET-CONNECT] Database error:', error);

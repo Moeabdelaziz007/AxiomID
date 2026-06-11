@@ -6,6 +6,7 @@ import { apiError, apiSuccess } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { calculateTier } from '@/lib/tiers';
+import { requireAuth } from '@/lib/auth-middleware';
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -13,6 +14,9 @@ export async function POST(request: NextRequest) {
   if (!rateLimit.allowed) {
     return apiError('RATE_LIMITED', 'Too many completion requests. Try again later.');
   }
+
+  const auth = await requireAuth(request);
+  if (auth.error) return auth.error;
 
   let body: unknown;
   try {
@@ -41,6 +45,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ txid }),
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!piResponse.ok) {
@@ -55,6 +60,10 @@ export async function POST(request: NextRequest) {
 
     if (!payment) {
       return apiError('NOT_FOUND', 'Payment record not found');
+    }
+
+    if (payment.userId !== auth.user.id) {
+      return apiError('FORBIDDEN', 'Payment does not belong to authenticated user');
     }
 
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {

@@ -28,10 +28,10 @@ export default function StatusPage() {
         setStats({
           registeredAgents: apiStats.totalAgents ?? 0,
           totalTransactions: apiStats.totalPayments ?? 0,
-          averageTrustScore: 75,
+          averageTrustScore: apiStats.averageTrustScore ?? null,
           activeUsers: apiStats.registeredUsers ?? 0,
           totalXpEarned: apiStats.totalXpEarned ?? 0,
-          verificationRate: 94,
+          verificationRate: apiStats.verificationRate ?? null,
         });
       } catch (err) {
         console.error("Failed to fetch network stats:", err);

@@ -4,6 +4,7 @@ import { PaymentApproveSchema } from '@/lib/validators';
 import { apiError, apiSuccess } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
+import { requireAuth } from '@/lib/auth-middleware';
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -11,6 +12,9 @@ export async function POST(request: NextRequest) {
   if (!rateLimit.allowed) {
     return apiError('RATE_LIMITED', 'Too many payment requests. Try again later.');
   }
+
+  const auth = await requireAuth(request);
+  if (auth.error) return auth.error;
 
   let body: unknown;
   try {
@@ -39,6 +43,7 @@ export async function POST(request: NextRequest) {
         Authorization: `Key ${PI_API_KEY}`,
         'Content-Type': 'application/json',
       },
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!piResponse.ok) {
@@ -59,7 +64,7 @@ export async function POST(request: NextRequest) {
       },
       create: {
         paymentId,
-        userId: paymentData.user?.uid || 'unknown',
+        userId: auth.user.id,
         amount: paymentData.amount || 0,
         memo: paymentData.memo || null,
         metadata: paymentData.metadata ? JSON.stringify(paymentData.metadata) : null,

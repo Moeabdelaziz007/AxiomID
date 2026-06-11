@@ -17,12 +17,17 @@ export function getLastPiError(): string | null {
 export async function connectPi(pushLog?: any): Promise<PiAuthResult> {
   try {
     const pi = new PiSdkBase();
-    await pi.connect();
-    const user = PiSdkBase.get_user();
+    const connectResult = await Promise.race([
+      pi.connect(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Pi authentication timed out")), 15000),
+      ),
+    ]);
+    const user = connectResult?.user ?? PiSdkBase.user ?? PiSdkBase.get_user?.();
     if (!user) {
       throw new Error("Authentication failed - no user data received");
     }
-    const token = PiSdkBase.accessToken;
+    const token = connectResult?.token ?? PiSdkBase.accessToken;
     if (!token) {
       throw new Error("Authentication failed - no token received");
     }
@@ -51,14 +56,18 @@ export function isPiSdkLoaded(): boolean {
   return !!(window.Pi && typeof window.Pi.authenticate === "function");
 }
 
-export async function runWalletTest(pushLog?: any): Promise<void> {
+function assertPiSdkLoaded(): void {
   if (!isPiSdkLoaded()) {
     throw new Error("Pi SDK not loaded");
   }
+}
+
+export async function runWalletTest(pushLog?: any): Promise<void> {
+  assertPiSdkLoaded();
   try {
     const pi = new PiSdkBase();
     await pi.connect();
-    const user = PiSdkBase.get_user();
+    const user = PiSdkBase.user ?? PiSdkBase.get_user?.();
     pushLog?.(`Wallet test passed: ${user?.name || user?.uid || "unknown"}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Wallet test failed";
@@ -78,9 +87,7 @@ export async function verifyStellarAddress(stellarAddress: string): Promise<bool
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function transferPi(amount: number, recipient: string, memo?: string): Promise<string> {
-  if (!isPiSdkLoaded()) {
-    throw new Error("Pi SDK not loaded");
-  }
+  assertPiSdkLoaded();
   return new Promise((resolve) => {
     setTimeout(() => resolve("tx-mock-" + Date.now()), 100);
   });

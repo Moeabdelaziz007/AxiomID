@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const MAX_REQUEST_BODY_BYTES = 1024 * 1024; // 1MB
+
 export function middleware(request: NextRequest) {
+  const contentLength = request.headers.get("content-length");
+  if (contentLength && parseInt(contentLength, 10) > MAX_REQUEST_BODY_BYTES) {
+    return new NextResponse("Request body too large", { status: 413 });
+  }
+
   const host = request.headers.get("host") || "";
   const url = request.nextUrl;
 

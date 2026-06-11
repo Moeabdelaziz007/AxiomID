@@ -27,8 +27,11 @@ export interface AgentAction {
 export async function activateAgent(walletAddress: string, accessToken: string, name?: string): Promise<AgentState & { apiKey?: string }> {
   const res = await fetch('/api/agent/main', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ walletAddress, accessToken, name }),
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ walletAddress, name }),
   });
 
   if (!res.ok) {
@@ -41,8 +44,10 @@ export async function activateAgent(walletAddress: string, accessToken: string, 
 }
 
 export async function getAgentStatus(walletAddress: string, accessToken: string): Promise<AgentState | null> {
-  const params = new URLSearchParams({ walletAddress, accessToken });
-  const res = await fetch(`/api/agent/main?${params}`);
+  const params = new URLSearchParams({ walletAddress });
+  const res = await fetch(`/api/agent/main?${params}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
 
   if (!res.ok) {
     if (res.status === 404) return null;

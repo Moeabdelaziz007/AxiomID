@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
   try {
     const piResponse = await fetch('https://api.minepi.com/v2/me', {
       headers: { Authorization: `Bearer ${accessToken}` },
+      signal: AbortSignal.timeout(5000),
     });
 
     if (!piResponse.ok) {
@@ -57,7 +58,6 @@ export async function POST(request: NextRequest) {
       user = await prisma.user.update({
         where: { id: existingUser.id },
         data: {
-          piAccessToken: accessToken,
           piUsername: username,
           walletAddress,
           lastActive: new Date(),
@@ -70,7 +70,6 @@ export async function POST(request: NextRequest) {
           walletAddress,
           piUid: uid,
           piUsername: username,
-          piAccessToken: accessToken,
           tier: 'Visitor',
           xp: 0,
         },
