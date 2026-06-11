@@ -61,30 +61,18 @@ function checkPiBrowser(): boolean {
   return false;
 }
 
-interface UserApiData {
-  userId: string;
-  walletAddress: string;
-  stellarAddress?: string | null;
-  xp: number;
-  tier: Tier;
-  trustScore?: number | null;
-  createdAt?: string | null;
-  piUsername?: string | null;
-  agent?: User["agent"];
-}
-
-function buildUserFromApiData(data: UserApiData, fallback?: { stellarAddress?: string | null; createdAt?: string; actions?: User["actions"] }): User {
+function mapApiUser(data: Record<string, unknown>, existing?: User | null): User {
   return {
-    id: data.userId,
-    walletAddress: data.walletAddress,
-    stellarAddress: data.stellarAddress || fallback?.stellarAddress || null,
-    xp: data.xp,
-    tier: data.tier,
-    trustScore: data.trustScore ?? Math.min(100, Math.floor((data.xp || 0) / 10)),
-    createdAt: data.createdAt || fallback?.createdAt || new Date().toISOString(),
-    piUsername: data.piUsername,
-    actions: fallback?.actions || [],
-    agent: data.agent || null,
+    id: data.userId as string,
+    walletAddress: data.walletAddress as string,
+    stellarAddress: (data.stellarAddress as string | null) || existing?.stellarAddress || null,
+    xp: data.xp as number,
+    tier: data.tier as Tier,
+    trustScore: (data.trustScore as number) ?? Math.min(100, Math.floor(((data.xp as number) || 0) / 10)),
+    createdAt: (data.createdAt as string) || existing?.createdAt || new Date().toISOString(),
+    piUsername: data.piUsername as string | null,
+    actions: existing?.actions || [],
+    agent: (data.agent as User["agent"]) || null,
   };
 }
 
@@ -122,11 +110,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       const res = await fetch(`/api/user/status?walletAddress=${addr}`);
       if (res.ok) {
         const data = await res.json();
-        setUser(buildUserFromApiData(data, {
-          stellarAddress: user?.stellarAddress,
-          createdAt: user?.createdAt,
-          actions: user?.actions,
-        }));
+        setUser(mapApiUser(data, user));
       }
     } catch (e) {
       console.error(e);
@@ -188,22 +172,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   }, [user, refreshUser, piAccessToken]);
 
-  const connectDemoWallet = useCallback(async (walletAddress: string) => {
-    localStorage.setItem("axiomid_wallet", walletAddress);
-    const res = await fetch("/api/auth/connect", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ walletAddress }),
-    });
-    if (!res.ok) throw new Error("Demo auth failed");
-    const data = await res.json();
-    setUser({
-      ...data.user,
-      trustScore: data.user.trustScore ?? Math.min(100, Math.floor((data.user.xp || 0) / 10)),
-      createdAt: data.user.createdAt ?? new Date().toISOString(),
-    });
-  }, []);
-
   const connectWallet = useCallback(async () => {
     setIsConnecting(true);
     setError(null);
@@ -219,9 +187,23 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         const walletAddress = storedWallet && storedWallet.startsWith("demo:")
           ? storedWallet
           : `demo:${crypto.randomUUID().slice(0, 8)}`;
+        localStorage.setItem("axiomid_wallet", walletAddress);
         pushLog(`محفظة مؤقتة: ${walletAddress}`);
-        await connectDemoWallet(walletAddress);
+
+        const res = await fetch("/api/auth/connect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ walletAddress }),
+        });
+
+        if (!res.ok) throw new Error("Demo auth failed");
+        const data = await res.json();
         pushLog(`تم تسجيل الدخول بنجاح ✅`);
+        setUser({
+          ...data.user,
+          trustScore: data.user.trustScore ?? Math.min(100, Math.floor((data.user.xp || 0) / 10)),
+          createdAt: data.user.createdAt ?? new Date().toISOString(),
+        });
         return;
       }
 
@@ -237,9 +219,23 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         if (err instanceof Error && err.message === "NOT_IN_PI_BROWSER") {
           pushLog("Not inside Pi Browser — using demo wallet");
           const walletAddress = `demo:${crypto.randomUUID().slice(0, 8)}`;
+          localStorage.setItem("axiomid_wallet", walletAddress);
           pushLog(`Demo wallet: ${walletAddress}`);
-          await connectDemoWallet(walletAddress);
+
+          const res = await fetch("/api/auth/connect", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ walletAddress }),
+          });
+
+          if (!res.ok) throw new Error("Demo auth failed");
+          const data = await res.json();
           pushLog(`Logged in successfully`);
+          setUser({
+            ...data.user,
+            trustScore: data.user.trustScore ?? Math.min(100, Math.floor((data.user.xp || 0) / 10)),
+            createdAt: data.user.createdAt ?? new Date().toISOString(),
+          });
           return;
         }
         throw err;
@@ -293,7 +289,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsConnecting(false);
     }
-  }, [pushLog, connectDemoWallet]);
+  }, [pushLog]);
 
   const runTest = useCallback(async () => {
     clearWalletLogs();
@@ -360,31 +356,27 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
     if (inPiBrowser) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsLoading(true);
-      connectWallet().finally(() => setIsLoading(false));
-      return;
-    }
-
-    const storedWallet = localStorage.getItem("axiomid_wallet");
-    if (!storedWallet) {
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    (async () => {
-      try {
-        const res = await fetch(`/api/user/status?walletAddress=${storedWallet}`);
-        if (res.ok) {
-          const data = await res.json();
-          setUser(buildUserFromApiData(data));
-        }
-      } catch {
-        // leave user as null
-      } finally {
+      connectWallet().finally(() => {
         setIsLoading(false);
+      });
+    } else {
+      const storedWallet = localStorage.getItem("axiomid_wallet");
+      if (!storedWallet) {
+        setIsLoading(false);
+        return;
       }
-    })();
+
+      fetch(`/api/user/status?walletAddress=${storedWallet}`).then(res => {
+        if (!res.ok) {
+          setIsLoading(false);
+          return;
+        }
+        res.json().then(data => {
+          setUser(mapApiUser(data));
+          setIsLoading(false);
+        }).catch(() => setIsLoading(false));
+      }).catch(() => setIsLoading(false));
+
   }, [connectWallet]);
 
   return (

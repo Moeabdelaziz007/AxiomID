@@ -26,9 +26,7 @@ export async function POST(request: NextRequest) {
 
   const validation = KyaClaimSchema.safeParse(body);
   if (!validation.success) {
-    const error = validation.error;
-    const issues = error.issues;
-    return apiError('VALIDATION_ERROR', issues[0].message);
+    return apiError('VALIDATION_ERROR', validation.error.issues[0].message);
   }
 
   const { username } = validation.data;
