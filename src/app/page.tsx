@@ -59,14 +59,12 @@ function PassportHero({ user }: { user: any }) {
             <h3 className="text-sm font-bold text-white font-mono">{username}</h3>
             <p className="text-[9px] text-gray-500 font-mono mt-1">{displayAddress}</p>
             <div className="mt-2 flex gap-1.5">
-              <span className={`badge ${hasUser ? "badge-verified" : "badge-pending"}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${hasUser ? "bg-neon-green" : "bg-yellow-500 animate-pulse"}`} />
-                KYA
-              </span>
-              <span className={`badge ${hasUser ? "badge-verified" : "badge-pending"}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${hasUser ? "bg-neon-green" : "bg-yellow-500 animate-pulse"}`} />
-                KYC
-              </span>
+              {["KYA", "KYC"].map((label) => (
+                <span key={label} className={`badge ${hasUser ? "badge-verified" : "badge-pending"}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${hasUser ? "bg-neon-green" : "bg-yellow-500 animate-pulse"}`} />
+                  {label}
+                </span>
+              ))}
             </div>
           </div>
         </div>

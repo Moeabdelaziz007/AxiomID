@@ -37,14 +37,16 @@ async function getAgentData(slug: string) {
   }
 
   // Map database KYCStatus enum to AgentPassport statuses
-  let mappedKyc: "pending" | "verified" | "failed" | "none" = "pending";
-  if (user.kycStatus === "VERIFIED") mappedKyc = "verified";
-  else if (user.kycStatus === "REJECTED") mappedKyc = "failed";
-  else if (user.kycStatus === "NONE") mappedKyc = "none";
+  const kycStatusMap: Record<string, "pending" | "verified" | "failed" | "none"> = {
+    VERIFIED: "verified",
+    REJECTED: "failed",
+    NONE: "none",
+  };
+  const mappedKyc = kycStatusMap[user.kycStatus] ?? "pending";
 
   return {
     username: user.piUsername || slug,
-    walletAddress: user.walletAddress,
+
     stellarAddress: user.agent?.publicKey || null,
     tier: (user.tier as any) || "Visitor",
     trustScore: Math.min(100, Math.floor((user.xp || 0) / 10)),
