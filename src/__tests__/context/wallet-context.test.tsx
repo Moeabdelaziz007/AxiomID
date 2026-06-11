@@ -1,5 +1,5 @@
 import React from "react";
-import { render, act, waitFor } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import { WalletProvider, useWallet } from "@/app/context/wallet-context";
 import { connectPi } from "@/lib/pi-sdk";
 
@@ -38,7 +38,7 @@ describe("WalletProvider & WalletContext", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
-    delete (window as any).Pi;
+    delete (window as unknown as Record<string, unknown>).Pi;
     process.env.NEXT_PUBLIC_PI_SANDBOX = "false";
     
     // Reset User Agent
@@ -65,7 +65,7 @@ describe("WalletProvider & WalletContext", () => {
   };
 
   it("renders with default state for external browsers when no credentials are saved", async () => {
-    let contextValue: any;
+    let contextValue: ReturnType<typeof useWallet> | undefined;
     render(
       <WalletProvider>
         <TestConsumer onUpdate={(val) => { contextValue = val; }} />
@@ -83,7 +83,7 @@ describe("WalletProvider & WalletContext", () => {
 
   it("calls Pi.init if window.Pi is defined on mount", async () => {
     const mockInit = jest.fn();
-    (window as any).Pi = {
+    (window as unknown as Record<string, unknown>).Pi = {
       init: mockInit,
       // Do not mock authenticate so we don't trigger auto-connect
     };
@@ -103,7 +103,7 @@ describe("WalletProvider & WalletContext", () => {
   it("calls Pi.init with sandbox=true when NEXT_PUBLIC_PI_SANDBOX is true", async () => {
     process.env.NEXT_PUBLIC_PI_SANDBOX = "true";
     const mockInit = jest.fn();
-    (window as any).Pi = {
+    (window as unknown as Record<string, unknown>).Pi = {
       init: mockInit,
     };
 
@@ -138,7 +138,7 @@ describe("WalletProvider & WalletContext", () => {
       json: async () => mockUserResponse,
     });
 
-    let contextValue: any;
+    let contextValue: ReturnType<typeof useWallet> | undefined;
     render(
       <WalletProvider>
         <TestConsumer onUpdate={(val) => { contextValue = val; }} />
@@ -184,7 +184,7 @@ describe("WalletProvider & WalletContext", () => {
       }),
     });
 
-    let contextValue: any;
+    let contextValue: ReturnType<typeof useWallet> | undefined;
     render(
       <WalletProvider>
         <TestConsumer onUpdate={(val) => { contextValue = val; }} />

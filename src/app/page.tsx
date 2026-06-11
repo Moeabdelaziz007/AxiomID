@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useWallet } from "./context/wallet-context";
+import { useWallet, User } from "./context/wallet-context";
 import Link from "next/link";
 
 /* ============================================
    FLOATING PASSPORT HERO
    ============================================ */
-function PassportHero({ user }: { user: any }) {
+function PassportHero({ user }: { user: User | null }) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   useEffect(() => {

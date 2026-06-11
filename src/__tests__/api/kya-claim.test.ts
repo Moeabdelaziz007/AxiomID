@@ -193,7 +193,7 @@ describe('POST /api/pi/kya/claim', () => {
     expect(mockPrisma.user.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          name: 'John Doe',
+          piUsername: 'nameduser',
         }),
       })
     );

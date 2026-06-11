@@ -38,7 +38,8 @@ export function verifyState(stateToken: string): string | null {
     const envelope = JSON.parse(jsonStr);
     const { payload, signature } = envelope;
 
-    if (!secret || signature === 'dev-mode-unsigned') {
+    if (!secret) {
+      if (signature !== 'dev-mode-unsigned') return null;
       const { walletAddress, expiresAt } = JSON.parse(payload);
       if (Date.now() > expiresAt) return null;
       return walletAddress;

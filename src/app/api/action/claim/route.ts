@@ -39,63 +39,66 @@ export async function POST(request: NextRequest) {
     return apiError('VALIDATION_ERROR', `Unknown action type: ${actionType}`);
   }
 
-  try {
-    const existing = await prisma.action.findUnique({
-      where: { user_action_unique: { userId: authUser.id, type: actionType } },
-    });
+    try {
+      const existing = await prisma.action.findUnique({
+        where: { user_action_unique: { userId: authUser.id, type: actionType } },
+      });
 
-    if (existing) {
-      return apiError('CONFLICT', 'This action has already been claimed');
+      if (existing) {
+        return apiError('CONFLICT', 'This action has already been claimed');
+      }
+
+      const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+        const user = await tx.user.findUnique({ where: { id: authUser.id } });
+        if (!user) {
+          throw new Error('USER_NOT_FOUND');
+        }
+
+        const action = await tx.action.create({
+          data: {
+            userId: authUser.id,
+            type: actionType,
+            xp: actionDef.xp,
+            metadata: metadata ? JSON.stringify(metadata) : null,
+          },
+        });
+
+        const newBalance = user.xp + actionDef.xp;
+        const ledgerEntry = await tx.xpLedger.create({
+          data: {
+            userId: authUser.id,
+            amount: actionDef.xp,
+            reason: 'action_claim',
+            reference: JSON.stringify({ actionId: action.id }),
+            balance: newBalance,
+          },
+        });
+
+        const newTier = calculateTier(newBalance);
+        const updatedUser = await tx.user.update({
+          where: { id: authUser.id },
+          data: {
+            xp: newBalance,
+            tier: newTier,
+            lastActive: new Date(),
+          },
+        });
+
+        return { action, ledgerEntry, updatedUser, newTier, newBalance };
+      });
+
+      return apiSuccess({
+        actionId: result.action.id,
+        xpEarned: actionDef.xp,
+        newBalance: result.newBalance,
+        tier: result.newTier,
+        ledgerEntryId: result.ledgerEntry.id,
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message === 'USER_NOT_FOUND') {
+        return apiError('NOT_FOUND', 'User not found');
+      }
+      console.error('[ACTION-CLAIM] Database error:', error);
+      return apiError('INTERNAL_ERROR', 'Failed to claim action');
     }
-
-    const user = await prisma.user.findUnique({ where: { id: authUser.id } });
-    if (!user) {
-      return apiError('NOT_FOUND', 'User not found');
-    }
-
-    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const action = await tx.action.create({
-        data: {
-          userId: authUser.id,
-          type: actionType,
-          xp: actionDef.xp,
-          metadata: metadata ? JSON.stringify(metadata) : null,
-        },
-      });
-
-      const newBalance = user.xp + actionDef.xp;
-      const ledgerEntry = await tx.xpLedger.create({
-        data: {
-          userId: authUser.id,
-          amount: actionDef.xp,
-          reason: 'action_claim',
-          reference: JSON.stringify({ actionId: action.id }),
-          balance: newBalance,
-        },
-      });
-
-      const newTier = calculateTier(newBalance);
-      const updatedUser = await tx.user.update({
-        where: { id: authUser.id },
-        data: {
-          xp: newBalance,
-          tier: newTier,
-          lastActive: new Date(),
-        },
-      });
-
-      return { action, ledgerEntry, updatedUser, newTier, newBalance };
-    });
-
-    return apiSuccess({
-      actionId: result.action.id,
-      xpEarned: actionDef.xp,
-      newBalance: result.newBalance,
-      tier: result.newTier,
-      ledgerEntryId: result.ledgerEntry.id,
-    });
-  } catch (error) {
-    console.error('[ACTION-CLAIM] Database error:', error);
-    return apiError('INTERNAL_ERROR', 'Failed to claim action');
-  }
 }

@@ -66,6 +66,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isLoading, setIsLoading] = useState(() => {
     if (typeof window === "undefined") return true;
+    if (checkPiBrowser()) return true;
     return !!(localStorage.getItem("axiomid_wallet") || localStorage.getItem("pi_access_token"));
   });
   const [error, setError] = useState<string | null>(null);
@@ -362,7 +363,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     const inPiBrowser = checkPiBrowser();
 
     if (inPiBrowser) {
-      setIsLoading(true);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       connectWallet().finally(() => {
         setIsLoading(false);
       });
@@ -374,7 +375,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      setIsLoading(true);
       fetch(`/api/user/status?walletAddress=${storedWallet}`).then(res => {
         if (!res.ok) {
           setIsLoading(false);

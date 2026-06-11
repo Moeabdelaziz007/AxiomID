@@ -78,7 +78,10 @@ describe('POST /api/action/claim', () => {
       const tx = {
         action: { create: jest.fn().mockResolvedValue({ id: 'action-1', type: 'connect_twitter', userId: 'user-1', xp: 50, metadata: null, timestamp: new Date() }) },
         xpLedger: { create: jest.fn().mockResolvedValue({ id: 'ledger-1' }) },
-        user: { update: jest.fn().mockResolvedValue({ id: 'user-1', xp: 50, tier: 'Visitor' }) },
+        user: {
+          findUnique: jest.fn().mockResolvedValue({ id: 'user-1', xp: 0 }),
+          update: jest.fn().mockResolvedValue({ id: 'user-1', xp: 50, tier: 'Visitor' })
+        },
       };
       return fn(tx);
     });
@@ -134,6 +137,17 @@ describe('POST /api/action/claim', () => {
   it('returns 404 if user not found in DB', async () => {
     mockPrisma.action.findUnique.mockResolvedValue(null);
     mockPrisma.user.findUnique.mockResolvedValue(null);
+    mockPrisma.$transaction.mockImplementation(async (fn: (tx: Record<string, any>) => Promise<any>) => {
+      const tx = {
+        action: { create: jest.fn() },
+        xpLedger: { create: jest.fn() },
+        user: {
+          findUnique: jest.fn().mockResolvedValue(null),
+          update: jest.fn()
+        },
+      };
+      return fn(tx);
+    });
 
     const req = mockRequest({ actionType: 'connect_twitter' });
     const res = await POST(req);
@@ -161,7 +175,10 @@ describe('POST /api/action/claim', () => {
       const tx = {
         action: { create: jest.fn().mockResolvedValue({ id: 'action-2', type: 'daily_pow', userId: 'user-1', xp: 20, metadata: null, timestamp: new Date() }) },
         xpLedger: { create: jest.fn().mockResolvedValue({ id: 'ledger-2' }) },
-        user: { update: jest.fn().mockResolvedValue({ id: 'user-1', xp: 110, tier: 'Citizen' }) },
+        user: {
+          findUnique: jest.fn().mockResolvedValue({ id: 'user-1', xp: 90 }),
+          update: jest.fn().mockResolvedValue({ id: 'user-1', xp: 110, tier: 'Citizen' }),
+        },
       };
       return fn(tx);
     });
