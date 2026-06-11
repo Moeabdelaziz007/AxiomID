@@ -5,9 +5,6 @@
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    user: {
-      findUnique: jest.fn(),
-    },
     userAgent: {
       findUnique: jest.fn(),
       create: jest.fn(),
@@ -21,18 +18,45 @@ jest.mock('@/lib/rate-limiter', () => ({
 jest.mock('@/lib/ip', () => ({
   getClientIp: jest.fn(() => '127.0.0.1'),
 }));
+jest.mock('@/lib/auth-middleware', () => ({
+  requireAuth: jest.fn().mockResolvedValue({
+    error: null,
+    user: {
+      id: 'user-1',
+      walletAddress: 'pi:testuser',
+      piUid: 'pi-uid-1',
+      piUsername: 'testuser',
+      xp: 0,
+      tier: 'Visitor',
+    },
+  }),
+}));
 
 import { POST } from '@/app/api/agent/route';
 import { prisma } from '@/lib/prisma';
+import { requireAuth } from '@/lib/auth-middleware';
 import { checkRateLimit } from '@/lib/rate-limiter';
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
+const mockRequireAuth = requireAuth as jest.MockedFunction<typeof requireAuth>;
 const mockCheckRateLimit = checkRateLimit as jest.Mock;
 
-function mockPostRequest(body: unknown) {
+const DEFAULT_AUTH_USER = {
+  id: 'user-1',
+  walletAddress: 'pi:testuser',
+  piUid: 'pi-uid-1',
+  piUsername: 'testuser',
+  xp: 0,
+  tier: 'Visitor',
+};
+
+function mockPostRequest(body: unknown = {}) {
   return new Request('http://localhost/api/agent', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer test-pi-token',
+    },
     body: JSON.stringify(body),
   }) as any;
 }
@@ -41,10 +65,10 @@ describe('POST /api/agent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 99, resetAt: Date.now() + 60000 });
+    mockRequireAuth.mockResolvedValue({ error: null, user: DEFAULT_AUTH_USER });
   });
 
   it('creates an agent for an existing user with default name', async () => {
-    mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', walletAddress: '0xabc' } as any);
     mockPrisma.userAgent.findUnique.mockResolvedValue(null);
     mockPrisma.userAgent.create.mockResolvedValue({
       id: 'agent-1',
@@ -53,7 +77,7 @@ describe('POST /api/agent', () => {
       status: 'INACTIVE',
     } as any);
 
-    const req = mockPostRequest({ walletAddress: '0xabc' });
+    const req = mockPostRequest();
     const res = await POST(req);
     const data = await res.json();
 
@@ -61,10 +85,10 @@ describe('POST /api/agent', () => {
     expect(data.agentId).toBe('agent-1');
     expect(data.name).toBe('My Agent');
     expect(data.status).toBe('INACTIVE');
+    expect(data.publicId).toBe('pub-agent-1');
   });
 
   it('creates an agent with custom name and description', async () => {
-    mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-2', walletAddress: '0xdef' } as any);
     mockPrisma.userAgent.findUnique.mockResolvedValue(null);
     mockPrisma.userAgent.create.mockResolvedValue({
       id: 'agent-2',
@@ -73,7 +97,7 @@ describe('POST /api/agent', () => {
       status: 'INACTIVE',
     } as any);
 
-    const req = mockPostRequest({ walletAddress: '0xdef', name: 'Custom Agent', description: 'My custom description' });
+    const req = mockPostRequest({ name: 'Custom Agent', description: 'My custom description' });
     const res = await POST(req);
     const data = await res.json();
 
@@ -81,19 +105,53 @@ describe('POST /api/agent', () => {
     expect(data.name).toBe('Custom Agent');
   });
 
-  it('returns 400 when walletAddress is missing', async () => {
-    const req = mockPostRequest({});
-    const res = await POST(req);
-    const data = await res.json();
+  it('creates agent with INACTIVE status and AUTONOMOUS mode', async () => {
+    mockPrisma.userAgent.findUnique.mockResolvedValue(null);
+    mockPrisma.userAgent.create.mockResolvedValue({
+      id: 'agent-1',
+      publicId: 'pub-1',
+      name: 'My Agent',
+      status: 'INACTIVE',
+    } as any);
 
-    expect(res.status).toBe(400);
-    expect(data.code).toBe('VALIDATION_ERROR');
+    const req = mockPostRequest();
+    await POST(req);
+
+    expect(mockPrisma.userAgent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: 'user-1',
+        status: 'INACTIVE',
+        mode: 'AUTONOMOUS',
+      }),
+    });
+  });
+
+  it('uses default name "My Agent" when name not provided', async () => {
+    mockPrisma.userAgent.findUnique.mockResolvedValue(null);
+    mockPrisma.userAgent.create.mockResolvedValue({
+      id: 'agent-1',
+      publicId: 'pub-1',
+      name: 'My Agent',
+      status: 'INACTIVE',
+    } as any);
+
+    const req = mockPostRequest();
+    await POST(req);
+
+    expect(mockPrisma.userAgent.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        name: 'My Agent',
+      }),
+    });
   });
 
   it('returns 400 on invalid JSON body', async () => {
     const req = new Request('http://localhost/api/agent', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer test-pi-token',
+      },
       body: 'not-json',
     }) as any;
     const res = await POST(req);
@@ -103,22 +161,26 @@ describe('POST /api/agent', () => {
     expect(data.code).toBe('VALIDATION_ERROR');
   });
 
-  it('returns 404 when user is not found', async () => {
-    mockPrisma.user.findUnique.mockResolvedValue(null);
+  it('returns 401 when Authorization token is missing', async () => {
+    mockRequireAuth.mockResolvedValue({
+      error: { json: async () => ({ error: 'UNAUTHORIZED', code: 'UNAUTHORIZED' }), status: 401 } as any,
+      user: null,
+    });
 
-    const req = mockPostRequest({ walletAddress: '0xnotfound' });
+    const req = new Request('http://localhost/api/agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    }) as any;
+
     const res = await POST(req);
-    const data = await res.json();
-
-    expect(res.status).toBe(404);
-    expect(data.code).toBe('NOT_FOUND');
+    expect(res.status).toBe(401);
   });
 
   it('returns 409 when user already has an agent', async () => {
-    mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-3', walletAddress: '0xexists' } as any);
     mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'existing-agent' } as any);
 
-    const req = mockPostRequest({ walletAddress: '0xexists' });
+    const req = mockPostRequest();
     const res = await POST(req);
     const data = await res.json();
 
@@ -129,7 +191,7 @@ describe('POST /api/agent', () => {
   it('returns 429 when rate limit is exceeded', async () => {
     mockCheckRateLimit.mockResolvedValue({ allowed: false, remaining: 0, resetAt: Date.now() + 60000 });
 
-    const req = mockPostRequest({ walletAddress: '0xabc' });
+    const req = mockPostRequest();
     const res = await POST(req);
     const data = await res.json();
 
@@ -137,16 +199,43 @@ describe('POST /api/agent', () => {
     expect(data.code).toBe('RATE_LIMITED');
   });
 
-  it('returns 500 on database error', async () => {
-    mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', walletAddress: '0xabc' } as any);
+  it('returns 500 on database error during create', async () => {
     mockPrisma.userAgent.findUnique.mockResolvedValue(null);
     mockPrisma.userAgent.create.mockRejectedValue(new Error('DB error'));
 
-    const req = mockPostRequest({ walletAddress: '0xabc' });
+    const req = mockPostRequest();
     const res = await POST(req);
     const data = await res.json();
 
     expect(res.status).toBe(500);
     expect(data.code).toBe('INTERNAL_ERROR');
+  });
+
+  it('returns 500 on database error during findUnique', async () => {
+    mockPrisma.userAgent.findUnique.mockRejectedValue(new Error('DB error'));
+
+    const req = mockPostRequest();
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(data.code).toBe('INTERNAL_ERROR');
+  });
+
+  it('looks up agent by user.id from auth token', async () => {
+    mockPrisma.userAgent.findUnique.mockResolvedValue(null);
+    mockPrisma.userAgent.create.mockResolvedValue({
+      id: 'agent-1',
+      publicId: 'pub-1',
+      name: 'My Agent',
+      status: 'INACTIVE',
+    } as any);
+
+    const req = mockPostRequest();
+    await POST(req);
+
+    expect(mockPrisma.userAgent.findUnique).toHaveBeenCalledWith({
+      where: { userId: 'user-1' },
+    });
   });
 });
