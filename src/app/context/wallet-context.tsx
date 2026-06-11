@@ -64,7 +64,7 @@ function checkPiBrowser(): boolean {
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [isLoading] = useState(() => {
+  const [isLoading, setIsLoading] = useState(() => {
     if (typeof window === "undefined") return true;
     return !!(localStorage.getItem("axiomid_wallet") || localStorage.getItem("pi_access_token"));
   });
