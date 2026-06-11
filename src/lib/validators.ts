@@ -16,7 +16,6 @@ export const UserStatusSchema = z.object({
 });
 
 export const ActionClaimSchema = z.object({
-  userId: z.string().min(1, 'userId is required'),
   actionType: z.string().min(1, 'actionType is required').max(100),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });

@@ -95,7 +95,6 @@ describe('UserStatusSchema', () => {
 describe('ActionClaimSchema', () => {
   it('accepts valid action claim', () => {
     const result = ActionClaimSchema.safeParse({
-      userId: '550e8400-e29b-41d4-a716-446655440000',
       actionType: 'connect_twitter',
     });
     expect(result.success).toBe(true);
@@ -103,7 +102,6 @@ describe('ActionClaimSchema', () => {
 
   it('accepts action claim with metadata', () => {
     const result = ActionClaimSchema.safeParse({
-      userId: '550e8400-e29b-41d4-a716-446655440000',
       actionType: 'daily_pow',
       metadata: { source: 'mobile' },
     });
@@ -112,24 +110,23 @@ describe('ActionClaimSchema', () => {
 
   it('rejects empty actionType', () => {
     const result = ActionClaimSchema.safeParse({
-      userId: '550e8400-e29b-41d4-a716-446655440000',
       actionType: '',
     });
     expect(result.success).toBe(false);
   });
 
-  it('accepts Pi UID userId', () => {
+  it('accepts action type up to 100 chars', () => {
+    const longType = 'a'.repeat(100);
     const result = ActionClaimSchema.safeParse({
-      userId: 'pi-user-abc123',
-      actionType: 'connect_twitter',
+      actionType: longType,
     });
     expect(result.success).toBe(true);
   });
 
-  it('rejects empty userId', () => {
+  it('rejects action type over 100 chars', () => {
+    const tooLong = 'a'.repeat(101);
     const result = ActionClaimSchema.safeParse({
-      userId: '',
-      actionType: 'connect_twitter',
+      actionType: tooLong,
     });
     expect(result.success).toBe(false);
   });

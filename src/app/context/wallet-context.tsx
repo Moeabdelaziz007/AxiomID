@@ -129,12 +129,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch("/api/agent", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          walletAddress: user.walletAddress,
-          name,
-          accessToken: piAccessToken || undefined
-        }),
+        headers: {
+          "Content-Type": "application/json",
+          ...(piAccessToken ? { "Authorization": `Bearer ${piAccessToken}` } : {}),
+        },
+        body: JSON.stringify({ name }),
       });
       if (!res.ok) return false;
       await refreshUser();
@@ -149,11 +148,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch("/api/agent/activate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          walletAddress: user.walletAddress,
-          accessToken: piAccessToken || undefined
-        }),
+        headers: {
+          "Content-Type": "application/json",
+          ...(piAccessToken ? { "Authorization": `Bearer ${piAccessToken}` } : {}),
+        },
       });
       if (!res.ok) return false;
       await refreshUser();
@@ -168,11 +166,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch("/api/agent/pause", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          walletAddress: user.walletAddress,
-          accessToken: piAccessToken || undefined
-        }),
+        headers: {
+          "Content-Type": "application/json",
+          ...(piAccessToken ? { "Authorization": `Bearer ${piAccessToken}` } : {}),
+        },
       });
       if (!res.ok) return false;
       await refreshUser();
@@ -317,8 +314,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch("/api/action/claim", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, actionType }),
+        headers: {
+          "Content-Type": "application/json",
+          ...(piAccessToken ? { "Authorization": `Bearer ${piAccessToken}` } : {}),
+        },
+        body: JSON.stringify({ actionType }),
       });
 
       if (!res.ok) {
@@ -339,7 +339,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       console.error("Claim error:", err);
       return false;
     }
-  }, [user]);
+  }, [user, piAccessToken]);
 
   const initRef = useRef(false);
   useEffect(() => {
@@ -351,7 +351,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     if (!storedWallet && !storedToken) return;
 
     fetch(`/api/user/status?walletAddress=${storedWallet}`).then(res => {
-      if (!res.ok) return;
+      if (!res.ok) {
+        setIsLoading(false);
+        return;
+      }
       res.json().then(data => {
         setUser({
           id: data.userId,
@@ -365,8 +368,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           actions: [],
           agent: data.agent || null,
         });
-      });
-    }).catch(() => {});
+        setIsLoading(false);
+      }).catch(() => setIsLoading(false));
+    }).catch(() => setIsLoading(false));
   }, []);
 
   return (

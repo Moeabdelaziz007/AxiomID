@@ -3,9 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { apiError, apiSuccess } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
+import { requireAuth } from '@/lib/auth-middleware';
 
 interface CreateAgentBody {
-  walletAddress: string;
   name?: string;
   description?: string;
 }
@@ -17,6 +17,10 @@ export async function POST(request: NextRequest) {
     return apiError('RATE_LIMITED', 'Too many requests. Try again later.');
   }
 
+  const auth = await requireAuth(request);
+  if (auth.error) return auth.error;
+  const { user } = auth;
+
   let body: unknown;
   try {
     body = await request.json();
@@ -24,12 +28,9 @@ export async function POST(request: NextRequest) {
     return apiError('VALIDATION_ERROR', 'Invalid JSON body');
   }
 
-  const { requireUser } = await import('@/lib/auth-middleware');
-  const { error: authError, user } = await requireUser(request);
-  if (authError) return authError;
-
   const { name, description } = body as CreateAgentBody;
 
+  try {
     const existing = await prisma.userAgent.findUnique({ where: { userId: user.id } });
     if (existing) {
       return apiError('CONFLICT', 'User already has an agent');

@@ -50,7 +50,7 @@ export async function GET(request: Request) {
     },
   };
 
-  let signature = "";
+  let signature: string;
   try {
     const dataToSign = JSON.stringify(manifest, null, 0);
     const key = createPrivateKey({
@@ -61,6 +61,7 @@ export async function GET(request: Request) {
     signature = sign(null, Buffer.from(dataToSign), key).toString("hex");
   } catch (e) {
     console.error("Failed to sign manifest:", e);
+    return NextResponse.json({ error: "Internal cryptographic signing failure" }, { status: 500 });
   }
 
   const signedManifest = {
@@ -70,7 +71,7 @@ export async function GET(request: Request) {
       created: issuanceDate,
       verificationMethod: "did:axiom:axiomid.app:issuer#key-1",
       proofPurpose: "assertionMethod",
-      proofValue: signature || "signature_unavailable",
+      proofValue: signature,
     },
   };
 

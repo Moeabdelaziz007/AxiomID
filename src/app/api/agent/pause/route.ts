@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { apiError, apiSuccess } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
+import { requireAuth } from '@/lib/auth-middleware';
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -11,24 +12,11 @@ export async function POST(request: NextRequest) {
     return apiError('RATE_LIMITED', 'Too many requests. Try again later.');
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return apiError('VALIDATION_ERROR', 'Invalid JSON body');
-  }
-
-  const { walletAddress } = body as { walletAddress?: string };
-  if (!walletAddress) {
-    return apiError('VALIDATION_ERROR', 'walletAddress is required');
-  }
+  const auth = await requireAuth(request);
+  if (auth.error) return auth.error;
+  const { user } = auth;
 
   try {
-    const user = await prisma.user.findUnique({ where: { walletAddress } });
-    if (!user) {
-      return apiError('NOT_FOUND', 'User not found');
-    }
-
     const agent = await prisma.userAgent.findUnique({ where: { userId: user.id } });
     if (!agent) {
       return apiError('NOT_FOUND', 'No agent found for this user');
