@@ -70,8 +70,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: '/axiomid-banner.png',
-        width: 1200,
-        height: 630,
+        width: 640,
+        height: 640,
         alt: 'AxiomID - Human Authorization Protocol',
       },
     ],
@@ -79,7 +79,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     title: "AxiomID - The Human Authorization Protocol",
     description: "Prove human intent behind AI actions with decentralized identity verification",
     images: ['/axiomid-banner.png'],

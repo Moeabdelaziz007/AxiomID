@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 function getSecret(): string | null {
-  return process.env.GITHUB_CLIENT_SECRET || null;
+  return process.env.OAUTH_STATE_SECRET || process.env.GITHUB_CLIENT_SECRET || null;
 }
 
 /**

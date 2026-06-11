@@ -17,17 +17,17 @@ export function getLastPiError(): string | null {
 export async function connectPi(pushLog?: any): Promise<PiAuthResult> {
   try {
     const pi = new PiSdkBase();
-    const connectResult = await Promise.race([
+    await Promise.race([
       pi.connect(),
       new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error("Pi authentication timed out")), 15000),
       ),
     ]);
-    const user = connectResult?.user ?? PiSdkBase.user ?? PiSdkBase.get_user?.();
+    const user = PiSdkBase.user ?? PiSdkBase.get_user();
     if (!user) {
       throw new Error("Authentication failed - no user data received");
     }
-    const token = connectResult?.token ?? PiSdkBase.accessToken;
+    const token = PiSdkBase.accessToken;
     if (!token) {
       throw new Error("Authentication failed - no token received");
     }
@@ -67,8 +67,8 @@ export async function runWalletTest(pushLog?: any): Promise<void> {
   try {
     const pi = new PiSdkBase();
     await pi.connect();
-    const user = PiSdkBase.user ?? PiSdkBase.get_user?.();
-    pushLog?.(`Wallet test passed: ${user?.name || user?.uid || "unknown"}`);
+    const user = PiSdkBase.user ?? PiSdkBase.get_user();
+    pushLog?.(`Wallet test passed: ${user?.name || "unknown"}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Wallet test failed";
     pushLog?.(`Wallet test failed: ${message}`);

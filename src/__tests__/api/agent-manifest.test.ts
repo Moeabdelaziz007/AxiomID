@@ -64,17 +64,17 @@ describe('GET /api/agent/manifest', () => {
     expect(data.credentialSubject.id).toBe('did:axiom:axiomid.app:anonymous');
   });
 
-  it('falls back to "signature_unavailable" when ISSUER_PRIVATE_KEY is not set', async () => {
+  it('returns 500 when ISSUER_PRIVATE_KEY is not set', async () => {
     // No env var set
     const req = mockGetRequest({ userId: 'user-456' });
     const res = await GET(req);
     const data = await res.json();
 
-    expect(res.status).toBe(200);
-    expect(data.proof.proofValue).toBe('signature_unavailable');
+    expect(res.status).toBe(500);
+    expect(data.error).toContain('cryptographic');
   });
 
-  it('falls back to "signature_unavailable" when crypto signing throws', async () => {
+  it('returns 500 when crypto signing throws', async () => {
     process.env.ISSUER_PRIVATE_KEY = 'bad-key-content';
     mockCreatePrivateKey.mockImplementation(() => {
       throw new Error('Invalid key format');
@@ -84,11 +84,13 @@ describe('GET /api/agent/manifest', () => {
     const res = await GET(req);
     const data = await res.json();
 
-    expect(res.status).toBe(200);
-    expect(data.proof.proofValue).toBe('signature_unavailable');
+    expect(res.status).toBe(500);
+    expect(data.error).toContain('cryptographic');
   });
 
   it('returns correct Content-Type and CORS headers', async () => {
+    process.env.ISSUER_PRIVATE_KEY = '-----BEGIN PRIVATE KEY-----\nfakekey\n-----END PRIVATE KEY-----';
+    mockSign.mockReturnValue(Buffer.from('deadbeef', 'hex'));
     const req = mockGetRequest({ userId: 'test-user' });
     const res = await GET(req);
 
@@ -98,6 +100,8 @@ describe('GET /api/agent/manifest', () => {
   });
 
   it('includes required manifest fields', async () => {
+    process.env.ISSUER_PRIVATE_KEY = '-----BEGIN PRIVATE KEY-----\nfakekey\n-----END PRIVATE KEY-----';
+    mockSign.mockReturnValue(Buffer.from('deadbeef', 'hex'));
     const req = mockGetRequest({ userId: 'myuser' });
     const res = await GET(req);
     const data = await res.json();
@@ -111,6 +115,8 @@ describe('GET /api/agent/manifest', () => {
   });
 
   it('includes proof with correct structure', async () => {
+    process.env.ISSUER_PRIVATE_KEY = '-----BEGIN PRIVATE KEY-----\nfakekey\n-----END PRIVATE KEY-----';
+    mockSign.mockReturnValue(Buffer.from('deadbeef', 'hex'));
     const req = mockGetRequest({ userId: 'u1' });
     const res = await GET(req);
     const data = await res.json();
