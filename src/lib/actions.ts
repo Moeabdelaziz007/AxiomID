@@ -4,7 +4,6 @@ export const ACTIONS = {
   VERIFY_IDENTITY: { id: 'verify_identity', xp: 100 }, // Simulated
   PROOF_OF_WORK_DAILY: { id: 'daily_pow', xp: 20 },
   WALLET_ACTIVITY: { id: 'wallet_age', xp: 300 }, // Simulated based on wallet age
-  CONNECT_GITHUB: { id: 'connect_github', xp: 50 }, // Base 50 XP + up to 300 XP from codebase scanner
   CONNECT_GOOGLE: { id: 'connect_google', xp: 50 },
   CONNECT_CRYPTO_WALLET: { id: 'connect_crypto_wallet', xp: 100 },
 };
