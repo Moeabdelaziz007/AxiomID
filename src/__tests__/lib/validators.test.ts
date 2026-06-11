@@ -174,12 +174,19 @@ describe('WalletConnectSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('rejects empty state token', () => {
+  it('accepts empty state token (state is optional for demo wallets)', () => {
     const result = WalletConnectSchema.safeParse({
       walletAddress: '0x' + 'a'.repeat(40),
       state: '',
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts missing state entirely (demo flow)', () => {
+    const result = WalletConnectSchema.safeParse({
+      walletAddress: 'demo:abc12345',
+    });
+    expect(result.success).toBe(true);
   });
 });
 
