@@ -44,6 +44,7 @@ import { POST } from '@/app/api/action/claim/route';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/auth-middleware';
 import { checkRateLimit } from '@/lib/rate-limiter';
+import { DEFAULT_AUTH_USER, makeAuthError } from '@/__tests__/helpers/api-test-helpers';
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 const mockRequireAuth = requireAuth as jest.MockedFunction<typeof requireAuth>;
@@ -63,17 +64,7 @@ function mockRequest(body: unknown): Request {
 describe('POST /api/action/claim', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRequireAuth.mockResolvedValue({
-      error: null,
-      user: {
-        id: 'user-1',
-        walletAddress: 'pi:testuser',
-        piUid: 'pi-uid-1',
-        piUsername: 'testuser',
-        xp: 0,
-        tier: 'Visitor',
-      },
-    });
+    mockRequireAuth.mockResolvedValue({ error: null, user: DEFAULT_AUTH_USER });
   });
 
   it('claims XP for valid action', async () => {
@@ -98,18 +89,9 @@ describe('POST /api/action/claim', () => {
   });
 
   it('returns 401 without auth token', async () => {
-    mockRequireAuth.mockResolvedValue({
-      error: { json: () => ({ error: 'UNAUTHORIZED', code: 'UNAUTHORIZED' }), status: 401 } as any,
-      user: null,
-    });
+    mockRequireAuth.mockResolvedValue({ error: makeAuthError(), user: null });
 
-    const req = new Request('http://localhost/api/action/claim', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ actionType: 'connect_twitter' }),
-    });
-
-    const res = await POST(req);
+    const res = await POST(mockRequest({ actionType: 'connect_twitter' }));
     expect(res.status).toBe(401);
   });
 
@@ -151,14 +133,7 @@ describe('POST /api/action/claim', () => {
   it('upgrades tier when XP threshold crossed', async () => {
     mockRequireAuth.mockResolvedValue({
       error: null,
-      user: {
-        id: 'user-1',
-        walletAddress: 'pi:testuser',
-        piUid: 'pi-uid-1',
-        piUsername: 'testuser',
-        xp: 90,
-        tier: 'Citizen',
-      },
+      user: { ...DEFAULT_AUTH_USER, xp: 90, tier: 'Citizen' },
     });
     mockPrisma.action.findUnique.mockResolvedValue(null);
     mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', xp: 90 } as any);

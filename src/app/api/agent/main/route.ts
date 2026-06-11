@@ -4,11 +4,7 @@ import { apiError, apiSuccess } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { requireAuth } from '@/lib/auth-middleware';
-
-interface AgentMainBody {
-  action: string;
-  params?: Record<string, unknown>;
-}
+import { AgentActionSchema } from '@/lib/validators';
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -28,10 +24,12 @@ export async function POST(request: NextRequest) {
     return apiError('VALIDATION_ERROR', 'Invalid JSON body');
   }
 
-  const { action, params } = body as AgentMainBody;
-  if (!action) {
-    return apiError('VALIDATION_ERROR', 'action is required');
+  const parsed = AgentActionSchema.safeParse(body);
+  if (!parsed.success) {
+    return apiError('VALIDATION_ERROR', parsed.error.issues[0].message, parsed.error.issues);
   }
+
+  const { action, params } = parsed.data;
 
   try {
     const agent = await prisma.userAgent.findUnique({ where: { userId: user.id } });

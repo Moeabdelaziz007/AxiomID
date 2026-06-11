@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+const WALLET_ADDRESS_REGEX = /^(G[A-Z2-7]{54}|0x[a-fA-F0-9]{40}|pi:[a-zA-Z0-9_-]+|demo:[a-zA-Z0-9-]+)$/;
+
 export const PiAuthSchema = z.object({
   accessToken: z.string().min(1, 'accessToken is required'),
   uid: z.string().min(1, 'uid is required'),
@@ -10,7 +12,7 @@ export const PiAuthSchema = z.object({
 
 export const UserStatusSchema = z.object({
   userId: z.string().min(1).optional(),
-  walletAddress: z.string().regex(/^(G[A-Z2-7]{54}|0x[a-fA-F0-9]{40}|pi:[a-zA-Z0-9_-]+|demo:[a-zA-Z0-9-]+)$/, 'Invalid wallet address').optional(),
+  walletAddress: z.string().regex(WALLET_ADDRESS_REGEX, 'Invalid wallet address').optional(),
 }).refine((data) => data.userId || data.walletAddress, {
   message: 'Either userId or walletAddress is required',
 });
@@ -20,8 +22,13 @@ export const ActionClaimSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
+export const AgentActionSchema = z.object({
+  action: z.string().min(1, 'action is required'),
+  params: z.record(z.string(), z.unknown()).optional(),
+});
+
 export const WalletConnectSchema = z.object({
-  walletAddress: z.string().regex(/^(G[A-Z2-7]{54}|0x[a-fA-F0-9]{40}|pi:[a-zA-Z0-9_-]+|demo:[a-zA-Z0-9-]+)$/, 'Invalid wallet address'),
+  walletAddress: z.string().regex(WALLET_ADDRESS_REGEX, 'Invalid wallet address'),
   state: z.string().min(1, 'state token is required'),
   signature: z.string().optional(),
 });
@@ -38,6 +45,7 @@ export const PaymentCompleteSchema = z.object({
 export type PiAuthInput = z.infer<typeof PiAuthSchema>;
 export type UserStatusInput = z.infer<typeof UserStatusSchema>;
 export type ActionClaimInput = z.infer<typeof ActionClaimSchema>;
+export type AgentActionInput = z.infer<typeof AgentActionSchema>;
 export type WalletConnectInput = z.infer<typeof WalletConnectSchema>;
 export type PaymentApproveInput = z.infer<typeof PaymentApproveSchema>;
 export type PaymentCompleteInput = z.infer<typeof PaymentCompleteSchema>;

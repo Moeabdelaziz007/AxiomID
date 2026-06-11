@@ -39,19 +39,11 @@ import { POST } from '@/app/api/agent/main/route';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/auth-middleware';
 import { checkRateLimit } from '@/lib/rate-limiter';
+import { DEFAULT_AUTH_USER, makeAuthError } from '@/__tests__/helpers/api-test-helpers';
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 const mockRequireAuth = requireAuth as jest.MockedFunction<typeof requireAuth>;
 const mockCheckRateLimit = checkRateLimit as jest.Mock;
-
-const DEFAULT_AUTH_USER = {
-  id: 'user-1',
-  walletAddress: 'pi:testuser',
-  piUid: 'pi-uid-1',
-  piUsername: 'testuser',
-  xp: 0,
-  tier: 'Visitor',
-};
 
 const ACTIVE_AGENT = {
   id: 'agent-1',
@@ -188,18 +180,9 @@ describe('POST /api/agent/main', () => {
   });
 
   it('returns 401 when Authorization token is missing', async () => {
-    mockRequireAuth.mockResolvedValue({
-      error: { json: async () => ({ error: 'UNAUTHORIZED', code: 'UNAUTHORIZED' }), status: 401 } as any,
-      user: null,
-    });
+    mockRequireAuth.mockResolvedValue({ error: makeAuthError(), user: null });
 
-    const req = new Request('http://localhost/api/agent/main', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'scan' }),
-    }) as any;
-
-    const res = await POST(req);
+    const res = await POST(mockPostRequest({ action: 'scan' }));
     expect(res.status).toBe(401);
   });
 
