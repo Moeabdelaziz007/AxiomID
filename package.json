@@ -49,13 +49,11 @@
   "dependencies": {
     "@pinetwork/pi-sdk-js": "^2.0.0",
     "@prisma/client": "^6.0.0",
-    "@upstash/redis": "^1.38.0",
     "framer-motion": "^12.40.0",
     "next": "16.2.7",
     "qrcode.react": "^4.2.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
-    "siwe": "^2.3.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {
