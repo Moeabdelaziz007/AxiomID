@@ -45,18 +45,20 @@ const WalletContext = createContext<WalletContextType | null>(null);
 
 function checkPiBrowser(): boolean {
   if (typeof navigator === "undefined") return false;
-  if (isPiSdkLoaded()) return true;
-  if (process.env.NEXT_PUBLIC_PI_SANDBOX === "true") return true;
-  
-  try {
-    if (window.self !== window.top) return true;
-  } catch (e) {
-    // Cross-origin iframe check might throw, meaning we are in an iframe
-    return true; 
-  }
-  
+
   const ua = navigator.userAgent;
-  return /Pi Browser|minepi/i.test(ua);
+  if (/Pi Browser|minepi/i.test(ua)) return true;
+
+  if (typeof window !== "undefined" && window.Pi?.authenticate) return true;
+
+  try {
+    if (window.self !== window.top) {
+      const referrer = document.referrer || "";
+      if (referrer.includes("minepi.com") || referrer.includes("sandbox.minepi.com")) return true;
+    }
+  } catch {}
+
+  return false;
 }
 
 export function WalletProvider({ children }: { children: ReactNode }) {
@@ -119,12 +121,44 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       }
 
       pushLog("جاري التوثيق عبر Pi SDK...");
-      const { accessToken, user: piUser } = await connectPi(pushLog);
+      let accessToken: string;
+      let piUser: { uid: string; username: string; name: string; wallet_address?: string };
+
+      try {
+        const result = await connectPi(pushLog);
+        accessToken = result.accessToken;
+        piUser = result.user;
+      } catch (err: any) {
+        if (err?.message === "NOT_IN_PI_BROWSER") {
+          pushLog("Not inside Pi Browser — using demo wallet");
+          const walletAddress = `demo:${crypto.randomUUID().slice(0, 8)}`;
+          localStorage.setItem("axiomid_wallet", walletAddress);
+          pushLog(`Demo wallet: ${walletAddress}`);
+
+          const res = await fetch("/api/auth/connect", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ walletAddress }),
+          });
+
+          if (!res.ok) throw new Error("Demo auth failed");
+          const data = await res.json();
+          pushLog(`Logged in successfully`);
+          setUser({
+            ...data.user,
+            trustScore: data.user.trustScore ?? Math.min(100, Math.floor((data.user.xp || 0) / 10)),
+            createdAt: data.user.createdAt ?? new Date().toISOString(),
+          });
+          return;
+        }
+        throw err;
+      }
+
       setPiAccessToken(accessToken);
       localStorage.setItem("pi_access_token", accessToken);
       const walletAddress = `pi:${piUser.uid}`;
-      const stellarAddress = (piUser as any).wallet_address || null;
-      pushLog(`عنوان المحفظة: ${walletAddress}`);
+      const stellarAddress = piUser.wallet_address || null;
+      pushLog(`Wallet: ${walletAddress}`);
       if (stellarAddress) pushLog(`Stellar Address: ${stellarAddress}`);
 
       pushLog("جاري التحقق من صحة التوثيق مع السيرفر...");

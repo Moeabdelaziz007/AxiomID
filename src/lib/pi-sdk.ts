@@ -18,13 +18,21 @@ export function isPiSdkLoaded(): boolean {
   return !!(Pi?.authenticate);
 }
 
-function isSandboxIframe(): boolean {
-  if (typeof window === "undefined") return false;
+export function isRealPiBrowser(): boolean {
+  if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+
+  if (/Pi Browser|minepi/i.test(navigator.userAgent)) return true;
+
+  if (window.Pi?.authenticate) return true;
+
   try {
-    return window.self !== window.top;
-  } catch {
-    return true;
-  }
+    if (window.self !== window.top) {
+      const ref = document.referrer || "";
+      if (ref.includes("minepi.com") || ref.includes("sandbox.minepi.com")) return true;
+    }
+  } catch {}
+
+  return false;
 }
 
 function loadCdnScript(): Promise<void> {
@@ -40,6 +48,33 @@ function loadCdnScript(): Promise<void> {
     script.onerror = () => reject(new Error("Failed to load Pi SDK CDN script"));
     document.head.appendChild(script);
   });
+}
+
+export async function ensurePiSdk(onLog?: LogFn): Promise<any> {
+  onLog?.("[PI-SDK] Checking Pi SDK availability...");
+
+  let Pi = getWindowPi();
+  if (Pi?.authenticate) {
+    onLog?.("[PI-SDK] window.Pi found");
+    return Pi;
+  }
+
+  if (!isRealPiBrowser()) {
+    onLog?.("[PI-SDK] Not inside Pi Browser - skipping CDN load");
+    return null;
+  }
+
+  onLog?.("[PI-SDK] Inside Pi Browser - loading CDN script...");
+  await loadCdnScript();
+
+  Pi = getWindowPi();
+  if (Pi?.authenticate) {
+    onLog?.("[PI-SDK] window.Pi ready after CDN load");
+    return Pi;
+  }
+
+  onLog?.("[PI-SDK] window.Pi still not available");
+  return null;
 }
 
 function waitForAccessToken(onLog?: LogFn, timeoutMs = 30000): Promise<{ accessToken: string; user: any }> {
@@ -66,36 +101,11 @@ function waitForAccessToken(onLog?: LogFn, timeoutMs = 30000): Promise<{ accessT
             },
           });
         }
-      } catch {
-        // not our message
-      }
+      } catch {}
     }
 
     window.addEventListener("message", handler);
   });
-}
-
-export async function ensurePiSdk(onLog?: LogFn): Promise<any> {
-  onLog?.("[PI-SDK] Checking Pi SDK availability...");
-
-  let Pi = getWindowPi();
-  if (Pi?.authenticate) {
-    onLog?.("[PI-SDK] window.Pi found");
-    return Pi;
-  }
-
-  onLog?.("[PI-SDK] Loading CDN script...");
-  await loadCdnScript();
-  onLog?.("[PI-SDK] CDN script loaded");
-
-  Pi = getWindowPi();
-  if (Pi?.authenticate) {
-    onLog?.("[PI-SDK] window.Pi ready after CDN load");
-    return Pi;
-  }
-
-  onLog?.("[PI-SDK] window.Pi still not available - using postMessage fallback");
-  return null;
 }
 
 export async function connectPi(onLog?: LogFn): Promise<PiAuthResult> {
@@ -103,8 +113,12 @@ export async function connectPi(onLog?: LogFn): Promise<PiAuthResult> {
     throw new Error("Pi SDK only works in browser");
   }
 
-  const inSandbox = isSandboxIframe();
-  onLog?.(`[PI-SDK] Sandbox iframe: ${inSandbox}`);
+  const realPiBrowser = isRealPiBrowser();
+  onLog?.(`[PI-SDK] Real Pi Browser: ${realPiBrowser}`);
+
+  if (!realPiBrowser) {
+    throw new Error("NOT_IN_PI_BROWSER");
+  }
 
   const Pi = await ensurePiSdk(onLog);
 
@@ -150,7 +164,7 @@ export async function connectPi(onLog?: LogFn): Promise<PiAuthResult> {
         onLog?.(`[PI-SDK] Attempt ${attempt} failed: ${msg}`);
 
         if (msg.includes("unauthorized_app")) {
-          onLog?.(`[PI-SDK] unauthorized_app - sandbox may need to re-authorize, waiting...`);
+          onLog?.(`[PI-SDK] unauthorized_app - waiting for sandbox retry...`);
           await new Promise((r) => setTimeout(r, 3000));
           continue;
         }
@@ -167,9 +181,7 @@ export async function connectPi(onLog?: LogFn): Promise<PiAuthResult> {
   if (Pi) {
     try {
       await Pi.authenticate(["payments", "username", "wallet_address"], () => {});
-    } catch {
-      // ignore - we're waiting for postMessage
-    }
+    } catch {}
   } else {
     onLog?.("[PI-SDK] Sending ready message to Pi sandbox parent...");
     try {
@@ -201,10 +213,16 @@ export async function runWalletTest(onLog: LogFn): Promise<void> {
   }
 
   const Pi = getWindowPi();
-  const inSandbox = isSandboxIframe();
+  const realPi = isRealPiBrowser();
   onLog?.(`[WALLET-TEST] window.Pi: ${Pi ? "YES" : "NO"}`);
-  onLog?.(`[WALLET-TEST] Sandbox iframe: ${inSandbox}`);
+  onLog?.(`[WALLET-TEST] Real Pi Browser: ${realPi}`);
   onLog?.(`[WALLET-TEST] NEXT_PUBLIC_PI_SANDBOX: ${process.env.NEXT_PUBLIC_PI_SANDBOX || "undefined"}`);
+
+  if (!realPi) {
+    onLog?.("[WALLET-TEST] NOT inside Pi Browser - cannot test Pi SDK");
+    onLog?.("[WALLET-TEST] Open this app inside Pi Browser to test auth");
+    return;
+  }
 
   try {
     await ensurePiSdk(onLog);
