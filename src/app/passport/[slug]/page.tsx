@@ -5,8 +5,6 @@ import { useParams } from "next/navigation";
 import { AgentPassport } from "@/components/AgentPassport";
 import { AgentQR } from "@/components/AgentQR";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
-import { createPassportDid } from "@/lib/did";
 
 interface PassportData {
   username: string;
@@ -20,57 +18,6 @@ interface PassportData {
   issuedDate: string;
   agentName: string | null;
   agentStatus: string | null;
-}
-
-async function getAgentData(slug: string) {
-  const user = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { piUsername: slug },
-        { walletAddress: `pi:${slug}` },
-        { id: slug },
-      ],
-    },
-    include: {
-      agent: true,
-    },
-  });
-
-  if (!user) {
-    return {
-      username: slug,
-      walletAddress: `pi:${slug}`,
-      stellarAddress: null,
-      tier: "Visitor" as const,
-      trustScore: 0,
-      kyaStatus: "pending" as const,
-      kycStatus: "pending" as const,
-      issuedDate: new Date().toISOString(),
-      did: createPassportDid(slug),
-      xp: 0,
-    };
-  }
-
-  // Map database KYCStatus enum to AgentPassport statuses
-  const kycStatusMap: Record<string, "pending" | "verified" | "failed" | "none"> = {
-    VERIFIED: "verified",
-    REJECTED: "failed",
-    NONE: "none",
-  };
-  const mappedKyc = kycStatusMap[user.kycStatus] ?? "pending";
-
-  return {
-    username: user.piUsername || slug,
-    walletAddress: user.walletAddress,
-    stellarAddress: user.agent?.publicKey || null,
-    tier: (user.tier as any) || "Visitor",
-    trustScore: Math.min(100, Math.floor((user.xp || 0) / 10)),
-    kyaStatus: "verified" as const,
-    kycStatus: mappedKyc,
-    issuedDate: user.createdAt.toISOString(),
-    did: user.did || createPassportDid(slug),
-    xp: user.xp,
-  };
 }
 
 export default function PassportPage() {

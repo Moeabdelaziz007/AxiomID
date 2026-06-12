@@ -396,15 +396,21 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     const inPiBrowser = checkPiBrowser();
 
     if (inPiBrowser) {
-      setIsLoading(true);
-      connectWallet().finally(() => setIsLoading(false));
+      (async () => {
+        setIsLoading(true);
+        try {
+          await connectWallet();
+        } finally {
+          setIsLoading(false);
+        }
+      })();
       return;
     }
 
     const storedWallet = localStorage.getItem("axiomid_wallet");
     const storedToken = localStorage.getItem("pi_access_token");
     if (!storedWallet && !storedToken) {
-      setIsLoading(false);
+      queueMicrotask(() => setIsLoading(false));
       return;
     }
 
@@ -413,7 +419,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       headers["Authorization"] = `Bearer ${storedToken}`;
     }
 
-    setIsLoading(true);
+    queueMicrotask(() => setIsLoading(true));
     fetch(`/api/user/status`, { headers }).then(res => {
       if (!res.ok) {
         localStorage.removeItem("axiomid_wallet");

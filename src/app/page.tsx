@@ -8,7 +8,7 @@ import Link from "next/link";
 /* ============================================
    FLOATING PASSPORT HERO
    ============================================ */
-function PassportHero({ user }: { user: any }) {
+function PassportHero({ user }: { user: { piUsername?: string | null; walletAddress?: string; tier?: { toString(): string } | null } | null }) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   useEffect(() => {

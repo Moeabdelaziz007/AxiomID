@@ -45,7 +45,6 @@ const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 // the implementation diverges from the spec the tests will catch it.
 // This is intentional: we're testing the *behaviour* described in the PR diff.
 
-type KycStatusKey = "VERIFIED" | "REJECTED" | "NONE";
 type AgentStatus = "pending" | "verified" | "failed" | "none";
 
 const kycStatusMap: Record<string, AgentStatus> = {
@@ -55,7 +54,7 @@ const kycStatusMap: Record<string, AgentStatus> = {
 };
 
 async function getAgentData(slug: string) {
-  const user = await (prisma.user as any).findFirst({
+  const user = await (prisma.user as unknown as { findFirst: (args: unknown) => Promise<Record<string, unknown> | null> }).findFirst({
     where: {
       OR: [
         { piUsername: slug },
@@ -114,12 +113,12 @@ describe("getAgentData — user not found", () => {
 
   it("builds walletAddress as 'pi:<slug>' when user not found", async () => {
     const result = await getAgentData("alice");
-    expect((result as any).walletAddress).toBe("pi:alice");
+    expect((result as Record<string, unknown>).walletAddress).toBe("pi:alice");
   });
 
   it("builds DID as 'did:axiom:axiomid.app:<slug>' when user not found", async () => {
     const result = await getAgentData("bob");
-    expect((result as any).did).toBe("did:axiom:axiomid.app:bob");
+    expect((result as Record<string, unknown>).did).toBe("did:axiom:axiomid.app:bob");
   });
 
   it("queries by piUsername, walletAddress with pi: prefix, and id", async () => {
