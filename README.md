@@ -22,7 +22,7 @@
 
 <div align="center">
 
-<sub>Satellites: [**L4 `AlphaAxiom`**](https://github.com/Moeabdelaziz007/AlphaAxiom) &nbsp;.&nbsp; [**L5 `PiWorker-OS`**](https://github.com/Moeabdelaziz007/PiWorker-OS) &nbsp;.&nbsp; [**L6 `GemClaw`**](https://github.com/Moeabdelaziz007/GemClaw) &nbsp;.&nbsp; identity flows: L0 -&gt; all (every agent carries did:axiom:axiomid.app:*)</sub>
+<sub>Satellites: [**L4 `AlphaAxiom`**](https://github.com/Moeabdelaziz007/AlphaAxiom) &nbsp;.&nbsp; [**L5 `PiWorker-OS`**](https://github.com/Moeabdelaziz007/PiWorker-OS) &nbsp;.&nbsp; [**L6 `GemClaw`**](https://github.com/Moeabdelaziz007/GemClaw) &nbsp;.&nbsp; identity flows: L0 -&gt; all (every agent carries did:axiom:axiomid.app:\*)</sub>
 
 </div>
 
@@ -68,11 +68,13 @@
 **AxiomID** rejects the dystopian future of iris scans and hardware dependencies. We believe your identity is defined by your **history**, your **actions**, and your **reputation**—not your biology.
 
 We are building the **"Quantum Command Center"** for digital identity:
+
 - **Software-First:** No Orbs, no hardware.
 - **Privacy-Preserving:** Zero-knowledge proofs of humanity.
 - **Asset-Based:** Your reputation is an asset you build, own, and stake.
 
 ### The "Sophisticated Engineering" Aesthetic
+
 Our UI reflects our code: dark, precise, and data-dense. We use an **OLED Black** foundation with **Neon Emerald** (Verified) and **Electric Blue** (Data) accents. It feels like jacking into a secure mainframe, not browsing a marketing site.
 
 ---
@@ -81,20 +83,22 @@ Our UI reflects our code: dark, precise, and data-dense. We use an **OLED Black*
 
 AxiomID uses a progressive trust model. You don't just "have" an ID; you **level up** your clearance.
 
-| Tier | XP | Status | Description |
-| :--- | :--- | :--- | :--- |
-| **GHOST** | 0 | 🌑 Locked | Unverified. Lurker status. Limited access. |
-| **SPARK** | 100 | 🟢 Verified | Basic "Proof of Humanity". Social accounts connected. |
-| **PULSE** | 500 | 🔵 Active | Proven history. Active wallet, transaction history. |
-| **AXIOM** | 1000 | 🟣 Elite | High reputation. Financial stake locked. Vouching power. |
+| Tier      | XP   | Status      | Description                                              |
+| :-------- | :--- | :---------- | :------------------------------------------------------- |
+| **GHOST** | 0    | 🌑 Locked   | Unverified. Lurker status. Limited access.               |
+| **SPARK** | 100  | 🟢 Verified | Basic "Proof of Humanity". Social accounts connected.    |
+| **PULSE** | 500  | 🔵 Active   | Proven history. Active wallet, transaction history.      |
+| **AXIOM** | 1000 | 🟣 Elite    | High reputation. Financial stake locked. Vouching power. |
 
 ### 🛠️ Tech Stack
+
 - **Frontend:** Next.js 16 (App Router), Tailwind CSS, Framer Motion (Bento Grids, Floating Elements).
 - **Backend:** Next.js API Routes (Serverless).
 - **Database:** SQLite (via **Prisma ORM**) for rapid MVP execution. Ready for migration to PostgreSQL/Supabase.
 - **Auth:** Web3 First (Wallet Connect).
 
 ### 📂 Project Structure
+
 ```
 axiomid/
 ├── src/
@@ -169,6 +173,7 @@ AxiomID is the **Root Authority** of the [**Sovereign AI Stack**](https://github
 We have conducted a deep **[Competitive Analysis](./STRATEGY.md)** of World Network, Gitcoin Passport, and others.
 
 **Upcoming "Moonshot" Features:**
+
 1.  **The Meta-Aggregator:** Ingest scores from Gitcoin/WorldID to boost Axiom XP.
 2.  **Proof of Time-Stake ("The Vault"):** Lock USDC to prove long-term human intent.
 3.  **Axiom Vouch:** High-stakes peer-to-peer verification.
@@ -178,6 +183,7 @@ We have conducted a deep **[Competitive Analysis](./STRATEGY.md)** of World Netw
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 20+
 - npm
 
@@ -199,6 +205,12 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000). Click **"INITIALIZE SEQUENCE"** to connect your wallet (simulated or real).
+
+### Pi Sandbox vs. Demo Wallet
+
+- **Pi sandbox** (`NEXT_PUBLIC_PI_SANDBOX=true`) uses the Pi SDK sandbox environment. It still requires Pi Browser/App Studio and should be used when validating Pi auth and Pi Platform flows before mainnet/production.
+- **Demo wallet** (`NEXT_PUBLIC_ENABLE_DEMO_WALLET=true`) creates a synthetic `demo:` wallet only for local development outside Pi Browser. It is not a Pi account, not a Pi sandbox account, and must not be used to validate production identity or payments.
+- **Production rule:** App Studio and Pi Browser deployments must not rely on demo wallets. In production, users should authenticate through Pi Browser; if demo mode is disabled and the app is opened elsewhere, the UI will tell the user: `افتح التطبيق من Pi Browser`.
 
 ---
 
@@ -227,20 +239,27 @@ See [`LICENSE`](./LICENSE) for full terms. This repository is private (`package.
 ## 🌍 الرؤية والفلسفة
 
 نحن نرفض المستقبل الديستوبي الذي يعتمد على مسح قزحية العين والأجهزة المعقدة. **AxiomID** هو "مركز القيادة" للهوية الرقمية:
+
 - **برمجيات أولاً (Software-First):** لا حاجة لأجهزة "Orbs".
 - **الخصوصية:** إثبات الإنسانية دون كشف هويت الشخصية.
 - **الأصول:** سمعتك هي أصل تبنيه وتمتلكه.
 
 ## 📐 الهيكلة والمستويات
 
-| المستوى | XP | الحالة | الوصف |
-| :--- | :--- | :--- | :--- |
-| **GHOST** | 0 | 🌑 شبح | غير موثق. صلاحيات محدودة. |
-| **SPARK** | 100 | 🟢 شرارة | إثبات إنسانية أساسي (حسابات اجتماعية). |
-| **PULSE** | 500 | 🔵 نبض | تاريخ موثق. نشاط محفظة ومعاملات. |
+| المستوى   | XP   | الحالة   | الوصف                                       |
+| :-------- | :--- | :------- | :------------------------------------------ |
+| **GHOST** | 0    | 🌑 شبح   | غير موثق. صلاحيات محدودة.                   |
+| **SPARK** | 100  | 🟢 شرارة | إثبات إنسانية أساسي (حسابات اجتماعية).      |
+| **PULSE** | 500  | 🔵 نبض   | تاريخ موثق. نشاط محفظة ومعاملات.            |
 | **AXIOM** | 1000 | 🟣 بدهية | سمعة عالية. رهان مالي (Stake). قوة التزكية. |
 
 ## 🚀 البدء السريع
+
+### Pi sandbox مقابل demo wallet
+
+- **Pi sandbox** عبر `NEXT_PUBLIC_PI_SANDBOX=true` يعني استخدام بيئة Pi الرسمية للتجربة، لكنه ما زال يعتمد على Pi Browser/App Studio وتوثيق Pi الحقيقي داخل sandbox.
+- **Demo wallet** عبر `NEXT_PUBLIC_ENABLE_DEMO_WALLET=true` ينشئ محفظة اصطناعية بصيغة `demo:` للتطوير المحلي خارج Pi Browser فقط. هذا ليس حساب Pi وليس sandbox Pi.
+- **قاعدة الإنتاج:** App Studio/Pi Browser في الإنتاج يجب ألا يستخدم demo wallet. عند تعطيل demo وفتح التطبيق خارج Pi Browser ستظهر الرسالة: `افتح التطبيق من Pi Browser`.
 
 ```bash
 # 1. استنساخ المستودع

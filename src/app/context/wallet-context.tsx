@@ -1,6 +1,14 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  ReactNode,
+} from "react";
 import { Tier, getLevelProgress, getNextLevelXP } from "@/lib/tiers";
 import { connectPi, runWalletTest } from "@/lib/pi-sdk";
 
@@ -28,6 +36,8 @@ interface WalletContextType {
   isConnecting: boolean;
   error: string | null;
   isPiBrowser: boolean;
+  isDemoWallet: boolean;
+  isDemoWalletEnabled: boolean;
   connectWallet: () => Promise<void>;
   claimAction: (actionType: string) => Promise<boolean>;
   refreshUser: () => Promise<void>;
@@ -43,6 +53,34 @@ interface WalletContextType {
 
 const WalletContext = createContext<WalletContextType | null>(null);
 
+const OPEN_IN_PI_BROWSER_MESSAGE = "افتح التطبيق من Pi Browser";
+function isDemoWalletAllowed(): boolean {
+  return (
+    process.env.NEXT_PUBLIC_ENABLE_DEMO_WALLET === "true" &&
+    process.env.NODE_ENV !== "production"
+  );
+}
+
+function isDemoWalletAddress(walletAddress?: string | null): boolean {
+  return walletAddress?.startsWith("demo:") ?? false;
+}
+
+function getStoredWallet(): string | null {
+  if (typeof window === "undefined") return null;
+
+  const walletAddress = localStorage.getItem("axiomid_wallet");
+  if (isDemoWalletAddress(walletAddress) && !isDemoWalletAllowed()) {
+    localStorage.removeItem("axiomid_wallet");
+    return null;
+  }
+
+  return walletAddress;
+}
+
+function createDemoWalletAddress(): string {
+  return `demo:${crypto.randomUUID().slice(0, 8)}`;
+}
+
 function checkPiBrowser(): boolean {
   if (typeof navigator === "undefined") return false;
 
@@ -54,22 +92,35 @@ function checkPiBrowser(): boolean {
   try {
     if (window.self !== window.top) {
       const referrer = document.referrer || "";
-      if (referrer.includes("minepi.com") || referrer.includes("sandbox.minepi.com")) return true;
+      if (
+        referrer.includes("minepi.com") ||
+        referrer.includes("sandbox.minepi.com")
+      )
+        return true;
     }
   } catch {}
 
   return false;
 }
 
-function buildUserFromApiData(data: any, fallback?: { stellarAddress?: string | null; createdAt?: string; actions?: User["actions"] }): User {
+function buildUserFromApiData(
+  data: any,
+  fallback?: {
+    stellarAddress?: string | null;
+    createdAt?: string;
+    actions?: User["actions"];
+  },
+): User {
   return {
     id: data.userId,
     walletAddress: data.walletAddress,
     stellarAddress: data.stellarAddress || fallback?.stellarAddress || null,
     xp: data.xp,
     tier: data.tier,
-    trustScore: data.trustScore ?? Math.min(100, Math.floor((data.xp || 0) / 10)),
-    createdAt: data.createdAt || fallback?.createdAt || new Date().toISOString(),
+    trustScore:
+      data.trustScore ?? Math.min(100, Math.floor((data.xp || 0) / 10)),
+    createdAt:
+      data.createdAt || fallback?.createdAt || new Date().toISOString(),
     piUsername: data.piUsername,
     actions: fallback?.actions || [],
     agent: data.agent || null,
@@ -81,7 +132,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isLoading, setIsLoading] = useState(() => {
     if (typeof window === "undefined") return true;
-    return !!(localStorage.getItem("axiomid_wallet") || localStorage.getItem("pi_access_token"));
+    return !!(getStoredWallet() || localStorage.getItem("pi_access_token"));
   });
   const [error, setError] = useState<string | null>(null);
   const [isPiBrowser] = useState(checkPiBrowser);
@@ -94,50 +145,65 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   const levelProgress = user ? getLevelProgress(user.xp, user.tier) : 0;
   const nextXP = user ? getNextLevelXP(user.tier) : null;
+  const isDemoWallet = isDemoWalletAddress(user?.walletAddress);
+  const isDemoWalletEnabled = isDemoWalletAllowed();
   const [walletLogs, setWalletLogs] = useState<string[]>([]);
 
   const pushLog = useCallback((msg: string) => {
-    setWalletLogs((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
+    setWalletLogs((prev) => [
+      ...prev,
+      `[${new Date().toLocaleTimeString()}] ${msg}`,
+    ]);
   }, []);
 
   const clearWalletLogs = useCallback(() => setWalletLogs([]), []);
 
-  const refreshUser = useCallback(async (walletAddress?: string) => {
-    const addr = walletAddress || user?.walletAddress;
-    if (!addr) return;
-    try {
-      const res = await fetch(`/api/user/status?walletAddress=${addr}`);
-      if (res.ok) {
-        const data = await res.json();
-        setUser(buildUserFromApiData(data, {
-          stellarAddress: user?.stellarAddress,
-          createdAt: user?.createdAt,
-          actions: user?.actions,
-        }));
+  const refreshUser = useCallback(
+    async (walletAddress?: string) => {
+      const addr = walletAddress || user?.walletAddress;
+      if (!addr) return;
+      try {
+        const res = await fetch(`/api/user/status?walletAddress=${addr}`);
+        if (res.ok) {
+          const data = await res.json();
+          setUser(
+            buildUserFromApiData(data, {
+              stellarAddress: user?.stellarAddress,
+              createdAt: user?.createdAt,
+              actions: user?.actions,
+            }),
+          );
+        }
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error(e);
-    }
-  }, [user]);
+    },
+    [user],
+  );
 
-  const createAgent = useCallback(async (name?: string) => {
-    if (!user) return false;
-    try {
-      const res = await fetch("/api/agent", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(piAccessToken ? { "Authorization": `Bearer ${piAccessToken}` } : {}),
-        },
-        body: JSON.stringify({ name }),
-      });
-      if (!res.ok) return false;
-      await refreshUser();
-      return true;
-    } catch {
-      return false;
-    }
-  }, [user, refreshUser, piAccessToken]);
+  const createAgent = useCallback(
+    async (name?: string) => {
+      if (!user) return false;
+      try {
+        const res = await fetch("/api/agent", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(piAccessToken
+              ? { Authorization: `Bearer ${piAccessToken}` }
+              : {}),
+          },
+          body: JSON.stringify({ name }),
+        });
+        if (!res.ok) return false;
+        await refreshUser();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [user, refreshUser, piAccessToken],
+  );
 
   const activateAgent = useCallback(async () => {
     if (!user) return false;
@@ -146,7 +212,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(piAccessToken ? { "Authorization": `Bearer ${piAccessToken}` } : {}),
+          ...(piAccessToken
+            ? { Authorization: `Bearer ${piAccessToken}` }
+            : {}),
         },
       });
       if (!res.ok) return false;
@@ -164,7 +232,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(piAccessToken ? { "Authorization": `Bearer ${piAccessToken}` } : {}),
+          ...(piAccessToken
+            ? { Authorization: `Bearer ${piAccessToken}` }
+            : {}),
         },
       });
       if (!res.ok) return false;
@@ -176,7 +246,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, [user, refreshUser, piAccessToken]);
 
   const connectDemoWallet = useCallback(async (walletAddress: string) => {
-    localStorage.setItem("axiomid_wallet", walletAddress);
+    if (!isDemoWalletAllowed()) {
+      throw new Error(OPEN_IN_PI_BROWSER_MESSAGE);
+    }
+
     const res = await fetch("/api/auth/connect", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -184,9 +257,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     });
     if (!res.ok) throw new Error("Demo auth failed");
     const data = await res.json();
+    if (process.env.NODE_ENV !== "production") {
+      localStorage.setItem("axiomid_wallet", walletAddress);
+    }
     setUser({
       ...data.user,
-      trustScore: data.user.trustScore ?? Math.min(100, Math.floor((data.user.xp || 0) / 10)),
+      trustScore:
+        data.user.trustScore ??
+        Math.min(100, Math.floor((data.user.xp || 0) / 10)),
       createdAt: data.user.createdAt ?? new Date().toISOString(),
     });
   }, []);
@@ -201,11 +279,17 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       pushLog(`حالة Pi Browser: ${inPiBrowser ? "نعم ✅" : "لا"}`);
 
       if (!inPiBrowser) {
+        if (!isDemoWalletAllowed()) {
+          pushLog(OPEN_IN_PI_BROWSER_MESSAGE);
+          throw new Error(OPEN_IN_PI_BROWSER_MESSAGE);
+        }
+
         pushLog("وضع التجربة (non-Pi browser)...");
-        const storedWallet = localStorage.getItem("axiomid_wallet");
-        const walletAddress = storedWallet && storedWallet.startsWith("demo:")
-          ? storedWallet
-          : `demo:${crypto.randomUUID().slice(0, 8)}`;
+        const storedWallet = getStoredWallet();
+        const walletAddress =
+          storedWallet && isDemoWalletAddress(storedWallet)
+            ? storedWallet
+            : createDemoWalletAddress();
         pushLog(`محفظة مؤقتة: ${walletAddress}`);
         await connectDemoWallet(walletAddress);
         pushLog(`تم تسجيل الدخول بنجاح ✅`);
@@ -214,7 +298,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
       pushLog("جاري التوثيق عبر Pi SDK...");
       let accessToken: string;
-      let piUser: { uid: string; username: string; name: string; wallet_address?: string };
+      let piUser: {
+        uid: string;
+        username: string;
+        name: string;
+        wallet_address?: string;
+      };
 
       try {
         const result = await connectPi(pushLog);
@@ -222,8 +311,17 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         piUser = result.user;
       } catch (err: unknown) {
         if (err instanceof Error && err.message === "NOT_IN_PI_BROWSER") {
+          if (!isDemoWalletAllowed()) {
+            pushLog(OPEN_IN_PI_BROWSER_MESSAGE);
+            throw new Error(OPEN_IN_PI_BROWSER_MESSAGE);
+          }
+
           pushLog("Not inside Pi Browser — using demo wallet");
-          const walletAddress = `demo:${crypto.randomUUID().slice(0, 8)}`;
+          const storedWallet = getStoredWallet();
+          const walletAddress =
+            storedWallet && isDemoWalletAddress(storedWallet)
+              ? storedWallet
+              : createDemoWalletAddress();
           pushLog(`Demo wallet: ${walletAddress}`);
           await connectDemoWallet(walletAddress);
           pushLog(`Logged in successfully`);
@@ -293,37 +391,53 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   }, [pushLog, clearWalletLogs]);
 
-  const claimAction = useCallback(async (actionType: string) => {
-    if (!user) return false;
-    try {
-      const res = await fetch("/api/action/claim", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(piAccessToken ? { "Authorization": `Bearer ${piAccessToken}` } : {}),
-        },
-        body: JSON.stringify({ actionType }),
-      });
+  const claimAction = useCallback(
+    async (actionType: string) => {
+      if (!user) return false;
+      try {
+        const res = await fetch("/api/action/claim", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(piAccessToken
+              ? { Authorization: `Bearer ${piAccessToken}` }
+              : {}),
+          },
+          body: JSON.stringify({ actionType }),
+        });
 
-      if (!res.ok) {
-        const err = await res.json();
-        setError(err.error || "Failed to claim");
+        if (!res.ok) {
+          const err = await res.json();
+          setError(err.error || "Failed to claim");
+          return false;
+        }
+
+        const data = await res.json();
+        setUser((prev) =>
+          prev
+            ? {
+                ...prev,
+                xp: data.newBalance,
+                tier: data.tier,
+                actions: [
+                  ...(prev.actions || []),
+                  {
+                    type: actionType,
+                    xp: data.xpEarned,
+                    timestamp: new Date().toISOString(),
+                  },
+                ],
+              }
+            : prev,
+        );
+        return true;
+      } catch (err) {
+        console.error("Claim error:", err);
         return false;
       }
-
-      const data = await res.json();
-      setUser((prev) => prev ? {
-        ...prev,
-        xp: data.newBalance,
-        tier: data.tier,
-        actions: [...(prev.actions || []), { type: actionType, xp: data.xpEarned, timestamp: new Date().toISOString() }],
-      } : prev);
-      return true;
-    } catch (err) {
-      console.error("Claim error:", err);
-      return false;
-    }
-  }, [user, piAccessToken]);
+    },
+    [user, piAccessToken],
+  );
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.Pi) {
@@ -351,9 +465,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const storedWallet = localStorage.getItem("axiomid_wallet");
+    const storedWallet = getStoredWallet();
     const storedToken = localStorage.getItem("pi_access_token");
     if (!storedWallet && !storedToken) {
+      setIsLoading(false);
+      return;
+    }
+
+    if (!storedWallet) {
       setIsLoading(false);
       return;
     }
@@ -361,7 +480,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     (async () => {
       try {
-        const res = await fetch(`/api/user/status?walletAddress=${storedWallet}`);
+        const res = await fetch(
+          `/api/user/status?walletAddress=${storedWallet}`,
+        );
         if (res.ok) {
           const data = await res.json();
           setUser(buildUserFromApiData(data));
@@ -382,6 +503,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         isConnecting,
         error,
         isPiBrowser,
+        isDemoWallet,
+        isDemoWalletEnabled,
         connectWallet,
         claimAction,
         refreshUser,

@@ -15,7 +15,11 @@ jest.mock("@/lib/pi-sdk", () => {
 const mockConnectPi = connectPi as jest.MockedFunction<typeof connectPi>;
 
 // A helper component to consume and expose the wallet context for testing assertions
-function TestConsumer({ onUpdate }: { onUpdate: (value: ReturnType<typeof useWallet>) => void }) {
+function TestConsumer({
+  onUpdate,
+}: {
+  onUpdate: (value: ReturnType<typeof useWallet>) => void;
+}) {
   const wallet = useWallet();
   React.useEffect(() => {
     onUpdate(wallet);
@@ -24,8 +28,12 @@ function TestConsumer({ onUpdate }: { onUpdate: (value: ReturnType<typeof useWal
   return (
     <div>
       <div data-testid="status">{wallet.isLoading ? "loading" : "idle"}</div>
-      <div data-testid="user">{wallet.user ? wallet.user.walletAddress : "no-user"}</div>
-      <button data-testid="connect-btn" onClick={wallet.connectWallet}>Connect</button>
+      <div data-testid="user">
+        {wallet.user ? wallet.user.walletAddress : "no-user"}
+      </div>
+      <button data-testid="connect-btn" onClick={wallet.connectWallet}>
+        Connect
+      </button>
     </div>
   );
 }
@@ -33,6 +41,7 @@ function TestConsumer({ onUpdate }: { onUpdate: (value: ReturnType<typeof useWal
 describe("WalletProvider & WalletContext", () => {
   const originalUserAgent = window.navigator.userAgent;
   const originalSandboxEnv = process.env.NEXT_PUBLIC_PI_SANDBOX;
+  const originalDemoWalletEnv = process.env.NEXT_PUBLIC_ENABLE_DEMO_WALLET;
   let mockFetch: jest.Mock;
 
   beforeEach(() => {
@@ -40,7 +49,8 @@ describe("WalletProvider & WalletContext", () => {
     localStorage.clear();
     delete (window as any).Pi;
     process.env.NEXT_PUBLIC_PI_SANDBOX = "false";
-    
+    process.env.NEXT_PUBLIC_ENABLE_DEMO_WALLET = "false";
+
     // Reset User Agent
     Object.defineProperty(window.navigator, "userAgent", {
       value: originalUserAgent,
@@ -55,6 +65,7 @@ describe("WalletProvider & WalletContext", () => {
   afterEach(() => {
     jest.restoreAllMocks();
     process.env.NEXT_PUBLIC_PI_SANDBOX = originalSandboxEnv;
+    process.env.NEXT_PUBLIC_ENABLE_DEMO_WALLET = originalDemoWalletEnv;
   });
 
   const setUserAgent = (ua: string) => {
@@ -68,8 +79,12 @@ describe("WalletProvider & WalletContext", () => {
     let contextValue: any;
     render(
       <WalletProvider>
-        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
-      </WalletProvider>
+        <TestConsumer
+          onUpdate={(val) => {
+            contextValue = val;
+          }}
+        />
+      </WalletProvider>,
     );
 
     await waitFor(() => {
@@ -79,6 +94,31 @@ describe("WalletProvider & WalletContext", () => {
     expect(contextValue.user).toBeNull();
     expect(contextValue.isPiBrowser).toBe(false);
     expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("blocks demo wallet creation outside Pi Browser when demo mode is disabled", async () => {
+    let contextValue: any;
+    const { getByTestId } = render(
+      <WalletProvider>
+        <TestConsumer
+          onUpdate={(val) => {
+            contextValue = val;
+          }}
+        />
+      </WalletProvider>,
+    );
+
+    await waitFor(() => expect(contextValue.isLoading).toBe(false));
+
+    await act(async () => {
+      getByTestId("connect-btn").click();
+    });
+
+    await waitFor(() => expect(contextValue.isConnecting).toBe(false));
+
+    expect(contextValue.error).toBe("افتح التطبيق من Pi Browser");
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(localStorage.getItem("axiomid_wallet")).toBeNull();
   });
 
   it("calls Pi.init if window.Pi is defined on mount", async () => {
@@ -91,7 +131,7 @@ describe("WalletProvider & WalletContext", () => {
     render(
       <WalletProvider>
         <div>Test</div>
-      </WalletProvider>
+      </WalletProvider>,
     );
 
     expect(mockInit).toHaveBeenCalledWith({
@@ -110,7 +150,7 @@ describe("WalletProvider & WalletContext", () => {
     render(
       <WalletProvider>
         <div>Test</div>
-      </WalletProvider>
+      </WalletProvider>,
     );
 
     expect(mockInit).toHaveBeenCalledWith({
@@ -120,6 +160,7 @@ describe("WalletProvider & WalletContext", () => {
   });
 
   it("restores user status via API if external browser has saved credentials in localStorage", async () => {
+    process.env.NEXT_PUBLIC_ENABLE_DEMO_WALLET = "true";
     localStorage.setItem("axiomid_wallet", "demo:wallet123");
     localStorage.setItem("pi_access_token", "token123");
 
@@ -141,13 +182,19 @@ describe("WalletProvider & WalletContext", () => {
     let contextValue: any;
     render(
       <WalletProvider>
-        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
-      </WalletProvider>
+        <TestConsumer
+          onUpdate={(val) => {
+            contextValue = val;
+          }}
+        />
+      </WalletProvider>,
     );
 
     // Should fetch from user status endpoint
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith("/api/user/status?walletAddress=demo:wallet123");
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/user/status?walletAddress=demo:wallet123",
+      );
       expect(contextValue.isLoading).toBe(false);
     });
 
@@ -159,7 +206,7 @@ describe("WalletProvider & WalletContext", () => {
   it("performs silent auto-connect on mount if inside Pi Browser user-agent", async () => {
     // Simulate Pi Browser user agent
     setUserAgent("Pi Browser; Android; minepi");
-    
+
     // Set up connectPi mock
     mockConnectPi.mockResolvedValueOnce({
       token: "pi-token-456",
@@ -187,8 +234,12 @@ describe("WalletProvider & WalletContext", () => {
     let contextValue: any;
     render(
       <WalletProvider>
-        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
-      </WalletProvider>
+        <TestConsumer
+          onUpdate={(val) => {
+            contextValue = val;
+          }}
+        />
+      </WalletProvider>,
     );
 
     // Should auto-connect and wait until isLoading is false
@@ -197,9 +248,12 @@ describe("WalletProvider & WalletContext", () => {
     });
 
     expect(mockConnectPi).toHaveBeenCalled();
-    expect(mockFetch).toHaveBeenCalledWith("/api/auth/pi", expect.objectContaining({
-      method: "POST",
-    }));
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/auth/pi",
+      expect.objectContaining({
+        method: "POST",
+      }),
+    );
     expect(contextValue.user).not.toBeNull();
     expect(contextValue.user.walletAddress).toBe("pi:pi-uid-456");
     expect(contextValue.user.piUsername).toBe("pibrowseruser");
@@ -216,8 +270,12 @@ describe("WalletProvider & WalletContext", () => {
     let contextValue: any;
     render(
       <WalletProvider>
-        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
-      </WalletProvider>
+        <TestConsumer
+          onUpdate={(val) => {
+            contextValue = val;
+          }}
+        />
+      </WalletProvider>,
     );
 
     await waitFor(() => {
@@ -236,8 +294,12 @@ describe("WalletProvider & WalletContext", () => {
     let contextValue: any;
     render(
       <WalletProvider>
-        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
-      </WalletProvider>
+        <TestConsumer
+          onUpdate={(val) => {
+            contextValue = val;
+          }}
+        />
+      </WalletProvider>,
     );
 
     await waitFor(() => {
@@ -252,7 +314,7 @@ describe("WalletProvider & WalletContext", () => {
     render(
       <WalletProvider>
         <div>Test</div>
-      </WalletProvider>
+      </WalletProvider>,
     );
 
     // No assertion failure means Pi.init was not called (no window.Pi)
@@ -260,6 +322,7 @@ describe("WalletProvider & WalletContext", () => {
   });
 
   it("connectWallet in external browser creates a demo wallet and stores it in localStorage", async () => {
+    process.env.NEXT_PUBLIC_ENABLE_DEMO_WALLET = "true";
     // Respond to the /api/auth/connect request
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -281,8 +344,12 @@ describe("WalletProvider & WalletContext", () => {
     let contextValue: any;
     const { getByTestId } = render(
       <WalletProvider>
-        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
-      </WalletProvider>
+        <TestConsumer
+          onUpdate={(val) => {
+            contextValue = val;
+          }}
+        />
+      </WalletProvider>,
     );
 
     await waitFor(() => expect(contextValue.isLoading).toBe(false));
@@ -295,13 +362,14 @@ describe("WalletProvider & WalletContext", () => {
 
     expect(mockFetch).toHaveBeenCalledWith(
       "/api/auth/connect",
-      expect.objectContaining({ method: "POST" })
+      expect.objectContaining({ method: "POST" }),
     );
     expect(localStorage.getItem("axiomid_wallet")).toMatch(/^demo:/);
     expect(contextValue.user).not.toBeNull();
   });
 
   it("connectWallet reuses existing demo wallet from localStorage", async () => {
+    process.env.NEXT_PUBLIC_ENABLE_DEMO_WALLET = "true";
     localStorage.setItem("axiomid_wallet", "demo:existing1");
 
     // Restore call from initRef useEffect
@@ -340,8 +408,12 @@ describe("WalletProvider & WalletContext", () => {
     let contextValue: any;
     const { getByTestId } = render(
       <WalletProvider>
-        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
-      </WalletProvider>
+        <TestConsumer
+          onUpdate={(val) => {
+            contextValue = val;
+          }}
+        />
+      </WalletProvider>,
     );
 
     await waitFor(() => expect(contextValue.isLoading).toBe(false));
@@ -354,7 +426,7 @@ describe("WalletProvider & WalletContext", () => {
 
     // The connect call should have used the existing "demo:existing1" address
     const connectCall = mockFetch.mock.calls.find(
-      (call) => call[0] === "/api/auth/connect"
+      (call) => call[0] === "/api/auth/connect",
     );
     expect(connectCall).toBeDefined();
     const body = JSON.parse(connectCall![1].body);
@@ -362,6 +434,7 @@ describe("WalletProvider & WalletContext", () => {
   });
 
   it("connectWallet in Pi Browser falls back to demo wallet when connectPi throws NOT_IN_PI_BROWSER", async () => {
+    process.env.NEXT_PUBLIC_ENABLE_DEMO_WALLET = "true";
     setUserAgent("Pi Browser; Android; minepi");
 
     mockConnectPi.mockRejectedValueOnce(new Error("NOT_IN_PI_BROWSER"));
@@ -388,15 +461,19 @@ describe("WalletProvider & WalletContext", () => {
     let contextValue: any;
     render(
       <WalletProvider>
-        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
-      </WalletProvider>
+        <TestConsumer
+          onUpdate={(val) => {
+            contextValue = val;
+          }}
+        />
+      </WalletProvider>,
     );
 
     await waitFor(() => expect(contextValue.isLoading).toBe(false));
 
     expect(mockFetch).toHaveBeenCalledWith(
       "/api/auth/connect",
-      expect.objectContaining({ method: "POST" })
+      expect.objectContaining({ method: "POST" }),
     );
     expect(localStorage.getItem("axiomid_wallet")).toMatch(/^demo:/);
     expect(contextValue.user).not.toBeNull();
@@ -435,8 +512,12 @@ describe("WalletProvider & WalletContext", () => {
     let contextValue: any;
     render(
       <WalletProvider>
-        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
-      </WalletProvider>
+        <TestConsumer
+          onUpdate={(val) => {
+            contextValue = val;
+          }}
+        />
+      </WalletProvider>,
     );
 
     await waitFor(() => expect(contextValue.isLoading).toBe(false));
@@ -446,7 +527,9 @@ describe("WalletProvider & WalletContext", () => {
 
   it("useWallet throws when used outside WalletProvider", () => {
     // Suppress React's error boundary output
-    const consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
+    const consoleError = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
     function Naked() {
       useWallet();
@@ -454,13 +537,14 @@ describe("WalletProvider & WalletContext", () => {
     }
 
     expect(() => render(<Naked />)).toThrow(
-      "useWallet must be used within a WalletProvider"
+      "useWallet must be used within a WalletProvider",
     );
 
     consoleError.mockRestore();
   });
 
   it("buildUserFromApiData uses fallback stellarAddress when API data lacks it", async () => {
+    process.env.NEXT_PUBLIC_ENABLE_DEMO_WALLET = "true";
     localStorage.setItem("axiomid_wallet", "demo:stellartest");
     localStorage.setItem("pi_access_token", "tok");
 
@@ -482,8 +566,12 @@ describe("WalletProvider & WalletContext", () => {
     let contextValue: any;
     render(
       <WalletProvider>
-        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
-      </WalletProvider>
+        <TestConsumer
+          onUpdate={(val) => {
+            contextValue = val;
+          }}
+        />
+      </WalletProvider>,
     );
 
     await waitFor(() => expect(contextValue.isLoading).toBe(false));
@@ -495,6 +583,7 @@ describe("WalletProvider & WalletContext", () => {
   });
 
   it("buildUserFromApiData uses explicit trustScore from API when provided", async () => {
+    process.env.NEXT_PUBLIC_ENABLE_DEMO_WALLET = "true";
     localStorage.setItem("axiomid_wallet", "demo:trusttest");
 
     mockFetch.mockResolvedValueOnce({
@@ -514,8 +603,12 @@ describe("WalletProvider & WalletContext", () => {
     let contextValue: any;
     render(
       <WalletProvider>
-        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
-      </WalletProvider>
+        <TestConsumer
+          onUpdate={(val) => {
+            contextValue = val;
+          }}
+        />
+      </WalletProvider>,
     );
 
     await waitFor(() => expect(contextValue.isLoading).toBe(false));
