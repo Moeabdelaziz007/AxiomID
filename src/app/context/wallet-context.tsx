@@ -114,7 +114,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setError(null);
     setIsLoading(false);
     setIsConnecting(false);
-    console.info("AxiomID wallet logout: cleared saved credentials and signed out user.");
     pushLog("Logged out: cleared saved wallet credentials.");
   }, [pushLog]);
 
@@ -145,7 +144,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           "Content-Type": "application/json",
           ...(piAccessToken ? { "Authorization": `Bearer ${piAccessToken}` } : {}),
         },
-        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+        body: body !== undefined ? JSON.stringify(body) : undefined,
       });
       if (!res.ok) return false;
       await refreshUser();
@@ -168,15 +167,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     });
     if (!res.ok) throw new Error("Demo auth failed");
     const data = await res.json();
-    setUser({
-      ...data.user,
-      trustScore: data.user.trustScore ?? Math.min(100, Math.floor((data.user.xp || 0) / 10)),
-      createdAt: data.user.createdAt ?? new Date().toISOString(),
-    });
+    setUser(buildUserFromApiData(data.user));
   }, []);
 
   const connectWallet = useCallback(async () => {
-    setIsConnecting(true);
+
     setError(null);
     pushLog("بدء الاتصال بالمحفظة...");
 
