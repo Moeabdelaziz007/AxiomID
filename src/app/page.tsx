@@ -229,10 +229,10 @@ export default function Home() {
         </div>
 
         {/* Right: Floating Passport */}
-        <div className="relative">
+        <div className="relative animate-float">
           <PassportHero user={user} />
           {/* Glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-neon-green/5 to-electric-blue/5 blur-3xl rounded-full scale-150 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-neon-green/5 to-electric-blue/5 blur-3xl rounded-full scale-150 pointer-events-none animate-pulse-slow" />
         </div>
       </div>
 
@@ -311,7 +311,7 @@ export default function Home() {
                   background: `${tier.color}10`,
                 }}
               >
-                <span className="font-mono font-bold text-sm" style={{ color: tier.color }}>
+                <span className="font-mono font-bold text-sm animate-pulse-slow" style={{ color: tier.color }}>
                   {tier.name[0]}
                 </span>
               </div>

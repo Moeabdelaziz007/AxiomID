@@ -839,7 +839,7 @@ export default function Dashboard() {
             <div className="flex-1 min-h-[200px] flex flex-col justify-between">
               {onboardingStep === 1 && (
                 <div className="space-y-4">
-                  <div className="text-center py-4 text-4xl">🔌</div>
+                  <div className="text-center py-4 text-4xl animate-float">🔌</div>
                   <h4 className="text-base font-semibold text-white text-center">Connect Your Pi Wallet</h4>
                   <p className="text-xs text-gray-400 text-center leading-relaxed">
                     Link your secure Pi cryptographic identity to anchor your autonomous agent on the AxiomID protocol.
@@ -864,7 +864,7 @@ export default function Dashboard() {
 
               {onboardingStep === 2 && (
                 <div className="space-y-4">
-                  <div className="text-center py-4 text-4xl">🤖</div>
+                  <div className="text-center py-4 text-4xl animate-float">🤖</div>
                   <h4 className="text-base font-semibold text-white text-center">Create Autonomous Agent</h4>
                   <p className="text-xs text-gray-400 text-center leading-relaxed font-mono">
                     Define the name for your autonomous gRPC agent. It will begin at Tier 1 with 0 XP.
@@ -890,7 +890,7 @@ export default function Dashboard() {
 
               {onboardingStep === 3 && (
                 <div className="space-y-4">
-                  <div className="text-center py-4 text-4xl">🎫</div>
+                  <div className="text-center py-4 text-4xl animate-float">🎫</div>
                   <h4 className="text-base font-semibold text-white text-center">Your Passport is Ready!</h4>
                   <p className="text-xs text-gray-400 text-center leading-relaxed">
                     Congratulations! Your agent identity passport has been successfully anchored and is ready to execute automated workflows.

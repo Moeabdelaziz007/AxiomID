@@ -156,7 +156,10 @@ export default function StatusPage() {
                 </div>
                 <div className="flex justify-between p-3 bg-white/5 rounded-lg">
                   <span className="text-gray-500">Status</span>
-                  <span className="text-neon-green">Operational</span>
+                  <span className="inline-flex items-center gap-1.5 text-neon-green">
+                    <span className="w-2 h-2 rounded-full bg-neon-green animate-pulse-slow" />
+                    Operational
+                  </span>
                 </div>
               </div>
             </div>
