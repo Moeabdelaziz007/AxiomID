@@ -47,45 +47,33 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const existingUser = await prisma.user.findUnique({
-      where: { piUid: uid },
-      include: { agent: true },
-    });
-
     const walletAddress = clientWalletAddress || `pi:${uid}`;
     const did = createAxiomDid(walletAddress);
 
-    let user;
-    if (existingUser) {
-      user = await prisma.user.update({
-        where: { id: existingUser.id },
-        data: {
-          piUsername: username,
-          walletAddress,
-          did,
-          didMethod: 'did:axiom',
-          lastActive: new Date(),
-        },
-        include: { agent: true },
-      });
-    } else {
-      user = await prisma.user.create({
-        data: {
-          walletAddress,
-          piUid: uid,
-          piUsername: username,
-          did,
-          didMethod: 'did:axiom',
-          tier: 'Visitor',
-          xp: 0,
-        },
-        include: { agent: true },
-      });
-    }
+    const user = await prisma.user.upsert({
+      where: { piUid: uid },
+      update: {
+        piUsername: username,
+        walletAddress,
+        did,
+        didMethod: 'did:axiom',
+        lastActive: new Date(),
+      },
+      create: {
+        walletAddress,
+        piUid: uid,
+        piUsername: username,
+        did,
+        didMethod: 'did:axiom',
+        tier: 'Visitor',
+        xp: 0,
+      },
+      include: { agent: true },
+    });
 
     const tier = calculateTier(user.xp);
 
-    return apiSuccess({
+
       userId: user.id,
       walletAddress: user.walletAddress,
       stellarAddress: stellarAddress || null,
