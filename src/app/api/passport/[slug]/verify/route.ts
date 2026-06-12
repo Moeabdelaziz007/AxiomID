@@ -23,7 +23,7 @@ function buildVerificationResponse(user: any) {
     xp: user.xp,
     trustScore,
     kycStatus: user.kycStatus,
-    stamps: stamps.map((s: any) => ({
+    stamps: stamps.map((s: { type: string; provider: string; xpAwarded: number; createdAt: Date }) => ({
       type: s.type,
       provider: s.provider,
       xpAwarded: s.xpAwarded,

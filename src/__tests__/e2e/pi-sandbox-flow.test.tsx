@@ -3,7 +3,6 @@ import React from "react";
 import { render, waitFor, act, screen } from "@testing-library/react";
 import { SandboxProvider } from "@/app/context/sandbox-provider";
 import { WalletProvider, useWallet } from "@/app/context/wallet-context";
-import { connectPi } from "@/lib/pi-sdk";
 
 // Mock virtual Pi SDK
 jest.mock("@pinetwork/pi-sdk-js", () => ({
@@ -21,7 +20,6 @@ jest.mock("@/lib/pi-sdk", () => {
   };
 });
 
-const mockConnectPi = connectPi as jest.MockedFunction<typeof connectPi>;
 
 function FlowHarness() {
   const { user, isConnecting, connectWallet, error } = useWallet();

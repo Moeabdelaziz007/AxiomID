@@ -24,7 +24,7 @@ interface PassportData {
 
 export function PassportView() {
   const { slug } = useParams<{ slug: string }>();
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const [passport, setPassport] = useState<PassportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

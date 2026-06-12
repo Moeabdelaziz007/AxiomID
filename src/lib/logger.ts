@@ -1,15 +1,15 @@
 export const logger = {
-  error: (...args: any[]) => {
+  error: (...args: unknown[]) => {
     if (process.env.NODE_ENV !== 'test') {
       console.error(...args);
     }
   },
-  info: (...args: any[]) => {
+  info: (...args: unknown[]) => {
     if (process.env.NODE_ENV !== 'test') {
       console.log(...args);
     }
   },
-  warn: (...args: any[]) => {
+  warn: (...args: unknown[]) => {
     if (process.env.NODE_ENV !== 'test') {
       console.warn(...args);
     }

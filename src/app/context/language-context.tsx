@@ -198,12 +198,18 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem("aix_language") as Language;
     if (saved === "en" || saved === "ar") {
-      setLanguageState(saved);
+      setTimeout(() => {
+        setLanguageState(saved);
+      }, 0);
     } else {
       // Default to english
-      setLanguageState("en");
+      setTimeout(() => {
+        setLanguageState("en");
+      }, 0);
     }
-    setMounted(true);
+    setTimeout(() => {
+      setMounted(true);
+    }, 0);
   }, []);
 
   const setLanguage = (lang: Language) => {
@@ -219,7 +225,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const t = (key: string): string => {
     const dict = translations[language] || translations.en;
-    return (dict as any)[key] || key;
+    return (dict as Record<string, string>)[key] || key;
   };
 
   return (
