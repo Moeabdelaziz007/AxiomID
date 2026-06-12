@@ -5,8 +5,6 @@ import Link from "next/link";
 import { useWallet } from "../../context/wallet-context";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { getLevelProgress, getNextLevelXP, TIERS, Tier } from "@/lib/tiers";
-import { useLanguage } from "../../context/language-context";
-import LanguageToggle from "@/components/LanguageToggle";
 
 interface LedgerEntry {
   id: string;
@@ -32,7 +30,6 @@ interface StatusDetails {
  */
 export default function SettingsPage() {
   const { user, connectWallet, claimAction } = useWallet();
-  const { t, language } = useLanguage();
   const [statusDetails, setStatusDetails] = useState<StatusDetails | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(true);
 
@@ -122,13 +119,11 @@ export default function SettingsPage() {
     if (!stamp) return;
     try {
       // Stamp metadata stores the stringified W3C Verifiable Credential object
-      const parsedVc = JSON.parse(stamp.metadata || "{}");
-      setActiveVc(parsedVc);
-      vcDialogRef.current?.showModal();
+      setActiveVc(JSON.parse(stamp.metadata || "{}"));
     } catch {
       setActiveVc({ error: "Failed to parse Verifiable Credential payload." });
-      vcDialogRef.current?.showModal();
     }
+    vcDialogRef.current?.showModal();
   };
 
   const copyVcPayload = () => {
@@ -141,6 +136,12 @@ export default function SettingsPage() {
   const isPlatformConnected = (platform: "twitter" | "discord" | "google") => {
     return !!user?.stamps?.some((s) => s.type === `connect_${platform}`);
   };
+
+  const PLATFORMS: { id: "twitter" | "discord" | "google"; emoji: string; label: string }[] = [
+    { id: "twitter", emoji: "🐦", label: "Twitter / X" },
+    { id: "discord", emoji: "💬", label: "Discord" },
+    { id: "google", emoji: "🔑", label: "Google Accounts" },
+  ];
 
   // XP Progress Calculation
   const xp = user?.xp || 0;
@@ -184,16 +185,13 @@ export default function SettingsPage() {
               <span className="text-neon-green font-bold text-xl">A</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white">{t("settings_title")}</h1>
-              <p className="text-xs text-gray-400 font-mono">{t("settings_desc")}</p>
+              <h1 className="text-lg font-bold text-white">AxiomID Settings</h1>
+              <p className="text-xs text-gray-400 font-mono">Manage sovereign keys & connections</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <LanguageToggle />
-            <Link href="/dashboard" className="btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5">
-              {language === "ar" ? "← لوحة التحكم" : "← DASHBOARD"}
-            </Link>
-          </div>
+          <Link href="/dashboard" className="btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5">
+            ← DASHBOARD
+          </Link>
         </div>
       </header>
 
@@ -291,90 +289,37 @@ export default function SettingsPage() {
           </p>
 
           <div className="space-y-4">
-            {/* Twitter */}
-            <div className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-xl">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🐦</span>
+            {PLATFORMS.map(({ id, emoji, label }) => (
+              <div key={id} className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{emoji}</span>
+                  <div>
+                    <h4 className="text-sm font-bold text-white">{label}</h4>
+                    <p className="text-xs text-gray-400">XP Reward: +50 XP</p>
+                  </div>
+                </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white">Twitter / X</h4>
-                  <p className="text-xs text-gray-400">XP Reward: +50 XP</p>
+                  {isPlatformConnected(id) ? (
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded text-[10px] bg-neon-green/10 text-neon-green border border-neon-green/20">
+                        CONNECTED
+                      </span>
+                      <button onClick={() => openVcModal(`connect_${id}`)} className="btn-ghost text-xs px-2.5 py-1">
+                        INSPECT VC
+                      </button>
+                    </div>
+                  ) : (
+                    <button onClick={() => openConnectModal(id)} className="btn-primary text-xs px-4 py-1.5">
+                      CONNECT
+                    </button>
+                  )}
                 </div>
               </div>
-              <div>
-                {isPlatformConnected("twitter") ? (
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] bg-neon-green/10 text-neon-green border border-neon-green/20">
-                      CONNECTED
-                    </span>
-                    <button onClick={() => openVcModal("connect_twitter")} className="btn-ghost text-xs px-2.5 py-1">
-                      INSPECT VC
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => openConnectModal("twitter")} className="btn-primary text-xs px-4 py-1.5">
-                    CONNECT
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Discord */}
-            <div className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-xl">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">💬</span>
-                <div>
-                  <h4 className="text-sm font-bold text-white">Discord</h4>
-                  <p className="text-xs text-gray-400">XP Reward: +50 XP</p>
-                </div>
-              </div>
-              <div>
-                {isPlatformConnected("discord") ? (
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] bg-neon-green/10 text-neon-green border border-neon-green/20">
-                      CONNECTED
-                    </span>
-                    <button onClick={() => openVcModal("connect_discord")} className="btn-ghost text-xs px-2.5 py-1">
-                      INSPECT VC
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => openConnectModal("discord")} className="btn-primary text-xs px-4 py-1.5">
-                    CONNECT
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Google */}
-            <div className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-xl">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🔑</span>
-                <div>
-                  <h4 className="text-sm font-bold text-white">Google Accounts</h4>
-                  <p className="text-xs text-gray-400">XP Reward: +50 XP</p>
-                </div>
-              </div>
-              <div>
-                {isPlatformConnected("google") ? (
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] bg-neon-green/10 text-neon-green border border-neon-green/20">
-                      CONNECTED
-                    </span>
-                    <button onClick={() => openVcModal("connect_google")} className="btn-ghost text-xs px-2.5 py-1">
-                      INSPECT VC
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => openConnectModal("google")} className="btn-primary text-xs px-4 py-1.5">
-                    CONNECT
-                  </button>
-                )}
-              </div>
-            </div>
+            ))}
           </div>
         </section>
 
-        {/* Section 4: XP Ledger Logs */}
+
         <section className="bento-card p-6 border border-white/10 bg-black/40 backdrop-blur-md">
           <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <span className="text-yellow-500">📜</span> Cryptographic Action Ledger

@@ -60,6 +60,7 @@ beforeAll(() => {
 // Mock fetch globally for fetchStatusDetails (called on mount when user exists)
 const mockFetch = jest.fn();
 beforeEach(() => {
+  jest.clearAllMocks();
   global.fetch = mockFetch;
   mockFetch.mockResolvedValue({
     ok: true,
@@ -68,7 +69,6 @@ beforeEach(() => {
       stats: { totalActions: 0, totalXP: 0 },
     }),
   });
-  jest.clearAllMocks();
   jest.spyOn(console, "error").mockImplementation(() => {});
 });
 
@@ -140,27 +140,19 @@ describe("isPlatformConnected — reads from user.stamps", () => {
     expect(screen.getByRole("button", { name: /inspect vc/i })).toBeInTheDocument();
   });
 
-  it("shows CONNECTED badge for discord when stamps contains connect_discord", () => {
-    const user = makeUser({
-      stamps: [makeStamp("connect_discord", '{"vc":"discord"}')],
-    });
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
-    render(<SettingsPage />);
+  it.each(["discord", "google"] as const)(
+    "shows CONNECTED badge for %s when stamps contains connect_%s",
+    (platform) => {
+      const user = makeUser({
+        stamps: [makeStamp(`connect_${platform}`, `{"vc":"${platform}"}`)],
+      });
+      mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
+      render(<SettingsPage />);
 
-    const connectedBadges = screen.getAllByText("CONNECTED");
-    expect(connectedBadges.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("shows CONNECTED badge for google when stamps contains connect_google", () => {
-    const user = makeUser({
-      stamps: [makeStamp("connect_google", '{"vc":"google"}')],
-    });
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
-    render(<SettingsPage />);
-
-    const connectedBadges = screen.getAllByText("CONNECTED");
-    expect(connectedBadges.length).toBeGreaterThanOrEqual(1);
-  });
+      const connectedBadges = screen.getAllByText("CONNECTED");
+      expect(connectedBadges.length).toBeGreaterThanOrEqual(1);
+    },
+  );
 
   it("shows all three platforms as CONNECTED when all stamps are present", () => {
     const user = makeUser({
