@@ -21,7 +21,6 @@ const customJestConfig = {
     '<rootDir>/src/app/context/dna-context.test.ts',
     '<rootDir>/src/app/api/__tests__/test-harness.ts',
     '<rootDir>/src/__tests__/api/user-status.test.ts',
-    '<rootDir>/src/__tests__/api/auth-pi.test.ts',
     '<rootDir>/src/__tests__/lib/validate.test.ts',
     '<rootDir>/src/__tests__/test-utils.ts',
   ],

@@ -17,6 +17,25 @@ describe('PiAuthSchema', () => {
     expect(result.success).toBe(true);
   });
 
+  it('strips client-supplied walletAddress and stellarAddress from Pi auth input', () => {
+    const result = PiAuthSchema.safeParse({
+      accessToken: 'valid-token-123',
+      uid: 'user-uid-123',
+      username: 'testuser',
+      walletAddress: 'demo:forged-wallet',
+      stellarAddress: `G${'A'.repeat(55)}`,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({
+        accessToken: 'valid-token-123',
+        uid: 'user-uid-123',
+        username: 'testuser',
+      });
+    }
+  });
+
   it('rejects empty accessToken', () => {
     const result = PiAuthSchema.safeParse({
       accessToken: '',

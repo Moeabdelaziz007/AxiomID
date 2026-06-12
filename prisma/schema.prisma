@@ -14,8 +14,9 @@ datasource db {
 
 model User {
   id            String   @id @default(uuid())
-  walletAddress String   @unique
-  piUid         String?  @unique
+  walletAddress  String   @unique
+  stellarAddress String?
+  piUid          String?  @unique
   piUsername    String?
   piAccessToken String?
 

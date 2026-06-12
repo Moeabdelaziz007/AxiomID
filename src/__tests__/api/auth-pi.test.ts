@@ -49,7 +49,8 @@ describe('POST /api/auth/pi', () => {
     mockPrisma.user.findUnique.mockResolvedValue(null);
     mockPrisma.user.create.mockResolvedValue({
       id: 'user-1',
-      walletAddress: '0xpi-uid-123000000000000000000000000000000',
+      walletAddress: 'pi:pi-uid-123',
+      stellarAddress: null,
       piUid: 'pi-uid-123',
       piUsername: 'testuser',
       xp: 0,
@@ -85,7 +86,8 @@ describe('POST /api/auth/pi', () => {
     } as any);
     mockPrisma.user.update.mockResolvedValue({
       id: 'existing-user',
-      walletAddress: '0x' + '0'.repeat(40),
+      walletAddress: 'pi:existing-uid',
+      stellarAddress: null,
       piUid: 'existing-uid',
       piUsername: 'updated',
       xp: 100,
@@ -107,6 +109,92 @@ describe('POST /api/auth/pi', () => {
     expect(res.status).toBe(200);
     expect(data.userId).toBe('existing-user');
     expect(data.tier).toBe('Citizen');
+  });
+
+  it.each(['demo:client-forged', '0x' + 'a'.repeat(40)])(
+    'ignores client-supplied Pi walletAddress %s when token is valid',
+    async (clientWalletAddress) => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({ uid: 'secure-pi-uid', username: 'secureuser' }),
+      });
+
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      mockPrisma.user.create.mockImplementation(async (args: any) => ({
+        id: 'secure-user',
+        walletAddress: args.data.walletAddress,
+        stellarAddress: args.data.stellarAddress,
+        piUid: args.data.piUid,
+        piUsername: args.data.piUsername,
+        xp: args.data.xp,
+        tier: args.data.tier,
+        did: null,
+        kycStatus: 'NONE',
+        agent: null,
+      } as any));
+
+      const req = mockRequest({
+        accessToken: 'valid-token',
+        uid: 'secure-pi-uid',
+        username: 'secureuser',
+        walletAddress: clientWalletAddress,
+      });
+
+      const res = await POST(req);
+      const data = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(mockPrisma.user.create).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({
+          walletAddress: 'pi:secure-pi-uid',
+        }),
+      }));
+      expect(data.walletAddress).toBe('pi:secure-pi-uid');
+      expect(data.walletAddress).not.toBe(clientWalletAddress);
+    }
+  );
+
+  it('stores an official Pi API Stellar address separately from the Pi wallet identity', async () => {
+    const officialStellarAddress = `G${'A'.repeat(55)}`;
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid: 'stellar-pi-uid', username: 'stellaruser', wallet_address: officialStellarAddress }),
+    });
+
+    mockPrisma.user.findUnique.mockResolvedValue(null);
+    mockPrisma.user.create.mockImplementation(async (args: any) => ({
+      id: 'stellar-user',
+      walletAddress: args.data.walletAddress,
+      stellarAddress: args.data.stellarAddress,
+      piUid: args.data.piUid,
+      piUsername: args.data.piUsername,
+      xp: args.data.xp,
+      tier: args.data.tier,
+      did: null,
+      kycStatus: 'NONE',
+      agent: null,
+    } as any));
+
+    const req = mockRequest({
+      accessToken: 'valid-token',
+      uid: 'stellar-pi-uid',
+      username: 'stellaruser',
+      walletAddress: `0x${'b'.repeat(40)}`,
+      stellarAddress: `G${'B'.repeat(55)}`,
+    });
+
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(mockPrisma.user.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        walletAddress: 'pi:stellar-pi-uid',
+        stellarAddress: officialStellarAddress,
+      }),
+    }));
+    expect(data.walletAddress).toBe('pi:stellar-pi-uid');
+    expect(data.stellarAddress).toBe(officialStellarAddress);
   });
 
   it('returns 401 on invalid Pi token', async () => {

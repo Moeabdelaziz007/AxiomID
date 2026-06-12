@@ -4,8 +4,6 @@ export const PiAuthSchema = z.object({
   accessToken: z.string().min(1, 'accessToken is required'),
   uid: z.string().min(1, 'uid is required'),
   username: z.string().min(1, 'username is required'),
-  walletAddress: z.string().optional(),
-  stellarAddress: z.string().optional(),
 });
 
 export const KyaClaimSchema = z.object({
