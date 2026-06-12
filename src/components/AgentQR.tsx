@@ -27,12 +27,6 @@ export function AgentQR({ did, walletAddress, size = 160 }: AgentQRProps) {
           fgColor="#0a0a0a"
           level="M"
           includeMargin={false}
-          imageSettings={{
-            src: "",
-            height: 0,
-            width: 0,
-            excavate: false,
-          }}
         />
       </div>
       <span className="text-[8px] font-mono text-gray-500 text-center max-w-[180px] break-all">

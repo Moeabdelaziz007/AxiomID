@@ -30,7 +30,7 @@ export function TrustScoreGauge({ score, size = 120 }: TrustScoreGaugeProps) {
   const offset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="trust-gauge" style={{ width: size, height: size }}>
+    <div className="trust-gauge" style={{ width: size, height: size }} role="img" aria-label={`Trust score: ${score} out of 100, ${label}`}>
       <svg
         className="trust-gauge-ring"
         width={size}

@@ -6,7 +6,7 @@ import type { Tier } from "@/lib/tiers";
 
 interface AgentPassportProps {
   username: string;
-  walletAddress: string;
+  walletAddress?: string | null;
   stellarAddress?: string | null;
   tier: Tier;
   trustScore: number;
@@ -47,8 +47,8 @@ export function AgentPassport({
   xp,
 }: AgentPassportProps) {
   const tierColor = getTierColor(tier);
-  const displayAddress = stellarAddress || walletAddress || '';
-  const shortAddress = displayAddress.length > 20
+  const displayAddress = stellarAddress || walletAddress;
+  const shortAddress = displayAddress && displayAddress.length > 20
     ? `${displayAddress.slice(0, 10)}...${displayAddress.slice(-8)}`
     : displayAddress || 'No address';
 

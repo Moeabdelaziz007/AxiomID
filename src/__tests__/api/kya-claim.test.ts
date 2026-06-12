@@ -57,23 +57,16 @@ describe('POST /api/pi/kya/claim', () => {
     mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 99, resetAt: Date.now() + 60000 });
   });
 
-  it('creates a new user for a new username', async () => {
+  it('returns 404 for a user that has not authenticated', async () => {
     mockPrisma.user.findUnique.mockResolvedValue(null);
-    mockPrisma.user.create.mockResolvedValue({
-      id: 'new-user-1',
-      walletAddress: 'pi:testuser',
-      kycStatus: 'PENDING',
-      did: 'did:axiom:mock-pi-uid',
-    } as any);
 
     const req = mockPostRequest({ username: 'testuser' });
     const res = await POST(req);
     const data = await res.json();
 
-    expect(res.status).toBe(201);
-    expect(data.userId).toBe('new-user-1');
-    expect(data.walletAddress).toBe('pi:testuser');
-    expect(data.kycStatus).toBe('PENDING');
+    expect(res.status).toBe(404);
+    expect(data.error).toContain('User must authenticate first');
+    expect(mockPrisma.user.create).not.toHaveBeenCalled();
   });
 
   it('returns existing user data without creating duplicate', async () => {
@@ -105,31 +98,14 @@ describe('POST /api/pi/kya/claim', () => {
     expect(mockPrisma.user.create).not.toHaveBeenCalled();
   });
 
-  it('constructs walletAddress as pi:<username>', async () => {
+  it('returns 404 when user has not authenticated via Pi auth', async () => {
     mockPrisma.user.findUnique.mockResolvedValue(null);
-    mockPrisma.user.create.mockResolvedValue({
-      id: 'user-abc',
-      walletAddress: 'pi:pi_user_abc',
-      kycStatus: 'PENDING',
-      did: 'did:axiom:mock-pi-uid',
-    } as any);
 
     const req = mockPostRequest({ username: 'pi_user_abc' });
-    await POST(req);
+    const res = await POST(req);
 
-    expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-      where: { piUid: 'mock-pi-uid' },
-    });
-    expect(mockPrisma.user.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          walletAddress: 'pi:pi_user_abc',
-          piUsername: 'pi_user_abc',
-          did: 'did:axiom:mock-pi-uid',
-          kycStatus: 'PENDING',
-        }),
-      })
-    );
+    expect(res.status).toBe(404);
+    expect(mockPrisma.user.create).not.toHaveBeenCalled();
   });
 
   it('returns 400 when username is missing', async () => {
@@ -166,8 +142,11 @@ describe('POST /api/pi/kya/claim', () => {
   });
 
   it('returns 500 on database error', async () => {
-    mockPrisma.user.findUnique.mockResolvedValue(null);
-    mockPrisma.user.create.mockRejectedValue(new Error('DB error'));
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'existing-user',
+      piUid: 'mock-pi-uid',
+    } as any);
+    mockPrisma.user.update.mockRejectedValue(new Error('DB error'));
 
     const req = mockPostRequest({ username: 'dbfailuser' });
     const res = await POST(req);
@@ -177,9 +156,15 @@ describe('POST /api/pi/kya/claim', () => {
     expect(data.code).toBe('INTERNAL_ERROR');
   });
 
-  it('sets piUsername from username when creating new user', async () => {
-    mockPrisma.user.findUnique.mockResolvedValue(null);
-    mockPrisma.user.create.mockResolvedValue({
+  it('keeps existing piUsername when user already has one', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'named-user',
+      walletAddress: 'pi:nameduser',
+      piUid: 'mock-pi-uid',
+      piUsername: 'oldname',
+      did: 'did:axiom:mock-pi-uid',
+    } as any);
+    mockPrisma.user.update.mockResolvedValue({
       id: 'named-user',
       walletAddress: 'pi:nameduser',
       kycStatus: 'PENDING',
@@ -189,11 +174,11 @@ describe('POST /api/pi/kya/claim', () => {
     const req = mockPostRequest({ username: 'nameduser' });
     const res = await POST(req);
 
-    expect(res.status).toBe(201);
-    expect(mockPrisma.user.create).toHaveBeenCalledWith(
+    expect(res.status).toBe(200);
+    expect(mockPrisma.user.update).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          piUsername: 'nameduser',
+          piUsername: 'oldname',
         }),
       })
     );

@@ -100,19 +100,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     return !!(localStorage.getItem("axiomid_wallet") || localStorage.getItem("pi_access_token"));
   });
   const [error, setError] = useState<string | null>(null);
-  const [isPiBrowser] = useState(() => {
-    if (typeof navigator === "undefined") return false;
-    const ua = navigator.userAgent;
-    if (/Pi Browser|minepi/i.test(ua)) return true;
-    if (typeof window !== "undefined" && window.Pi?.authenticate) return true;
-    try {
-      if (window.self !== window.top) {
-        const referrer = document.referrer || "";
-        if (referrer.includes("minepi.com") || referrer.includes("sandbox.minepi.com")) return true;
-      }
-    } catch {}
-    return false;
-  });
+  const [isPiBrowser] = useState(() => checkPiBrowser());
   const [piAccessToken, setPiAccessToken] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("pi_access_token");
@@ -310,6 +298,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       console.error("Auth error:", message);
       pushLog(`❌ خطأ: ${message}`);
       setError(message);
+      setTimeout(() => setError(null), 8000);
     } finally {
       setIsConnecting(false);
     }
@@ -341,6 +330,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       if (!res.ok) {
         const err = await res.json();
         setError(err.error || "Failed to claim");
+        setTimeout(() => setError(null), 8000);
         return false;
       }
 
