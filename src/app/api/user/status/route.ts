@@ -1,34 +1,24 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { UserStatusSchema } from '@/lib/validators';
 import { apiError, apiSuccess } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { calculateTier, getLevelProgress, getNextLevelXP } from '@/lib/tiers';
+import { requireAuth } from '@/lib/auth-middleware';
 
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
-  const rateLimit = await checkRateLimit(`user-status:${ip}`, RATE_LIMITS.anonymous);
+  const rateLimit = await checkRateLimit(`user-status:${ip}`, RATE_LIMITS.authenticated);
   if (!rateLimit.allowed) {
     return apiError('RATE_LIMITED', 'Too many requests. Try again later.');
   }
 
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId') ?? undefined;
-  const walletAddress = searchParams.get('walletAddress') ?? undefined;
-
-  const parsed = UserStatusSchema.safeParse({ userId, walletAddress });
-  if (!parsed.success) {
-    return apiError('VALIDATION_ERROR', parsed.error.issues[0].message, parsed.error.issues);
-  }
+  const auth = await requireAuth(request);
+  if (auth.error) return auth.error;
 
   try {
-    const where = parsed.data.userId
-      ? { id: parsed.data.userId }
-      : { walletAddress: parsed.data.walletAddress! };
-
     const user = await prisma.user.findUnique({
-      where,
+      where: { id: auth.user.id },
       include: {
         agent: {
           select: {
@@ -37,12 +27,18 @@ export async function GET(request: NextRequest) {
             name: true,
             status: true,
             mode: true,
-            personaId: true,
           },
         },
         xpLedger: {
           orderBy: { createdAt: 'desc' },
           take: 10,
+          select: {
+            id: true,
+            amount: true,
+            reason: true,
+            balance: true,
+            createdAt: true,
+          },
         },
         _count: {
           select: { actions: true, xpLedger: true },
@@ -61,7 +57,6 @@ export async function GET(request: NextRequest) {
     return apiSuccess({
       userId: user.id,
       walletAddress: user.walletAddress,
-      piUid: user.piUid,
       piUsername: user.piUsername,
       did: user.did,
       kycStatus: user.kycStatus,

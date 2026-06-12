@@ -54,6 +54,15 @@ export async function POST(request: NextRequest) {
 
     const paymentData = await piResponse.json();
 
+    const existing = await prisma.piPayment.findUnique({
+      where: { paymentId },
+      select: { userId: true },
+    });
+
+    if (existing && existing.userId !== auth.user.id) {
+      return apiError('FORBIDDEN', 'Payment does not belong to authenticated user');
+    }
+
     await prisma.piPayment.upsert({
       where: { paymentId },
       update: {

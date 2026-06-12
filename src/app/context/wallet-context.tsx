@@ -39,7 +39,7 @@ interface WalletContextType {
   walletLogs: string[];
   runWalletTest: () => Promise<void>;
   clearWalletLogs: () => void;
-  disconnectWallet: () => void;
+  disconnectWallet: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType | null>(null);
@@ -139,7 +139,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     const addr = walletAddress || current?.walletAddress;
     if (!addr) return;
     try {
-      const res = await fetch(`/api/user/status?walletAddress=${addr}`);
+      const storedToken = localStorage.getItem("pi_access_token");
+      const headers: Record<string, string> = {};
+      if (storedToken) {
+        headers["Authorization"] = `Bearer ${storedToken}`;
+      }
+      const res = await fetch(`/api/user/status`, { headers });
       if (res.ok) {
         const data = await res.json();
         setUser((prev) => ({
@@ -235,10 +240,18 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("axiomid_wallet", walletAddress);
         pushLog(`محفظة مؤقتة: ${walletAddress}`);
 
-        const res = await fetch("/api/auth/connect", {
+        const stateRes = await fetch("/api/auth/state", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ walletAddress }),
+        });
+        if (!stateRes.ok) throw new Error("Failed to generate state token");
+        const { state } = await stateRes.json();
+
+        const res = await fetch("/api/auth/connect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ walletAddress, state }),
         });
 
         if (!res.ok) throw new Error("Demo auth failed");
@@ -345,7 +358,18 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   }, [piAccessToken]);
 
-  const disconnectWallet = useCallback(() => {
+  const disconnectWallet = useCallback(async () => {
+    const storedToken = localStorage.getItem("pi_access_token");
+    if (storedToken) {
+      try {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${storedToken}` },
+        });
+      } catch {
+        // Ignore errors — always clear client-side state
+      }
+    }
     localStorage.removeItem("axiomid_wallet");
     localStorage.removeItem("pi_access_token");
     setPiAccessToken(null);
@@ -363,7 +387,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     const storedToken = localStorage.getItem("pi_access_token");
     if (!storedWallet && !storedToken) return;
 
-    fetch(`/api/user/status?walletAddress=${storedWallet}`).then(res => {
+    const headers: Record<string, string> = {};
+    if (storedToken) {
+      headers["Authorization"] = `Bearer ${storedToken}`;
+    }
+
+    fetch(`/api/user/status`, { headers }).then(res => {
       if (!res.ok) {
         setIsLoading(false);
         return;

@@ -28,15 +28,17 @@ export async function POST(request: NextRequest) {
 
   const { walletAddress, state } = parsed.data;
 
-  // CSRF verification: skip for demo wallets (no state token), verify for real wallets
-  if (state) {
-    const verifiedAddress = verifyState(state);
-    if (!verifiedAddress) {
-      return apiError('UNAUTHORIZED', 'Invalid or expired state token');
-    }
-    if (verifiedAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-      return apiError('FORBIDDEN', 'State token does not match wallet address');
-    }
+  // CSRF verification: required for ALL wallet connections
+  if (!state) {
+    return apiError('UNAUTHORIZED', 'State token is required');
+  }
+
+  const verifiedAddress = verifyState(state);
+  if (!verifiedAddress) {
+    return apiError('UNAUTHORIZED', 'Invalid or expired state token');
+  }
+  if (verifiedAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+    return apiError('FORBIDDEN', 'State token does not match wallet address');
   }
 
   try {

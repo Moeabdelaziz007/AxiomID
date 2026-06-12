@@ -70,14 +70,11 @@ model UserAgent {
   name        String    @default("My Agent")
   description String?
   avatarUrl   String?
-  publicKey   String?
   did         String?
 
   // State
   status      AgentStatus @default(INACTIVE) // inactive | active | paused | sleeping
   mode        AgentMode   @default(AUTONOMOUS) // autonomous | supervised | manual
-  apiKeyHash  String?
-  permissions String?     // JSON: ["claim","vault","verify","trade","deploy"]
 
   // Runtime
   lastActive   DateTime?

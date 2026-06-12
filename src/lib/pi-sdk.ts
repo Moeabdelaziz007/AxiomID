@@ -134,7 +134,11 @@ export async function runWalletTest(pushLog?: any): Promise<void> {
 }
 
 export async function verifyStellarAddress(stellarAddress: string): Promise<boolean> {
-  if (!stellarAddress.startsWith("G")) {
+  // Stellar public keys: 56 base32 characters starting with G or M
+  if (!stellarAddress || stellarAddress.length !== 56) {
+    return false;
+  }
+  if (!/^[GM][A-Z2-7]{55}$/i.test(stellarAddress)) {
     return false;
   }
   return new Promise((resolve) => {

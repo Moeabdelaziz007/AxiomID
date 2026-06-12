@@ -5,6 +5,7 @@ import { apiError, apiSuccess } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { calculateTier } from '@/lib/tiers';
+import { encryptToken } from '@/lib/crypto';
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -60,6 +61,7 @@ export async function POST(request: NextRequest) {
         data: {
           piUsername: username,
           walletAddress,
+          piAccessToken: encryptToken(accessToken),
           lastActive: new Date(),
         },
         include: { agent: true },
@@ -70,6 +72,7 @@ export async function POST(request: NextRequest) {
           walletAddress,
           piUid: uid,
           piUsername: username,
+          piAccessToken: encryptToken(accessToken),
           tier: 'Visitor',
           xp: 0,
         },

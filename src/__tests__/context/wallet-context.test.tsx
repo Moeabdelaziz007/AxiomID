@@ -153,9 +153,11 @@ describe("WalletProvider & WalletContext", () => {
       </WalletProvider>
     );
 
-    // Should fetch from user status endpoint
+    // Should fetch from user status endpoint with auth header
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith("/api/user/status?walletAddress=demo:wallet123");
+      expect(mockFetch).toHaveBeenCalledWith("/api/user/status", {
+        headers: { Authorization: "Bearer token123" },
+      });
       expect(contextValue.isLoading).toBe(false);
     });
 
@@ -222,6 +224,12 @@ describe("WalletProvider & WalletContext", () => {
     process.env.NEXT_PUBLIC_PI_SANDBOX = "true";
     setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)");
 
+    // First mock the state token endpoint
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ state: "mock-state-token" }),
+    });
+    // Then mock the connect endpoint
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({

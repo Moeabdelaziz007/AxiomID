@@ -105,13 +105,13 @@ describe('pi-sdk', () => {
       expect(result).toBe(false);
     });
 
-    it('returns true for addresses starting with G', async () => {
-      const result = await verifyStellarAddress('GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
+    it('returns true for valid Stellar address (56 chars, starts with G)', async () => {
+      const result = await verifyStellarAddress('G' + 'A'.repeat(55));
       expect(result).toBe(true);
     }, 1000);
 
-    it('returns false for addresses starting with lowercase g', async () => {
-      const result = await verifyStellarAddress('gabc123');
+    it('returns false for short address', async () => {
+      const result = await verifyStellarAddress('Gabc123');
       expect(result).toBe(false);
     });
   });

@@ -28,10 +28,16 @@ export async function POST(request: NextRequest) {
     return apiError('VALIDATION_ERROR', 'Invalid JSON body');
   }
 
-  const { action, params } = body as AgentMainBody;
-  if (!action) {
-    return apiError('VALIDATION_ERROR', 'action is required');
-  }
+    const { action, params } = body as AgentMainBody;
+    if (!action || typeof action !== "string") {
+      return apiError("VALIDATION_ERROR", "action is required");
+    }
+
+    // Sanitize: alphanumeric + underscore/hyphen only, max 100 chars
+    const sanitizedAction = action.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 100);
+    if (sanitizedAction.length === 0) {
+      return apiError("VALIDATION_ERROR", "action contains no valid characters");
+    }
 
   try {
     const agent = await prisma.userAgent.findUnique({ where: { userId: user.id } });
@@ -54,7 +60,7 @@ export async function POST(request: NextRequest) {
         agentId: agent.id,
         level: 'info',
         source: 'agent',
-        message: `Executed action: ${action}`,
+        message: `Executed action: ${sanitizedAction}`,
         metadata: params ? JSON.stringify(params) : null,
       },
     });
@@ -63,8 +69,8 @@ export async function POST(request: NextRequest) {
       agentId: agent.id,
       publicId: agent.publicId,
       status: updatedAgent.status,
-      action,
-      result: `Action '${action}' dispatched to agent '${agent.name}'`,
+      action: sanitizedAction,
+      result: `Action '${sanitizedAction}' dispatched to agent '${agent.name}'`,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

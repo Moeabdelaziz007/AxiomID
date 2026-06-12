@@ -1,6 +1,7 @@
 import { AgentPassport } from "@/components/AgentPassport";
 import { AgentQR } from "@/components/AgentQR";
 import Link from "next/link";
+import { createPassportDid } from "@/lib/did";
 
 interface PassportPageProps {
   params: Promise<{ slug: string }>;
@@ -18,7 +19,7 @@ async function getAgentData(slug: string) {
     kyaStatus: "pending" as const,
     kycStatus: "pending" as const,
     issuedDate: new Date().toISOString(),
-    did: `did:axiom:axiomid.app:${slug}`,
+    did: createPassportDid(slug),
     xp: 0,
   };
 }
