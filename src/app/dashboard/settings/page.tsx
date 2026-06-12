@@ -108,11 +108,11 @@ export default function SettingsPage() {
   };
 
   const openVcModal = (actionType: string) => {
-    const action = user?.actions?.find((a) => a.type === actionType);
-    if (!action) return;
+    const stamp = user?.stamps?.find((s) => s.type === actionType);
+    if (!stamp) return;
     try {
-      // Action metadata stores the stringified W3C Verifiable Credential object
-      const parsedVc = JSON.parse(action.metadata || "{}");
+      // Stamp metadata stores the stringified W3C Verifiable Credential object
+      const parsedVc = JSON.parse(stamp.metadata || "{}");
       setActiveVc(parsedVc);
       vcDialogRef.current?.showModal();
     } catch {
@@ -129,7 +129,7 @@ export default function SettingsPage() {
   };
 
   const isPlatformConnected = (platform: "twitter" | "discord" | "google") => {
-    return !!user?.actions?.some((a) => a.type === `connect_${platform}`);
+    return !!user?.stamps?.some((s) => s.type === `connect_${platform}`);
   };
 
   // XP Progress Calculation
