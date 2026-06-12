@@ -7,7 +7,7 @@ import { getClientIp } from '@/lib/ip';
 import { calculateTier } from '@/lib/tiers';
 
 function buildPiDid(uid: string) {
-  return `did:axiom:axiomid.app:pi:${uid}`;
+  return `did:axiom:axiomid.app:pi:${encodeURIComponent(uid)}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -70,11 +70,11 @@ export async function POST(request: NextRequest) {
         },
         include: { agent: true },
       });
-
+    } else {
       user = await prisma.user.create({
         data: {
           walletAddress,
-          piUid: uid,
+
           piUsername: username,
           did: piDid,
           didMethod: 'did:axiom',

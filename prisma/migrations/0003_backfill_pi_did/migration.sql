@@ -5,9 +5,7 @@ ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "did" TEXT;
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "didMethod" TEXT DEFAULT 'did:axiom';
 
 UPDATE "User"
-SET
-    "did" = 'did:axiom:axiomid.app:pi:' || "piUid",
-    "didMethod" = COALESCE("didMethod", 'did:axiom')
+SET "did" = 'did:axiom:axiomid.app:pi:' || "piUid"
 WHERE "piUid" IS NOT NULL
   AND "did" IS NULL;
 
