@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useWallet } from "../../context/wallet-context";
 import { ErrorBanner } from "@/components/ErrorBanner";
+import { getLevelProgress, getNextLevelXP, TIERS, Tier } from "@/lib/tiers";
 
 interface LedgerEntry {
   id: string;
@@ -72,32 +73,18 @@ export default function SettingsPage() {
   }, [user]);
 
   // Handle outside click backdrop dismiss for dialogs (Standard fallback for <dialog closedby>)
-  useEffect(() => {
-    const handleBackdropClick = (dialog: HTMLDialogElement | null) => {
-      if (!dialog) return;
-      const onClick = (e: MouseEvent) => {
-        if (e.target !== dialog) return;
-        const rect = dialog.getBoundingClientRect();
-        const isInContent =
-          rect.top <= e.clientY &&
-          e.clientY <= rect.top + rect.height &&
-          rect.left <= e.clientX &&
-          e.clientX <= rect.left + rect.width;
-        if (!isInContent) {
-          dialog.close();
-        }
-      };
-      dialog.addEventListener("click", onClick);
-      return () => dialog.removeEventListener("click", onClick);
-    };
-
-    const cleanup1 = handleBackdropClick(connectDialogRef.current);
-    const cleanup2 = handleBackdropClick(vcDialogRef.current);
-    return () => {
-      if (cleanup1) cleanup1();
-      if (cleanup2) cleanup2();
-    };
-  }, [connectDialogRef, vcDialogRef]);
+  const handleDialogBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+    const dialog = e.currentTarget;
+    const rect = dialog.getBoundingClientRect();
+    const isInContent =
+      rect.top <= e.clientY &&
+      e.clientY <= rect.top + rect.height &&
+      rect.left <= e.clientX &&
+      e.clientX <= rect.left + rect.width;
+    if (!isInContent) {
+      dialog.close();
+    }
+  };
 
   const openConnectModal = (platform: "twitter" | "discord" | "google") => {
     setActivePlatform(platform);
@@ -148,14 +135,11 @@ export default function SettingsPage() {
   // XP Progress Calculation
   const xp = user?.xp || 0;
   const tier = user?.tier || "Visitor";
-  const levels: Record<string, { min: number; max: number }> = {
-    Visitor: { min: 0, max: 100 },
-    Citizen: { min: 100, max: 500 },
-    Validator: { min: 500, max: 1000 },
-    Sovereign: { min: 1000, max: 2500 },
+  const range = {
+    min: TIERS[tier as Tier] ?? 0,
+    max: getNextLevelXP(tier as Tier) ?? 2500,
   };
-  const range = levels[tier] || { min: 0, max: 100 };
-  const progressPercent = Math.min(100, Math.max(0, ((xp - range.min) / (range.max - range.min)) * 100));
+  const progressPercent = getLevelProgress(xp, tier as Tier);
 
   if (!user) {
     return (
@@ -402,7 +386,7 @@ export default function SettingsPage() {
                 <tbody>
                   {statusDetails.recentLedger.map((entry) => (
                     <tr key={entry.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                      <td className="py-3 text-white uppercase font-bold tracking-wider">{entry.reason.replace("_", " ")}</td>
+                      <td className="py-3 text-white uppercase font-bold tracking-wider">{entry.reason.replaceAll("_", " ")}</td>
                       <td className={`py-3 text-right ${entry.amount >= 0 ? "text-neon-green" : "text-red-500"}`}>
                         {entry.amount >= 0 ? `+${entry.amount}` : entry.amount} XP
                       </td>
@@ -422,6 +406,7 @@ export default function SettingsPage() {
       <dialog
         ref={connectDialogRef}
         closedby="any"
+        onClick={handleDialogBackdropClick}
         aria-labelledby="connect-dialog-title"
         className="bento-card max-w-md w-full p-6 bg-black/90 border border-white/15 backdrop-blur-xl text-white rounded-2xl p-0"
       >
@@ -473,6 +458,7 @@ export default function SettingsPage() {
       <dialog
         ref={vcDialogRef}
         closedby="any"
+        onClick={handleDialogBackdropClick}
         aria-labelledby="vc-dialog-title"
         className="bento-card max-w-xl w-full bg-black/95 border border-white/15 backdrop-blur-2xl text-white rounded-2xl p-0"
       >

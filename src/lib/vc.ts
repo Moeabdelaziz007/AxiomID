@@ -1,13 +1,7 @@
 import { createPrivateKey, sign } from "crypto";
 import { createIssuerDid } from "./did";
-
-function getIssuerPrivateKey(): { key: string; alg: string } {
-  const key = process.env.ISSUER_PRIVATE_KEY;
-  if (!key) throw new Error("ISSUER_PRIVATE_KEY not set");
-  // Determine algorithm from key type
-  const alg = key.includes("Ed25519") ? "EdDSA" : key.includes("RSA") ? "RS256" : "EdDSA";
-  return { key, alg };
-}
+import { canonicalize } from "./sanitize";
+import { getIssuerPrivateKey } from "./crypto";
 
 export function signSocialCredential(
   userId: string,
@@ -34,17 +28,6 @@ export function signSocialCredential(
       handle,
       walletAddress,
     },
-  };
-
-  // Canonicalize object keys recursively (deterministic JSON serialization)
-  const canonicalize = (obj: unknown): unknown => {
-    if (obj === null || typeof obj !== "object") return obj;
-    if (Array.isArray(obj)) return obj.map(canonicalize);
-    const record = obj as Record<string, unknown>;
-    return Object.keys(record).sort().reduce<Record<string, unknown>>((acc, key) => {
-      acc[key] = canonicalize(record[key]);
-      return acc;
-    }, {});
   };
 
   const dataToSign = JSON.stringify(canonicalize(credential), null, 0);

@@ -124,10 +124,15 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      const registerSW = () => {
-        navigator.serviceWorker.register("/sw.js").catch((err) => {
+      const registerSW = async () => {
+        try {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (!reg) {
+            await navigator.serviceWorker.register("/sw.js");
+          }
+        } catch (err) {
           console.error("Service worker registration failed:", err);
-        });
+        }
       };
       if (document.readyState === "complete") {
         registerSW();
@@ -432,15 +437,32 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, [refreshUser, piAccessToken]);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.Pi) {
-      try {
-        window.Pi.init({
-          version: "2.0",
-          sandbox: process.env.NEXT_PUBLIC_PI_SANDBOX === "true",
-        });
-      } catch (err) {
-        console.error("Failed to initialize Pi SDK:", err);
+    if (typeof window !== "undefined") {
+      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+        if (event.reason && (
+          event.reason.message === "Connection closed" ||
+          event.reason.message?.includes("Connection closed")
+        )) {
+          event.preventDefault();
+          console.warn("[Pi SDK] Suppressed expected connection closure rejection:", event.reason);
+        }
+      };
+      window.addEventListener("unhandledrejection", handleUnhandledRejection);
+
+      if (window.Pi) {
+        try {
+          window.Pi.init({
+            version: "2.0",
+            sandbox: process.env.NEXT_PUBLIC_PI_SANDBOX === "true",
+          });
+        } catch (err) {
+          console.error("Failed to initialize Pi SDK:", err);
+        }
       }
+
+      return () => {
+        window.removeEventListener("unhandledrejection", handleUnhandledRejection);
+      };
     }
   }, []);
 

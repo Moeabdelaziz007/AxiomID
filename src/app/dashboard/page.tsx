@@ -170,8 +170,7 @@ export default function Dashboard() {
               {user && (
                 <div className="flex items-center gap-2">
                   <Link
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    href={"/dashboard/settings" as any}
+                    href={{ pathname: "/dashboard/settings" }}
                     className="btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -418,7 +417,7 @@ export default function Dashboard() {
                       <h3 className="text-lg font-semibold text-white">Identity Verification (KYA)</h3>
                       <p className="text-xs text-gray-400 mt-1">Secure your DID document by verifying your sovereign credentials.</p>
                     </div>
-                    {user.kycStatus === "APPROVED" ? (
+                    {user.kycStatus === "VERIFIED" ? (
                       <span className="px-3 py-1 rounded-full text-xs font-mono bg-neon-green/10 text-neon-green border border-neon-green/20 flex items-center gap-1.5 animate-pulse">
                         VERIFIED ✅
                       </span>
@@ -433,7 +432,7 @@ export default function Dashboard() {
                     )}
                   </div>
 
-                  {user.kycStatus === "APPROVED" ? (
+                  {user.kycStatus === "VERIFIED" ? (
                     <div className="p-4 rounded-xl border border-neon-green/20 bg-neon-green/5 text-xs text-gray-300 font-mono space-y-2">
                       <p className="text-neon-green font-bold">✓ AxiomID Verification Anchored</p>
                       <p>Your identity has been verified and permanently anchored under DID: <span className="text-white">{user.did}</span></p>

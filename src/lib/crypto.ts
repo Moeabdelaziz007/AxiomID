@@ -41,3 +41,10 @@ export function decryptToken(ciphertext: string): string {
   const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
   return decrypted.toString('utf8');
 }
+
+export function getIssuerPrivateKey(): { key: string; alg: string } {
+  const key = process.env.ISSUER_PRIVATE_KEY;
+  if (!key) throw new Error("ISSUER_PRIVATE_KEY not set");
+  const alg = key.includes("Ed25519") ? "EdDSA" : key.includes("RSA") ? "RS256" : "EdDSA";
+  return { key, alg };
+}

@@ -28,3 +28,13 @@ export function sanitizeForDisplay(value: string, maxLength: number): string {
     .trim()
     .slice(0, maxLength);
 }
+
+export function canonicalize(obj: unknown): unknown {
+  if (obj === null || typeof obj !== "object") return obj;
+  if (Array.isArray(obj)) return obj.map(canonicalize);
+  const record = obj as Record<string, unknown>;
+  return Object.keys(record).sort().reduce<Record<string, unknown>>((acc, key) => {
+    acc[key] = canonicalize(record[key]);
+    return acc;
+  }, {});
+}
