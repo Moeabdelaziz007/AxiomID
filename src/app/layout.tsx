@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { WalletProvider } from "./context/wallet-context";
 import { SandboxProvider } from "./context/sandbox-provider";
+import { Analytics } from "@vercel/analytics/next";
 
 // Preload fonts for better performance
 const geistSans = Geist({
@@ -124,6 +125,7 @@ export default function RootLayout({
             {children}
           </WalletProvider>
         </SandboxProvider>
+        <Analytics />
         <script
           dangerouslySetInnerHTML={{
             __html: `
