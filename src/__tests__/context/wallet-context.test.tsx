@@ -578,4 +578,340 @@ describe("WalletProvider & WalletContext", () => {
     // trustScore should be taken from API, not computed from xp
     expect(contextValue.user.trustScore).toBe(77);
   });
+
+  it("logout when user is already null leaves state clean and does not throw", async () => {
+    let contextValue: ReturnType<typeof useWallet> | undefined;
+    const { getByTestId } = render(
+      <WalletProvider>
+        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
+      </WalletProvider>
+    );
+
+    await waitFor(() => expect(contextValue?.isLoading).toBe(false));
+    expect(contextValue?.user).toBeNull();
+
+    // Calling logout when already signed out must not throw
+    expect(() => {
+      act(() => {
+        getByTestId("logout-btn").click();
+      });
+    }).not.toThrow();
+
+    expect(contextValue?.user).toBeNull();
+    expect(contextValue?.error).toBeNull();
+    expect(contextValue?.isLoading).toBe(false);
+  });
+
+  it("logout clears a pre-existing error", async () => {
+    localStorage.setItem("axiomid_wallet", "demo:errtest");
+    localStorage.setItem("pi_access_token", "errtoken");
+
+    // Simulate an API error on restore so error state gets set
+    mockFetch.mockRejectedValueOnce(new Error("restore-error"));
+
+    let contextValue: ReturnType<typeof useWallet> | undefined;
+    const { getByTestId } = render(
+      <WalletProvider>
+        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
+      </WalletProvider>
+    );
+
+    await waitFor(() => expect(contextValue?.isLoading).toBe(false));
+
+    // Manually set error via failed connect to then verify logout clears it
+    // We know user is null at this point; trigger logout regardless
+    act(() => {
+      getByTestId("logout-btn").click();
+    });
+
+    expect(contextValue?.error).toBeNull();
+    expect(contextValue?.user).toBeNull();
+    expect(localStorage.getItem("pi_access_token")).toBeNull();
+    expect(localStorage.getItem("axiomid_wallet")).toBeNull();
+  });
+
+  it("logout appends a message to walletLogs", async () => {
+    localStorage.setItem("axiomid_wallet", "demo:logstest");
+    localStorage.setItem("pi_access_token", "logstoken");
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        userId: "user-logs",
+        walletAddress: "demo:logstest",
+        xp: 0,
+        tier: "Visitor",
+        trustScore: 0,
+        createdAt: new Date().toISOString(),
+        piUsername: "logsuser",
+      }),
+    });
+
+    let contextValue: ReturnType<typeof useWallet> | undefined;
+    const { getByTestId } = render(
+      <WalletProvider>
+        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
+      </WalletProvider>
+    );
+
+    await waitFor(() => {
+      expect(contextValue?.isLoading).toBe(false);
+      expect(contextValue?.user).not.toBeNull();
+    });
+
+    const logsBefore = contextValue?.walletLogs.length ?? 0;
+
+    act(() => {
+      getByTestId("logout-btn").click();
+    });
+
+    expect(contextValue?.walletLogs.length).toBeGreaterThan(logsBefore);
+    const lastLog = contextValue?.walletLogs[contextValue.walletLogs.length - 1] ?? "";
+    expect(lastLog).toMatch(/logged out/i);
+  });
+
+  it("createAgent via callAgentApi calls /api/agent with a name in the body", async () => {
+    localStorage.setItem("axiomid_wallet", "demo:agenttest");
+    localStorage.setItem("pi_access_token", "agenttoken");
+
+    // Restore user on mount
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        userId: "user-agent",
+        walletAddress: "demo:agenttest",
+        xp: 0,
+        tier: "Visitor",
+        trustScore: 0,
+        createdAt: new Date().toISOString(),
+        piUsername: "agentuser",
+        agent: null,
+      }),
+    });
+
+    // createAgent POST succeeds
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    // refreshUser after createAgent
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        userId: "user-agent",
+        walletAddress: "demo:agenttest",
+        xp: 0,
+        tier: "Visitor",
+        trustScore: 0,
+        createdAt: new Date().toISOString(),
+        piUsername: "agentuser",
+        agent: { id: "ag1", name: "MyAgent", status: "active", lastActive: null },
+      }),
+    });
+
+    let contextValue: ReturnType<typeof useWallet> | undefined;
+    render(
+      <WalletProvider>
+        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
+      </WalletProvider>
+    );
+
+    await waitFor(() => {
+      expect(contextValue?.isLoading).toBe(false);
+      expect(contextValue?.user).not.toBeNull();
+    });
+
+    let result: boolean | undefined;
+    await act(async () => {
+      result = await contextValue!.createAgent("MyAgent");
+    });
+
+    expect(result).toBe(true);
+
+    const agentCall = mockFetch.mock.calls.find((c) => c[0] === "/api/agent");
+    expect(agentCall).toBeDefined();
+    const body = JSON.parse(agentCall![1].body);
+    expect(body.name).toBe("MyAgent");
+  });
+
+  it("activateAgent via callAgentApi calls /api/agent/activate with no body", async () => {
+    localStorage.setItem("axiomid_wallet", "demo:activatetest");
+    localStorage.setItem("pi_access_token", "activatetoken");
+
+    // Mount restore
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        userId: "user-activate",
+        walletAddress: "demo:activatetest",
+        xp: 0,
+        tier: "Visitor",
+        trustScore: 0,
+        createdAt: new Date().toISOString(),
+        piUsername: "activateuser",
+        agent: null,
+      }),
+    });
+
+    // activateAgent POST
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    // refreshUser
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        userId: "user-activate",
+        walletAddress: "demo:activatetest",
+        xp: 0,
+        tier: "Visitor",
+        trustScore: 0,
+        createdAt: new Date().toISOString(),
+        piUsername: "activateuser",
+        agent: { id: "ag2", name: "Agent", status: "active", lastActive: null },
+      }),
+    });
+
+    let contextValue: ReturnType<typeof useWallet> | undefined;
+    render(
+      <WalletProvider>
+        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
+      </WalletProvider>
+    );
+
+    await waitFor(() => {
+      expect(contextValue?.isLoading).toBe(false);
+      expect(contextValue?.user).not.toBeNull();
+    });
+
+    let result: boolean | undefined;
+    await act(async () => {
+      result = await contextValue!.activateAgent();
+    });
+
+    expect(result).toBe(true);
+
+    const activateCall = mockFetch.mock.calls.find((c) => c[0] === "/api/agent/activate");
+    expect(activateCall).toBeDefined();
+    // No body should be sent
+    expect(activateCall![1].body).toBeUndefined();
+  });
+
+  it("pauseAgent via callAgentApi calls /api/agent/pause with no body", async () => {
+    localStorage.setItem("axiomid_wallet", "demo:pausetest");
+    localStorage.setItem("pi_access_token", "pausetoken");
+
+    // Mount restore
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        userId: "user-pause",
+        walletAddress: "demo:pausetest",
+        xp: 0,
+        tier: "Visitor",
+        trustScore: 0,
+        createdAt: new Date().toISOString(),
+        piUsername: "pauseuser",
+        agent: null,
+      }),
+    });
+
+    // pauseAgent POST
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    // refreshUser
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        userId: "user-pause",
+        walletAddress: "demo:pausetest",
+        xp: 0,
+        tier: "Visitor",
+        trustScore: 0,
+        createdAt: new Date().toISOString(),
+        piUsername: "pauseuser",
+        agent: { id: "ag3", name: "Agent", status: "paused", lastActive: null },
+      }),
+    });
+
+    let contextValue: ReturnType<typeof useWallet> | undefined;
+    render(
+      <WalletProvider>
+        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
+      </WalletProvider>
+    );
+
+    await waitFor(() => {
+      expect(contextValue?.isLoading).toBe(false);
+      expect(contextValue?.user).not.toBeNull();
+    });
+
+    let result: boolean | undefined;
+    await act(async () => {
+      result = await contextValue!.pauseAgent();
+    });
+
+    expect(result).toBe(true);
+
+    const pauseCall = mockFetch.mock.calls.find((c) => c[0] === "/api/agent/pause");
+    expect(pauseCall).toBeDefined();
+    expect(pauseCall![1].body).toBeUndefined();
+  });
+
+  it("callAgentApi (via createAgent) returns false when user is null", async () => {
+    let contextValue: ReturnType<typeof useWallet> | undefined;
+    render(
+      <WalletProvider>
+        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
+      </WalletProvider>
+    );
+
+    await waitFor(() => expect(contextValue?.isLoading).toBe(false));
+    expect(contextValue?.user).toBeNull();
+
+    let result: boolean | undefined;
+    await act(async () => {
+      result = await contextValue!.createAgent("ShouldNotCall");
+    });
+
+    expect(result).toBe(false);
+    // No API call should have been made (no stored credentials, no Pi browser)
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("callAgentApi (via activateAgent) returns false when the API returns non-ok", async () => {
+    localStorage.setItem("axiomid_wallet", "demo:apifailtest");
+    localStorage.setItem("pi_access_token", "apifailtoken");
+
+    // Mount restore
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        userId: "user-apifail",
+        walletAddress: "demo:apifailtest",
+        xp: 0,
+        tier: "Visitor",
+        trustScore: 0,
+        createdAt: new Date().toISOString(),
+        piUsername: "apifailuser",
+        agent: null,
+      }),
+    });
+
+    // activateAgent POST fails
+    mockFetch.mockResolvedValueOnce({ ok: false, json: async () => ({}) });
+
+    let contextValue: ReturnType<typeof useWallet> | undefined;
+    render(
+      <WalletProvider>
+        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
+      </WalletProvider>
+    );
+
+    await waitFor(() => {
+      expect(contextValue?.isLoading).toBe(false);
+      expect(contextValue?.user).not.toBeNull();
+    });
+
+    let result: boolean | undefined;
+    await act(async () => {
+      result = await contextValue!.activateAgent();
+    });
+
+    expect(result).toBe(false);
+  });
 });

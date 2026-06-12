@@ -208,3 +208,73 @@ describe("PassportHero — demo wallet address (starts with 'demo:')", () => {
     expect(matches.length).toBeGreaterThanOrEqual(1);
   });
 });
+
+describe("Home page — logout buttons (PR change: logout added to Home)", () => {
+  const user = {
+    id: "user-5",
+    walletAddress: "pi:logouttest",
+    piUsername: "logoutuser",
+    xp: 50,
+    tier: "Citizen" as any,
+    trustScore: 5,
+    createdAt: new Date().toISOString(),
+    actions: [],
+    agent: null,
+  };
+
+  it("renders LOGOUT button in the header when user is authenticated", () => {
+    const logoutFn = jest.fn();
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user, logout: logoutFn }));
+    render(<Home />);
+    const logoutButtons = screen.getAllByRole("button", { name: /logout/i });
+    expect(logoutButtons.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("does NOT render a LOGOUT button when there is no user", () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null }));
+    render(<Home />);
+    expect(screen.queryByRole("button", { name: /logout/i })).toBeNull();
+  });
+
+  it("renders DASHBOARD link in header when user is authenticated", () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
+    render(<Home />);
+    const dashboardLinks = screen.getAllByRole("link", { name: /dashboard/i });
+    expect(dashboardLinks.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("calls the logout function when the header LOGOUT button is clicked", () => {
+    const logoutFn = jest.fn();
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user, logout: logoutFn }));
+    render(<Home />);
+    // header logout button is the first one
+    const logoutButtons = screen.getAllByRole("button", { name: /logout/i });
+    logoutButtons[0].click();
+    expect(logoutFn).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls the logout function when the body section LOGOUT button is clicked", () => {
+    const logoutFn = jest.fn();
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user, logout: logoutFn }));
+    render(<Home />);
+    // body logout is the second button (PR adds two logout buttons when user is signed in)
+    const logoutButtons = screen.getAllByRole("button", { name: /logout/i });
+    expect(logoutButtons.length).toBeGreaterThanOrEqual(2);
+    logoutButtons[1].click();
+    expect(logoutFn).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows CONNECT button (not LOGOUT) when there is no user", () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null }));
+    render(<Home />);
+    expect(screen.getByRole("button", { name: /connect/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /logout/i })).toBeNull();
+  });
+
+  it("renders ENTER DASHBOARD link in the body section when user is authenticated", () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
+    render(<Home />);
+    const enterDashboardLinks = screen.getAllByRole("link", { name: /enter dashboard/i });
+    expect(enterDashboardLinks.length).toBeGreaterThanOrEqual(1);
+  });
+});

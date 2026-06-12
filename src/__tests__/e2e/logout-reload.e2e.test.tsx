@@ -95,4 +95,74 @@ describe("E2E logout persistence flow", () => {
     expect(contextValue?.user).toBeNull();
     expect(mockFetch).not.toHaveBeenCalled();
   });
+
+  it("calling logout twice is idempotent — state stays cleared and localStorage stays empty", async () => {
+    localStorage.setItem("axiomid_wallet", "demo:idempotent");
+    localStorage.setItem("pi_access_token", "idem-token");
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        userId: "idem-user",
+        walletAddress: "demo:idempotent",
+        xp: 0,
+        tier: "Visitor",
+        trustScore: 0,
+        createdAt: "2026-01-01T00:00:00.000Z",
+        piUsername: "idemuser",
+        agent: null,
+      }),
+    });
+
+    let contextValue: ReturnType<typeof useWallet> | undefined;
+    const { getByRole } = render(
+      <WalletProvider>
+        <LogoutFlowHarness onUpdate={(value) => { contextValue = value; }} />
+      </WalletProvider>
+    );
+
+    await waitFor(() => expect(contextValue?.user).not.toBeNull());
+
+    // First logout
+    act(() => {
+      getByRole("button", { name: /logout/i }).click();
+    });
+
+    await waitFor(() => expect(contextValue?.user).toBeNull());
+
+    // Second logout — should not throw or restore state
+    expect(() => {
+      act(() => {
+        getByRole("button", { name: /logout/i }).click();
+      });
+    }).not.toThrow();
+
+    expect(contextValue?.user).toBeNull();
+    expect(contextValue?.error).toBeNull();
+    expect(localStorage.getItem("axiomid_wallet")).toBeNull();
+    expect(localStorage.getItem("pi_access_token")).toBeNull();
+  });
+
+  it("logout when no credentials were ever set still results in clean state", async () => {
+    // No localStorage values set — user is never loaded
+    let contextValue: ReturnType<typeof useWallet> | undefined;
+    const { getByRole } = render(
+      <WalletProvider>
+        <LogoutFlowHarness onUpdate={(value) => { contextValue = value; }} />
+      </WalletProvider>
+    );
+
+    await waitFor(() => expect(contextValue?.isLoading).toBe(false));
+    expect(contextValue?.user).toBeNull();
+
+    // Logout with no prior login should be safe
+    expect(() => {
+      act(() => {
+        getByRole("button", { name: /logout/i }).click();
+      });
+    }).not.toThrow();
+
+    expect(contextValue?.user).toBeNull();
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
 });
