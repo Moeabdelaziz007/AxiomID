@@ -73,6 +73,9 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
     if (!stamp) return;
     try {
       const parsedVc = JSON.parse(stamp.metadata || "{}");
+      if (parsedVc === null) {
+        throw new Error("Invalid or empty credential metadata");
+      }
       setActiveVc(parsedVc);
       vcDialogRef.current?.showModal();
     } catch {

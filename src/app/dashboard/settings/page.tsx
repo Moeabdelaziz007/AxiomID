@@ -119,7 +119,11 @@ export default function SettingsPage() {
     if (!stamp) return;
     try {
       // Stamp metadata stores the stringified W3C Verifiable Credential object
-      setActiveVc(JSON.parse(stamp.metadata || "{}"));
+      const parsedVc = JSON.parse(stamp.metadata || "{}");
+      if (parsedVc === null) {
+        throw new Error("Invalid or empty credential metadata");
+      }
+      setActiveVc(parsedVc);
     } catch {
       setActiveVc({ error: "Failed to parse Verifiable Credential payload." });
     }
