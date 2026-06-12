@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { useWallet } from "./context/wallet-context";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import Link from "next/link";
+import { useLanguage } from "./context/language-context";
+import LanguageToggle from "@/components/LanguageToggle";
 
 /* ============================================
    FLOATING PASSPORT HERO
@@ -86,6 +88,7 @@ function PassportHero({ user }: { user: { piUsername?: string | null; walletAddr
    ============================================ */
 export default function Home() {
   const { user, connectWallet, isConnecting, isPiBrowser, logout } = useWallet();
+  const { t, language } = useLanguage();
 
   return (
     <main className="min-h-screen bg-grid flex flex-col items-center relative">
@@ -109,6 +112,7 @@ export default function Home() {
         </div>
 
         <div className="flex items-center gap-3">
+          <LanguageToggle />
           {isPiBrowser && !user && (
             <span className="text-[10px] font-mono text-electric-blue px-2 py-1 rounded-full border border-electric-blue/30 bg-electric-blue/5">
               Pi Browser
@@ -117,7 +121,7 @@ export default function Home() {
           {user ? (
             <div className="flex items-center gap-2">
               <Link href="/dashboard" className="btn-primary text-xs px-4 py-2">
-                DASHBOARD
+                {t("nav_dashboard")}
               </Link>
               <button
                 onClick={() => logout()}
@@ -126,7 +130,7 @@ export default function Home() {
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                LOGOUT
+                {t("logout")}
               </button>
             </div>
           ) : (
@@ -135,7 +139,7 @@ export default function Home() {
               disabled={isConnecting}
               className="btn-primary text-xs px-4 py-2"
             >
-              {isConnecting ? "CONNECTING..." : "CONNECT"}
+              {isConnecting ? t("connecting") : t("connect")}
             </button>
           )}
         </div>
@@ -155,16 +159,27 @@ export default function Home() {
           </div>
 
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1]">
-            Agent Identity
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-electric-blue">
-              for the AI Era.
-            </span>
+            {language === "en" ? (
+              <>
+                Agent Identity
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-electric-blue">
+                  for the AI Era.
+                </span>
+              </>
+            ) : (
+              <>
+                هوية العملاء
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-electric-blue">
+                  لعصر الذكاء الاصطناعي.
+                </span>
+              </>
+            )}
           </h1>
 
           <p className="text-gray-400 max-w-md leading-relaxed text-sm md:text-base">
-            Your DID-based Agent Passport. Verify once, prove everywhere.
-            KYA + KYC compliant identity for humans and their AI agents.
+            {t("hero_desc")}
           </p>
 
           {!user ? (
@@ -176,31 +191,31 @@ export default function Home() {
               >
                 {isConnecting ? (
                   <>
-                    <span className="animate-spin">⟳</span> AUTHENTICATING...
+                    <span className="animate-spin">⟳</span> {t("connecting")}
                   </>
                 ) : (
                   <>
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                     </svg>
-                    {isPiBrowser ? "CONNECT PI" : "CONNECT WALLET"}
+                    {t("connect_wallet")}
                   </>
                 )}
               </button>
               <Link href="/dashboard" className="btn-ghost w-fit text-center">
-                VIEW DEMO
+                {t("view_demo")}
               </Link>
             </div>
           ) : (
             <div className="flex flex-col sm:flex-row gap-3 mt-2">
               <Link href="/dashboard" className="btn-primary flex items-center justify-center gap-2 w-fit">
-                ENTER DASHBOARD
+                {t("enter_dashboard")}
               </Link>
               <button
                 onClick={logout}
                 className="btn-ghost w-fit text-center"
               >
-                LOGOUT
+                {t("logout")}
               </button>
             </div>
           )}
@@ -211,19 +226,19 @@ export default function Home() {
               <svg className="w-3 h-3 text-neon-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              <span>W3C DID Compliant</span>
+              <span>{language === "en" ? "W3C DID Compliant" : "متوافق مع W3C DID"}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <svg className="w-3 h-3 text-neon-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              <span>Stellar On-Chain</span>
+              <span>{language === "en" ? "Stellar On-Chain" : "على الشبكة Stellar"}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <svg className="w-3 h-3 text-neon-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              <span>Pi Network Compatible</span>
+              <span>{language === "en" ? "Pi Network Compatible" : "متوافق مع شبكة Pi"}</span>
             </div>
           </div>
         </div>
@@ -240,10 +255,10 @@ export default function Home() {
       <div className="w-full max-w-6xl px-6 mt-12 z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bento-card border border-white/5 bg-white/[0.01]">
           {[
-            { label: "Active DIDs", value: "12,482", icon: "🆔", color: "text-neon-green" },
-            { label: "Agents Deployed", value: "8,941", icon: "🤖", color: "text-electric-blue" },
-            { label: "Stamps Verified", value: "45,102", icon: "🎫", color: "text-axiom-purple" },
-            { label: "Total Transactions", value: "1.2M Pi", icon: "⚡", color: "text-axiom-gold" },
+            { label: t("stat_users"), value: "12,482", icon: "🆔", color: "text-neon-green" },
+            { label: t("stat_agents"), value: "8,941", icon: "🤖", color: "text-electric-blue" },
+            { label: t("stamps_board"), value: "45,102", icon: "🎫", color: "text-axiom-purple" },
+            { label: t("stat_tx"), value: "1.2M Pi", icon: "⚡", color: "text-axiom-gold" },
           ].map((stat) => (
             <div key={stat.label} className="text-center md:text-left md:border-r border-white/5 last:border-0 md:px-4 flex flex-col md:flex-row md:items-center gap-3">
               <span className="text-2xl hidden md:inline">{stat.icon}</span>
@@ -259,16 +274,16 @@ export default function Home() {
       {/* Features Grid */}
       <div className="w-full max-w-6xl px-6 mt-24 md:mt-32 z-10">
         <div className="text-center mb-12">
-          <span className="text-[10px] font-mono text-neon-green tracking-widest uppercase">How It Works</span>
-          <h2 className="text-2xl md:text-3xl font-bold text-white mt-2">Three Steps to Agent Identity</h2>
+          <span className="text-[10px] font-mono text-neon-green tracking-widest uppercase">{language === "en" ? "How It Works" : "كيف يعمل النظام؟"}</span>
+          <h2 className="text-2xl md:text-3xl font-bold text-white mt-2">{language === "en" ? "Three Steps to Agent Identity" : "ثلاث خطوات لبناء هوية العميل"}</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             {
               step: "01",
-              title: "Connect",
-              desc: "Link your Pi wallet or any Stellar address. Your identity starts here.",
+              title: language === "en" ? "Connect" : "الاتصال",
+              desc: language === "en" ? "Link your Pi wallet or any Stellar address. Your identity starts here." : "اربط محفظتك للبدء فورا في تأسيس هويتك الرقمية.",
               icon: (
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -277,8 +292,8 @@ export default function Home() {
             },
             {
               step: "02",
-              title: "Verify",
-              desc: "Complete KYA + KYC. Build trust through social actions and on-chain activity.",
+              title: language === "en" ? "Verify" : "التحقق",
+              desc: language === "en" ? "Complete KYA + KYC. Build trust through social actions and on-chain activity." : "أكمل خطوات التوثيق (KYA) واربح طوابع الهوية الرقمية.",
               icon: (
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -287,8 +302,8 @@ export default function Home() {
             },
             {
               step: "03",
-              title: "Deploy",
-              desc: "Your Agent Passport is ready. Use it across the Pi ecosystem and beyond.",
+              title: language === "en" ? "Deploy" : "التشغيل",
+              desc: language === "en" ? "Your Agent Passport is ready. Use it across the Pi ecosystem and beyond." : "جواز سفر العميل الخاص بك جاهز للاستخدام في شبكة Pi وخارجها.",
               icon: (
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -312,8 +327,8 @@ export default function Home() {
       {/* Why AxiomID? Section */}
       <div className="w-full max-w-6xl px-6 mt-24 md:mt-32 z-10">
         <div className="text-center mb-12">
-          <span className="text-[10px] font-mono text-axiom-purple tracking-widest uppercase">The Sovereign Advantage</span>
-          <h2 className="text-2xl md:text-3xl font-bold text-white mt-2">Why Choose AxiomID?</h2>
+          <span className="text-[10px] font-mono text-axiom-purple tracking-widest uppercase">{language === "en" ? "The Sovereign Advantage" : "الميزة السيادية"}</span>
+          <h2 className="text-2xl md:text-3xl font-bold text-white mt-2">{language === "en" ? "Why Choose AxiomID?" : "لماذا تختار AxiomID؟"}</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -322,29 +337,29 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-red-400 text-lg">⚠️</span>
-                <h3 className="text-base font-bold text-red-400 font-mono">Traditional Identity (Web2)</h3>
+                <h3 className="text-base font-bold text-red-400 font-mono">{language === "en" ? "Traditional Identity (Web2)" : "الهوية التقليدية (Web2)"}</h3>
               </div>
               <ul className="space-y-3.5 text-xs text-gray-400 font-mono">
                 <li className="flex items-start gap-2.5">
                   <span className="text-red-500/70">✗</span>
-                  <span>Siloed data: Your profiles are owned by third-party platforms.</span>
+                  <span>{language === "en" ? "Siloed data: Your profiles are owned by third-party platforms." : "بيانات معزولة: ملفاتك الشخصية مملوكة لمنصات خارجية."}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-red-500/70">✗</span>
-                  <span>High friction: Repeated manual KYC checks for every app.</span>
+                  <span>{language === "en" ? "High friction: Repeated manual KYC checks for every app." : "خطوات معقدة: فحوصات KYC متكررة لكل تطبيق."}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-red-500/70">✗</span>
-                  <span>Vulnerable: Easy spoofing of digital identities and usernames.</span>
+                  <span>{language === "en" ? "Vulnerable: Easy spoofing of digital identities and usernames." : "سهل الاختراق: انتحال سهل للهويات الرقمية وأسماء المستخدمين."}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-red-500/70">✗</span>
-                  <span>No AI integration: Machine agents cannot prove their authority or credentials.</span>
+                  <span>{language === "en" ? "No AI integration: Machine agents cannot prove their authority or credentials." : "لا تكامل مع الذكاء الاصطناعي: لا يمكن للعملاء الآليين إثبات هويتهم."}</span>
                 </li>
               </ul>
             </div>
             <div className="border-t border-white/5 pt-4 mt-6 text-[10px] text-gray-500 font-mono">
-              Result: Fragile security, high user friction, lack of agent trust.
+              {language === "en" ? "Result: Fragile security, high user friction, lack of agent trust." : "النتيجة: أمان هش، خطوات معقدة، غياب للثقة."}
             </div>
           </div>
 
@@ -353,29 +368,29 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-neon-green text-lg">✓</span>
-                <h3 className="text-base font-bold text-neon-green font-mono">AxiomID Stamps Passport</h3>
+                <h3 className="text-base font-bold text-neon-green font-mono">{language === "en" ? "AxiomID Stamps Passport" : "جواز سفر طوابع AxiomID"}</h3>
               </div>
               <ul className="space-y-3.5 text-xs text-gray-300 font-mono">
                 <li className="flex items-start gap-2.5">
                   <span className="text-neon-green">✓</span>
-                  <span>Decentralized: You own and carry your credentials via W3C DIDs.</span>
+                  <span>{language === "en" ? "Decentralized: You own and carry your credentials via W3C DIDs." : "لامركزي: أنت تمتلك وتتحكم ببياناتك عبر المعرفات W3C DIDs."}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-neon-green">✓</span>
-                  <span>Verify once, prove everywhere: Single dashboard for all platform stamps.</span>
+                  <span>{language === "en" ? "Verify once, prove everywhere: Single dashboard for all platform stamps." : "تحقق مرة واحدة، أثبت في كل مكان: لوحة تحكم واحدة لجميع طوابعك."}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-neon-green">✓</span>
-                  <span>Cryptographic security: Trust Score is math-verified on-chain.</span>
+                  <span>{language === "en" ? "Cryptographic security: Trust Score is math-verified on-chain." : "حماية تشفيرية: نقاط الثقة موثقة ومعتمدة رياضياً."}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
                   <span className="text-neon-green">✓</span>
-                  <span>Agent-native: Built for AI agents to represent you securely in automated tasks.</span>
+                  <span>{language === "en" ? "Agent-native: Built for AI agents to represent you securely in automated tasks." : "مصمم للذكاء الاصطناعي: بني ليمثلك عميلك الآلي بأمان في المعاملات."}</span>
                 </li>
               </ul>
             </div>
             <div className="border-t border-white/5 pt-4 mt-6 text-[10px] text-gray-500 font-mono">
-              Result: Frictionless authentication, resilient trust, delegation-ready.
+              {language === "en" ? "Result: Frictionless authentication, resilient trust, delegation-ready." : "النتيجة: مصادقة خالية من الاحتكاك، ثقة مرنة، تفويض آمن."}
             </div>
           </div>
         </div>
@@ -384,16 +399,16 @@ export default function Home() {
       {/* Tiers Section */}
       <div className="w-full max-w-6xl px-6 mt-24 z-10">
         <div className="text-center mb-12">
-          <span className="text-[10px] font-mono text-electric-blue tracking-widest uppercase">Trust Tiers</span>
-          <h2 className="text-2xl md:text-3xl font-bold text-white mt-2">Level Up Your Identity</h2>
+          <span className="text-[10px] font-mono text-electric-blue tracking-widest uppercase">{t("tier")}</span>
+          <h2 className="text-2xl md:text-3xl font-bold text-white mt-2">{language === "en" ? "Level Up Your Identity" : "ارفع مستوى هويتك الرقمية"}</h2>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { name: "Visitor", xp: "0", color: "#64748b", desc: "Connect wallet" },
-            { name: "Citizen", xp: "100", color: "#00ff41", desc: "Social + actions" },
-            { name: "Validator", xp: "500", color: "#00d4ff", desc: "KYC verified" },
-            { name: "Sovereign", xp: "1000", color: "#a855f7", desc: "Full delegation" },
+            { name: t("visitor"), xp: "0", color: "#64748b", desc: language === "en" ? "Connect wallet" : "اربط محفظتك" },
+            { name: t("citizen"), xp: "100", color: "#00ff41", desc: language === "en" ? "Social + actions" : "تأكيدات وحسابات اجتماعية" },
+            { name: t("validator"), xp: "500", color: "#00d4ff", desc: language === "en" ? "KYC verified" : "توثيق الهوية KYC" },
+            { name: t("sovereign"), xp: "1000", color: "#a855f7", desc: language === "en" ? "Full delegation" : "تفويض كامل للذكاء الاصطناعي" },
           ].map((tier) => (
             <div key={tier.name} className="bento-card p-5 text-center">
               <div
@@ -421,9 +436,9 @@ export default function Home() {
       <footer className="w-full max-w-6xl flex flex-col md:flex-row justify-between items-center mt-24 py-8 border-t border-white/5 text-[10px] font-mono text-gray-500 z-10 gap-4">
         <div>&copy; 2026 AxiomID. All rights reserved.</div>
         <div className="flex gap-4">
-          <Link href="/status" className="hover:text-white transition-colors">Network Status</Link>
-          <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
-          <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+          <Link href="/status" className="hover:text-white transition-colors">{t("nav_status")}</Link>
+          <Link href="/privacy" className="hover:text-white transition-colors">{t("nav_privacy")}</Link>
+          <Link href="/terms" className="hover:text-white transition-colors">{t("nav_terms")}</Link>
           <span className="text-gray-600">v1.0</span>
         </div>
       </footer>

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { apiError, apiSuccess } from '@/lib/errors';
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[AGENT-MAIN] Database error:', error);
+    logger.error('[AGENT-MAIN] Database error:', error);
     return apiError('INTERNAL_ERROR', 'Failed to execute agent action');
   }
 }

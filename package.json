@@ -44,7 +44,7 @@
     "analyze": "ANALYZE=true next build",
     "deploy": "vercel --prod",
     "deploy:preview": "vercel",
-    "test": "jest --runInBand --forceExit",
+    "test": "NODE_OPTIONS='--no-deprecation' jest --runInBand --forceExit",
     "test:watch": "jest --watch",
     "type-check": "tsc --noEmit"
   },

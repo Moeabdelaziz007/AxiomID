@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { WalletConnectSchema } from '@/lib/validators';
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
       isNewUser: user.createdAt.getTime() === user.updatedAt.getTime(),
     });
   } catch (error) {
-    console.error('[WALLET-CONNECT] Database error:', error);
+    logger.error('[WALLET-CONNECT] Database error:', error);
     return apiError('INTERNAL_ERROR', 'Failed to connect wallet');
   }
 }

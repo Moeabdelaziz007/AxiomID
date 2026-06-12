@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
       );
       finalMetadata = JSON.stringify(signedVc);
     } catch (e) {
-      console.error("[STAMP-CLAIM] VC signing failed:", e);
+      logger.error("[STAMP-CLAIM] VC signing failed:", e);
       return apiError("INTERNAL_ERROR", "Cryptographic signing failure");
     }
 
@@ -134,7 +135,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error && error.message === "USER_NOT_FOUND") {
       return apiError("NOT_FOUND", "User not found");
     }
-    console.error("[STAMP-CLAIM] Database error:", error);
+    logger.error("[STAMP-CLAIM] Database error:", error);
     return apiError("INTERNAL_ERROR", "Failed to claim stamp");
   }
 }

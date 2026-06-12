@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { apiError, apiSuccess } from '@/lib/errors';
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
       xp: updated.xp,
     });
   } catch (error) {
-    console.error('[KYA-CLAIM] Database error:', error);
+    logger.error('[KYA-CLAIM] Database error:', error);
     return apiError('INTERNAL_ERROR', 'Failed to claim KYA');
   }
 }

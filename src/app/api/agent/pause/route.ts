@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { apiError, apiSuccess } from '@/lib/errors';
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
       status: updated.status,
     });
   } catch (error) {
-    console.error('[AGENT-PAUSE] Database error:', error);
+    logger.error('[AGENT-PAUSE] Database error:', error);
     return apiError('INTERNAL_ERROR', 'Failed to pause agent');
   }
 }

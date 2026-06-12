@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     if (!piResponse.ok) {
       const errorData = await piResponse.json().catch(() => ({}));
-      console.error('[PI-PAYMENT] Pi API complete failed:', piResponse.status, errorData);
+      logger.error('[PI-PAYMENT] Pi API complete failed:', piResponse.status, errorData);
       return apiError('PI_PAYMENT_FAILED', `Pi API error: ${piResponse.status}`);
     }
 
@@ -131,7 +132,7 @@ export async function POST(request: NextRequest) {
       tier: result.newTier,
     });
   } catch (error) {
-    console.error('[PI-PAYMENT] Complete error:', error);
+    logger.error('[PI-PAYMENT] Complete error:', error);
     return apiError('INTERNAL_ERROR', 'Failed to complete payment');
   }
 }

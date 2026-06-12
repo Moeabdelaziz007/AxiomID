@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
@@ -92,7 +93,7 @@ export async function GET(
 
     return NextResponse.json({ error: "NOT_FOUND", message: "No passport found for this slug" }, { status: 404 });
   } catch (error) {
-    console.error("[PASSPORT-API] Database error:", error);
+    logger.error("[PASSPORT-API] Database error:", error);
     return NextResponse.json({ error: "INTERNAL_ERROR" }, { status: 500 });
   }
 }

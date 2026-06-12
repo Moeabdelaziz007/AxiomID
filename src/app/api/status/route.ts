@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { apiError, apiSuccess } from '@/lib/errors';
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[STATUS] Database error:', error);
+    logger.error('[STATUS] Database error:', error);
     return apiError('INTERNAL_ERROR', 'Failed to fetch network status');
   }
 }

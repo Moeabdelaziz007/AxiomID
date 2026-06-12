@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from "next/server";
 import { createPrivateKey, sign } from "crypto";
 import { requireAuth } from "@/lib/auth-middleware";
@@ -102,11 +103,11 @@ export async function GET(request: NextRequest) {
       proofType = "RsaSignature2018";
     } else {
       // Mismatch: key type doesn't match expected algorithm
-      console.error(`[MANIFEST] Key type ${key.asymmetricKeyType} doesn't match expected algorithm ${alg}`);
+      logger.error(`[MANIFEST] Key type ${key.asymmetricKeyType} doesn't match expected algorithm ${alg}`);
       return NextResponse.json({ error: "Key algorithm mismatch" }, { status: 500 });
     }
   } catch (e) {
-    console.error("Failed to sign manifest:", e);
+    logger.error("Failed to sign manifest:", e);
     return NextResponse.json({ error: "Internal cryptographic signing failure" }, { status: 500 });
   }
 

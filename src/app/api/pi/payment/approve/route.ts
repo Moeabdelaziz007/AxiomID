@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { PaymentApproveSchema } from '@/lib/validators';
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
 
   const PI_API_KEY = process.env.PI_API_KEY;
   if (!PI_API_KEY) {
-    console.error('[PI-PAYMENT] PI_API_KEY not configured');
+    logger.error('[PI-PAYMENT] PI_API_KEY not configured');
     return apiError('INTERNAL_ERROR', 'Payment system not configured');
   }
 
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!getResponse.ok) {
-      console.error('[PI-PAYMENT] Pi API get failed:', getResponse.status);
+      logger.error('[PI-PAYMENT] Pi API get failed:', getResponse.status);
       return apiError('PI_PAYMENT_FAILED', `Failed to retrieve payment: ${getResponse.status}`);
     }
 
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
 
     if (!piResponse.ok) {
       const errorData = await piResponse.json().catch(() => ({}));
-      console.error('[PI-PAYMENT] Pi API approve failed:', piResponse.status, errorData);
+      logger.error('[PI-PAYMENT] Pi API approve failed:', piResponse.status, errorData);
       return apiError('PI_PAYMENT_FAILED', `Pi API error: ${piResponse.status}`);
     }
 
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess({ status: 'approved', paymentId });
   } catch (error) {
-    console.error('[PI-PAYMENT] Approve error:', error);
+    logger.error('[PI-PAYMENT] Approve error:', error);
     return apiError('INTERNAL_ERROR', 'Failed to approve payment');
   }
 }

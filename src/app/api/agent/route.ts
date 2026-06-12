@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { apiError, apiSuccess } from '@/lib/errors';
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
       status: agent.status,
     }, 201);
   } catch (error) {
-    console.error('[AGENT-CREATE] Database error:', error);
+    logger.error('[AGENT-CREATE] Database error:', error);
     return apiError('INTERNAL_ERROR', 'Failed to create agent');
   }
 }

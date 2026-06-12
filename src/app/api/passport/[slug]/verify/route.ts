@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
@@ -100,7 +101,7 @@ export async function GET(
       { status: 404 }
     );
   } catch (error) {
-    console.error("[PASSPORT-VERIFY-API] Database error:", error);
+    logger.error("[PASSPORT-VERIFY-API] Database error:", error);
     return NextResponse.json({ error: "INTERNAL_ERROR" }, { status: 500 });
   }
 }

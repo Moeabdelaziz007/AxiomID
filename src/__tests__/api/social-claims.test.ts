@@ -4,12 +4,16 @@
  */
 
 import { signSocialCredential } from "@/lib/vc";
-import { POST } from "@/app/api/action/claim/route";
+import { POST } from "@/app/api/stamp/claim/route";
 import { prisma } from "@/lib/prisma";
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     action: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+    },
+    stamp: {
       findUnique: jest.fn(),
       create: jest.fn(),
     },
@@ -43,10 +47,10 @@ jest.mock("@/lib/auth-middleware", () => ({
   }),
 }));
 
-const mockPrisma = prisma as jest.Mocked<typeof prisma>;
+const mockPrisma = prisma as any;
 
 function mockRequest(body: unknown): Request {
-  return new Request("http://localhost/api/action/claim", {
+  return new Request("http://localhost/api/stamp/claim", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -58,6 +62,7 @@ function mockRequest(body: unknown): Request {
 
 function makeTx(overrides: {
   action?: any;
+  stamp?: any;
   ledger?: any;
   user?: any;
   userUpdate?: any;
@@ -70,6 +75,18 @@ function makeTx(overrides: {
           type: "connect_twitter",
           userId: "user-1",
           xp: 50,
+          metadata: "{}",
+          timestamp: new Date(),
+        }
+      ),
+    },
+    stamp: {
+      create: jest.fn().mockResolvedValue(
+        overrides.stamp ?? {
+          id: "stamp-1",
+          type: "connect_twitter",
+          userId: "user-1",
+          xpAwarded: 50,
           metadata: "{}",
           timestamp: new Date(),
         }
@@ -124,9 +141,9 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
     });
   });
 
-  describe("POST /api/action/claim route integration", () => {
+  describe("POST /api/stamp/claim route integration", () => {
     it("saves signed VC inside Action metadata when claiming connect_twitter", async () => {
-      mockPrisma.action.findUnique.mockResolvedValue(null);
+      mockPrisma.stamp.findUnique.mockResolvedValue(null);
       mockPrisma.user.findUnique.mockResolvedValue({ id: "user-1", xp: 0 } as any);
 
       const tx = makeTx();
@@ -143,9 +160,9 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
       expect(res.status).toBe(200);
       expect(data.xpEarned).toBe(50);
 
-      // Verify that tx.action.create was called with stringified VC as metadata
-      expect(tx.action.create).toHaveBeenCalledTimes(1);
-      const callArgs = tx.action.create.mock.calls[0][0];
+      // Verify that tx.stamp.create was called with stringified VC as metadata
+      expect(tx.stamp.create).toHaveBeenCalledTimes(1);
+      const callArgs = tx.stamp.create.mock.calls[0][0];
       expect(callArgs.data.type).toBe("connect_twitter");
       
       const parsedMetadata = JSON.parse(callArgs.data.metadata);
@@ -155,7 +172,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
     });
 
     it("saves signed VC inside Action metadata when claiming connect_discord", async () => {
-      mockPrisma.action.findUnique.mockResolvedValue(null);
+      mockPrisma.stamp.findUnique.mockResolvedValue(null);
       mockPrisma.user.findUnique.mockResolvedValue({ id: "user-1", xp: 0 } as any);
 
       const tx = makeTx();
@@ -169,8 +186,8 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
       const res = await POST(req);
       expect(res.status).toBe(200);
 
-      expect(tx.action.create).toHaveBeenCalledTimes(1);
-      const callArgs = tx.action.create.mock.calls[0][0];
+      expect(tx.stamp.create).toHaveBeenCalledTimes(1);
+      const callArgs = tx.stamp.create.mock.calls[0][0];
       const parsedMetadata = JSON.parse(callArgs.data.metadata);
       expect(parsedMetadata.credentialSubject.platform).toBe("discord");
       expect(parsedMetadata.credentialSubject.handle).toBe("discord_user#1234");

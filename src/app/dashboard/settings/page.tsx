@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useWallet } from "../../context/wallet-context";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { getLevelProgress, getNextLevelXP, TIERS, Tier } from "@/lib/tiers";
+import { useLanguage } from "../../context/language-context";
+import LanguageToggle from "@/components/LanguageToggle";
 
 interface LedgerEntry {
   id: string;
@@ -30,6 +32,7 @@ interface StatusDetails {
  */
 export default function SettingsPage() {
   const { user, connectWallet, claimAction } = useWallet();
+  const { t, language } = useLanguage();
   const [statusDetails, setStatusDetails] = useState<StatusDetails | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(true);
 
@@ -181,13 +184,16 @@ export default function SettingsPage() {
               <span className="text-neon-green font-bold text-xl">A</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white">AxiomID Settings</h1>
-              <p className="text-xs text-gray-400 font-mono">Manage sovereign keys & connections</p>
+              <h1 className="text-lg font-bold text-white">{t("settings_title")}</h1>
+              <p className="text-xs text-gray-400 font-mono">{t("settings_desc")}</p>
             </div>
           </div>
-          <Link href="/dashboard" className="btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5">
-            ← DASHBOARD
-          </Link>
+          <div className="flex items-center gap-3">
+            <LanguageToggle />
+            <Link href="/dashboard" className="btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5">
+              {language === "ar" ? "← لوحة التحكم" : "← DASHBOARD"}
+            </Link>
+          </div>
         </div>
       </header>
 

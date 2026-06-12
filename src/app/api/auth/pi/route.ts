@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { PiAuthSchema } from '@/lib/validators';
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
       hasAgent: !!user.agent,
     });
   } catch (error) {
-    console.error('[PI-AUTH] Database error:', error);
+    logger.error('[PI-AUTH] Database error:', error);
     return apiError('INTERNAL_ERROR', 'Failed to create or update user');
   }
 }
