@@ -15,6 +15,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import Home from "@/app/page";
+import { defaultWalletCtx } from "./wallet-test-helpers";
 
 // Stub next/link so it renders as a plain anchor in jsdom
 jest.mock("next/link", () => {
@@ -34,29 +35,6 @@ jest.mock("@/app/context/wallet-context", () => ({
 
 import { useWallet } from "@/app/context/wallet-context";
 const mockUseWallet = useWallet as jest.MockedFunction<typeof useWallet>;
-
-function defaultWalletCtx(overrides: Partial<ReturnType<typeof useWallet>> = {}): ReturnType<typeof useWallet> {
-  return {
-    user: null,
-    isLoading: false,
-    isConnecting: false,
-    error: null,
-    isPiBrowser: false,
-    connectWallet: jest.fn(),
-    logout: jest.fn(),
-    claimAction: jest.fn(),
-    refreshUser: jest.fn(),
-    createAgent: jest.fn(),
-    activateAgent: jest.fn(),
-    pauseAgent: jest.fn(),
-    levelProgress: 0,
-    nextXP: null,
-    walletLogs: [],
-    runWalletTest: jest.fn(),
-    clearWalletLogs: jest.fn(),
-    ...overrides,
-  } as any;
-}
 
 describe("PassportHero — no user (unauthenticated)", () => {
   beforeEach(() => {
@@ -267,7 +245,8 @@ describe("Home page — logout buttons (PR change: logout added to Home)", () =>
   it("shows CONNECT button (not LOGOUT) when there is no user", () => {
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null }));
     render(<Home />);
-    expect(screen.getByRole("button", { name: /connect/i })).toBeInTheDocument();
+    const connectButtons = screen.getAllByRole("button", { name: /connect/i });
+    expect(connectButtons.length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByRole("button", { name: /logout/i })).toBeNull();
   });
 

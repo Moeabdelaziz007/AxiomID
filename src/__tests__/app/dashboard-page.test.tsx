@@ -11,6 +11,7 @@ import React from "react";
 import { render, screen, act } from "@testing-library/react";
 import Dashboard from "@/app/dashboard/page";
 import { useWallet } from "@/app/context/wallet-context";
+import { defaultWalletCtx } from "./wallet-test-helpers";
 
 // Mock useWallet so we can control user state
 jest.mock("@/app/context/wallet-context", () => ({
@@ -38,29 +39,6 @@ jest.mock("@/data/skills.json", () => ({
     { name: "KYC", description: "Know your customer" },
   ],
 }));
-
-function defaultWalletCtx(overrides: Partial<ReturnType<typeof useWallet>> = {}): ReturnType<typeof useWallet> {
-  return {
-    user: null,
-    isLoading: false,
-    isConnecting: false,
-    error: null,
-    isPiBrowser: false,
-    connectWallet: jest.fn(),
-    logout: jest.fn(),
-    claimAction: jest.fn(),
-    refreshUser: jest.fn(),
-    createAgent: jest.fn(),
-    activateAgent: jest.fn(),
-    pauseAgent: jest.fn(),
-    levelProgress: 0,
-    nextXP: null,
-    walletLogs: [],
-    runWalletTest: jest.fn(),
-    clearWalletLogs: jest.fn(),
-    ...overrides,
-  } as any;
-}
 
 const authenticatedUser = {
   id: "user-dash",

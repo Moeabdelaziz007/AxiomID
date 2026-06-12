@@ -104,11 +104,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const clearWalletLogs = useCallback(() => setWalletLogs([]), []);
 
   const logout = useCallback(() => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("pi_access_token");
-      localStorage.removeItem("axiomid_wallet");
-    }
-
+    localStorage.removeItem("pi_access_token");
+    localStorage.removeItem("axiomid_wallet");
     setUser(null);
     setPiAccessToken(null);
     setError(null);
@@ -171,11 +168,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const connectWallet = useCallback(async () => {
-
+    setIsConnecting(true);
     setError(null);
     pushLog("بدء الاتصال بالمحفظة...");
 
-    try {
+
       const inPiBrowser = checkPiBrowser();
       pushLog(`حالة Pi Browser: ${inPiBrowser ? "نعم ✅" : "لا"}`);
 
