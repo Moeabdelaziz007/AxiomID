@@ -1,5 +1,6 @@
 "use client";
 
+import { Tier } from "@/lib/tiers";
 import { useState, useEffect } from "react";
 import { useWallet } from "./context/wallet-context";
 import { ErrorBanner } from "@/components/ErrorBanner";
@@ -8,7 +9,7 @@ import Link from "next/link";
 /* ============================================
    FLOATING PASSPORT HERO
    ============================================ */
-function PassportHero({ user }: { user: { piUsername?: string | null; walletAddress?: string; tier?: { toString(): string } | null } | null }) {
+function PassportHero({ user }: { user: { piUsername?: string | null; walletAddress?: string; tier?: Tier | null } | null }) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   useEffect(() => {

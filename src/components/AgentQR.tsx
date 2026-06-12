@@ -4,24 +4,18 @@ import { QRCodeSVG } from "qrcode.react";
 
 interface AgentQRProps {
   did: string;
-  walletAddress: string;
   size?: number;
 }
 
-export function AgentQR({ did, walletAddress, size = 160 }: AgentQRProps) {
-  const qrValue = JSON.stringify({
-    type: "AxiomID",
-    did,
-    wallet: walletAddress,
-    network: "pi",
-    version: "1.0",
-  });
+export function AgentQR({ did, size = 160 }: AgentQRProps) {
+  const qrValue = `https://axiomid.app/passport/${did.split(':').pop()}`;
 
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="bg-white p-3 rounded-xl">
         <QRCodeSVG
           value={qrValue}
+          aria-label={`QR code for DID: ${did}`}
           size={size}
           bgColor="#ffffff"
           fgColor="#0a0a0a"

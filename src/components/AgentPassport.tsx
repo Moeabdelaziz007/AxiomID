@@ -52,6 +52,10 @@ export function AgentPassport({
     ? `${displayAddress.slice(0, 10)}...${displayAddress.slice(-8)}`
     : displayAddress || 'No address';
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
   return (
     <div className="passport-card p-0 animate-holographic">
       {/* Top bar */}
@@ -85,13 +89,19 @@ export function AgentPassport({
           {/* Name + DID */}
           <div className="text-center">
             <h3 className="text-lg font-bold text-white font-mono">{username}</h3>
-            <p className="text-[10px] text-gray-500 font-mono mt-1 break-all">{did}</p>
+            <div className="flex items-center justify-center gap-2 mt-1">
+              <p className="text-[10px] text-gray-500 font-mono break-all">{did}</p>
+              <button onClick={() => copyToClipboard(did)} className="text-gray-500 hover:text-white" aria-label="Copy DID">📋</button>
+            </div>
           </div>
 
           {/* Wallet */}
           <div className="w-full bg-white/5 rounded-lg px-3 py-2 border border-white/5">
             <span className="text-[9px] text-gray-500 font-mono block">WALLET</span>
-            <span className="text-[11px] text-neon-green font-mono">{shortAddress}</span>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] text-neon-green font-mono">{shortAddress}</span>
+              {displayAddress && <button onClick={() => copyToClipboard(displayAddress)} className="text-gray-500 hover:text-white" aria-label="Copy Wallet Address">📋</button>}
+            </div>
           </div>
 
           {/* Agent info */}

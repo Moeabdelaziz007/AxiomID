@@ -115,7 +115,7 @@ export default function Dashboard() {
   const agentStatus = agent?.status ?? "NONE";
 
   return (
-    <main className="min-h-screen bg-grid">
+    <main id="main-content" className="min-h-screen bg-grid">
       <div className="scanline" />
       <ErrorBanner />
 
@@ -626,7 +626,7 @@ export default function Dashboard() {
 
       {/* ── BOTTOM NAV ── */}
       <footer className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md border-t border-white/10 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-4" role="tablist">
           <div className="flex justify-center gap-4">
             {([
               { id: "passport" as TabId, icon: "🆔", label: "Passport" },
@@ -642,6 +642,8 @@ export default function Dashboard() {
               return (
                 <button
                   key={tab.id}
+                  role="tab"
+                  aria-selected={isActive}
                   disabled={tab.disabled}
                   onClick={() => handleTabClick(tab.id)}
                   className={`flex flex-col items-center gap-1 px-5 py-2 rounded-lg transition-all relative group ${

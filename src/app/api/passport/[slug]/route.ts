@@ -10,6 +10,31 @@ const AGENT_SELECT = {
   },
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildPassportResponse(user: any) {
+  const did = user.did || createUserDid(user.id);
+  const trustScore = Math.min(100, Math.floor((user.xp || 0) / 10));
+  const kyaStatus = user.kycStatus === "VERIFIED"
+    ? "verified"
+    : user.kycStatus === "PENDING"
+      ? "pending"
+      : "denied";
+
+  return {
+    username: user.piUsername || "AxiomID Agent",
+    walletAddress: user.walletAddress,
+    did,
+    tier: user.tier,
+    xp: user.xp,
+    trustScore,
+    kyaStatus,
+    kycStatus: kyaStatus,
+    issuedDate: user.createdAt.toISOString(),
+    agentName: user.agent?.name || null,
+    agentStatus: user.agent?.status || null,
+  };
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
@@ -34,28 +59,7 @@ export async function GET(
     });
 
     if (agentByPublicId) {
-      const user = agentByPublicId.user;
-      const did = user.did || createUserDid(user.id);
-      const trustScore = Math.min(100, Math.floor((user.xp || 0) / 10));
-      const kyaStatus = user.kycStatus === "VERIFIED"
-        ? "verified"
-        : user.kycStatus === "PENDING"
-          ? "pending"
-          : "denied";
-
-      return NextResponse.json({
-        username: user.piUsername || "AxiomID Agent",
-        walletAddress: user.walletAddress,
-        did,
-        tier: user.tier,
-        xp: user.xp,
-        trustScore,
-        kyaStatus,
-        kycStatus: kyaStatus,
-        issuedDate: user.createdAt.toISOString(),
-        agentName: user.agent?.name || null,
-        agentStatus: user.agent?.status || null,
-      });
+      return NextResponse.json(buildPassportResponse(agentByPublicId.user));
     }
 
     const userByWallet = await prisma.user.findUnique({
@@ -64,28 +68,7 @@ export async function GET(
     });
 
     if (userByWallet) {
-      const user = userByWallet;
-      const did = user.did || createUserDid(user.id);
-      const trustScore = Math.min(100, Math.floor((user.xp || 0) / 10));
-      const kyaStatus = user.kycStatus === "VERIFIED"
-        ? "verified"
-        : user.kycStatus === "PENDING"
-          ? "pending"
-          : "denied";
-
-      return NextResponse.json({
-        username: user.piUsername || "AxiomID Agent",
-        walletAddress: user.walletAddress,
-        did,
-        tier: user.tier,
-        xp: user.xp,
-        trustScore,
-        kyaStatus,
-        kycStatus: kyaStatus,
-        issuedDate: user.createdAt.toISOString(),
-        agentName: user.agent?.name || null,
-        agentStatus: user.agent?.status || null,
-      });
+      return NextResponse.json(buildPassportResponse(userByWallet));
     }
 
     const userByUsername = await prisma.user.findFirst({
@@ -94,28 +77,7 @@ export async function GET(
     });
 
     if (userByUsername) {
-      const user = userByUsername;
-      const did = user.did || createUserDid(user.id);
-      const trustScore = Math.min(100, Math.floor((user.xp || 0) / 10));
-      const kyaStatus = user.kycStatus === "VERIFIED"
-        ? "verified"
-        : user.kycStatus === "PENDING"
-          ? "pending"
-          : "denied";
-
-      return NextResponse.json({
-        username: user.piUsername || "AxiomID Agent",
-        walletAddress: user.walletAddress,
-        did,
-        tier: user.tier,
-        xp: user.xp,
-        trustScore,
-        kyaStatus,
-        kycStatus: kyaStatus,
-        issuedDate: user.createdAt.toISOString(),
-        agentName: user.agent?.name || null,
-        agentStatus: user.agent?.status || null,
-      });
+      return NextResponse.json(buildPassportResponse(userByUsername));
     }
 
     const userByDid = await prisma.user.findFirst({
@@ -124,28 +86,7 @@ export async function GET(
     });
 
     if (userByDid) {
-      const user = userByDid;
-      const did = user.did || createUserDid(user.id);
-      const trustScore = Math.min(100, Math.floor((user.xp || 0) / 10));
-      const kyaStatus = user.kycStatus === "VERIFIED"
-        ? "verified"
-        : user.kycStatus === "PENDING"
-          ? "pending"
-          : "denied";
-
-      return NextResponse.json({
-        username: user.piUsername || "AxiomID Agent",
-        walletAddress: user.walletAddress,
-        did,
-        tier: user.tier,
-        xp: user.xp,
-        trustScore,
-        kyaStatus,
-        kycStatus: kyaStatus,
-        issuedDate: user.createdAt.toISOString(),
-        agentName: user.agent?.name || null,
-        agentStatus: user.agent?.status || null,
-      });
+      return NextResponse.json(buildPassportResponse(userByDid));
     }
 
     return NextResponse.json({ error: "NOT_FOUND", message: "No passport found for this slug" }, { status: 404 });

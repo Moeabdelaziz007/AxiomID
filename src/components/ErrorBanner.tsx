@@ -8,7 +8,7 @@ export function ErrorBanner() {
   if (!error) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center px-4 py-3">
+    <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center px-4 py-3" role="alert" aria-live="assertive">
       <div className="flex items-center gap-3 max-w-lg w-full px-4 py-3 rounded-xl border bg-[#1a0a0a]/90 backdrop-blur-md"
         style={{
           borderColor: "rgba(239, 68, 68, 0.25)",
