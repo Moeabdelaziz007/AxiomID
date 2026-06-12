@@ -2,7 +2,7 @@ import { AgentPassport } from "@/components/AgentPassport";
 import { AgentQR } from "@/components/AgentQR";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import type { Tier } from "@/lib/tiers";
+import { TIERS, type Tier } from "@/lib/tiers";
 import { createAxiomDid } from "@/lib/did";
 
 interface PassportPageProps {
@@ -46,7 +46,7 @@ async function getAgentData(slug: string) {
   };
   const mappedKyc = kycStatusMap[user.kycStatus] ?? "pending";
 
-  const tier = ["Visitor", "Citizen", "Validator", "Sovereign"].includes(user.tier)
+  const tier = (Object.keys(TIERS) as Tier[]).includes(user.tier as Tier)
     ? (user.tier as Tier)
     : "Visitor";
 

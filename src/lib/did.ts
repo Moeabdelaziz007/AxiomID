@@ -4,8 +4,7 @@ export function createAxiomDid(subject: string): string {
   const normalized = subject
     .trim()
     .toLowerCase()
-    .replace(/^pi:/, "pi-")
-    .replace(/^demo:/, "demo-")
+    .replace(/^(pi|demo):/, "$1-")
     .replace(/[^a-z0-9._-]+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-+|-+$/g, "")

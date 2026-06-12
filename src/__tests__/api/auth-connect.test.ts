@@ -126,13 +126,14 @@ describe('POST /api/auth/connect', () => {
   });
 
   // ----------------------------------------------------------------
-  // did returned from the follow-up findUnique
+  // did returned from the upsert result
   // ----------------------------------------------------------------
-  it('returns did from the post-upsert findUnique lookup', async () => {
-    mockPrisma.user.findUnique.mockResolvedValue({
+  it('returns did and kycStatus from the upsert result', async () => {
+    mockPrisma.user.upsert.mockResolvedValue(makeUpsertUser({
+      walletAddress: 'demo:xyz',
       did: 'did:axiom:axiomid.app:demo-xyz',
       kycStatus: 'VERIFIED',
-    } as any);
+    }));
 
     const req = mockRequest({ walletAddress: 'demo:xyz' });
     const res = await POST(req);
@@ -142,8 +143,8 @@ describe('POST /api/auth/connect', () => {
     expect(data.kycStatus).toBe('VERIFIED');
   });
 
-  it('returns null did when findUnique returns null', async () => {
-    mockPrisma.user.findUnique.mockResolvedValue(null);
+  it('returns null did when upsert result has no did', async () => {
+    mockPrisma.user.upsert.mockResolvedValue(makeUpsertUser({ did: null }));
 
     const req = mockRequest({ walletAddress: WALLET });
     const res = await POST(req);

@@ -125,7 +125,7 @@ describe('POST /api/pi/kya/claim', () => {
         data: expect.objectContaining({
           walletAddress: 'pi:pi_user_abc',
           piUsername: 'pi_user_abc',
-          did: 'did:axiom:mock-pi-uid',
+          did: 'did:axiom:axiomid.app:pi-mock-pi-uid',
           kycStatus: 'PENDING',
         }),
       })
@@ -193,7 +193,7 @@ describe('POST /api/pi/kya/claim', () => {
     expect(mockPrisma.user.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          name: 'John Doe',
+          metadata: JSON.stringify({ displayName: 'John Doe' }),
         }),
       })
     );

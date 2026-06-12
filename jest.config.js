@@ -16,6 +16,7 @@ const customJestConfig = {
   },
   testPathIgnorePatterns: [
     '/node_modules/',
+    '<rootDir>/e2e/',
     '<rootDir>/src/lib/tiers.test.ts',
     '<rootDir>/src/app/api/score/ip_resolution.test.ts',
     '<rootDir>/src/app/context/dna-context.test.ts',

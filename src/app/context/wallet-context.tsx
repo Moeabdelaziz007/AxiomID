@@ -148,7 +148,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   const connectDemoWallet = useCallback(async (walletAddress: string) => {
     localStorage.setItem("axiomid_wallet", walletAddress);
-
+    const res = await fetch("/api/auth/connect", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ walletAddress }),

@@ -1,11 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const PI_MESSAGE_ORIGINS = new Set([
-  "https://app-cdn.minepi.com",
-  "https://sdk.minepi.com",
-  "https://minepi.com",
-  "https://sandbox.minepi.com",
-]);
-
 const PATCH_FLAG = "__axiomidPiPostMessagePatched";
 
 type PatchedWindow = Window & {
@@ -13,11 +6,11 @@ type PatchedWindow = Window & {
 };
 
 function isPiOrigin(origin: string): boolean {
-  return PI_MESSAGE_ORIGINS.has(origin) || /(^|\.)minepi\.com$/.test(new URL(origin).hostname);
+  return /(^|\.)minepi\.com$/.test(new URL(origin).hostname);
 }
 
 function normalizeTargetOrigin(targetOrigin: string): string {
-  if (targetOrigin === "*" || targetOrigin === "/") return targetOrigin;
+
 
   try {
     if (targetOrigin === window.location.origin) return targetOrigin;
