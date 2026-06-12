@@ -8,6 +8,7 @@ import { getClientIp } from '@/lib/ip';
 import { ACTIONS } from '@/lib/actions';
 import { calculateTier } from '@/lib/tiers';
 import { requireAuth } from '@/lib/auth-middleware';
+import { safeJsonStringify } from '@/lib/sanitize';
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
           userId: authUser.id,
           type: actionType,
           xp: actionDef.xp,
-          metadata: metadata ? JSON.stringify(metadata) : null,
+          metadata: safeJsonStringify(metadata),
         },
       });
 

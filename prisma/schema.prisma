@@ -13,14 +13,14 @@ datasource db {
 
 model User {
   id            String   @id @default(uuid())
-  walletAddress String   @unique
-  piUid         String?  @unique
-  piUsername    String?
-  piAccessToken String?
+  walletAddress String   @unique @db.VarChar(120)
+  piUid         String?  @unique @db.VarChar(100)
+  piUsername    String?  @db.VarChar(100)
+  piAccessToken String?  // encrypted at rest (AES-256-GCM)
 
   // Sovereign DID
-  did       String?  @unique
-  didMethod String?  @default("did:axiom")
+  did       String?  @unique @db.VarChar(255)
+  didMethod String?  @default("did:axiom") @db.VarChar(50)
 
   // KYC
   kycStatus      KYCStatus @default(NONE)
@@ -43,7 +43,7 @@ model User {
   agentLogs   AgentLog[]
 
   // Metadata
-  metadata   String? // JSON: arbitrary user metadata
+  metadata   String? @db.Text // JSON: arbitrary user metadata (max ~10KB)
   lastActive DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -67,10 +67,10 @@ model UserAgent {
   publicId    String    @unique @default(cuid()) // ag_xxx
 
   // Identity
-  name        String    @default("My Agent")
-  description String?
-  avatarUrl   String?
-  did         String?
+  name        String    @default("My Agent") @db.VarChar(100)
+  description String?   @db.VarChar(500)
+  avatarUrl   String?   @db.VarChar(500)
+  did         String?   @db.VarChar(255)
 
   // State
   status      AgentStatus @default(INACTIVE) // inactive | active | paused | sleeping
@@ -113,9 +113,9 @@ model PiPayment {
   paymentId     String   @unique // Pi Network payment ID
   txid          String?  // blockchain transaction hash
   amount        Float
-  memo          String?
-  metadata      String?  // JSON: { skillId, agentId, purpose }
-  status        String   @default("pending") // pending | approved | completed | cancelled | failed
+  memo          String?  @db.VarChar(500)
+  metadata      String?  @db.Text // JSON: { skillId, agentId, purpose }
+  status        String   @default("pending") @db.VarChar(50)
   fromAddress   String?
   toAddress     String?
   network       String   @default("pi")
@@ -133,9 +133,9 @@ model PiPayment {
 
 model Action {
   id        String   @id @default(uuid())
-  type      String   // "connect_twitter" | "daily_pow" | "verify_identity" | "forge_agent"
+  type      String   @db.VarChar(50) // "connect_twitter" | "daily_pow" | etc
   xp        Int
-  metadata  String?  // JSON: extra context
+  metadata  String?  @db.Text // JSON: extra context
   timestamp DateTime @default(now())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -150,8 +150,8 @@ model XpLedger {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount    Int      // positive = earned, negative = spent
-  reason    String   // "action_claim" | "agent_create" | "admin_adjust"
-  reference String?  // JSON: { actionId, agentId }
+  reason    String   @db.VarChar(50) // "action_claim" | "agent_create" | "admin_adjust"
+  reference String?  @db.Text // JSON: { actionId, agentId }
   balance   Int      // running balance after this entry
   createdAt DateTime @default(now())
 
@@ -169,10 +169,10 @@ model AgentLog {
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   agentId     String?
   agent       UserAgent? @relation(fields: [agentId], references: [id])
-  level       String     @default("info") // "debug" | "info" | "warn" | "error" | "critical"
-  source      String     // "system" | "agent" | "skill" | "tool" | "user" | "payment"
-  message     String
-  metadata    String?    // JSON
+  level       String     @default("info") @db.VarChar(20) // "debug" | "info" | "warn" | "error" | "critical"
+  source      String     @db.VarChar(50) // "system" | "agent" | "skill" | "tool" | "user" | "payment"
+  message     String     @db.VarChar(2000)
+  metadata    String?    @db.Text // JSON
   createdAt   DateTime   @default(now())
 
   @@index([userId])

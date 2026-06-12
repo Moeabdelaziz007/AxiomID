@@ -4,6 +4,7 @@ import { apiError, apiSuccess } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { requireAuth } from '@/lib/auth-middleware';
+import { safeJsonStringify } from '@/lib/sanitize';
 
 interface AgentMainBody {
   action: string;
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
         level: 'info',
         source: 'agent',
         message: `Executed action: ${sanitizedAction}`,
-        metadata: params ? JSON.stringify(params) : null,
+        metadata: safeJsonStringify(params),
       },
     });
 

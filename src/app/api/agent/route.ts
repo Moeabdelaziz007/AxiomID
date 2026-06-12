@@ -30,6 +30,15 @@ export async function POST(request: NextRequest) {
 
   const { name, description } = body as CreateAgentBody;
 
+  // Sanitize: strip HTML, enforce length limits
+  const sanitizedName = (name ?? 'My Agent')
+    .replace(/<[^>]*>/g, '')
+    .trim()
+    .slice(0, 100) || 'My Agent';
+  const sanitizedDesc = description
+    ? description.replace(/<[^>]*>/g, '').trim().slice(0, 500)
+    : null;
+
   try {
     const existing = await prisma.userAgent.findUnique({ where: { userId: user.id } });
     if (existing) {
@@ -39,8 +48,8 @@ export async function POST(request: NextRequest) {
     const agent = await prisma.userAgent.create({
       data: {
         userId: user.id,
-        name: name ?? 'My Agent',
-        description: description ?? null,
+        name: sanitizedName,
+        description: sanitizedDesc,
         status: 'INACTIVE',
         mode: 'AUTONOMOUS',
       },

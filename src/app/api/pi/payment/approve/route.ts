@@ -5,6 +5,7 @@ import { apiError, apiSuccess } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { requireAuth } from '@/lib/auth-middleware';
+import { safeJsonStringify } from '@/lib/sanitize';
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -69,14 +70,14 @@ export async function POST(request: NextRequest) {
         status: 'approved',
         amount: paymentData.amount || 0,
         memo: paymentData.memo || null,
-        metadata: paymentData.metadata ? JSON.stringify(paymentData.metadata) : null,
+        metadata: safeJsonStringify(paymentData.metadata),
       },
       create: {
         paymentId,
         userId: auth.user.id,
         amount: paymentData.amount || 0,
         memo: paymentData.memo || null,
-        metadata: paymentData.metadata ? JSON.stringify(paymentData.metadata) : null,
+        metadata: safeJsonStringify(paymentData.metadata),
         status: 'approved',
         network: 'pi',
       },
