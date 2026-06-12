@@ -98,8 +98,8 @@ export async function runWalletTest(pushLog?: any): Promise<void> {
   assertPiSdkLoaded();
   try {
     if (typeof window !== "undefined" && typeof window.Pi?.authenticate === "function") {
-      const result = await window.Pi.authenticate();
-      pushLog?.(`Wallet test passed: ${result?.user?.name || "unknown"}`);
+      const result = await window.Pi.authenticate({ scope: ["username", "payments"] });
+      pushLog?.(`Wallet test passed: ${result?.user?.username || result?.user?.uid || "unknown"}`);
       return;
     }
     const pi = new PiSdkBase();
