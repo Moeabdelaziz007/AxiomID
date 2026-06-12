@@ -9,7 +9,11 @@ export function createIssuerDid(): string {
 }
 
 export function createPassportDid(slug: string): string {
-  const sanitized = slug.replace(/[^a-zA-Z0-9-]/g, "");
+  const sanitized = slug
+    .replace(/[^a-zA-Z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
   if (!sanitized) {
     throw new Error("Passport slug cannot be empty after sanitization");
   }

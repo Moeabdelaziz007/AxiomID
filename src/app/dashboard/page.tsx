@@ -43,6 +43,9 @@ export default function Dashboard() {
     activateAgent,
     pauseAgent,
     claimKya,
+    isPiBrowser,
+    isDemoWallet,
+    isDemoWalletEnabled,
   } = useWallet();
 
   const [activeTab, setActiveTab] = useState<TabId>("passport");
@@ -79,6 +82,7 @@ export default function Dashboard() {
   };
 
   const isDemo = !user && !isLoading;
+  const shouldShowPiBrowserPrompt = !isPiBrowser && !isDemoWalletEnabled;
 
   useEffect(() => {
     if (logsEndRef.current) {
@@ -219,9 +223,9 @@ export default function Dashboard() {
           /* ── DEMO VIEW ── */
           <div className="space-y-6">
             <div className="bento-card p-6 border border-electric-blue/20 bg-electric-blue/5">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-electric-blue/20 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-electric-blue/20 flex items-center justify-center flex-shrink-0">
                     <svg className="w-5 h-5 text-electric-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
@@ -231,13 +235,19 @@ export default function Dashboard() {
                     <p className="text-xs text-gray-400">Connect your wallet to claim actions and manage your agent.</p>
                   </div>
                 </div>
-                <button
-                  onClick={connectWallet}
-                  disabled={isConnecting}
-                  className="btn-primary text-xs px-4 py-2"
-                >
-                  {isConnecting ? "CONNECTING..." : "CONNECT WALLET"}
-                </button>
+                {shouldShowPiBrowserPrompt ? (
+                  <div className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-1.5 text-center text-amber-200 text-xs">
+                    افتح التطبيق من Pi Browser (Demo Disabled)
+                  </div>
+                ) : (
+                  <button
+                    onClick={connectWallet}
+                    disabled={isConnecting}
+                    className="btn-primary text-xs px-4 py-2"
+                  >
+                    {isConnecting ? "CONNECTING..." : "CONNECT WALLET"}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -340,8 +350,22 @@ export default function Dashboard() {
           <>
             {/* Welcome banner — always visible */}
             <div className="bento-card p-8 mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Welcome back, {user.piUsername}</h2>
-              <p className="text-gray-400">Your agent identity is ready. Level {user.tier} &bull; {user.xp} XP</p>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-2">Welcome back, {user.piUsername}</h2>
+                  <p className="text-gray-400">Your agent identity is ready. Level {user.tier} &bull; {user.xp} XP</p>
+                </div>
+                {isDemoWallet && (
+                  <div className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-2.5 text-center">
+                    <p className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-red-400">
+                      Demo Account
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-red-200/80">
+                      Not valid for production use
+                    </p>
+                  </div>
+                )}
+              </div>
               <div className="mt-4 h-2 bg-white/10 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-neon-green to-electric-blue transition-all duration-500"
@@ -820,10 +844,16 @@ export default function Dashboard() {
                   <p className="text-xs text-gray-400 text-center leading-relaxed">
                     Link your secure Pi cryptographic identity to anchor your autonomous agent on the AxiomID protocol.
                   </p>
+                  {shouldShowPiBrowserPrompt && (
+                    <div className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-center text-amber-200">
+                      <p className="font-semibold text-xs">افتح التطبيق من Pi Browser</p>
+                      <p className="text-[10px] text-amber-100/70 mt-0.5">Demo wallets are disabled for this deployment.</p>
+                    </div>
+                  )}
                   <div className="pt-4">
                     <button
                       onClick={connectWallet}
-                      disabled={isConnecting}
+                      disabled={isConnecting || shouldShowPiBrowserPrompt}
                       className="btn-primary w-full py-3 text-xs tracking-wider"
                     >
                       {isConnecting ? "CONNECTING..." : "CONNECT WALLET"}

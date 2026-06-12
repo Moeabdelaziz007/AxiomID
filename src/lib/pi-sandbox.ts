@@ -27,7 +27,7 @@ export function patchPostMessageForSandbox(): void {
 export function listenForPiSDKMessages(): void {
   function handlePiMessage(event: MessageEvent) {
     if (typeof event.data !== "string") return;
-    if (event.origin !== "https://app.minepi.com" && event.origin !== "https://sandbox.minepi.com") return;
+    if (event.origin !== "https://app.minepi.com" && event.origin !== "https://sandbox.minepi.com" && event.origin !== "null") return;
 
     try {
       const msg = JSON.parse(event.data);
@@ -44,8 +44,9 @@ export function listenForPiSDKMessages(): void {
             name: msg.payload?.name || "AxiomID",
           },
         };
+        const targetOrigin = !event.origin || event.origin === "null" ? "*" : event.origin;
         event.source?.postMessage(JSON.stringify(response), {
-          targetOrigin: event.origin,
+          targetOrigin,
         });
       }
     } catch {
