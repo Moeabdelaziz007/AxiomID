@@ -9,6 +9,8 @@ export interface User {
   walletAddress: string;
   stellarAddress?: string | null;
   piUsername?: string | null;
+  kycStatus?: string | null;
+  did?: string | null;
   xp: number;
   tier: Tier;
   trustScore: number;
@@ -34,6 +36,7 @@ interface WalletContextType {
   createAgent: (name?: string) => Promise<boolean>;
   activateAgent: () => Promise<boolean>;
   pauseAgent: () => Promise<boolean>;
+  claimKya: (username: string) => Promise<boolean>;
   levelProgress: number;
   nextXP: number | null;
   walletLogs: string[];
@@ -86,6 +89,8 @@ function mapApiUser(data: ApiResponse, fallback?: { stellarAddress?: string | nu
     trustScore: data.trustScore ?? Math.min(100, Math.floor((data.xp || 0) / 10)),
     createdAt: data.createdAt || fallback?.createdAt || new Date().toISOString(),
     piUsername: data.piUsername,
+    kycStatus: data.kycStatus || null,
+    did: data.did || null,
     actions: fallback?.actions || [],
     agent: data.agent || null,
   };
@@ -301,6 +306,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         trustScore: Math.min(100, Math.floor((data.xp || 0) / 10)),
         createdAt: new Date().toISOString(),
         piUsername: data.piUsername || piUser.username,
+        kycStatus: data.kycStatus || null,
+        did: data.did || null,
         actions: [],
         agent: null,
       });
@@ -379,6 +386,33 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setError(null);
     setWalletLogs([]);
   }, []);
+
+  const claimKya = useCallback(async (username: string) => {
+    if (!userRef.current) return false;
+    try {
+      const res = await fetch("/api/pi/kya/claim", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(piAccessToken ? { "Authorization": `Bearer ${piAccessToken}` } : {}),
+        },
+        body: JSON.stringify({ username }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        setError(err.error || "Failed to verify identity");
+        setTimeout(() => setError(null), 8000);
+        return false;
+      }
+
+      await refreshUser();
+      return true;
+    } catch (err) {
+      console.error("KYA claim error:", err);
+      return false;
+    }
+  }, [refreshUser, piAccessToken]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.Pi) {
@@ -461,6 +495,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         createAgent,
         activateAgent,
         pauseAgent,
+        claimKya,
         levelProgress,
         nextXP,
         walletLogs,

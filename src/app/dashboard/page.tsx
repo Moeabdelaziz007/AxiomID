@@ -42,6 +42,7 @@ export default function Dashboard() {
     createAgent,
     activateAgent,
     pauseAgent,
+    claimKya,
   } = useWallet();
 
   const [activeTab, setActiveTab] = useState<TabId>("passport");
@@ -50,7 +51,32 @@ export default function Dashboard() {
   const [claimingAction, setClaimingAction] = useState<string | null>(null);
   const [agentName, setAgentName] = useState("");
   const [agentLoading, setAgentLoading] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [kycUsername, setKycUsername] = useState("");
+  const [kycLoading, setKycLoading] = useState(false);
   const logsEndRef = useRef<HTMLDivElement>(null);
+
+  const onboardingStep = !user ? 1 : !user.agent ? 2 : 3;
+
+  useEffect(() => {
+    const onboardingCompleted = localStorage.getItem("axiom_onboarding_completed");
+    if (onboardingCompleted !== "true") {
+      queueMicrotask(() => setShowOnboarding(true));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user?.piUsername) {
+      queueMicrotask(() => setKycUsername(user.piUsername || ""));
+    }
+  }, [user?.piUsername]);
+
+  const handleVerifyIdentity = async () => {
+    if (!kycUsername.trim()) return;
+    setKycLoading(true);
+    await claimKya(kycUsername.trim());
+    setKycLoading(false);
+  };
 
   const isDemo = !user && !isLoading;
 
@@ -131,20 +157,31 @@ export default function Dashboard() {
                 <p className="text-xs text-gray-400 font-mono">Agent Identity Layer v1.0.0</p>
               </div>
             </div>
-            {user && (
+            <div className="flex items-center gap-3">
               <button
-                onClick={async () => {
-                  await disconnectWallet();
-                  router.push("/");
+                onClick={() => {
+                  localStorage.removeItem("axiom_onboarding_completed");
+                  setShowOnboarding(true);
                 }}
                 className="btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5"
               >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                LOGOUT
+                REPLAY ONBOARDING
               </button>
-            )}
+              {user && (
+                <button
+                  onClick={async () => {
+                    await disconnectWallet();
+                    router.push("/");
+                  }}
+                  className="btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  LOGOUT
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -359,6 +396,58 @@ export default function Dashboard() {
                       </Link>
                     </div>
                   </div>
+                </div>
+
+                {/* Identity Verification (KYA) Card */}
+                <div className="bento-card p-6">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">Identity Verification (KYA)</h3>
+                      <p className="text-xs text-gray-400 mt-1">Secure your DID document by verifying your sovereign credentials.</p>
+                    </div>
+                    {user.kycStatus === "APPROVED" ? (
+                      <span className="px-3 py-1 rounded-full text-xs font-mono bg-neon-green/10 text-neon-green border border-neon-green/20 flex items-center gap-1.5 animate-pulse">
+                        VERIFIED ✅
+                      </span>
+                    ) : user.kycStatus === "PENDING" ? (
+                      <span className="px-3 py-1 rounded-full text-xs font-mono bg-yellow-400/10 text-yellow-400 border border-yellow-400/20 flex items-center gap-1.5 animate-pulse">
+                        PENDING
+                      </span>
+                    ) : (
+                      <span className="px-3 py-1 rounded-full text-xs font-mono bg-white/5 text-gray-500 border border-white/10">
+                        UNVERIFIED
+                      </span>
+                    )}
+                  </div>
+
+                  {user.kycStatus === "APPROVED" ? (
+                    <div className="p-4 rounded-xl border border-neon-green/20 bg-neon-green/5 text-xs text-gray-300 font-mono space-y-2">
+                      <p className="text-neon-green font-bold">✓ AxiomID Verification Anchored</p>
+                      <p>Your identity has been verified and permanently anchored under DID: <span className="text-white">{user.did}</span></p>
+                    </div>
+                  ) : user.kycStatus === "PENDING" ? (
+                    <div className="p-4 rounded-xl border border-yellow-400/20 bg-yellow-400/5 text-xs text-gray-300 font-mono space-y-2">
+                      <p className="text-yellow-400 font-bold">⏳ Verification Pending</p>
+                      <p>The oracle network is validating your Pi Network credentials. Advanced agent tasks will unlock automatically upon approval.</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <input
+                        type="text"
+                        value={kycUsername}
+                        onChange={(e) => setKycUsername(e.target.value)}
+                        placeholder="Pi Username"
+                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
+                      />
+                      <button
+                        onClick={handleVerifyIdentity}
+                        disabled={kycLoading || !kycUsername.trim()}
+                        className="btn-primary text-sm px-6 py-2.5 flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {kycLoading ? "VERIFYING..." : "VERIFY IDENTITY"}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -667,6 +756,133 @@ export default function Dashboard() {
           </div>
         </div>
       </footer>
+
+      {/* ── ONBOARDING MODAL ── */}
+      {showOnboarding && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+          <div className="bento-card max-w-md w-full p-8 relative flex flex-col border border-white/10 shadow-2xl">
+            {/* Header */}
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h3 id="onboarding-title" className="text-xl font-bold text-white font-mono">
+                  AGENT ONBOARDING
+                </h3>
+                <p className="text-xs text-gray-400 font-mono mt-1">
+                  Step {onboardingStep} of 3
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  localStorage.setItem("axiom_onboarding_completed", "true");
+                  setShowOnboarding(false);
+                }}
+                className="text-gray-500 hover:text-white transition-colors text-xs font-mono border border-white/5 hover:border-white/10 px-2.5 py-1 rounded cursor-pointer"
+              >
+                SKIP
+              </button>
+            </div>
+
+            {/* Step Indicators */}
+            <div className="flex gap-2 mb-6">
+              {[1, 2, 3].map((step) => (
+                <div
+                  key={step}
+                  className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                    step === onboardingStep
+                      ? "bg-neon-green"
+                      : step < onboardingStep
+                        ? "bg-neon-green/40"
+                        : "bg-white/10"
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Step Contents */}
+            <div className="flex-1 min-h-[200px] flex flex-col justify-between">
+              {onboardingStep === 1 && (
+                <div className="space-y-4">
+                  <div className="text-center py-4 text-4xl">🔌</div>
+                  <h4 className="text-base font-semibold text-white text-center">Connect Your Pi Wallet</h4>
+                  <p className="text-xs text-gray-400 text-center leading-relaxed">
+                    Link your secure Pi cryptographic identity to anchor your autonomous agent on the AxiomID protocol.
+                  </p>
+                  <div className="pt-4">
+                    <button
+                      onClick={connectWallet}
+                      disabled={isConnecting}
+                      className="btn-primary w-full py-3 text-xs tracking-wider"
+                    >
+                      {isConnecting ? "CONNECTING..." : "CONNECT WALLET"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {onboardingStep === 2 && (
+                <div className="space-y-4">
+                  <div className="text-center py-4 text-4xl">🤖</div>
+                  <h4 className="text-base font-semibold text-white text-center">Create Autonomous Agent</h4>
+                  <p className="text-xs text-gray-400 text-center leading-relaxed font-mono">
+                    Define the name for your autonomous gRPC agent. It will begin at Tier 1 with 0 XP.
+                  </p>
+                  <div className="space-y-3 pt-2">
+                    <input
+                      type="text"
+                      value={agentName}
+                      onChange={(e) => setAgentName(e.target.value)}
+                      placeholder="Agent name (optional)"
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
+                    />
+                    <button
+                      onClick={handleCreateAgent}
+                      disabled={agentLoading}
+                      className="btn-primary w-full py-3 text-xs tracking-wider"
+                    >
+                      {agentLoading ? "CREATING AGENT..." : "CREATE AGENT"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {onboardingStep === 3 && (
+                <div className="space-y-4">
+                  <div className="text-center py-4 text-4xl">🎫</div>
+                  <h4 className="text-base font-semibold text-white text-center">Your Passport is Ready!</h4>
+                  <p className="text-xs text-gray-400 text-center leading-relaxed">
+                    Congratulations! Your agent identity passport has been successfully anchored and is ready to execute automated workflows.
+                  </p>
+                  
+                  {user && (
+                    <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl text-xs space-y-2 font-mono">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Agent:</span>
+                        <span className="text-neon-green">{user.agent?.name || "AxiomBot"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">DID:</span>
+                        <span className="text-electric-blue">did:axiom:{user.piUsername || user.walletAddress.slice(0, 8)}...</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-4">
+                    <button
+                      onClick={() => {
+                        localStorage.setItem("axiom_onboarding_completed", "true");
+                        setShowOnboarding(false);
+                      }}
+                      className="btn-primary w-full py-3 text-xs tracking-wider"
+                    >
+                      GET STARTED
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
