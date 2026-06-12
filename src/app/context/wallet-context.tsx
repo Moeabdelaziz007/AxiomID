@@ -16,6 +16,7 @@ export interface User {
   trustScore: number;
   createdAt: string;
   actions: { type: string; xp: number; timestamp: string; metadata?: string | null }[];
+  stamps: { type: string; provider: string; xpAwarded: number; metadata?: string | null; createdAt: string }[];
   agent?: {
     id: string;
     name: string;
@@ -152,9 +153,10 @@ interface ApiResponse {
   createdAt?: string;
   agent?: User['agent'];
   actions?: User['actions'];
+  stamps?: User['stamps'];
 }
 
-function mapApiUser(data: ApiResponse, fallback?: { stellarAddress?: string | null; createdAt?: string; actions?: User["actions"] }): User {
+function mapApiUser(data: ApiResponse, fallback?: { stellarAddress?: string | null; createdAt?: string; actions?: User["actions"]; stamps?: User["stamps"] }): User {
   return {
     id: data.userId,
     walletAddress: data.walletAddress,
@@ -167,6 +169,7 @@ function mapApiUser(data: ApiResponse, fallback?: { stellarAddress?: string | nu
     kycStatus: data.kycStatus || null,
     did: data.did || null,
     actions: data.actions || fallback?.actions || [],
+    stamps: data.stamps || fallback?.stamps || [],
     agent: data.agent || null,
   };
 }
@@ -455,7 +458,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const claimAction = useCallback(async (actionType: string, metadata?: Record<string, unknown>) => {
     if (!userRef.current) return false;
     try {
-      const res = await fetch("/api/action/claim", {
+      const res = await fetch("/api/stamp/claim", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -477,6 +480,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         xp: data.newBalance,
         tier: data.tier,
         actions: [...(prev.actions || []), { type: actionType, xp: data.xpEarned, timestamp: new Date().toISOString(), metadata: data.metadata }],
+        stamps: [...(prev.stamps || []), { type: actionType, provider: actionType.startsWith("connect_") ? actionType.replace("connect_", "") : "system", xpAwarded: data.xpEarned, metadata: data.metadata, createdAt: new Date().toISOString() }],
       } : prev);
       return true;
     } catch (err) {

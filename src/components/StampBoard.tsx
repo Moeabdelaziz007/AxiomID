@@ -12,6 +12,14 @@ interface Action {
   metadata?: string | null;
 }
 
+interface Stamp {
+  type: string;
+  provider: string;
+  xpAwarded: number;
+  metadata?: string | null;
+  createdAt: string;
+}
+
 interface User {
   id: string;
   walletAddress: string;
@@ -20,6 +28,7 @@ interface User {
   xp: number;
   tier: Tier;
   actions?: Action[];
+  stamps?: Stamp[];
 }
 
 interface StampBoardProps {
@@ -44,11 +53,11 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
   const vcDialogRef = useRef<HTMLDialogElement>(null);
 
   const isConnected = (type: string) => {
-    return !!user?.actions?.some((a) => a.type === type);
+    return !!user?.stamps?.some((s) => s.type === type);
   };
 
   const getMetadata = (type: string) => {
-    return user?.actions?.find((a) => a.type === type)?.metadata || null;
+    return user?.stamps?.find((s) => s.type === type)?.metadata || null;
   };
 
   const handleConnect = async (type: string, handle: string) => {
@@ -60,10 +69,10 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
   };
 
   const openVcModal = (type: string) => {
-    const action = user?.actions?.find((a) => a.type === type);
-    if (!action) return;
+    const stamp = user?.stamps?.find((s) => s.type === type);
+    if (!stamp) return;
     try {
-      const parsedVc = JSON.parse(action.metadata || "{}");
+      const parsedVc = JSON.parse(stamp.metadata || "{}");
       setActiveVc(parsedVc);
       vcDialogRef.current?.showModal();
     } catch {

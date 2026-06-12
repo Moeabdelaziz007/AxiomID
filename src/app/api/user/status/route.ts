@@ -37,6 +37,15 @@ export async function GET(request: NextRequest) {
             metadata: true,
           },
         },
+        stamps: {
+          select: {
+            type: true,
+            provider: true,
+            xpAwarded: true,
+            metadata: true,
+            createdAt: true,
+          },
+        },
         xpLedger: {
           orderBy: { createdAt: 'desc' },
           take: 10,
@@ -74,6 +83,7 @@ export async function GET(request: NextRequest) {
       nextLevelXP,
       agent: user.agent,
       actions: user.actions,
+      stamps: user.stamps,
       recentLedger: user.xpLedger,
       stats: {
         totalActions: user._count.actions,

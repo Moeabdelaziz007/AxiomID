@@ -40,6 +40,7 @@ model User {
 
   // Actions
   actions     Action[]
+  stamps      Stamp[]
   xpLedger    XpLedger[]
 
   // Payments
@@ -185,4 +186,22 @@ model AgentLog {
   @@index([agentId])
   @@index([level])
   @@index([createdAt])
+}
+
+// ─────────────────────────────────────────────
+// CRYPTOGRAPHIC STAMPS
+// ─────────────────────────────────────────────
+
+model Stamp {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       String   @db.VarChar(50) // "connect_twitter" | "connect_discord" | "connect_google" | "daily_pow" | "wallet_age" | "verify_identity"
+  provider   String   @db.VarChar(50) // "twitter" | "discord" | "google" | "pi" | "system"
+  xpAwarded  Int      @default(0)
+  metadata   String?  @db.Text        // Stores the stringified W3C VC
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, type], name: "user_stamp_unique")
+  @@index([userId])
 }
