@@ -25,6 +25,13 @@ interface PiPaymentDTO {
   transaction: { txid: string; verified: boolean; _link: string } | null;
 }
 
+interface PiPaymentCallbacks {
+  onReadyForServerApproval: (paymentId: string) => void;
+  onReadyForServerCompletion: (paymentId: string, txid: string) => void;
+  onCancel: (paymentId: string) => void;
+  onError: (error: Error, payment?: PiPaymentDTO) => void;
+}
+
 interface PiInstance {
   init: (options: { version: string; sandbox?: boolean }) => void;
   authenticate: (

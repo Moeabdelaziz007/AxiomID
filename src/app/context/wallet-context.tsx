@@ -206,11 +206,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         if (!res.ok) throw new Error("Demo auth failed");
         const data = await res.json();
         pushLog(`تم تسجيل الدخول بنجاح ✅`);
-        setUser({
-          ...data.user,
-          trustScore: data.user.trustScore ?? Math.min(100, Math.floor((data.user.xp || 0) / 10)),
-          createdAt: data.user.createdAt ?? new Date().toISOString(),
-        });
+        setUser(mapApiUser(data));
         return;
       }
 
@@ -223,29 +219,23 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         accessToken = result.token;
         piUser = result.user;
       } catch (err: unknown) {
-        if (err instanceof Error && err.message === "NOT_IN_PI_BROWSER") {
-          pushLog("Not inside Pi Browser — using demo wallet");
-          const walletAddress = `demo:${crypto.randomUUID().slice(0, 8)}`;
-          localStorage.setItem("axiomid_wallet", walletAddress);
-          pushLog(`Demo wallet: ${walletAddress}`);
+        const msg = err instanceof Error ? err.message : String(err);
+        pushLog(`Pi SDK failed (${msg}) — falling back to demo wallet`);
+        const walletAddress = `demo:${crypto.randomUUID().slice(0, 8)}`;
+        localStorage.setItem("axiomid_wallet", walletAddress);
+        pushLog(`Demo wallet: ${walletAddress}`);
 
-          const res = await fetch("/api/auth/connect", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ walletAddress }),
-          });
+        const fallbackRes = await fetch("/api/auth/connect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ walletAddress }),
+        });
 
-          if (!res.ok) throw new Error("Demo auth failed");
-          const data = await res.json();
-          pushLog(`Logged in successfully`);
-          setUser({
-            ...data.user,
-            trustScore: data.user.trustScore ?? Math.min(100, Math.floor((data.user.xp || 0) / 10)),
-            createdAt: data.user.createdAt ?? new Date().toISOString(),
-          });
-          return;
-        }
-        throw err;
+        if (!fallbackRes.ok) throw new Error("Demo auth failed");
+        const fallbackData = await fallbackRes.json();
+        pushLog(`تم تسجيل الدخول بنجاح ✅`);
+        setUser(mapApiUser(fallbackData));
+        return;
       }
 
       setPiAccessToken(accessToken);

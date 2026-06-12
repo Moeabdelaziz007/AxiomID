@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -30,36 +29,18 @@ model User {
   kycUidHash     String?   // privacy-preserving hash
   kycVerifiedAt  DateTime?
 
-  // Identity Integrations
-  integrations Integration[]
-
-  // XP & Tier
-  xp    Int    @default(0)
-  tier  String @default("Visitor") // Visitor | Citizen | Validator | Sovereign
-  roles String? // JSON: ["admin","moderator","developer"]
-
   // Agent
   agent      UserAgent?
-  subAgents  SubAgent[]
 
   // Actions
   actions     Action[]
   xpLedger    XpLedger[]
 
-  // Reviews
-  reviews SkillReview[]
-
-  // Payments & Vault
-  vaults         Vault[]
+  // Payments
   payments       PiPayment[]
-  skillPurchases SkillPurchase[]
 
-  // Workflow
-  workflows   Workflow[]
+  // Agent Logs
   agentLogs   AgentLog[]
-
-  // Memory
-  knowledgeNodes KnowledgeNode[]
 
   // Metadata
   metadata   String? // JSON: arbitrary user metadata
@@ -76,24 +57,7 @@ enum KYCStatus {
 }
 
 // ─────────────────────────────────────────────
-// EXTERNAL IDENTITY INTEGRATIONS
-// ─────────────────────────────────────────────
-
-model Integration {
-  id         String   @id @default(uuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider   String   // "twitter" | "discord" | "gitcoin_passport" | "world_id" | "bright_id"
-  providerId String?  // external user ID
-  score      Float?
-  metadata   String?  // JSON
-  verifiedAt DateTime @default(now())
-
-  @@unique([userId, provider])
-}
-
-// ─────────────────────────────────────────────
-// AGENT SYSTEM — MAIN + SUB-AGENTS
+// AGENT SYSTEM
 // ─────────────────────────────────────────────
 
 model UserAgent {
@@ -106,8 +70,6 @@ model UserAgent {
   name        String    @default("My Agent")
   description String?
   avatarUrl   String?
-  personaId   String?   // FK to Persona
-  persona     Persona?  @relation(fields: [personaId], references: [id])
   publicKey   String?
   did         String?
 
@@ -123,17 +85,8 @@ model UserAgent {
   activeUntil  DateTime?
   memoryLimit  Int      @default(500) // max memory entries
 
-  // Delegation
-  subAgents SubAgent[] @relation("MainAgentToSub")
-  skills    AgentSkill[]
-
-  // Purchases
-  skillPurchases SkillPurchase[]
-
-  // Workflow
-  workflows   Workflow[]
+  // Logs
   agentLogs   AgentLog[]
-  knowledgeNodes KnowledgeNode[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -150,168 +103,6 @@ enum AgentMode {
   AUTONOMOUS
   SUPERVISED
   MANUAL
-}
-
-model SubAgent {
-  id          String    @id @default(uuid())
-  mainAgentId String
-  mainAgent   UserAgent @relation("MainAgentToSub", fields: [mainAgentId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  publicId    String    @unique @default(cuid()) // sa_xxx
-
-  // Identity
-  name        String
-  description String?
-  role        String?   // "trader" | "analyst" | "researcher" | "developer" | "guardian"
-  personaId   String?
-  persona     Persona?  @relation(fields: [personaId], references: [id])
-
-  // State
-  status      AgentStatus @default(INACTIVE)
-  mode        AgentMode   @default(SUPERVISED)
-  permissions String?     // JSON
-  parentId    String?     // FK to another SubAgent (nested delegation)
-  parent      SubAgent?   @relation("SubAgentTree", fields: [parentId], references: [id])
-  children    SubAgent[]  @relation("SubAgentTree")
-
-  // Runtime
-  lastActive   DateTime?
-  activeUntil  DateTime?
-  memoryLimit  Int      @default(200)
-
-  // Skills
-  skills    AgentSkill[]
-
-  // Logs
-  agentLogs   AgentLog[]
-  knowledgeNodes KnowledgeNode[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([mainAgentId])
-  @@index([userId])
-}
-
-// ─────────────────────────────────────────────
-// PERSONAS (from aix-agent-skills)
-// ─────────────────────────────────────────────
-
-model Persona {
-  id          String   @id @default(uuid())
-  name        String   @unique // "warrior" | "sage" | "guardian" | etc
-  displayNameAr String?
-  displayNameEn String?
-  tier        String   // "SOVEREIGN" | "PRO" | "ARCHETYPE"
-  category    String   // "security" | "creative" | "analysis" | "wisdom" | "execution"
-  description String?
-  traits      String?  // JSON: personality traits
-  rules       String?  // JSON: behavioural rules
-  config      String?  // JSON: default config
-  icon        String?
-  isActive    Boolean  @default(true)
-
-  agents    UserAgent[]
-  subAgents SubAgent[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ─────────────────────────────────────────────
-// SKILLS MARKETPLACE (from aix-agent-skills)
-// ─────────────────────────────────────────────
-
-model Skill {
-  id            String   @id @default(uuid())
-  name          String   @unique // kebab-case
-  description   String?
-  tier          String   // "BASIC_TOOL" | "PRO" | "ADVANCED_TOOL" | "ADVANCED_INFRASTRUCTURE" | "SOVEREIGN"
-  category      String?  // "engineering" | "creative" | "analysis" | "security" | "infrastructure"
-  priceUsdc     String   @default("0") // decimal string
-  pricePi       Float?   // Pi token price
-  network       String?  // "base" | "base-sepolia" | "pi"
-  filePath      String?  // path to markdown skill file
-  content       String?  // cached markdown content
-  tags          String?  // JSON array
-  version       String   @default("1.0.0")
-  author        String?
-  isActive      Boolean  @default(true)
-  purchaseCount Int      @default(0)
-  rating        Float    @default(0)
-  reviewCount   Int      @default(0)
-
-  purchases SkillPurchase[]
-  reviews   SkillReview[]
-  agents    AgentSkill[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model SkillPurchase {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skillId   String
-  skill     Skill    @relation(fields: [skillId], references: [id])
-  agentId   String?
-  agent     UserAgent? @relation(fields: [agentId], references: [id])
-  price     String   // price paid
-  currency  String   @default("USDC") // "USDC" | "PI"
-  txid      String?  // blockchain tx
-  status    PurchaseStatus @default(PENDING)
-  network   String?  // "base" | "pi"
-
-  agentSkill AgentSkill?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, skillId])
-  @@index([userId])
-  @@index([skillId])
-}
-
-enum PurchaseStatus {
-  PENDING
-  APPROVED
-  COMPLETED
-  FAILED
-  REFUNDED
-}
-
-model SkillReview {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skillId   String
-  skill     Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
-  rating    Int      // 1-5
-  comment   String?
-  createdAt DateTime @default(now())
-
-  @@unique([userId, skillId])
-}
-
-model AgentSkill {
-  id             String   @id @default(uuid())
-  agentId        String
-  agent          UserAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  subAgentId     String?
-  subAgent       SubAgent? @relation(fields: [subAgentId], references: [id])
-  skillId        String
-  skill          Skill    @relation(fields: [skillId], references: [id])
-  purchaseId     String?  @unique
-  purchase       SkillPurchase? @relation(fields: [purchaseId], references: [id])
-  enabled        Boolean  @default(true)
-  config         String?  // JSON: per-agent skill config
-  executionCount Int      @default(0)
-  lastUsed       DateTime?
-
-  @@unique([agentId, skillId])
-  @@index([skillId])
 }
 
 // ─────────────────────────────────────────────
@@ -345,7 +136,7 @@ model PiPayment {
 
 model Action {
   id        String   @id @default(uuid())
-  type      String   // "connect_twitter" | "daily_pow" | "verify_identity" | "purchase_skill" | "forge_agent"
+  type      String   // "connect_twitter" | "daily_pow" | "verify_identity" | "forge_agent"
   xp        Int
   metadata  String?  // JSON: extra context
   timestamp DateTime @default(now())
@@ -362,8 +153,8 @@ model XpLedger {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount    Int      // positive = earned, negative = spent
-  reason    String   // "action_claim" | "skill_purchase" | "agent_create" | "admin_adjust"
-  reference String?  // JSON: { actionId, skillId, agentId }
+  reason    String   // "action_claim" | "agent_create" | "admin_adjust"
+  reference String?  // JSON: { actionId, agentId }
   balance   Int      // running balance after this entry
   createdAt DateTime @default(now())
 
@@ -372,106 +163,7 @@ model XpLedger {
 }
 
 // ─────────────────────────────────────────────
-// TOKEN VAULTS
-// ─────────────────────────────────────────────
-
-model Vault {
-  id          String           @id @default(uuid())
-  userId      String
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount      Float
-  currency    String           @default("USDC")
-  lockDate    DateTime         @default(now())
-  unlockDate  DateTime
-  status      VaultStatus      @default(LOCKED)
-  purpose     String?          // "agent_staking" | "skill_purchase" | "governance"
-  metadata    String?          // JSON
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-
-  @@index([userId])
-  @@index([status])
-}
-
-enum VaultStatus {
-  LOCKED
-  UNLOCKED
-  SLASHED
-  FORFEITED
-}
-
-// ─────────────────────────────────────────────
-// WORKFLOW ENGINE
-// ─────────────────────────────────────────────
-
-model Workflow {
-  id          String         @id @default(uuid())
-  name        String
-  description String?
-  userId      String
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  agentId     String
-  agent       UserAgent      @relation(fields: [agentId], references: [id])
-  trigger     String?        // "manual" | "schedule" | "event" | "webhook"
-  status      WorkflowStatus @default(PENDING)
-  priority    Int            @default(0)
-  maxRetries  Int            @default(3)
-  timeout     Int?           // seconds
-  config      String?        // JSON: workflow config
-  result      String?        // JSON: final result
-  error       String?
-  startedAt   DateTime?
-  completedAt DateTime?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-
-  steps WorkflowStep[]
-
-  @@index([userId])
-  @@index([agentId])
-  @@index([status])
-}
-
-enum WorkflowStatus {
-  PENDING
-  RUNNING
-  PAUSED
-  COMPLETED
-  FAILED
-  CANCELLED
-}
-
-model WorkflowStep {
-  id          String          @id @default(uuid())
-  workflowId  String
-  workflow    Workflow        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  stepOrder   Int
-  name        String
-  type        String          // "tool_call" | "skill_exec" | "condition" | "transform" | "llm_query"
-  input       String?         // JSON: input data
-  output      String?         // JSON: output data
-  status      StepStatus      @default(PENDING)
-  error       String?
-  retryCount  Int             @default(0)
-  duration    Int?            // ms
-  metadata    String?         // JSON
-  startedAt   DateTime?
-  completedAt DateTime?
-  createdAt   DateTime        @default(now())
-
-  @@index([workflowId])
-}
-
-enum StepStatus {
-  PENDING
-  RUNNING
-  COMPLETED
-  FAILED
-  SKIPPED
-}
-
-// ─────────────────────────────────────────────
-// AGENT MEMORY & LOGS
+// AGENT LOGS
 // ─────────────────────────────────────────────
 
 model AgentLog {
@@ -480,8 +172,6 @@ model AgentLog {
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   agentId     String?
   agent       UserAgent? @relation(fields: [agentId], references: [id])
-  subAgentId  String?
-  subAgent    SubAgent?  @relation(fields: [subAgentId], references: [id])
   level       String     @default("info") // "debug" | "info" | "warn" | "error" | "critical"
   source      String     // "system" | "agent" | "skill" | "tool" | "user" | "payment"
   message     String
@@ -493,65 +183,3 @@ model AgentLog {
   @@index([level])
   @@index([createdAt])
 }
-
-model KnowledgeNode {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  agentId     String?
-  agent       UserAgent? @relation(fields: [agentId], references: [id])
-  subAgentId  String?
-  subAgent    SubAgent?  @relation(fields: [subAgentId], references: [id])
-
-  // Content
-  title       String
-  content     String
-  summary     String?
-  embedding   String?  // pgvector: store as string (format: "[0.1,0.2,...]")
-  sourceType  String   // "conversation" | "document" | "skill" | "insight" | "research"
-  sourceRef   String?  // reference ID to source
-
-  // Context
-  tags        String?  // JSON array
-  context     String?  // JSON: { mission_id, session_id, conversation_id }
-  resonance   Float?   // 0.0 - 1.0
-  importance  Int      @default(0) // 0-10
-
-  // Provenance
-  provider    String?  // model provider
-  model       String?  // model name
-  confidence  Float?   // 0.0 - 1.0
-
-  // State
-  status      String   @default("active") // "active" | "archived" | "deleted"
-  accessCount Int      @default(0)
-  lastAccessedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([userId])
-  @@index([agentId])
-  @@index([sourceType])
-  @@index([status])
-  @@index([createdAt])
-}
-
-// ═══════════════════════════════════════════════
-// MIGRATION NOTES (to run manually after push):
-// ═══════════════════════════════════════════════
-// 1. Enable pgvector:
-//    CREATE EXTENSION IF NOT EXISTS vector;
-//    CREATE EXTENSION IF NOT EXISTS citext;
-//
-// 2. Create vector index on KnowledgeNode:
-//    CREATE INDEX knowledge_embedding_idx ON "KnowledgeNode"
-//    USING ivfflat (embedding::vector(1536) vector_cosine_ops)
-//    WITH (lists = 100);
-//
-// 3. Create user lookup index:
-//    CREATE INDEX idx_user_wallet_prefix ON "User" (walletAddress text_pattern_ops);
-//
-// 4. Create agent cascade trigger:
-//    CREATE INDEX idx_subagent_main ON "SubAgent" ("mainAgentId");
-//    CREATE INDEX idx_agent_skill_agent ON "AgentSkill" ("agentId");
-//    CREATE INDEX idx_agent_skill_skill ON "AgentSkill" ("skillId");

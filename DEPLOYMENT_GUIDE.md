@@ -10,8 +10,7 @@ The site is a Next.js 16 (App Router) application that ships as a Vercel
 project. Pi Network is wired in two ways: the `public/validation-key.txt`
 hash proves we control `axiomid.app` to the Pi Developer Portal (it is
 public, not a secret), and `PI_API_KEY` / `PI_WALLET_PRIVATE_SEED` are
-server-only env vars consumed via `src/lib/pi/env.ts` for any server-side
-Pi Platform API call. There are two CI workflows on Blacksmith runners:
+env vars read from `process.env.PI_API_KEY` in the server-side API routes (e.g. `src/app/api/pi/payment/approve/route.ts`) for any server-side Pi Platform API call. There are two CI workflows on Blacksmith runners:
 `ci` runs type-check, lint and tests on every PR; `deploy` runs a Vercel
 preview on every PR and a Vercel production deploy on every push to
 `main`.
@@ -64,17 +63,16 @@ contents of that file and redeploy; the URL must stay the same.
 
 ## Pi keys (runtime)
 
-`PI_API_KEY` and `PI_WALLET_PRIVATE_SEED` are read exclusively via
-`getPiEnv()` in `src/lib/pi/env.ts`. That module imports `server-only`,
-which makes the build fail if a client component ever pulls it in.
-`getPiEnv()` throws at boot if `PI_API_KEY` is missing, so a
-misconfigured Vercel environment surfaces the problem immediately.
+`PI_API_KEY` and `PI_WALLET_PRIVATE_SEED` are read via `process.env.PI_API_KEY`
+directly in server-side API routes. The routes check for a missing key and
+return an error, so a misconfigured Vercel environment surfaces the problem
+immediately.
 
 ## Local development
 
 ```bash
 cp .env.example .env.local
-# fill in NEXTAUTH_SECRET, DATABASE_URL, PI_API_KEY (sandbox key is fine)
+# fill in DATABASE_URL, PI_API_KEY, OAUTH_STATE_SECRET (sandbox key is fine)
 npm ci
 npm run dev
 ```

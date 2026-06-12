@@ -12,7 +12,6 @@ const customJestConfig = {
   testEnvironment: 'jest-environment-jsdom',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^@pinetwork/pi-sdk-js$': '<rootDir>/src/__mocks__/@pinetwork/pi-sdk-js.ts',
   },
   testPathIgnorePatterns: [
     '/node_modules/',
@@ -22,8 +21,6 @@ const customJestConfig = {
     '<rootDir>/src/app/api/__tests__/test-harness.ts',
     '<rootDir>/src/__tests__/api/user-status.test.ts',
     '<rootDir>/src/__tests__/api/auth-pi.test.ts',
-    '<rootDir>/src/__tests__/lib/validate.test.ts',
-    '<rootDir>/src/__tests__/test-utils.ts',
   ],
 }
 

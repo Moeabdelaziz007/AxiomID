@@ -4,7 +4,7 @@ All notable changes to the AxiomID project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.0.4] - 2026-02-10
+## [1.0.0] - 2026-02-10
 
 ### 🚀 Creative Overhaul: The "Sophisticated Engineering Cyberpunk" Evolution
 
@@ -25,7 +25,7 @@ This release marks a massive pivot from a "Student Project" to a "Unicorn-Level 
 
 #### ⚡ Backend (Architecture)
 -   **Database Migration:**
-    -   Moved from client-side `localStorage` to **SQLite** (via Prisma ORM).
+    -   Moved from client-side `localStorage` to **PostgreSQL** (via Prisma ORM).
     -   *Why?* To prevent gaming/cheating and prepare for the "Vault" feature.
 -   **Schema Expansion:**
     -   Added `User` model (Wallet Address, XP, Tier).
