@@ -198,4 +198,211 @@ describe('POST /api/pi/kya/claim', () => {
       })
     );
   });
+
+  // ----------------------------------------------------------------
+  // DID and metadata changes introduced in this PR
+  // ----------------------------------------------------------------
+  it('uses createAxiomDid to generate the DID for a new user (not raw piUid)', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue(null);
+    mockPrisma.user.create.mockResolvedValue({
+      id: 'did-user',
+      walletAddress: 'pi:diduser',
+      kycStatus: 'PENDING',
+      did: 'did:axiom:axiomid.app:pi-mock-pi-uid',
+    } as any);
+
+    const req = mockPostRequest({ username: 'diduser' });
+    await POST(req);
+
+    // The DID must be created from "pi:<piUid>" via createAxiomDid,
+    // which produces did:axiom:axiomid.app:pi-<uid>
+    expect(mockPrisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          did: 'did:axiom:axiomid.app:pi-mock-pi-uid',
+          didMethod: 'did:axiom',
+        }),
+      }),
+    );
+  });
+
+  it('includes kycProvider in the new user create payload', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue(null);
+    mockPrisma.user.create.mockResolvedValue({
+      id: 'provider-user',
+      walletAddress: 'pi:provideruser',
+      kycStatus: 'PENDING',
+      did: 'did:axiom:axiomid.app:pi-mock-pi-uid',
+    } as any);
+
+    const req = mockPostRequest({ username: 'provideruser' });
+    await POST(req);
+
+    expect(mockPrisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          kycProvider: 'pi_network',
+        }),
+      }),
+    );
+  });
+
+  it('encodes the name as JSON metadata (displayName) instead of a raw name field', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue(null);
+    mockPrisma.user.create.mockResolvedValue({
+      id: 'meta-user',
+      walletAddress: 'pi:metauser',
+      kycStatus: 'PENDING',
+      did: 'did:axiom:axiomid.app:pi-mock-pi-uid',
+    } as any);
+
+    const req = mockPostRequest({ username: 'metauser', name: 'Jane Doe' });
+    await POST(req);
+
+    expect(mockPrisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          metadata: JSON.stringify({ displayName: 'Jane Doe' }),
+        }),
+      }),
+    );
+  });
+
+  it('omits metadata when name is not provided for a new user', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue(null);
+    mockPrisma.user.create.mockResolvedValue({
+      id: 'no-name-user',
+      walletAddress: 'pi:nonameuser',
+      kycStatus: 'PENDING',
+      did: 'did:axiom:axiomid.app:pi-mock-pi-uid',
+    } as any);
+
+    const req = mockPostRequest({ username: 'nonameuser' });
+    await POST(req);
+
+    const createCall = mockPrisma.user.create.mock.calls[0][0];
+    expect(createCall.data.metadata).toBeUndefined();
+  });
+
+  it('updates existing user with didMethod and preserves existing did', async () => {
+    const existingDid = 'did:axiom:axiomid.app:pi-existing-pid';
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'existing-id',
+      walletAddress: 'pi:existinguser',
+      tier: 'Visitor',
+      xp: 0,
+      piUid: 'mock-pi-uid',
+      did: existingDid,
+    } as any);
+    mockPrisma.user.update.mockResolvedValue({
+      id: 'existing-id',
+      walletAddress: 'pi:existinguser',
+      tier: 'Visitor',
+      xp: 0,
+      piUid: 'mock-pi-uid',
+      kycStatus: 'PENDING',
+      did: existingDid,
+    } as any);
+
+    const req = mockPostRequest({ username: 'existinguser' });
+    await POST(req);
+
+    expect(mockPrisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          did: existingDid,
+          didMethod: 'did:axiom',
+          kycProvider: 'pi_network',
+        }),
+      }),
+    );
+  });
+
+  it('assigns createAxiomDid DID when existing user has no did', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'nodid-id',
+      walletAddress: 'pi:nodiduser',
+      tier: 'Visitor',
+      xp: 0,
+      piUid: 'mock-pi-uid',
+      did: null,
+    } as any);
+    mockPrisma.user.update.mockResolvedValue({
+      id: 'nodid-id',
+      walletAddress: 'pi:nodiduser',
+      tier: 'Visitor',
+      xp: 0,
+      piUid: 'mock-pi-uid',
+      kycStatus: 'PENDING',
+      did: 'did:axiom:axiomid.app:pi-mock-pi-uid',
+    } as any);
+
+    const req = mockPostRequest({ username: 'nodiduser' });
+    await POST(req);
+
+    expect(mockPrisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          did: 'did:axiom:axiomid.app:pi-mock-pi-uid',
+        }),
+      }),
+    );
+  });
+
+  it('encodes name as metadata when updating an existing user with name', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'meta-update-id',
+      walletAddress: 'pi:metaupdate',
+      tier: 'Visitor',
+      xp: 10,
+      piUid: 'mock-pi-uid',
+      did: 'did:axiom:axiomid.app:pi-mock-pi-uid',
+    } as any);
+    mockPrisma.user.update.mockResolvedValue({
+      id: 'meta-update-id',
+      walletAddress: 'pi:metaupdate',
+      tier: 'Visitor',
+      xp: 10,
+      piUid: 'mock-pi-uid',
+      kycStatus: 'PENDING',
+      did: 'did:axiom:axiomid.app:pi-mock-pi-uid',
+    } as any);
+
+    const req = mockPostRequest({ username: 'metaupdate', name: 'Updated Name' });
+    await POST(req);
+
+    expect(mockPrisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          metadata: JSON.stringify({ displayName: 'Updated Name' }),
+        }),
+      }),
+    );
+  });
+
+  it('omits metadata from update payload when name is not provided', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'noupdate-meta',
+      walletAddress: 'pi:noupdatemeta',
+      tier: 'Visitor',
+      xp: 0,
+      piUid: 'mock-pi-uid',
+      did: 'did:axiom:axiomid.app:pi-mock-pi-uid',
+    } as any);
+    mockPrisma.user.update.mockResolvedValue({
+      id: 'noupdate-meta',
+      walletAddress: 'pi:noupdatemeta',
+      tier: 'Visitor',
+      xp: 0,
+      piUid: 'mock-pi-uid',
+      kycStatus: 'PENDING',
+      did: 'did:axiom:axiomid.app:pi-mock-pi-uid',
+    } as any);
+
+    const req = mockPostRequest({ username: 'noupdatemeta' });
+    await POST(req);
+
+    const updateCall = mockPrisma.user.update.mock.calls[0][0];
+    expect(updateCall.data.metadata).toBeUndefined();
+  });
 });

@@ -524,3 +524,282 @@ describe("WalletProvider & WalletContext", () => {
     expect(contextValue.user.trustScore).toBe(77);
   });
 });
+
+// -------------------------------------------------------------------------
+// PR changes: logout function + did field on User
+// -------------------------------------------------------------------------
+
+describe("WalletProvider — logout function (PR addition)", () => {
+  const originalSandboxEnv = process.env.NEXT_PUBLIC_PI_SANDBOX;
+  let mockFetch: jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorage.clear();
+    sessionStorage.clear();
+    delete (window as any).Pi;
+    process.env.NEXT_PUBLIC_PI_SANDBOX = "false";
+    mockFetch = jest.fn();
+    global.fetch = mockFetch;
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    process.env.NEXT_PUBLIC_PI_SANDBOX = originalSandboxEnv;
+    sessionStorage.clear();
+  });
+
+  function LogoutConsumer({ onUpdate }: { onUpdate: (val: ReturnType<typeof useWallet>) => void }) {
+    const wallet = useWallet();
+    React.useEffect(() => { onUpdate(wallet); }, [wallet, onUpdate]);
+    return (
+      <div>
+        <div data-testid="user">{wallet.user ? wallet.user.walletAddress : "no-user"}</div>
+        <button data-testid="logout-btn" onClick={wallet.logout}>Logout</button>
+      </div>
+    );
+  }
+
+  it("exposes a logout function in the context", async () => {
+    let ctx: any;
+    render(
+      <WalletProvider>
+        <LogoutConsumer onUpdate={(v) => { ctx = v; }} />
+      </WalletProvider>
+    );
+    await waitFor(() => expect(ctx.isLoading).toBe(false));
+    expect(typeof ctx.logout).toBe("function");
+  });
+
+  it("logout clears axiomid_wallet from localStorage", async () => {
+    localStorage.setItem("axiomid_wallet", "demo:logouttest");
+    localStorage.setItem("pi_access_token", "tok-logout");
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        userId: "logout-user",
+        walletAddress: "demo:logouttest",
+        xp: 0,
+        tier: "Visitor",
+        trustScore: 0,
+        createdAt: new Date().toISOString(),
+        piUsername: null,
+        agent: null,
+      }),
+    });
+
+    let ctx: any;
+    const { getByTestId } = render(
+      <WalletProvider>
+        <LogoutConsumer onUpdate={(v) => { ctx = v; }} />
+      </WalletProvider>
+    );
+
+    await waitFor(() => expect(ctx.user).not.toBeNull());
+
+    await act(async () => {
+      getByTestId("logout-btn").click();
+    });
+
+    expect(localStorage.getItem("axiomid_wallet")).toBeNull();
+    expect(localStorage.getItem("pi_access_token")).toBeNull();
+  });
+
+  it("logout clears axiomid_wallet and pi_access_token from sessionStorage", async () => {
+    sessionStorage.setItem("axiomid_wallet", "demo:session-test");
+    sessionStorage.setItem("pi_access_token", "session-tok");
+
+    let ctx: any;
+    render(
+      <WalletProvider>
+        <LogoutConsumer onUpdate={(v) => { ctx = v; }} />
+      </WalletProvider>
+    );
+    await waitFor(() => expect(ctx.isLoading).toBe(false));
+
+    await act(async () => {
+      ctx.logout();
+    });
+
+    expect(sessionStorage.getItem("axiomid_wallet")).toBeNull();
+    expect(sessionStorage.getItem("pi_access_token")).toBeNull();
+  });
+
+  it("logout sets user to null", async () => {
+    localStorage.setItem("axiomid_wallet", "demo:nulltest");
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        userId: "null-user",
+        walletAddress: "demo:nulltest",
+        xp: 0,
+        tier: "Visitor",
+        trustScore: 0,
+        createdAt: new Date().toISOString(),
+        piUsername: null,
+        agent: null,
+      }),
+    });
+
+    let ctx: any;
+    const { getByTestId } = render(
+      <WalletProvider>
+        <LogoutConsumer onUpdate={(v) => { ctx = v; }} />
+      </WalletProvider>
+    );
+
+    await waitFor(() => expect(ctx.user).not.toBeNull());
+
+    await act(async () => {
+      getByTestId("logout-btn").click();
+    });
+
+    await waitFor(() => expect(ctx.user).toBeNull());
+  });
+
+  it("logout clears the error state", async () => {
+    let ctx: any;
+    render(
+      <WalletProvider>
+        <LogoutConsumer onUpdate={(v) => { ctx = v; }} />
+      </WalletProvider>
+    );
+    await waitFor(() => expect(ctx.isLoading).toBe(false));
+
+    await act(async () => {
+      ctx.logout();
+    });
+
+    expect(ctx.error).toBeNull();
+  });
+
+  it("logout is idempotent: calling twice does not throw", async () => {
+    let ctx: any;
+    render(
+      <WalletProvider>
+        <LogoutConsumer onUpdate={(v) => { ctx = v; }} />
+      </WalletProvider>
+    );
+    await waitFor(() => expect(ctx.isLoading).toBe(false));
+
+    await act(async () => { ctx.logout(); });
+    await act(async () => { expect(() => ctx.logout()).not.toThrow(); });
+  });
+});
+
+describe("WalletProvider — did field on User (PR addition)", () => {
+  const originalSandboxEnv = process.env.NEXT_PUBLIC_PI_SANDBOX;
+  let mockFetch: jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorage.clear();
+    delete (window as any).Pi;
+    process.env.NEXT_PUBLIC_PI_SANDBOX = "false";
+    mockFetch = jest.fn();
+    global.fetch = mockFetch;
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    process.env.NEXT_PUBLIC_PI_SANDBOX = originalSandboxEnv;
+  });
+
+  function DidConsumer({ onUpdate }: { onUpdate: (val: ReturnType<typeof useWallet>) => void }) {
+    const wallet = useWallet();
+    React.useEffect(() => { onUpdate(wallet); }, [wallet, onUpdate]);
+    return null;
+  }
+
+  it("populates user.did from the API response via buildUserFromApiData", async () => {
+    localStorage.setItem("axiomid_wallet", "demo:didtest");
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        userId: "did-user",
+        walletAddress: "demo:didtest",
+        xp: 0,
+        tier: "Visitor",
+        trustScore: 0,
+        createdAt: new Date().toISOString(),
+        piUsername: "diduser",
+        did: "did:axiom:axiomid.app:demo-didtest",
+        agent: null,
+      }),
+    });
+
+    let ctx: any;
+    render(
+      <WalletProvider>
+        <DidConsumer onUpdate={(v) => { ctx = v; }} />
+      </WalletProvider>
+    );
+
+    await waitFor(() => expect(ctx.isLoading).toBe(false));
+
+    expect(ctx.user.did).toBe("did:axiom:axiomid.app:demo-didtest");
+  });
+
+  it("sets user.did to null when did is absent in the API response", async () => {
+    localStorage.setItem("axiomid_wallet", "demo:nodid");
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        userId: "nodid-user",
+        walletAddress: "demo:nodid",
+        xp: 0,
+        tier: "Visitor",
+        trustScore: 0,
+        createdAt: new Date().toISOString(),
+        piUsername: "nodiduser",
+        // no 'did' key
+        agent: null,
+      }),
+    });
+
+    let ctx: any;
+    render(
+      <WalletProvider>
+        <DidConsumer onUpdate={(v) => { ctx = v; }} />
+      </WalletProvider>
+    );
+
+    await waitFor(() => expect(ctx.isLoading).toBe(false));
+
+    expect(ctx.user.did).toBeNull();
+  });
+
+  it("sets user.did to null when API returns did: null", async () => {
+    localStorage.setItem("axiomid_wallet", "demo:nulldid");
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        userId: "nulldid-user",
+        walletAddress: "demo:nulldid",
+        xp: 0,
+        tier: "Visitor",
+        trustScore: 0,
+        createdAt: new Date().toISOString(),
+        piUsername: "nulldiduser",
+        did: null,
+        agent: null,
+      }),
+    });
+
+    let ctx: any;
+    render(
+      <WalletProvider>
+        <DidConsumer onUpdate={(v) => { ctx = v; }} />
+      </WalletProvider>
+    );
+
+    await waitFor(() => expect(ctx.isLoading).toBe(false));
+
+    expect(ctx.user.did).toBeNull();
+  });
+});

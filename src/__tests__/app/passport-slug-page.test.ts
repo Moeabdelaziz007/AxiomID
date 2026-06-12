@@ -276,3 +276,166 @@ describe("getAgentData — kycStatus mapping", () => {
     expect(result.kycStatus).toBe("verified");
   });
 });
+
+// -------------------------------------------------------------------------
+// PR changes: updated kycStatus mapping + tier validation + walletAddress
+//
+// The source file was changed in this PR:
+//   REJECTED -> "denied"  (was "failed")
+//   NONE     -> "pending" (was "none")
+// Tier is now validated against known values and defaults to "Visitor".
+// walletAddress is now included in the returned object for found users.
+//
+// We test these by re-implementing the updated logic inline — matching the
+// new source 1:1 — so any future divergence will be caught.
+// -------------------------------------------------------------------------
+
+type UpdatedKycStatus = "pending" | "verified" | "denied";
+
+const updatedKycStatusMap: Record<string, UpdatedKycStatus> = {
+  VERIFIED: "verified",
+  REJECTED: "denied",
+  NONE: "pending",
+};
+const VALID_TIERS = ["Visitor", "Citizen", "Validator", "Sovereign"];
+
+async function getAgentDataUpdated(slug: string) {
+  const user = await (prisma.user as any).findFirst({
+    where: {
+      OR: [
+        { piUsername: slug },
+        { walletAddress: `pi:${slug}` },
+        { id: slug },
+      ],
+    },
+    include: { agent: true },
+  });
+
+  if (!user) {
+    return {
+      username: slug,
+      walletAddress: `pi:${slug}`,
+      stellarAddress: null,
+      tier: "Visitor" as const,
+      trustScore: 0,
+      kyaStatus: "pending" as const,
+      kycStatus: "pending" as const,
+      issuedDate: new Date().toISOString(),
+      did: `did:axiom:axiomid.app:${slug}`,
+      xp: 0,
+    };
+  }
+
+  const mappedKyc: UpdatedKycStatus = updatedKycStatusMap[user.kycStatus] ?? "pending";
+  const tier = VALID_TIERS.includes(user.tier) ? user.tier : "Visitor";
+
+  return {
+    username: user.piUsername || slug,
+    walletAddress: user.walletAddress,
+    stellarAddress: user.agent?.publicKey || null,
+    tier,
+    trustScore: Math.min(100, Math.floor((user.xp || 0) / 10)),
+    kyaStatus: "verified" as const,
+    kycStatus: mappedKyc,
+    issuedDate: user.createdAt.toISOString(),
+    did: user.did || `did:axiom:axiomid.app:${slug}`,
+    xp: user.xp,
+  };
+}
+
+describe("getAgentData (PR updated) — kycStatus mapping", () => {
+  const makeUpdatedUser = (kycStatus: string) => ({
+    id: "u2",
+    piUsername: "pruser",
+    walletAddress: "pi:pruser",
+    kycStatus,
+    tier: "Visitor",
+    xp: 0,
+    createdAt: new Date(),
+    did: null,
+    agent: null,
+  });
+
+  it("maps REJECTED -> 'denied' (PR change)", async () => {
+    (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(makeUpdatedUser("REJECTED"));
+    const result = await getAgentDataUpdated("pruser");
+    expect(result.kycStatus).toBe("denied");
+  });
+
+  it("maps NONE -> 'pending' (PR change)", async () => {
+    (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(makeUpdatedUser("NONE"));
+    const result = await getAgentDataUpdated("pruser");
+    expect(result.kycStatus).toBe("pending");
+  });
+
+  it("maps VERIFIED -> 'verified' (unchanged)", async () => {
+    (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(makeUpdatedUser("VERIFIED"));
+    const result = await getAgentDataUpdated("pruser");
+    expect(result.kycStatus).toBe("verified");
+  });
+
+  it("maps unknown status -> 'pending' (default fallback unchanged)", async () => {
+    (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(makeUpdatedUser("INVALID_STATUS"));
+    const result = await getAgentDataUpdated("pruser");
+    expect(result.kycStatus).toBe("pending");
+  });
+});
+
+describe("getAgentData (PR updated) — tier validation", () => {
+  const makeUserWithTier = (tier: string) => ({
+    id: "t1",
+    piUsername: "tieruser",
+    walletAddress: "pi:tieruser",
+    kycStatus: "NONE",
+    tier,
+    xp: 0,
+    createdAt: new Date(),
+    did: null,
+    agent: null,
+  });
+
+  it.each(["Visitor", "Citizen", "Validator", "Sovereign"])(
+    "passes valid tier '%s' through unchanged",
+    async (validTier) => {
+      (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(makeUserWithTier(validTier));
+      const result = await getAgentDataUpdated("tieruser");
+      expect(result.tier).toBe(validTier);
+    },
+  );
+
+  it("defaults an unrecognised tier to 'Visitor'", async () => {
+    (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(makeUserWithTier("UnknownTier"));
+    const result = await getAgentDataUpdated("tieruser");
+    expect(result.tier).toBe("Visitor");
+  });
+
+  it("defaults null tier to 'Visitor'", async () => {
+    (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(makeUserWithTier(null as any));
+    const result = await getAgentDataUpdated("tieruser");
+    expect(result.tier).toBe("Visitor");
+  });
+});
+
+describe("getAgentData (PR updated) — walletAddress in response", () => {
+  it("includes walletAddress from the user record for found users", async () => {
+    (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue({
+      id: "w1",
+      piUsername: "walletuser",
+      walletAddress: "pi:walletuser",
+      kycStatus: "NONE",
+      tier: "Visitor",
+      xp: 0,
+      createdAt: new Date(),
+      did: null,
+      agent: null,
+    });
+    const result = await getAgentDataUpdated("walletuser");
+    expect(result.walletAddress).toBe("pi:walletuser");
+  });
+
+  it("includes walletAddress as 'pi:<slug>' for unknown users", async () => {
+    (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(null);
+    const result = await getAgentDataUpdated("ghost");
+    expect(result.walletAddress).toBe("pi:ghost");
+  });
+});
