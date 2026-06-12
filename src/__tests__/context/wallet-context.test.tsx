@@ -230,6 +230,7 @@ describe("WalletProvider & WalletContext", () => {
         username: "pibrowseruser",
         name: "Pi Browser User",
         wallet_address: "GSTELLAR123",
+        stellarAddress: "GSTELLAR123",
       },
       stellarAddress: "GSTELLAR123",
     });

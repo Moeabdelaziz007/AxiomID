@@ -380,7 +380,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
       pushLog("Authenticating via Pi SDK...");
       let accessToken: string;
-      let piUser: { uid: string; username: string; name: string; wallet_address?: string };
+      let piUser: { uid: string; username: string; name: string; wallet_address?: string; stellarAddress?: string };
 
       try {
         const result = await connectPi(pushLog);
@@ -404,7 +404,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setPiAccessToken(accessToken);
       setLocalStorageItem("pi_access_token", accessToken);
       const walletAddress = `pi:${piUser.uid}`;
-      const stellarAddress = piUser.wallet_address || null;
+      const stellarAddress = piUser.stellarAddress || piUser.wallet_address || null;
       pushLog(`Wallet: ${walletAddress}`);
       if (stellarAddress) pushLog(`Stellar Address: ${stellarAddress}`);
 
