@@ -202,10 +202,203 @@ describe('POST /api/auth/pi', () => {
     );
   });
 
+  it('encodes special characters in uid when building DID for new user', async () => {
+    const uid = 'uid@domain.com/path';
+    const expectedDid = `did:axiom:axiomid.app:pi:${encodeURIComponent(uid)}`;
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid }),
+    });
+
+    mockPrisma.user.findUnique.mockResolvedValue(null);
+    mockPrisma.user.create.mockResolvedValue({
+      id: 'user-special',
+      walletAddress: `pi:${uid}`,
+      piUid: uid,
+      piUsername: 'specialuser',
+      xp: 0,
+      tier: 'Visitor',
+      did: expectedDid,
+      kycStatus: 'NONE',
+      agent: null,
+    } as any);
+
+    const res = await POST(mockRequest({
+      accessToken: 'valid-token',
+      uid,
+      username: 'specialuser',
+    }));
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.did).toBe(expectedDid);
+    expect(mockPrisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          did: expectedDid,
+          didMethod: 'did:axiom',
+        }),
+      }),
+    );
+  });
+
+  it('returns piDid in response when DB returns null did (response fallback)', async () => {
+    const uid = 'fallback-uid';
+    const piDid = `did:axiom:axiomid.app:pi:${uid}`;
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid }),
+    });
+
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'user-null-did',
+      piUid: uid,
+      did: null,
+    } as any);
+    mockPrisma.user.update.mockResolvedValue({
+      id: 'user-null-did',
+      walletAddress: `pi:${uid}`,
+      piUid: uid,
+      piUsername: 'fallbackuser',
+      xp: 0,
+      tier: 'Visitor',
+      did: null,
+      kycStatus: 'NONE',
+      agent: null,
+    } as any);
+
+    const res = await POST(mockRequest({
+      accessToken: 'valid-token',
+      uid,
+      username: 'fallbackuser',
+    }));
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.did).toBe(piDid);
+  });
+
+  it('repairs existing user with empty string did (falsy) by writing piDid', async () => {
+    const uid = 'empty-did-uid';
+    const piDid = `did:axiom:axiomid.app:pi:${uid}`;
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid }),
+    });
+
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'user-empty-did',
+      piUid: uid,
+      did: '',
+    } as any);
+    mockPrisma.user.update.mockResolvedValue({
+      id: 'user-empty-did',
+      walletAddress: `pi:${uid}`,
+      piUid: uid,
+      piUsername: 'emptyuser',
+      xp: 0,
+      tier: 'Visitor',
+      did: piDid,
+      kycStatus: 'NONE',
+      agent: null,
+    } as any);
+
+    const res = await POST(mockRequest({
+      accessToken: 'valid-token',
+      uid,
+      username: 'emptyuser',
+    }));
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.did).toBe(piDid);
+    expect(mockPrisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ did: piDid }),
+      }),
+    );
+  });
+
+  it('does not include didMethod in update payload for existing users', async () => {
+    const uid = 'no-didmethod-uid';
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid }),
+    });
+
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'existing-user-2',
+      piUid: uid,
+      did: 'did:axiom:axiomid.app:pi:no-didmethod-uid',
+    } as any);
+    mockPrisma.user.update.mockResolvedValue({
+      id: 'existing-user-2',
+      walletAddress: `pi:${uid}`,
+      piUid: uid,
+      piUsername: 'nodidmethod',
+      xp: 0,
+      tier: 'Visitor',
+      did: 'did:axiom:axiomid.app:pi:no-didmethod-uid',
+      kycStatus: 'NONE',
+      agent: null,
+    } as any);
+
+    await POST(mockRequest({
+      accessToken: 'valid-token',
+      uid,
+      username: 'nodidmethod',
+    }));
+
+    expect(mockPrisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.not.objectContaining({ didMethod: expect.any(String) }),
+      }),
+    );
+  });
+
+  it('includes didMethod only in create payload for new users', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid: 'new-didmethod-uid' }),
+    });
+
+    mockPrisma.user.findUnique.mockResolvedValue(null);
+    mockPrisma.user.create.mockResolvedValue({
+      id: 'new-user-dm',
+      walletAddress: 'pi:new-didmethod-uid',
+      piUid: 'new-didmethod-uid',
+      piUsername: 'newdidmethod',
+      xp: 0,
+      tier: 'Visitor',
+      did: 'did:axiom:axiomid.app:pi:new-didmethod-uid',
+      kycStatus: 'NONE',
+      agent: null,
+    } as any);
+
+    await POST(mockRequest({
+      accessToken: 'valid-token',
+      uid: 'new-didmethod-uid',
+      username: 'newdidmethod',
+    }));
+
+    expect(mockPrisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          didMethod: 'did:axiom',
+        }),
+      }),
+    );
+    expect(mockPrisma.user.update).not.toHaveBeenCalled();
+  });
+
   it('returns 401 on invalid Pi token', async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
-      status: 401,
+
     });
 
     const req = mockRequest({
