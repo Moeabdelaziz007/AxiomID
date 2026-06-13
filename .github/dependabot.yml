@@ -1,51 +1,42 @@
-# Dependabot configuration for axiomid-project (L0 Root Authority).
-#
-# Proprietary repo: Next.js identity surface for did:axiom issuance.
-# Covers npm at the root and github-actions for workflow pins.
-#
-# Because this repo is the root authority, security-sensitive dependency
-# updates land here FIRST then propagate to downstream consumers. The
-# weekly Monday cadence gives downstream maintainers a predictable window
-# to pull updated identity primitives.
-
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: npm
+    directory: /
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "06:00"
-      timezone: "Etc/UTC"
-    open-pull-requests-limit: 5
-    commit-message:
-      prefix: "chore(deps)"
-      prefix-development: "chore(deps-dev)"
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: America/New_York
+    open-pull-requests-limit: 10
     labels:
-      - "dependencies"
-      - "automated"
+      - dependencies
+      - automated
+    commit-message:
+      prefix: "deps"
     groups:
-      production-minor-patch:
-        dependency-type: "production"
+      production:
+        dependency-type: production
         update-types:
-          - "minor"
-          - "patch"
-      development-minor-patch:
-        dependency-type: "development"
+          - minor
+          - patch
+      dev:
+        dependency-type: development
         update-types:
-          - "minor"
-          - "patch"
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "06:00"
-      timezone: "Etc/UTC"
-    open-pull-requests-limit: 3
-    commit-message:
-      prefix: "chore(ci)"
+      interval: weekly
+      day: monday
     labels:
-      - "dependencies"
-      - "ci"
+      - dependencies
+      - automated
+      - ci
+    commit-message:
+      prefix: "ci"

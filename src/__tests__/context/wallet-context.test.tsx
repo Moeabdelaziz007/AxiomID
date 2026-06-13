@@ -108,7 +108,7 @@ describe("WalletProvider & WalletContext", () => {
     expect(contextValue.isPiBrowser).toBe(true);
   });
 
-  it("detects Pi Browser via window.Pi", async () => {
+  it("does not detect Pi Browser via window.Pi alone (SDK script loads everywhere)", async () => {
     (window as unknown as Record<string, unknown>).Pi = {
       authenticate: jest.fn(),
     };
@@ -124,7 +124,7 @@ describe("WalletProvider & WalletContext", () => {
       expect(contextValue.isLoading).toBe(false);
     });
 
-    expect(contextValue.isPiBrowser).toBe(true);
+    expect(contextValue.isPiBrowser).toBe(false);
     delete (window as unknown as Record<string, unknown>).Pi;
   });
 

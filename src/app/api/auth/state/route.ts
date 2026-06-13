@@ -3,12 +3,23 @@ import crypto from 'crypto';
 import { apiError, apiSuccess } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
-import { WalletConnectSchema } from '@/lib/validators';
+import { AuthStateSchema } from '@/lib/validators';
 
+/**
+ * Retrieve the OAuth state HMAC secret from the `OAUTH_STATE_SECRET` environment variable.
+ *
+ * @returns The secret string if set, `null` otherwise.
+ */
 function getSecret(): string | null {
   return process.env.OAUTH_STATE_SECRET || null;
 }
 
+/**
+ * Generate a signed, base64url-encoded OAuth state token for a wallet address and return it in an API response.
+ *
+ * @param request - Incoming Next.js request whose JSON body must include a `walletAddress` field
+ * @returns An API response containing `{ state: string }` on success where `state` is the base64url-encoded signed token; on failure returns an API error response describing the validation, rate-limit, or configuration error
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`auth-state:${ip}`, RATE_LIMITS.authenticated);
@@ -28,7 +39,7 @@ export async function POST(request: NextRequest) {
     return apiError('VALIDATION_ERROR', 'Invalid JSON body');
   }
 
-  const parsed = WalletConnectSchema.safeParse(body);
+  const parsed = AuthStateSchema.safeParse(body);
   if (!parsed.success) {
     return apiError('VALIDATION_ERROR', parsed.error.issues[0].message, parsed.error.issues);
   }

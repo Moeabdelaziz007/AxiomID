@@ -40,6 +40,10 @@ jest.mock("@/data/skills.json", () => ({
   ],
 }));
 
+jest.mock("@/components/ThemeToggle", () => ({
+  ThemeToggle: () => <button data-testid="theme-toggle" />,
+}));
+
 
 import type { Tier } from "@/lib/tiers";
 

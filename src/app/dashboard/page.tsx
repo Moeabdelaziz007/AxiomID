@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useWallet } from "../context/wallet-context";
 import { ErrorBanner } from "@/components/ErrorBanner";
+import { createUserDid } from "@/lib/did";
 import skillsData from "@/data/skills.json";
 import { StampBoard } from "@/components/StampBoard";
 import { useLanguage } from "../context/language-context";
@@ -12,15 +13,31 @@ import LanguageToggle from "@/components/LanguageToggle";
 
 type TabId = "passport" | "actions" | "terminal" | "marketplace" | "agent";
 
+const DEMO_PROFILE = {
+  name: "Demo Agent",
+  tier: "Sovereign" as const,
+  xp: 2450,
+  status: "ACTIVE" as const,
+};
+
 const INITIAL_LOGS = [
   "SYSTEM: initializing did:axiom resolver...",
-  "RESOLVER: resolved did:axiom:axiomid.app:pw-agt-369",
+  "RESOLVER: resolved did:axiom:user-********",
   "SECURITY: gRPC auth interceptor active",
   "SYSTEM: Agentic OS online. Ready for task routing.",
 ];
 
 
 
+/**
+ * Renders the Agent Identity Layer dashboard page and manages its UI state and behavior.
+ *
+ * The component controls wallet interactions (connect, disconnect, wallet logs, demo mode),
+ * onboarding flow, tab navigation (passport, actions, agent, terminal), agent lifecycle
+ * actions (create, activate, pause), KYA verification, and the terminal overlay.
+ *
+ * @returns The React element representing the dashboard page.
+ */
 export default function Dashboard() {
   const router = useRouter();
   const { t, language } = useLanguage();
@@ -245,8 +262,8 @@ export default function Dashboard() {
                   DEMO
                 </span>
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Welcome back, AxiomBot</h2>
-              <p className="text-gray-400">Demo agent identity — Sovereign tier &bull; 2,450 XP</p>
+              <h2 className="text-2xl font-bold text-white mb-2">{DEMO_PROFILE.name}</h2>
+              <p className="text-gray-400">Demo agent identity — {DEMO_PROFILE.tier} tier &bull; {DEMO_PROFILE.xp.toLocaleString()} XP</p>
               <div className="mt-4 h-2 bg-white/10 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-neon-green to-electric-blue"
@@ -261,21 +278,21 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Level</span>
-                    <span className="text-neon-green font-mono">Sovereign</span>
+                    <span className="text-neon-green font-mono">{DEMO_PROFILE.tier}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">XP</span>
-                    <span className="text-electric-blue font-mono">2,450</span>
+                    <span className="text-electric-blue font-mono">{DEMO_PROFILE.xp.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Agent</span>
-                    <span className="text-axiom-purple font-mono">AxiomBot</span>
+                    <span className="text-axiom-purple font-mono">{DEMO_PROFILE.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Status</span>
                     <span className="text-neon-green font-mono flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />
-                      ACTIVE
+                      {DEMO_PROFILE.status}
                     </span>
                   </div>
                 </div>
@@ -319,7 +336,7 @@ export default function Dashboard() {
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-2">Welcome back, {user.piUsername}</h2>
-                  <p className="text-gray-400">Your agent identity is ready. Level {user.tier} &bull; {user.xp} XP</p>
+                  <p className="text-gray-400">Your agent identity is ready. Level {user.tier} &bull; {user.xp.toLocaleString()} XP</p>
                 </div>
                 {isDemoWallet && (
                   <div className="rounded-xl border border-red-400/30 bg-red-500/10 px-4 py-2.5 text-center">
@@ -353,7 +370,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500">XP</span>
-                        <span className="text-electric-blue font-mono">{user.xp}</span>
+                        <span className="text-electric-blue font-mono">{user.xp.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500">Agent</span>
@@ -549,7 +566,7 @@ export default function Dashboard() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500 text-sm">Total XP</span>
-                          <span className="text-electric-blue text-sm font-mono">{user.xp}</span>
+                          <span className="text-electric-blue text-sm font-mono">{user.xp.toLocaleString()}</span>
                         </div>
                       </div>
 
@@ -785,7 +802,7 @@ export default function Dashboard() {
                       disabled={isConnecting || shouldShowPiBrowserPrompt}
                       className="btn-primary w-full py-3 text-xs tracking-wider"
                     >
-                      {isConnecting ? "CONNECTING..." : "CONNECT WALLET"}
+                    {isConnecting ? t("connecting") : t("connect_wallet")}
                     </button>
                   </div>
                 </div>
@@ -833,7 +850,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500">DID:</span>
-                        <span className="text-electric-blue">did:axiom:{user.piUsername || user.walletAddress.slice(0, 8)}...</span>
+                        <span className="text-electric-blue">{createUserDid(user.id).slice(0, 32)}...</span>
                       </div>
                     </div>
                   )}

@@ -11,6 +11,14 @@ import { canonicalize } from "@/lib/sanitize";
 
 const MANIFEST_RATE_LIMIT = { windowMs: 60_000, maxRequests: 10 };
 
+/**
+ * Handle GET requests and return a signed JSON-LD manifest for the authenticated user.
+ *
+ * Builds a verifiable credential (AgentFacts) for the authenticated account, signs it with the issuer's private key, and returns the signed manifest as JSON-LD. Enforces per-client rate limiting and returns JSON error responses for rate-limited requests, missing users, or cryptographic failures.
+ *
+ * @param request - The incoming NextRequest for this route
+ * @returns The signed manifest as a JSON-LD object on success; otherwise a JSON error object describing the failure (e.g., rate-limited, user not found, key algorithm mismatch, or internal signing failure).
+ */
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`manifest:${ip}`, MANIFEST_RATE_LIMIT);

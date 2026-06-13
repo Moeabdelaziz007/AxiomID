@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 
 export type Language = "en" | "ar";
 
@@ -91,6 +91,10 @@ export const translations = {
     logout: "LOGOUT",
     connecting: "CONNECTING...",
     connect: "CONNECT",
+    // Pi Browser prompts
+    pi_browser_required: "Open this app from Pi Browser",
+    pi_browser_demo_disabled: "Open this app from Pi Browser (Demo Disabled)",
+    demo_disabled_desc: "Demo wallets are disabled for this deployment.",
   },
   ar: {
     // Navigation / Header
@@ -178,6 +182,10 @@ export const translations = {
     logout: "تسجيل الخروج",
     connecting: "جاري الاتصال...",
     connect: "اتصال",
+    // Pi Browser prompts
+    pi_browser_required: "افتح التطبيق من Pi Browser",
+    pi_browser_demo_disabled: "افتح التطبيق من Pi Browser (التجربة معطلة)",
+    demo_disabled_desc: "المحافظ التجريبية معطلة في هذا الإصدار.",
   }
 };
 
@@ -191,37 +199,33 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+/**
+ * Provides language selection, persistence, and a translation helper to descendant components.
+ *
+ * Persists the chosen language to localStorage under `aix_language` and updates
+ * `document.documentElement.dir` and `document.documentElement.lang` after initial mount.
+ *
+ * @param children - React nodes that will receive the language context
+ * @returns A React context provider that supplies `{ language, setLanguage, t }` to its descendants
+ */
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>("en");
-  const [mounted, setMounted] = useState(false);
+  const [language, setLanguageState] = useState<Language>(() => {
+    if (typeof window === "undefined") return "en";
+    const saved = localStorage.getItem("aix_language") as Language;
+    return saved === "en" || saved === "ar" ? saved : "en";
+  });
+  const mountedRef = useRef(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("aix_language") as Language;
-    if (saved === "en" || saved === "ar") {
-      setTimeout(() => {
-        setLanguageState(saved);
-      }, 0);
-    } else {
-      // Default to english
-      setTimeout(() => {
-        setLanguageState("en");
-      }, 0);
-    }
-    setTimeout(() => {
-      setMounted(true);
-    }, 0);
-  }, []);
+    mountedRef.current = true;
+    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = language;
+  }, [language]);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem("aix_language", lang);
   };
-
-  useEffect(() => {
-    if (!mounted) return;
-    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
-    document.documentElement.lang = language;
-  }, [language, mounted]);
 
   const t = (key: string): string => {
     const dict = translations[language] || translations.en;
@@ -235,6 +239,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Access the language context value for the current React tree.
+ *
+ * @returns The context object with `language`, `setLanguage`, and `t` (translation) helpers.
+ * @throws Error if called outside a `LanguageProvider` (message: "useLanguage must be used within a LanguageProvider").
+ */
 export function useLanguage() {
   const context = useContext(LanguageContext);
   if (context === undefined) {

@@ -2,8 +2,8 @@
  * Tests for src/app/status/page.tsx
  *
  * Focuses on the changed behaviour in this PR:
- * - averageTrustScore falls back to 98.4 (was null) when the API omits the field
- * - verificationRate falls back to 99.2 (was null) when the API omits the field
+ * - averageTrustScore falls back to "—" when the API omits the field
+ * - verificationRate falls back to "—" when the API omits the field
  * - Other fields still default to 0 when omitted
  */
 
@@ -36,7 +36,7 @@ function makeApiResponse(overrides: Record<string, unknown> = {}) {
 }
 
 describe("StatusPage — fallback default values (PR change)", () => {
-  it("shows averageTrustScore of 98.4 when API returns null for that field", async () => {
+  it("shows em-dash when API returns null for averageTrustScore", async () => {
     mockFetch.mockResolvedValueOnce(
       makeApiResponse({ averageTrustScore: null })
     );
@@ -44,22 +44,21 @@ describe("StatusPage — fallback default values (PR change)", () => {
     render(<StatusPage />);
 
     await waitFor(() => {
-      // 98.4% should appear in the rendered output
-      expect(screen.getByText("98.4%")).toBeInTheDocument();
+      expect(screen.getAllByText(/—/).length).toBeGreaterThanOrEqual(1);
     });
   });
 
-  it("shows averageTrustScore of 98.4 when API omits the field entirely", async () => {
+  it("shows em-dash when API omits averageTrustScore entirely", async () => {
     mockFetch.mockResolvedValueOnce(makeApiResponse({}));
 
     render(<StatusPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("98.4%")).toBeInTheDocument();
+      expect(screen.getAllByText(/—/).length).toBeGreaterThanOrEqual(1);
     });
   });
 
-  it("shows verificationRate of 99.2 when API returns null for that field", async () => {
+  it("shows em-dash when API returns null for verificationRate", async () => {
     mockFetch.mockResolvedValueOnce(
       makeApiResponse({ verificationRate: null })
     );
@@ -67,17 +66,17 @@ describe("StatusPage — fallback default values (PR change)", () => {
     render(<StatusPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("99.2%")).toBeInTheDocument();
+      expect(screen.getAllByText(/—/).length).toBeGreaterThanOrEqual(1);
     });
   });
 
-  it("shows verificationRate of 99.2 when API omits the field entirely", async () => {
+  it("shows em-dash when API omits verificationRate entirely", async () => {
     mockFetch.mockResolvedValueOnce(makeApiResponse({}));
 
     render(<StatusPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("99.2%")).toBeInTheDocument();
+      expect(screen.getAllByText(/—/).length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -105,7 +104,7 @@ describe("StatusPage — fallback default values (PR change)", () => {
     });
   });
 
-  it("defaults totalAgents, totalPayments, registeredUsers, totalXpEarned to 0 when omitted", async () => {
+  it("defaults totalAgents, totalPayments, activeAgents, totalXpEarned to 0 when omitted", async () => {
     mockFetch.mockResolvedValueOnce(makeApiResponse({}));
 
     render(<StatusPage />);

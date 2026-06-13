@@ -4,6 +4,12 @@ import { prisma } from '@/lib/prisma';
 import { apiError, apiSuccess } from '@/lib/errors';
 import { requireAuth, clearAuthCache } from '@/lib/auth-middleware';
 
+/**
+ * Logs out the authenticated user by clearing their stored PI access token and invalidating any in-process auth cache.
+ *
+ * @param request - The incoming Next.js request; the handler requires authentication and will read the `Authorization` header if present.
+ * @returns An HTTP response: on success a payload with `{ message: 'Logged out successfully' }`, on failure an error response with code `INTERNAL_ERROR`.
+ */
 export async function POST(request: NextRequest) {
   const auth = await requireAuth(request);
   if (auth.error) return auth.error;

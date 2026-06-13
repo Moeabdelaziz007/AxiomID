@@ -5,6 +5,7 @@ import "./globals.css";
 import { WalletProvider } from "./context/wallet-context";
 import { SandboxProvider } from "./context/sandbox-provider";
 import { LanguageProvider } from "./context/language-context";
+import { ThemeProvider } from "./context/theme-context";
 import { Analytics } from "@vercel/analytics/next";
 
 // Preload fonts for better performance
@@ -110,6 +111,12 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Provide the application's root HTML layout and context provider composition.
+ *
+ * @param children - The application content to render inside the global providers and layout
+ * @returns The root HTML element containing the app's layout, provider tree, fonts, analytics, and external script
+ */
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -124,13 +131,15 @@ export default function RootLayout({
           Skip to content
         </a>
         <Script src="https://sdk.minepi.com/pi-sdk.js" strategy="beforeInteractive" />
-        <LanguageProvider>
-          <SandboxProvider>
-            <WalletProvider>
-              {children}
-            </WalletProvider>
-          </SandboxProvider>
-        </LanguageProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            <SandboxProvider>
+              <WalletProvider>
+                {children}
+              </WalletProvider>
+            </SandboxProvider>
+          </LanguageProvider>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>

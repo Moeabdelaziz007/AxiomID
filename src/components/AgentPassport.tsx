@@ -32,6 +32,23 @@ function getInitial(name: string): string {
   return name ? name.charAt(0).toUpperCase() : "?";
 }
 
+/**
+ * Render an agent passport card displaying identity, addresses, verification badges, tier, and statistics.
+ *
+ * @param username - Display name for the agent
+ * @param did - Decentralized identifier shown and copyable in the card
+ * @param agentName - Optional agent organization or label shown when present
+ * @param agentStatus - Optional agent state; when equal to `"ACTIVE"` the status badge is styled as active
+ * @param walletAddress - Optional fallback wallet address used if `stellarAddress` is not provided
+ * @param stellarAddress - Optional preferred address displayed and copied instead of `walletAddress`
+ * @param tier - Agent tier (from `Tier`) used for badge color and label
+ * @param trustScore - Numeric trust score rendered by the TrustScoreGauge
+ * @param xp - Experience points displayed with locale formatting
+ * @param kyaStatus - KYA verification status; one of `"verified" | "pending" | "denied"`
+ * @param kycStatus - KYC verification status; one of `"verified" | "pending" | "denied"`
+ * @param issuedDate - Date string used to display issued date information
+ * @returns The JSX element for the agent passport card
+ */
 export function AgentPassport({
   username,
   walletAddress,
@@ -111,7 +128,7 @@ export function AgentPassport({
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-white font-mono">{agentName}</span>
                 <span className={`text-[8px] font-mono px-1.5 py-0.5 rounded ${
-                  agentStatus === "active"
+                  agentStatus?.toUpperCase() === "ACTIVE"
                     ? "bg-neon-green/10 text-neon-green border border-neon-green/20"
                     : "bg-white/5 text-gray-400 border border-white/10"
                 }`}>
@@ -151,7 +168,7 @@ export function AgentPassport({
             </div>
             <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col items-center justify-center">
               <span className="text-[9px] text-gray-500 font-mono block">XP</span>
-              <span className="text-xl font-bold text-white font-mono">{xp}</span>
+              <span className="text-xl font-bold text-white font-mono">{xp.toLocaleString()}</span>
             </div>
             <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col items-center justify-center">
               <span className="text-[9px] text-gray-500 font-mono block">ISSUED</span>

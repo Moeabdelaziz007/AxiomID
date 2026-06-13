@@ -13,7 +13,7 @@ export const KyaClaimSchema = z.object({
 
 export const UserStatusSchema = z.object({
   userId: z.string().min(1).optional(),
-  walletAddress: z.string().regex(/^(G[A-Z2-7]{54}|0x[a-fA-F0-9]{40}|pi:[a-zA-Z0-9_-]+|demo:[a-zA-Z0-9-]+)$/, 'Invalid wallet address').optional(),
+  walletAddress: z.string().regex(/^(G[A-Z2-7]{55}|0x[a-fA-F0-9]{40}|pi:[a-zA-Z0-9_-]+|demo:[a-zA-Z0-9-]+)$/, 'Invalid wallet address').optional(),
 }).refine((data) => data.userId || data.walletAddress, {
   message: 'Either userId or walletAddress is required',
 });
@@ -23,9 +23,13 @@ export const ActionClaimSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
+export const AuthStateSchema = z.object({
+  walletAddress: z.string().regex(/^(G[A-Z2-7]{55}|0x[a-fA-F0-9]{40}|pi:[a-zA-Z0-9_-]+|demo:[a-zA-Z0-9-]+)$/, 'Invalid wallet address'),
+});
+
 export const WalletConnectSchema = z.object({
-  walletAddress: z.string().regex(/^(G[A-Z2-7]{54}|0x[a-fA-F0-9]{40}|pi:[a-zA-Z0-9_-]+|demo:[a-zA-Z0-9-]+)$/, 'Invalid wallet address'),
-  state: z.string().optional(),
+  walletAddress: z.string().regex(/^(G[A-Z2-7]{55}|0x[a-fA-F0-9]{40}|pi:[a-zA-Z0-9_-]+|demo:[a-zA-Z0-9-]+)$/, 'Invalid wallet address'),
+  state: z.string().min(1, 'state token is required'),
   signature: z.string().optional(),
 });
 
@@ -35,7 +39,7 @@ export const PaymentApproveSchema = z.object({
 
 export const PaymentCompleteSchema = z.object({
   paymentId: z.string().min(1, 'paymentId is required'),
-  txid: z.string().min(1, 'txid is required'),
+  txid: z.string().regex(/^[a-zA-Z0-9_-]+$/, 'txid must be alphanumeric, dashes, or underscores').min(1, 'txid is required'),
 });
 
 export type PiAuthInput = z.infer<typeof PiAuthSchema>;

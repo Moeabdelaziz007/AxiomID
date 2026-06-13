@@ -7,10 +7,16 @@ import { ErrorBanner } from "@/components/ErrorBanner";
 import Link from "next/link";
 import { useLanguage } from "./context/language-context";
 import LanguageToggle from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
-/* ============================================
-   FLOATING PASSPORT HERO
-   ============================================ */
+/**
+ * Render a floating "Agent Passport" card for a user with an interactive 3D tilt effect.
+ *
+ * The card displays an avatar, a username (prefers `piUsername`, falls back to `walletAddress`, or shows "Connect Wallet"), a shortened wallet address or placeholder, KYA/KYC badges that reflect presence of a user, and a tier/version label. Registers a window mousemove listener to compute the card's tilt and removes the listener on unmount.
+ *
+ * @param user - Optional user object. If provided, may include `piUsername`, `walletAddress`, and `tier`; values are used for display and badge/tier states. When `user` is null, placeholders and pending badge styles are shown.
+ * @returns A JSX element rendering the interactive passport card.
+ */
 function PassportHero({ user }: { user: { piUsername?: string | null; walletAddress?: string; tier?: Tier | null } | null }) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
@@ -76,19 +82,44 @@ function PassportHero({ user }: { user: { piUsername?: string | null; walletAddr
         {/* Bottom bar */}
         <div className="flex items-center justify-between border-t border-white/5 pt-3">
           <span className="text-[8px] text-gray-600 font-mono">AxiomID Verified • Pi Compatible</span>
-          <span className="text-[8px] text-gray-600 font-mono">{user?.tier ? user.tier.toUpperCase() : "v1.0"}</span>
+          <span className="text-[8px] text-gray-600 font-mono">{user?.tier ? user.tier.toUpperCase() : "1.0.0"}</span>
         </div>
       </div>
     </div>
   );
 }
 
-/* ============================================
-   MAIN PAGE
-   ============================================ */
+/**
+ * Render the application's public landing Home page with localized content and live network statistics.
+ *
+ * Uses wallet and language hooks to drive header and CTA state (connect, dashboard, logout, language/theme toggles).
+ * On mount it fetches "/api/status" to populate the Live Stats bar (users, agents, xp, payments).
+ * Displays a sandbox banner when NEXT_PUBLIC_PI_SANDBOX === "true" and renders the hero, floating passport, features, tiers, and footer.
+ *
+ * @returns The React element representing the Home page.
+ */
 export default function Home() {
   const { user, connectWallet, isConnecting, isPiBrowser, logout } = useWallet();
   const { t, language } = useLanguage();
+  const [networkStats, setNetworkStats] = useState<{ users: number; agents: number; xp: number; payments: number } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/status").then(async (res) => {
+      if (!res.ok || cancelled) return;
+      const data = await res.json();
+      const s = data.stats || {};
+      if (!cancelled) {
+        setNetworkStats({
+          users: s.registeredUsers ?? 0,
+          agents: s.totalAgents ?? 0,
+          xp: s.totalXpEarned ?? 0,
+          payments: s.totalPayments ?? 0,
+        });
+      }
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <main className="min-h-screen bg-grid flex flex-col items-center relative">
@@ -113,6 +144,7 @@ export default function Home() {
 
         <div className="flex items-center gap-3">
           <LanguageToggle />
+          <ThemeToggle />
           {isPiBrowser && !user && (
             <span className="text-[10px] font-mono text-electric-blue px-2 py-1 rounded-full border border-electric-blue/30 bg-electric-blue/5">
               Pi Browser
@@ -151,7 +183,7 @@ export default function Home() {
         <div className="flex flex-col gap-6">
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-neon-green/10 text-neon-green border border-neon-green/20">
-              V1.0
+              v1.0.0
             </span>
             <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-electric-blue/10 text-electric-blue border border-electric-blue/20">
               PI COMPATIBLE
@@ -255,10 +287,10 @@ export default function Home() {
       <div className="w-full max-w-6xl px-6 mt-12 z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bento-card border border-white/5 bg-white/[0.01]">
           {[
-            { label: t("stat_users"), value: "12,482", icon: "🆔", color: "text-neon-green" },
-            { label: t("stat_agents"), value: "8,941", icon: "🤖", color: "text-electric-blue" },
-            { label: t("stamps_board"), value: "45,102", icon: "🎫", color: "text-axiom-purple" },
-            { label: t("stat_tx"), value: "1.2M Pi", icon: "⚡", color: "text-axiom-gold" },
+            { label: t("stat_users"), value: networkStats?.users.toLocaleString() ?? "—", icon: "🆔", color: "text-neon-green" },
+            { label: t("stat_agents"), value: networkStats?.agents.toLocaleString() ?? "—", icon: "🤖", color: "text-electric-blue" },
+            { label: t("total_xp"), value: networkStats?.xp.toLocaleString() ?? "—", icon: "🎫", color: "text-axiom-purple" },
+            { label: t("stat_tx"), value: networkStats?.payments.toLocaleString() ?? "—", icon: "⚡", color: "text-axiom-gold" },
           ].map((stat) => (
             <div key={stat.label} className="text-center md:text-left md:border-r border-white/5 last:border-0 md:px-4 flex flex-col md:flex-row md:items-center gap-3">
               <span className="text-2xl hidden md:inline">{stat.icon}</span>
@@ -439,7 +471,7 @@ export default function Home() {
           <Link href="/status" className="hover:text-white transition-colors">{t("nav_status")}</Link>
           <Link href="/privacy" className="hover:text-white transition-colors">{t("nav_privacy")}</Link>
           <Link href="/terms" className="hover:text-white transition-colors">{t("nav_terms")}</Link>
-          <span className="text-gray-600">v1.0</span>
+          <span className="text-gray-600">1.0.0</span>
         </div>
       </footer>
     </main>

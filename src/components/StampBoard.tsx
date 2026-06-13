@@ -4,6 +4,8 @@ import { useState, useRef } from "react";
 import { StampCard } from "./StampCard";
 import { TrustScoreGauge } from "./TrustScoreGauge";
 import type { Tier } from "@/lib/tiers";
+import { calculateTrustScore } from "@/lib/trust";
+import { getLevelProgress, getNextLevelXP } from "@/lib/tiers";
 
 interface Action {
   type: string;
@@ -46,6 +48,14 @@ const STAMP_DEFS = [
   { type: "verify_identity", label: "KYC Status Stamp", xp: 100, icon: "🔐", isAutomatic: true },
 ];
 
+/**
+ * Renders the user's live stamps dashboard including trust score, level progress, stamps grid, and a modal to inspect or download Verifiable Credential payloads.
+ *
+ * @param user - The current user object or `null`. Used to determine claimed stamps, XP, and tier for display.
+ * @param claimAction - Called to initiate a stamp claim; receives the stamp `type` and optional `metadata`, and should resolve to `true` on success.
+ * @param connectWallet - Invoked when an action requires an authenticated user and `user` is `null`.
+ * @returns The StampBoard React element.
+ */
 export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [activeVc, setActiveVc] = useState<any | null>(null);
@@ -72,11 +82,18 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
     const stamp = user?.stamps?.find((s) => s.type === type);
     if (!stamp) return;
     try {
-      const parsedVc = JSON.parse(stamp.metadata || "{}");
-      if (parsedVc === null) {
-        throw new Error("Invalid or empty credential metadata");
+      const raw = stamp.metadata;
+      if (!raw || typeof raw !== "string" || raw.trim() === "" || raw.trim() === "{}") {
+        setActiveVc({ error: "No Verifiable Credential data available for this stamp." });
+        vcDialogRef.current?.showModal();
+        return;
       }
-      setActiveVc(parsedVc);
+      const parsedVc = JSON.parse(raw);
+      if (!parsedVc || typeof parsedVc !== "object" || Object.keys(parsedVc).length === 0) {
+        setActiveVc({ error: "Credential metadata is empty." });
+      } else {
+        setActiveVc(parsedVc);
+      }
       vcDialogRef.current?.showModal();
     } catch {
       setActiveVc({ error: "Failed to parse Verifiable Credential payload." });
@@ -105,26 +122,20 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
     }
   };
 
-  // Calculate Trust Score (percentage of stamps claimed)
+  // Calculate Trust Score (blended: 70% XP, 30% stamps)
   const totalStamps = STAMP_DEFS.length;
   const claimedCount = STAMP_DEFS.filter((s) => isConnected(s.type)).length;
-  const trustScore = totalStamps > 0 ? Math.round((claimedCount / totalStamps) * 100) : 0;
+  const trustScore = calculateTrustScore(user?.xp || 0, claimedCount);
 
-  // Next Tier progress
+  // Next Tier progress (from lib/tiers.ts)
   const currentXp = user?.xp || 0;
-  let nextTierXp = 100;
-  let nextTierName = "Citizen";
-  if (user?.tier === "Citizen") {
-    nextTierXp = 500;
-    nextTierName = "Validator";
-  } else if (user?.tier === "Validator") {
-    nextTierXp = 1000;
-    nextTierName = "Sovereign";
-  } else if (user?.tier === "Sovereign") {
-    nextTierXp = 1000;
-    nextTierName = "Maximized";
-  }
-  const progressPercent = Math.min(100, Math.round((currentXp / nextTierXp) * 100));
+  const currentTier: Tier = user?.tier || "Visitor";
+  const progressPercent = getLevelProgress(currentXp, currentTier);
+  const nextLevelXp = getNextLevelXP(currentTier);
+  const TIER_ORDER: Tier[] = ["Visitor", "Citizen", "Validator", "Sovereign"];
+  const tierIndex = TIER_ORDER.indexOf(currentTier);
+  const nextTierName = tierIndex < 3 ? TIER_ORDER[tierIndex + 1] : null;
+  const nextTierXp = nextLevelXp ?? currentXp;
 
   return (
     <div className="space-y-6">
@@ -156,7 +167,7 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
               </p>
             </div>
             <span className="text-[10px] font-mono text-gray-500">
-              {currentXp} / {nextTierXp} XP
+              {currentXp.toLocaleString()} / {nextTierXp.toLocaleString()} XP
             </span>
           </div>
 
@@ -170,7 +181,7 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
             <div className="flex justify-between text-[9px] font-mono text-gray-500">
               <span>{progressPercent}% Complete</span>
               {user?.tier !== "Sovereign" && (
-                <span>Next Tier: {nextTierName} ({nextTierXp - currentXp} XP needed)</span>
+                <span>Next Tier: {nextTierName} ({(nextTierXp - currentXp).toLocaleString()} XP needed)</span>
               )}
             </div>
           </div>

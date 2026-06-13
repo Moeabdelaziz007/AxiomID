@@ -9,6 +9,17 @@ import { getClientIp } from '@/lib/ip';
 import { calculateTier } from '@/lib/tiers';
 import { requireAuth } from '@/lib/auth-middleware';
 
+/**
+ * Handle Pi payment completion callbacks and finalize payments for an authenticated user.
+ *
+ * Validates rate limits, authenticates the requester, parses and validates the request body,
+ * calls the Pi API to complete the payment, and atomically updates the payment record,
+ * the user's XP/tier, and the XP ledger when applicable.
+ *
+ * @returns On success: an API success payload containing `{ status: 'completed', paymentId, txid, xpEarned, tier }`.
+ *          On failure: an API error payload with an error code and message (e.g., rate limited, validation error,
+ *          not found, forbidden, Pi API failure, or internal error).
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`pi-payment-complete:${ip}`, RATE_LIMITS.payment);

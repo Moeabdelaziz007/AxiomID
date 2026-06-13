@@ -6,6 +6,7 @@
   --electric-blue: #00d4ff;
   --axiom-purple: #a855f7;
   --axiom-gold: #f59e0b;
+  --badge-red: #ef4444;
   --bg-deep: #0a0a0a;
   --bg-card: #111118;
   --bg-card-hover: #1a1a2e;
@@ -15,6 +16,23 @@
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   --font-mono: var(--font-geist-mono), 'SF Mono', monospace;
+}
+
+[data-theme="light"] {
+  --neon-green: #00cc33;
+  --neon-green-glow: rgba(0, 204, 51, 0.1);
+  --electric-blue: #0099cc;
+  --axiom-purple: #8b5cf6;
+  --axiom-gold: #d97706;
+  --badge-red: #dc2626;
+  --bg-deep: #f5f5f0;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f0f0eb;
+  --card-border: rgba(0, 0, 0, 0.08);
+  --card-border-hover: rgba(0, 0, 0, 0.15);
+  --text-primary: #1a1a1a;
+  --text-secondary: #555555;
+  --text-muted: #888888;
 }
 
 @theme inline {
@@ -33,6 +51,10 @@
 
 html {
   color-scheme: dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
 }
 
 body {
@@ -54,6 +76,13 @@ body {
   mask-image: radial-gradient(circle at center, black 30%, transparent 95%);
 }
 
+[data-theme="light"] .bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+  mask-image: radial-gradient(circle at center, black 40%, transparent 96%);
+}
+
 .scanline {
   position: fixed;
   top: 0;
@@ -65,6 +94,11 @@ body {
   animation: scanline 8s linear infinite;
   pointer-events: none;
   z-index: 50;
+}
+
+[data-theme="light"] .scanline {
+  background: linear-gradient(to bottom, rgba(0, 204, 51, 0.06), transparent);
+  opacity: 0.2;
 }
 
 @keyframes scanline {
@@ -116,7 +150,7 @@ body {
 .btn-primary {
   background: linear-gradient(135deg, rgba(0, 255, 65, 0.15), rgba(0, 212, 255, 0.15));
   border: 1px solid rgba(0, 255, 65, 0.3);
-  color: #fff;
+  color: var(--text-primary);
   padding: 10px 20px;
   border-radius: 12px;
   font-family: var(--font-mono);
@@ -140,10 +174,22 @@ body {
   transform: translateY(-1px);
 }
 
+[data-theme="light"] .btn-primary {
+  background: rgba(0, 204, 51, 0.06);
+  border-color: rgba(0, 204, 51, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 204, 51, 0.05);
+}
+
+[data-theme="light"] .btn-primary:hover {
+  background: linear-gradient(135deg, #00cc33, #0099cc);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(0, 204, 51, 0.3);
+}
+
 .btn-ghost {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  color: #9ca3af;
+  color: var(--text-secondary);
   padding: 8px 16px;
   border-radius: 10px;
   font-size: 0.75rem;
@@ -153,8 +199,18 @@ body {
 
 .btn-ghost:hover {
   border-color: rgba(255, 255, 255, 0.15);
-  color: #fff;
+  color: var(--text-primary);
   background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .btn-ghost {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .btn-ghost:hover {
+  border-color: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.04);
 }
 
 /* ============================================
@@ -169,12 +225,22 @@ body {
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+[data-theme="light"] .passport-card {
+  background: linear-gradient(145deg, #ffffff 0%, #f5f5f0 50%, #ffffff 100%);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
 .passport-card:hover {
   border-color: rgba(0, 255, 65, 0.3);
   box-shadow: 
     0 0 40px rgba(0, 255, 65, 0.1),
     0 20px 60px -15px rgba(0, 0, 0, 0.5);
   transform: perspective(800px) rotateY(2deg) translateY(-4px);
+}
+
+[data-theme="light"] .passport-card:hover {
+  border-color: rgba(0, 204, 51, 0.25);
+  box-shadow: 0 0 30px rgba(0, 204, 51, 0.06), 0 10px 40px -10px rgba(0, 0, 0, 0.15);
 }
 
 .passport-card::after {
@@ -218,20 +284,35 @@ body {
 
 .badge-verified {
   background: rgba(0, 255, 65, 0.1);
-  color: #00ff41;
+  color: var(--neon-green);
   border-color: rgba(0, 255, 65, 0.25);
+}
+
+[data-theme="light"] .badge-verified {
+  background: rgba(0, 204, 51, 0.08);
+  border-color: rgba(0, 204, 51, 0.2);
 }
 
 .badge-pending {
   background: rgba(245, 158, 11, 0.1);
-  color: #f59e0b;
+  color: var(--axiom-gold);
   border-color: rgba(245, 158, 11, 0.25);
+}
+
+[data-theme="light"] .badge-pending {
+  background: rgba(217, 119, 6, 0.08);
+  border-color: rgba(217, 119, 6, 0.2);
 }
 
 .badge-denied {
   background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  color: var(--badge-red);
   border-color: rgba(239, 68, 68, 0.25);
+}
+
+[data-theme="light"] .badge-denied {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.2);
 }
 
 /* ============================================
@@ -297,12 +378,25 @@ body {
   border-radius: 14px;
 }
 
+[data-theme="light"] .glass-panel {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
 .glow-green {
-  box-shadow: 0 0 20px rgba(0, 255, 65, 0.15);
+  box-shadow: 0 0 20px var(--neon-green-glow);
+}
+
+[data-theme="light"] .glow-green {
+  box-shadow: 0 0 20px rgba(0, 204, 51, 0.08);
 }
 
 .glow-blue {
   box-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
+}
+
+[data-theme="light"] .glow-blue {
+  box-shadow: 0 0 20px rgba(0, 153, 204, 0.08);
 }
 
 /* Custom Scrollbar */
@@ -318,6 +412,16 @@ body {
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-green);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: #e5e5e0;
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #c0c0b8;
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
   background: var(--neon-green);
 }
 

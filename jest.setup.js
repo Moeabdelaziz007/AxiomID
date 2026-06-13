@@ -37,28 +37,28 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
 
 process.env.PI_TOKEN_ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'; // 32-byte hex
 
-// Global Mock for Language Context
-jest.mock("@/app/context/language-context", () => ({
-  useLanguage: () => ({
-    language: "en",
-    setLanguage: jest.fn(),
-    t: (key) => {
-      const mockDict = {
-        nav_dashboard: "AxiomID Dashboard",
-        dashboard_title: "AxiomID Dashboard",
-        enter_dashboard: "ENTER DASHBOARD",
-        nav_settings: "SETTINGS",
-        logout: "LOGOUT",
-        connecting: "CONNECTING...",
-        connect: "CONNECT",
-        view_demo: "VIEW DEMO",
-      };
-      return mockDict[key] || key;
-    },
-  }),
-  translations: {
-    en: {},
-    ar: {},
-  },
-}));
+// Global Mock for Language Context (preserves real exports, only overrides useLanguage)
+jest.mock("@/app/context/language-context", () => {
+  const actual = jest.requireActual("@/app/context/language-context");
+  return {
+    ...actual,
+    useLanguage: jest.fn(() => ({
+      language: "en",
+      setLanguage: jest.fn(),
+      t: (key) => {
+        const mockDict = {
+          nav_dashboard: "AxiomID Dashboard",
+          dashboard_title: "AxiomID Dashboard",
+          enter_dashboard: "ENTER DASHBOARD",
+          nav_settings: "SETTINGS",
+          logout: "LOGOUT",
+          connecting: "CONNECTING...",
+          connect: "CONNECT",
+          view_demo: "VIEW DEMO",
+        };
+        return mockDict[key] || key;
+      },
+    })),
+  };
+});
 

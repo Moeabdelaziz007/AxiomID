@@ -2,6 +2,14 @@
 
 import { useLanguage } from "@/app/context/language-context";
 
+/**
+ * Renders a button that toggles the application language between English and Arabic.
+ *
+ * The button updates the language stored in the language context and displays the label
+ * for the alternate language (shows "العربية" when current language is "en", otherwise "English").
+ *
+ * @returns A React element: a button that switches the language context between "en" and "ar" and displays the alternate-language label.
+ */
 export default function LanguageToggle() {
   const { language, setLanguage } = useLanguage();
 

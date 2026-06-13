@@ -12,6 +12,13 @@ interface AgentMainBody {
   params?: Record<string, unknown>;
 }
 
+/**
+ * Handle an authenticated agent action dispatch request and return a standardized API response.
+ *
+ * Validates rate limits, authentication, and the request body; records agent activity and a log entry; updates the agent's lastActive timestamp and returns dispatch details on success.
+ *
+ * @returns An API response object. On success, contains `agentId`, `publicId`, `status`, `action`, `result` (a human-readable dispatch message), and `timestamp`. On failure, returns an error response with an error code such as `RATE_LIMITED`, `VALIDATION_ERROR`, `NOT_FOUND`, `FORBIDDEN`, or `INTERNAL_ERROR` and a descriptive message.
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`agent-main:${ip}`, RATE_LIMITS.authenticated);

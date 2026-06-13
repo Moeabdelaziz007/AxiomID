@@ -6,6 +6,19 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { requireAuth } from '@/lib/auth-middleware';
 
+/**
+ * Pauses the authenticated user's active agent.
+ *
+ * Enforces rate limiting and authentication, updates the user's agent status to `PAUSED`,
+ * and returns the updated agent identifiers and status on success.
+ *
+ * @param request - Incoming Next.js request for the endpoint
+ * @returns On success, an `apiSuccess` payload containing `agentId`, `publicId`, and `status`. On failure, an `apiError` with one of the following codes:
+ * - `RATE_LIMITED` when the client has exceeded rate limits
+ * - `NOT_FOUND` when the user has no agent
+ * - `CONFLICT` when the agent is not currently active
+ * - `INTERNAL_ERROR` for unexpected server/database failures
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`agent-pause:${ip}`, RATE_LIMITS.authenticated);

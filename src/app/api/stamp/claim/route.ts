@@ -13,6 +13,17 @@ import { safeJsonStringify } from "@/lib/sanitize";
 import { signSocialCredential } from "@/lib/vc";
 import { createUserDid } from "@/lib/did";
 
+/**
+ * Handle a stamp claim request by authenticating the user, validating input, signing stamp metadata,
+ * preventing duplicates, and atomically creating the stamp, action, and XP ledger entries.
+ *
+ * Attempts rate limiting and returns a structured API error response on validation, authentication,
+ * rate-limit, signing, or database failures. On success returns the created stamp id, XP awarded,
+ * new balance, new tier, ledger entry id, and the stored metadata.
+ *
+ * @param request - The incoming NextRequest for the stamp claim endpoint
+ * @returns An API response object: on success contains stampId, xpEarned, newBalance, tier, ledgerEntryId, and metadata; on failure contains an API error code and message. 
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`stamp-claim:${ip}`, RATE_LIMITS.authenticated);
@@ -57,18 +68,20 @@ export async function POST(request: NextRequest) {
     const userDid = createUserDid(authUser.id);
     const platform = actionType.startsWith("connect_") ? actionType.replace("connect_", "") : "system";
 
-    try {
-      const signedVc = signSocialCredential(
-        authUser.id,
-        userDid,
-        platform,
-        handle,
-        authUser.walletAddress
-      );
-      finalMetadata = JSON.stringify(signedVc);
-    } catch (e) {
-      logger.error("[STAMP-CLAIM] VC signing failed:", e);
-      return apiError("INTERNAL_ERROR", "Cryptographic signing failure");
+    if (actionType.startsWith("connect_")) {
+      try {
+        const signedVc = signSocialCredential(
+          authUser.id,
+          userDid,
+          platform,
+          handle,
+          authUser.walletAddress
+        );
+        finalMetadata = JSON.stringify(signedVc);
+      } catch (e) {
+        logger.error("[STAMP-CLAIM] VC signing failed:", e);
+        return apiError("INTERNAL_ERROR", "Cryptographic signing failure");
+      }
     }
 
     const provider = actionType.startsWith("connect_") ? actionType.replace("connect_", "") : "system";

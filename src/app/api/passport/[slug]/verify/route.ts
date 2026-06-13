@@ -4,14 +4,42 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { createUserDid } from "@/lib/did";
+import { calculateTrustScore, TOTAL_STAMPS } from "@/lib/trust";
 
-const TOTAL_STAMPS_COUNT = 6;
+interface VerifyUser {
+  id: string;
+  did?: string | null;
+  walletAddress: string;
+  stellarAddress?: string | null;
+  piUsername?: string | null;
+  tier: string;
+  xp: number;
+  kycStatus?: string | null;
+  stamps?: { type: string; provider: string; xpAwarded: number; createdAt: Date }[];
+}
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function buildVerificationResponse(user: any) {
+/**
+ * Builds a JSON-serializable passport verification payload from a user record.
+ *
+ * @param user - User record containing at minimum: `id`, optional `did`, `walletAddress`, `stellarAddress`, `piUsername`, `tier`, `xp`, `kycStatus`, and `stamps` (array of objects with `type`, `provider`, `xpAwarded`, `createdAt`).
+ * @returns An object with the following properties:
+ *   - `did`: Decentralized identifier (existing or derived from user id)
+ *   - `userId`: User's id
+ *   - `walletAddress`: User's wallet address
+ *   - `stellarAddress`: User's Stellar address
+ *   - `piUsername`: User's Pi username
+ *   - `tier`: User tier
+ *   - `xp`: User experience points
+ *   - `trustScore`: Score computed from the user's `xp` and number of claimed stamps
+ *   - `kycStatus`: User KYC status
+ *   - `stamps`: Array of stamps with `{ type, provider, xpAwarded, createdAt }`
+ *   - `totalStampsCount`: Total possible stamps (constant)
+ *   - `claimedStampsCount`: Number of stamps claimed by the user
+ */
+function buildVerificationResponse(user: VerifyUser) {
   const did = user.did || createUserDid(user.id);
   const stamps = user.stamps || [];
-  const trustScore = TOTAL_STAMPS_COUNT > 0 ? Math.round((stamps.length / TOTAL_STAMPS_COUNT) * 100) : 0;
+  const trustScore = calculateTrustScore(user.xp || 0, stamps.length);
 
   return {
     did,
@@ -29,11 +57,18 @@ function buildVerificationResponse(user: any) {
       xpAwarded: s.xpAwarded,
       createdAt: s.createdAt,
     })),
-    totalStampsCount: TOTAL_STAMPS_COUNT,
+    totalStampsCount: TOTAL_STAMPS,
     claimedStampsCount: stamps.length,
   };
 }
 
+/**
+ * Verifies an identity slug and returns the corresponding passport verification payload or an error response.
+ *
+ * @param _request - The incoming NextRequest (used for client IP extraction and rate limiting)
+ * @param params - An object whose `slug` (URL-encoded) identifies the identity to resolve; the slug is decoded before lookup
+ * @returns A JSON response: the verification payload for the matched user (status 200), `{ error: "RATE_LIMITED" }` (status 429) when rate limited, `{ error: "NOT_FOUND", message: "No passport found for this identity slug" }` (status 404) if no match is found, or `{ error: "INTERNAL_ERROR" }` (status 500) on server/database error
+ */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }

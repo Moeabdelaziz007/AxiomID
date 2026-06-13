@@ -7,6 +7,16 @@ import { getClientIp } from '@/lib/ip';
 import { requireAuth } from '@/lib/auth-middleware';
 import { KyaClaimSchema } from '@/lib/validators';
 
+/**
+ * Process a KYA claim request for an authenticated Pi Network user.
+ *
+ * Validates rate limits and authentication, parses and validates the request body,
+ * updates the user's KYA-related fields in the database, and returns the updated
+ * user metadata on success or an API error payload on failure.
+ *
+ * @param request - The incoming Next.js HTTP request for the POST route
+ * @returns A Response containing either an object with `userId`, `walletAddress`, `kycStatus`, `did`, `tier`, and `xp` on success, or an error payload with an API error code and message
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`kya-claim:${ip}`, RATE_LIMITS.authenticated);

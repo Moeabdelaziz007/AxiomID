@@ -2,6 +2,7 @@ import {
   PiAuthSchema,
   UserStatusSchema,
   ActionClaimSchema,
+  AuthStateSchema,
   WalletConnectSchema,
   PaymentApproveSchema,
   PaymentCompleteSchema,
@@ -74,7 +75,7 @@ describe('UserStatusSchema', () => {
 
   it('accepts Stellar G-address', () => {
     const result = UserStatusSchema.safeParse({
-      walletAddress: 'G' + 'A'.repeat(54),
+      walletAddress: 'G' + 'A'.repeat(55),
     });
     expect(result.success).toBe(true);
   });
@@ -132,6 +133,20 @@ describe('ActionClaimSchema', () => {
   });
 });
 
+describe('AuthStateSchema', () => {
+  it('accepts valid wallet address', () => {
+    const result = AuthStateSchema.safeParse({
+      walletAddress: 'pi:abc123def456',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects missing wallet address', () => {
+    const result = AuthStateSchema.safeParse({});
+    expect(result.success).toBe(false);
+  });
+});
+
 describe('WalletConnectSchema', () => {
   it('accepts valid wallet connect', () => {
     const result = WalletConnectSchema.safeParse({
@@ -174,19 +189,19 @@ describe('WalletConnectSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('accepts empty state token (state is optional for demo wallets)', () => {
+  it('rejects empty state token', () => {
     const result = WalletConnectSchema.safeParse({
       walletAddress: '0x' + 'a'.repeat(40),
       state: '',
     });
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
   });
 
-  it('accepts missing state entirely (demo flow)', () => {
+  it('rejects missing state entirely', () => {
     const result = WalletConnectSchema.safeParse({
       walletAddress: 'demo:abc12345',
     });
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
   });
 });
 
@@ -219,6 +234,22 @@ describe('PaymentCompleteSchema', () => {
     const result = PaymentCompleteSchema.safeParse({
       paymentId: 'payment-123',
       txid: '',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('accepts txid with dashes and underscores', () => {
+    const result = PaymentCompleteSchema.safeParse({
+      paymentId: 'payment-123',
+      txid: 'abc_def-123',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects txid with special characters', () => {
+    const result = PaymentCompleteSchema.safeParse({
+      paymentId: 'payment-123',
+      txid: 'tx-hash!@#',
     });
     expect(result.success).toBe(false);
   });

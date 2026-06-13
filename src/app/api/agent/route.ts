@@ -12,6 +12,11 @@ const AgentCreateSchema = z.object({
   description: z.string().max(500).optional(),
 });
 
+/**
+ * Create a new user agent for the authenticated user, enforcing rate limits and validating/sanitizing input.
+ *
+ * @returns An API response: on success (HTTP 201) an object with `agentId`, `publicId`, `name`, and `status`; otherwise an error response with an error code and message (`RATE_LIMITED`, `VALIDATION_ERROR`, `CONFLICT`, or `INTERNAL_ERROR`).
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`agent-create:${ip}`, RATE_LIMITS.authenticated);

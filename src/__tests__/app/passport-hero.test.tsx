@@ -9,13 +9,17 @@
  * - username    : "Connect Wallet" when no user, piUsername or derived from walletAddress
  * - displayAddress: "did:axiom:..." when no user, or truncated walletAddress
  * - badge class : badge-pending when no user, badge-verified when user exists
- * - bottom-bar tier: "v1.0" when no user, or user.tier.toUpperCase()
+ * - bottom-bar tier: "1.0.0" when no user, or user.tier.toUpperCase()
  */
 
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import Home from "@/app/page";
 import { defaultWalletCtx } from "./wallet-test-helpers";
+
+jest.mock("@/components/ThemeToggle", () => ({
+  ThemeToggle: () => <button />,
+}));
 
 // Stub next/link so it renders as a plain anchor in jsdom
 jest.mock("next/link", () => {
@@ -82,9 +86,9 @@ describe("PassportHero — no user (unauthenticated)", () => {
     expect(screen.getByText("did:axiom:...")).toBeInTheDocument();
   });
 
-  it("shows 'v1.0' in the bottom bar when there is no user (no tier)", () => {
+  it("shows '1.0.0' in the bottom bar when there is no user (no tier)", () => {
     render(<Home />);
-    const matches = screen.getAllByText("v1.0");
+    const matches = screen.getAllByText("1.0.0");
     expect(matches.length).toBeGreaterThanOrEqual(1);
   });
 

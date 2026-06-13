@@ -8,6 +8,16 @@ import { requireAuth } from "@/lib/auth-middleware";
 
 const TOTAL_STAMPS_COUNT = 6;
 
+/**
+ * Retrieve the authenticated user's stamps and compute a trust score.
+ *
+ * @returns An API response object containing:
+ *  - `stamps`: an array of the user's stamp records ordered by newest first,
+ *  - `trustScore`: an integer 0–100 representing (claimedStamps / totalStamps) * 100,
+ *  - `totalStampsCount`: the reference total number of stamps,
+ *  - `claimedStampsCount`: the number of stamps returned.
+ * Returns an API error response when the request is rate limited, authentication fails, or a database error occurs.
+ */
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`stamp-get:${ip}`, RATE_LIMITS.authenticated);

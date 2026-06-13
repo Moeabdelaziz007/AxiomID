@@ -9,11 +9,20 @@ interface NetworkStats {
   registeredAgents: number;
   totalTransactions: number;
   averageTrustScore: number | null;
-  activeUsers: number;
+  activeAgents: number;
   totalXpEarned: number;
   verificationRate: number | null;
 }
 
+/**
+ * Renders the network status dashboard and controls for viewing real-time AxiomID metrics.
+ *
+ * The component fetches network statistics from /api/status, displays metric cards and network information,
+ * and keeps data fresh by polling every 30 seconds. It also tracks the time since the last successful fetch
+ * and exposes a manual retry button.
+ *
+ * @returns The JSX element for the StatusPage component.
+ */
 export default function StatusPage() {
   const { t, language } = useLanguage();
   const [stats, setStats] = useState<NetworkStats | null>(null);
@@ -35,10 +44,10 @@ export default function StatusPage() {
       setStats({
         registeredAgents: apiStats.totalAgents ?? 0,
         totalTransactions: apiStats.totalPayments ?? 0,
-        averageTrustScore: apiStats.averageTrustScore ?? 98.4,
-        activeUsers: apiStats.registeredUsers ?? 0,
+        averageTrustScore: apiStats.averageTrustScore ?? null,
+        activeAgents: apiStats.activeAgents ?? 0,
         totalXpEarned: apiStats.totalXpEarned ?? 0,
-        verificationRate: apiStats.verificationRate ?? 99.2,
+        verificationRate: apiStats.verificationRate ?? null,
       });
       setLastFetchTime(Date.now());
       setTimeSince(0);
@@ -129,9 +138,9 @@ export default function StatusPage() {
                 </span>
               </div>
               <div className="bento-card p-6 text-center">
-                <span className="text-[10px] font-mono text-gray-500 block mb-2">ACTIVE USERS</span>
+                <span className="text-[10px] font-mono text-gray-500 block mb-2">ACTIVE AGENTS</span>
                 <span className="text-3xl font-bold font-mono text-neon-green">
-                  {stats.activeUsers.toLocaleString()}
+                  {stats.activeAgents.toLocaleString()}
                 </span>
               </div>
               <div className="bento-card p-6 text-center">
@@ -154,7 +163,7 @@ export default function StatusPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
                 <div className="flex justify-between p-3 bg-white/5 rounded-lg">
                   <span className="text-gray-500">Protocol</span>
-                  <span className="text-white">AxiomID v1.0.0</span>
+                  <span className="text-white">AxiomID 1.0.0</span>
                 </div>
                 <div className="flex justify-between p-3 bg-white/5 rounded-lg">
                   <span className="text-gray-500">Network</span>

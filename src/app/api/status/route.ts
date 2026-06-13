@@ -5,6 +5,18 @@ import { apiError, apiSuccess } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 
+/**
+ * Handle GET /status requests and return network metadata and aggregate statistics.
+ *
+ * Performs client IP-based rate limiting, queries counts and aggregates from the database,
+ * and returns a standardized API success payload with network info and stats.
+ *
+ * @param request - The incoming NextRequest used to determine the client IP for rate limiting
+ * @returns An API response object:
+ * - On success: a payload containing `network`, `version`, `timestamp`, and `stats` (registeredUsers, totalAgents, activeAgents, totalPayments, totalXpEarned)
+ * - On rate limit exceeded: an error response with code `RATE_LIMITED`
+ * - On database or internal failure: an error response with code `INTERNAL_ERROR`
+ */
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`status:${ip}`, RATE_LIMITS.anonymous);

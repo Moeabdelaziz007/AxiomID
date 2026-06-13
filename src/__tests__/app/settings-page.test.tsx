@@ -277,7 +277,7 @@ describe("openVcModal — reads from stamp.metadata", () => {
     expect(pre?.textContent).toContain("Failed to parse Verifiable Credential payload.");
   });
 
-  it("treats null metadata as empty object (parses '{}' fallback)", async () => {
+  it("treats null metadata as empty credential (shows error message)", async () => {
     const user = makeUser({
       stamps: [makeStamp("connect_twitter", null as unknown as string)],
     });
@@ -288,11 +288,9 @@ describe("openVcModal — reads from stamp.metadata", () => {
       screen.getByRole("button", { name: /inspect vc/i }).click();
     });
 
-    // JSON.parse("{}") yields {} which is valid; dialog should open
     const pre = document.querySelector("pre");
     expect(pre).not.toBeNull();
-    // {} renders as "{}" in JSON.stringify output
-    expect(pre?.textContent?.trim()).toBe("{}");
+    expect(pre?.textContent).toContain("No Verifiable Credential data available");
   });
 
   it("still opens the VC dialog even when metadata is malformed (error recovery)", async () => {

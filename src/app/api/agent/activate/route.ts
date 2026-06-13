@@ -6,6 +6,13 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { requireAuth } from '@/lib/auth-middleware';
 
+/**
+ * Activate the authenticated user's agent if it exists and is not already active.
+ *
+ * Attempts to activate the agent associated with the request's authenticated user after enforcing rate limits.
+ *
+ * @returns An API response object: on success contains `agentId`, `publicId`, and `status`; on failure returns an error response with one of the codes `RATE_LIMITED`, `NOT_FOUND`, `CONFLICT`, or `INTERNAL_ERROR` and an explanatory message.
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`agent-activate:${ip}`, RATE_LIMITS.authenticated);

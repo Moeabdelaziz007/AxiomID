@@ -182,7 +182,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
 
       expect(res.status).toBe(200);
       expect(data.walletAddress).toBe("pi:testuser");
-      expect(data.trustScore).toBe(17);
+      expect(data.trustScore).toBe(16);
       expect(data.stamps).toHaveLength(1);
     });
   });

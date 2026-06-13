@@ -8,6 +8,13 @@ import { getClientIp } from '@/lib/ip';
 import { requireAuth } from '@/lib/auth-middleware';
 import { safeJsonStringify } from '@/lib/sanitize';
 
+/**
+ * Handle an authenticated Pi Network payment approval request, enforcing rate limits, verifying payer ownership, approving the payment with Pi's API, and persisting the result.
+ *
+ * Performs input validation, prevents IDOR by confirming the Pi payer UID matches the authenticated user, calls Pi's payment approve endpoint, and upserts the payment record in the database.
+ *
+ * @returns An HTTP API response representing either a success (e.g., `{ status: 'approved', paymentId }`) or an error response containing a code and message.
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`pi-payment-approve:${ip}`, RATE_LIMITS.payment);

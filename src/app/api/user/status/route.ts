@@ -7,6 +7,19 @@ import { getClientIp } from '@/lib/ip';
 import { calculateTier, getLevelProgress, getNextLevelXP } from '@/lib/tiers';
 import { requireAuth } from '@/lib/auth-middleware';
 
+/**
+ * Handle GET requests for the authenticated user's status, returning identity, XP/tier information, activity, and recent ledger entries.
+ *
+ * May return a rate-limited response, an authentication error response, `NOT_FOUND` if the user does not exist, or `INTERNAL_ERROR` on database failures.
+ *
+ * @returns On success, an API success payload containing:
+ * - userId, walletAddress, piUsername, did, kycStatus
+ * - `tier`, `xp`, `levelProgress`, `nextLevelXP`
+ * - `agent`, `actions`, `stamps`, `recentLedger`
+ * - aggregated `stats` (totalActions, totalLedgerEntries)
+ * - `lastActive` and `createdAt` timestamps.
+ * On failure, an API error object indicating `RATE_LIMITED`, authentication error, `NOT_FOUND`, or `INTERNAL_ERROR`.
+ */
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`user-status:${ip}`, RATE_LIMITS.authenticated);

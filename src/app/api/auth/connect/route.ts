@@ -8,6 +8,21 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { calculateTier } from '@/lib/tiers';
 
+/**
+ * Handle a wallet connection request and respond with connected user details or an error.
+ *
+ * Validates rate limits, parses and validates the request body, verifies the CSRF/state token
+ * against the provided wallet address, upserts the user record, and returns the user's
+ * connection data on success.
+ *
+ * Errors returned cover: rate limiting, invalid JSON, schema validation failures,
+ * missing/invalid/expired state token, state/wallet mismatch, and internal database failures.
+ *
+ * @param request - The incoming Next.js request for the wallet connection endpoint
+ * @returns An API response containing either the connected user's details
+ *          (`userId`, `walletAddress`, `tier`, `xp`, `did`, `kycStatus`, `isNewUser`)
+ *          on success, or an error code and message on failure.
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`wallet-connect:${ip}`, RATE_LIMITS.authenticated);

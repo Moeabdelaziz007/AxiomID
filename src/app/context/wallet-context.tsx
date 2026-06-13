@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import { Tier, getLevelProgress, getNextLevelXP } from "@/lib/tiers";
+import { calculateTrustScore } from "@/lib/trust";
 import { connectPi, runWalletTest } from "@/lib/pi-sdk";
 
 export interface User {
@@ -122,13 +123,18 @@ function removeLocalStorageItem(key: string): void {
   }
 }
 
+/**
+ * Detects whether the current environment is the Pi Browser or an embedded Pi context.
+ *
+ * Inspects the user agent for Pi Browser identifiers and, when running inside an iframe, checks the document referrer for minepi domains.
+ *
+ * @returns `true` if running in Pi Browser or embedded from `minepi.com`/`sandbox.minepi.com`, `false` otherwise.
+ */
 function checkPiBrowser(): boolean {
   if (typeof navigator === "undefined") return false;
 
   const ua = navigator.userAgent;
   if (/Pi Browser|minepi/i.test(ua)) return true;
-
-  if (typeof window !== "undefined" && window.Pi?.authenticate) return true;
 
   try {
     if (window.self !== window.top) {
@@ -156,30 +162,46 @@ interface ApiResponse {
   stamps?: User['stamps'];
 }
 
+/**
+ * Normalize an API user response into the local `User` shape.
+ *
+ * @param data - Raw API response containing user fields (e.g., `userId`, `walletAddress`, `xp`, `tier`, optional `stamps`, `actions`, `trustScore`, etc.).
+ * @param fallback - Optional fallback values used when the API omits certain fields: `stellarAddress`, `createdAt`, `actions`, and `stamps`.
+ * @returns The mapped `User` object with defaults applied; `trustScore` is taken from the response when present or computed from `xp` and the number of `stamps`.
+ */
 function mapApiUser(data: ApiResponse, fallback?: { stellarAddress?: string | null; createdAt?: string; actions?: User["actions"]; stamps?: User["stamps"] }): User {
+  const stamps = data.stamps || fallback?.stamps || [];
   return {
     id: data.userId,
     walletAddress: data.walletAddress,
     stellarAddress: data.stellarAddress || fallback?.stellarAddress || null,
     xp: data.xp,
     tier: data.tier,
-    trustScore: data.trustScore ?? Math.min(100, Math.floor((data.xp || 0) / 10)),
+    trustScore: data.trustScore ?? calculateTrustScore(data.xp || 0, stamps.length),
     createdAt: data.createdAt || fallback?.createdAt || new Date().toISOString(),
     piUsername: data.piUsername,
     kycStatus: data.kycStatus || null,
     did: data.did || null,
     actions: data.actions || fallback?.actions || [],
-    stamps: data.stamps || fallback?.stamps || [],
+    stamps,
     agent: data.agent || null,
   };
 }
 
+/**
+ * Provides wallet authentication state and actions to descendant components via WalletContext.
+ *
+ * Manages wallet detection (Pi Browser and demo wallets), connection/auth flows, user refresh and agent actions, XP/tier progression helpers, and wallet-related logs; supplies the resulting state and callbacks to its children.
+ *
+ * @returns A React context provider that supplies wallet state, status flags, and wallet-related actions to its children.
+ */
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const userRef = useRef<User | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isLoading, setIsLoading] = useState(() => {
     if (typeof window === "undefined") return true;
+    if (localStorage.getItem("axiomid_logged_out") === "true") return false;
     return !!(getStoredWallet() || getLocalStorageItem("pi_access_token"));
   });
   const [error, setError] = useState<string | null>(null);
@@ -567,7 +589,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     initRef.current = true;
 
     if (getLocalStorageItem("axiomid_logged_out") === "true") {
-      setTimeout(() => setIsLoading(false), 0);
       return;
     }
 
@@ -588,7 +609,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     const storedWallet = getStoredWallet();
     const storedToken = getLocalStorageItem("pi_access_token");
     if (!storedWallet && !storedToken) {
-      queueMicrotask(() => setIsLoading(false));
       return;
     }
 
@@ -597,7 +617,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       headers["Authorization"] = `Bearer ${storedToken}`;
     }
 
-    queueMicrotask(() => setIsLoading(true));
     fetch(`/api/user/status`, { headers }).then(res => {
       if (!res.ok) {
         removeLocalStorageItem("axiomid_wallet");

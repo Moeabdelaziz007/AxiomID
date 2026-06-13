@@ -31,6 +31,15 @@ function buildPiDid(uid: string): string {
   return `did:axiom:axiomid.app:pi:${encodeURIComponent(uid)}`;
 }
 
+/**
+ * Authenticates or registers a user using a Pi (MinePi) access token and returns the user's public account info.
+ *
+ * Validates the JSON body, enforces rate limits, verifies the Pi access token and optional Stellar address, creates or updates
+ * the corresponding user record, and returns the resulting account metadata.
+ *
+ * @param request - Incoming NextRequest whose JSON body must include `accessToken`, `uid`, and `username`
+ * @returns An HTTP response: on success contains `{ userId, walletAddress, stellarAddress, piUid, piUsername, tier, xp, did, kycStatus, hasAgent }`; on failure returns an error response with one of the codes `RATE_LIMITED`, `VALIDATION_ERROR`, `PI_AUTH_FAILED`, or `INTERNAL_ERROR`.
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`pi-auth:${ip}`, RATE_LIMITS.piAuth);
