@@ -198,7 +198,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   useEffect(() => {
-    queueMicrotask(() => setIsPiBrowser(checkPiBrowser()));
+    setIsPiBrowser(checkPiBrowser());
   }, []);
 
   useEffect(() => {
