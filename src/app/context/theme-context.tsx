@@ -39,8 +39,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    queueMicrotask(() => setThemeState(getStoredTheme()));
-    queueMicrotask(() => setMounted(true));
+    setThemeState(getStoredTheme());
+    setMounted(true);
   }, []);
 
   useEffect(() => {
