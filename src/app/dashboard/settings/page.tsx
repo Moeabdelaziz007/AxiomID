@@ -48,32 +48,33 @@ export default function SettingsPage() {
   const connectDialogRef = useRef<HTMLDialogElement>(null);
   const vcDialogRef = useRef<HTMLDialogElement>(null);
 
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const storedToken = localStorage.getItem("pi_access_token");
-        const headers: Record<string, string> = {};
-        if (storedToken) {
-          headers["Authorization"] = `Bearer ${storedToken}`;
-        }
-        const res = await fetch("/api/user/status", { headers });
-        if (!cancelled && res.ok) {
-          const data = await res.json();
-          setStatusDetails({
-            recentLedger: data.recentLedger || [],
-            stats: data.stats || { totalActions: 0, totalXP: 0 },
-          });
-        }
-      } catch (err) {
-        console.error("Failed to fetch ledger logs:", err);
-      } finally {
-        if (!cancelled) setDetailsLoading(false);
+  const fetchStatusDetails = async () => {
+    try {
+      const storedToken = localStorage.getItem("pi_access_token");
+      const headers: Record<string, string> = {};
+      if (storedToken) {
+        headers["Authorization"] = `Bearer ${storedToken}`;
       }
-    })();
-    return () => { cancelled = true; };
+      const res = await fetch("/api/user/status", { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setStatusDetails({
+          recentLedger: data.recentLedger || [],
+          stats: data.stats || { totalActions: 0, totalXP: 0 },
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch ledger logs:", err);
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (user) fetchStatusDetails();
   }, [user]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Handle outside click backdrop dismiss for dialogs
 

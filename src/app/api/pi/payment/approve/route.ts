@@ -14,6 +14,7 @@ import { safeJsonStringify } from '@/lib/sanitize';
  * Performs input validation, prevents IDOR by confirming the Pi payer UID matches the authenticated user, calls Pi's payment approve endpoint, and upserts the payment record in the database.
  *
  * @returns An HTTP API response representing either a success (e.g., `{ status: 'approved', paymentId }`) or an error response containing a code and message.
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`pi-payment-approve:${ip}`, RATE_LIMITS.payment);

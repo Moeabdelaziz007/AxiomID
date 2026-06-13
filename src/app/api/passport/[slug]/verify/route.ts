@@ -6,6 +6,18 @@ import { getClientIp } from "@/lib/ip";
 import { createUserDid } from "@/lib/did";
 import { calculateTrustScore, TOTAL_STAMPS } from "@/lib/trust";
 
+interface VerifyUser {
+  id: string;
+  did?: string | null;
+  walletAddress: string;
+  stellarAddress?: string | null;
+  piUsername?: string | null;
+  tier: string;
+  xp: number;
+  kycStatus?: string | null;
+  stamps?: { type: string; provider: string; xpAwarded: number; createdAt: Date }[];
+}
+
 /**
  * Builds a JSON-serializable passport verification payload from a user record.
  *
@@ -24,7 +36,7 @@ import { calculateTrustScore, TOTAL_STAMPS } from "@/lib/trust";
  *   - `totalStampsCount`: Total possible stamps (constant)
  *   - `claimedStampsCount`: Number of stamps claimed by the user
  */
-function buildVerificationResponse(user: any) {
+function buildVerificationResponse(user: VerifyUser) {
   const did = user.did || createUserDid(user.id);
   const stamps = user.stamps || [];
   const trustScore = calculateTrustScore(user.xp || 0, stamps.length);

@@ -6,6 +6,20 @@ import { getClientIp } from "@/lib/ip";
 import { createUserDid } from "@/lib/did";
 import { calculateTrustScore } from "@/lib/trust";
 
+interface PassportUser {
+  id: string;
+  did?: string | null;
+  piUsername?: string | null;
+  walletAddress: string;
+  stellarAddress?: string | null;
+  tier: string;
+  xp: number;
+  kycStatus?: string | null;
+  createdAt: Date;
+  stamps?: { type: string }[];
+  agent?: { name: string; status: string } | null;
+}
+
 const AGENT_SELECT = {
   agent: {
     select: { name: true, status: true },
@@ -21,7 +35,7 @@ const AGENT_SELECT = {
  * @param user - A user record with expected properties: `id`, optional `did`, optional `piUsername`, `walletAddress`, optional `stellarAddress`, `tier`, `xp`, optional `stamps` (array), `kycStatus`, `createdAt` (Date), and optional `agent` with `name` and `status`.
  * @returns An object with the following fields: `username`, `walletAddress`, `stellarAddress`, `did`, `tier`, `xp`, `trustScore`, `kyaStatus`, `kycStatus`, `issuedDate`, `agentName`, and `agentStatus`.
  */
-function buildPassportResponse(user: any) {
+function buildPassportResponse(user: PassportUser) {
   const did = user.did || createUserDid(user.id);
   const trustScore = calculateTrustScore(user.xp || 0, (user.stamps || []).length);
   const kyaStatus = user.kycStatus === "VERIFIED"
