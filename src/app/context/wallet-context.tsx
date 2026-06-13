@@ -559,10 +559,24 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-        if (event.reason && (
-          event.reason.message === "Connection closed" ||
-          event.reason.message?.includes("Connection closed")
-        )) {
+        if (!event.reason) return;
+
+        let reasonStr = "";
+        if (typeof event.reason === "string") {
+          reasonStr = event.reason;
+        } else if (event.reason instanceof Error) {
+          reasonStr = event.reason.message || event.reason.toString();
+        } else if (typeof event.reason === "object") {
+          reasonStr = (event.reason as any).message || (event.reason as any).error || String(event.reason);
+        } else {
+          reasonStr = String(event.reason);
+        }
+
+        const isConnectionClosed =
+          reasonStr.toLowerCase().includes("connection closed") ||
+          reasonStr.toLowerCase().includes("connection_closed");
+
+        if (isConnectionClosed) {
           event.preventDefault();
           console.warn("[Pi SDK] Suppressed expected connection closure rejection:", event.reason);
         }

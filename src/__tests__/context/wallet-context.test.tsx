@@ -688,4 +688,43 @@ describe("WalletProvider & WalletContext", () => {
 
     expect(result).toBe(false);
   });
+
+  it("suppresses expected connection closed errors of various formats", async () => {
+    const addEventListenerSpy = jest.spyOn(window, "addEventListener");
+    render(
+      <WalletProvider>
+        <TestConsumer onUpdate={() => {}} />
+      </WalletProvider>
+    );
+
+    const registration = addEventListenerSpy.mock.calls.find(call => call[0] === "unhandledrejection");
+    expect(registration).toBeDefined();
+    const handler = registration![1] as Function;
+
+    const testCases = [
+      new Error("Connection closed."),
+      new Error("connection closed"),
+      "Connection closed",
+      "connection_closed",
+      { message: "Connection closed" },
+      { error: "Connection closed" },
+    ];
+
+    for (const reason of testCases) {
+      const mockEvent = {
+        reason,
+        preventDefault: jest.fn(),
+      };
+      handler(mockEvent);
+      expect(mockEvent.preventDefault).toHaveBeenCalled();
+    }
+
+    // Should not suppress unrelated errors
+    const unrelatedEvent = {
+      reason: new Error("Some other error"),
+      preventDefault: jest.fn(),
+    };
+    handler(unrelatedEvent);
+    expect(unrelatedEvent.preventDefault).not.toHaveBeenCalled();
+  });
 });
