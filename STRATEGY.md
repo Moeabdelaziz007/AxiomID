@@ -29,8 +29,8 @@ We will adapt the best UX/UI elements from competitors but reforge them in our "
 
 ### From Idena -> The "Status" Tier
 *   **The Concept:** Clear status levels (Newbie, Verified, Human).
-*   **Axiom Adaptation:** Our tier system (Ghost -> Spark -> Pulse -> Axiom) is already superior, but we will visualize it as **"Security Clearance Levels"**.
-    *   *Visual:* "ACCESS GRANTED: PULSE LEVEL".
+*   **Axiom Adaptation:** Our tier system (Visitor -> Citizen -> Validator -> Sovereign) is already superior, but we will visualize it as **"Security Clearance Levels"**.
+    *   *Visual:* "ACCESS GRANTED: VALIDATOR LEVEL".
 
 ---
 
@@ -55,8 +55,8 @@ To become the "Quantum Command Center" of Identity, we will build these three ga
 ### 3. Axiom Vouch (Web of Trust V2)
 *   **The Problem:** Social verification (BrightID) is boring.
 *   **The Solution:** Gamified High-Stakes Vouching.
-*   **Mechanism:** Only **Axiom Tier** users (Level 4) can "Vouch" for new users.
-*   **The Risk:** If the new user is flagged as a bot later, the Axiom user **loses XP/Status** (Slashing).
+*   **Mechanism:** Only **Sovereign Tier** users (Level 4) can "Vouch" for new users.
+*   **The Risk:** If the new user is flagged as a bot later, the Sovereign user **loses XP/Status** (Slashing).
 *   **Effect:** Creates a high-trust, self-policing network where reputation has real value and risk.
 
 ---

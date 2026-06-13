@@ -111,17 +111,18 @@ describe("pi-sandbox", () => {
 
   describe("listenForPiSDKMessages", () => {
     let mockSource: any;
+    let cleanup: (() => void) | undefined;
 
     beforeEach(() => {
       mockSource = {
         postMessage: jest.fn(),
       };
-      listenForPiSDKMessages();
+      cleanup = listenForPiSDKMessages();
     });
 
     afterEach(() => {
-      // Clean up window message event listeners by cloning window or removing the event
-      window.removeEventListener("message", jest.fn());
+      cleanup?.();
+      cleanup = undefined;
     });
 
     it("should respond to @pi:app:sdk:communication_information_request with a communication response", () => {

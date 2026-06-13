@@ -106,7 +106,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
 
       expect(res.status).toBe(200);
       expect(data.stamps).toHaveLength(1);
-      expect(data.trustScore).toBe(17); // 1/6 * 100
+      expect(data.trustScore).toBe(5); // calculateTrustScore(0 XP, 1 stamp) = round(0*0.7 + 17*0.3)
     });
   });
 

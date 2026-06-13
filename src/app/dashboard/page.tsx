@@ -152,16 +152,17 @@ export default function Dashboard() {
       <div className="scanline" />
       <ErrorBanner />
 
-      <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
+      <header className="sticky top-0 z-50 backdrop-blur-md border-b" style={{ background: 'color-mix(in srgb, var(--bg-card) 90%, transparent)', borderColor: 'var(--card-border)' }}>
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-green/20 to-electric-blue/20 flex items-center justify-center">
-                <span className="text-neon-green font-bold text-xl">A</span>
-              </div>
+            <Link href="/" className="flex items-center gap-2">
+              <span className="text-xl font-bold text-neon-green font-mono">AXIOM</span>
+              <span className="text-xl font-bold text-white font-mono">ID</span>
+            </Link>
+            <div className="flex items-center gap-4">
               <div>
-                <h1 className="text-xl font-bold text-white">{t("dashboard_title")}</h1>
-                <p className="text-xs text-gray-400 font-mono">Agent Identity Layer v1.0.0</p>
+                <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{t("dashboard_title")}</h1>
+                <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Agent Identity Layer v1.0.0</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -652,22 +653,22 @@ export default function Dashboard() {
 
       {/* ── TERMINAL OVERLAY ── */}
       {showTerminal && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 bg-[#0a0a0a]/95 backdrop-blur-md border-t border-white/10 max-h-[40vh] overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between px-4 py-2 border-b border-white/5">
+        <div className="fixed bottom-16 left-0 right-0 z-40 backdrop-blur-md max-h-[40vh] overflow-hidden flex flex-col" style={{ background: 'color-mix(in srgb, var(--bg-card) 95%, transparent)', borderTop: '1px solid var(--card-border)' }}>
+          <div className="flex items-center justify-between px-4 py-2 border-b" style={{ borderColor: 'var(--card-border)' }}>
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono text-neon-green">TERMINAL</span>
-              <span className="text-[9px] font-mono text-gray-600">{walletLogs.length} entries</span>
+              <span className="text-[9px] font-mono" style={{ color: 'var(--text-muted)' }}>{walletLogs.length} entries</span>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => { clearWalletLogs(); setLogs(INITIAL_LOGS); }}
-                className="text-[10px] font-mono text-gray-500 hover:text-white transition-colors px-2 py-1 rounded border border-white/5 hover:border-white/10"
+                className="text-[10px] font-mono transition-colors px-2 py-1 rounded border" style={{ color: 'var(--text-muted)', borderColor: 'var(--card-border)' }}
               >
                 CLEAR
               </button>
               <button
                 onClick={runWalletTest}
-                className="text-[10px] font-mono text-neon-green hover:text-white transition-colors px-2 py-1 rounded border border-neon-green/20 hover:border-neon-green/40"
+                className="text-[10px] font-mono text-neon-green transition-colors px-2 py-1 rounded border border-neon-green/20 hover:border-neon-green/40"
               >
                 RUN TEST
               </button>
@@ -683,13 +684,13 @@ export default function Dashboard() {
           </div>
           <div className="overflow-y-auto flex-1 p-4 font-mono text-[11px] leading-relaxed">
             {logs.map((line, i) => (
-              <div key={`init-${i}`} className="text-gray-500">{line}</div>
+              <div key={`init-${i}`} style={{ color: 'var(--text-muted)' }}>{line}</div>
             ))}
             {walletLogs.map((line, i) => (
               <div key={`wallet-${i}`} className="text-neon-green/80">{line}</div>
             ))}
             {walletLogs.length === 0 && logs.length === INITIAL_LOGS.length && (
-              <div className="text-gray-600 italic">No wallet activity yet. Connect or run a test.</div>
+              <div className="italic" style={{ color: 'var(--text-muted)' }}>No wallet activity yet. Connect or run a test.</div>
             )}
             <div ref={logsEndRef} />
           </div>
@@ -697,7 +698,7 @@ export default function Dashboard() {
       )}
 
       {/* ── BOTTOM NAV ── */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md border-t border-white/10 z-40">
+      <footer className="fixed bottom-0 left-0 right-0 backdrop-blur-md border-t z-40" style={{ background: 'color-mix(in srgb, var(--bg-card) 90%, transparent)', borderColor: 'var(--card-border)' }}>
         <div className="max-w-7xl mx-auto px-4 py-4" role="tablist">
           <div className="flex justify-center gap-4">
             {([
@@ -720,16 +721,17 @@ export default function Dashboard() {
                   onClick={() => handleTabClick(tab.id)}
                   className={`flex flex-col items-center gap-1 px-5 py-2 rounded-lg transition-all relative group ${
                     tab.disabled
-                      ? "text-gray-700 cursor-not-allowed"
+                      ? "opacity-40 cursor-not-allowed"
                       : isActive
                         ? "bg-neon-green/20 text-neon-green"
-                        : "text-gray-500 hover:text-white"
+                        : "hover:text-neon-green"
                   }`}
+                  style={!tab.disabled && !isActive ? { color: 'var(--text-muted)' } : undefined}
                 >
                   <span className="text-xl">{tab.icon}</span>
                   <span className="text-xs font-mono">{tab.label}</span>
                   {tab.disabled && (
-                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white/10 text-[9px] font-mono text-gray-400 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-[9px] font-mono px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', border: '1px solid var(--card-border)' }}>
                       {language === "ar" ? "قريباً" : "Coming Soon"}
                     </span>
                   )}

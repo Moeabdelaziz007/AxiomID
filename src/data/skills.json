@@ -342,12 +342,6 @@
       "tier": "ADVANCED_INFRASTRUCTURE"
     },
     {
-      "name": "_test_tool",
-      "description": "Test Tool - TIER: BASIC_TOOL",
-      "file": "skills/_test_tool.md",
-      "tier": "BASIC_TOOL"
-    },
-    {
       "name": "antigravity-jules",
       "description": "Shared task board and resonance synchronization between Antigravity and Jules",
       "file": "skills/antigravity-jules.md",

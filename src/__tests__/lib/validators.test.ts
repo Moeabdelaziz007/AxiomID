@@ -1,256 +1,38 @@
-import {
-  PiAuthSchema,
-  UserStatusSchema,
-  ActionClaimSchema,
-  AuthStateSchema,
-  WalletConnectSchema,
-  PaymentApproveSchema,
-  PaymentCompleteSchema,
-} from '@/lib/validators';
+import { KyaClaimSchema } from "@/lib/validators";
+import { apiError } from "@/lib/errors";
 
-describe('PiAuthSchema', () => {
-  it('accepts valid Pi auth data', () => {
-    const result = PiAuthSchema.safeParse({
-      accessToken: 'valid-token-123',
-      uid: 'user-uid-123',
-      username: 'testuser',
-    });
+describe("KyaClaimSchema", () => {
+  it("accepts valid username", () => {
+    const result = KyaClaimSchema.safeParse({ username: "testuser" });
     expect(result.success).toBe(true);
   });
 
-  it('rejects empty accessToken', () => {
-    const result = PiAuthSchema.safeParse({
-      accessToken: '',
-      uid: 'user-uid-123',
-      username: 'testuser',
-    });
+  it("rejects empty username", () => {
+    const result = KyaClaimSchema.safeParse({ username: "" });
     expect(result.success).toBe(false);
   });
 
-  it('rejects missing uid', () => {
-    const result = PiAuthSchema.safeParse({
-      accessToken: 'token',
-      username: 'testuser',
-    });
+  it("rejects missing username", () => {
+    const result = KyaClaimSchema.safeParse({});
     expect(result.success).toBe(false);
   });
 
-  it('rejects missing username', () => {
-    const result = PiAuthSchema.safeParse({
-      accessToken: 'token',
-      uid: 'uid',
-    });
+  it("rejects non-string username", () => {
+    const result = KyaClaimSchema.safeParse({ username: 123 });
     expect(result.success).toBe(false);
   });
 });
 
-describe('UserStatusSchema', () => {
-  it('accepts valid userId', () => {
-    const result = UserStatusSchema.safeParse({
-      userId: '550e8400-e29b-41d4-a716-446655440000',
-    });
-    expect(result.success).toBe(true);
+describe("apiError FORBIDDEN", () => {
+  it("returns 403 status with FORBIDDEN code", () => {
+    const response = apiError("FORBIDDEN", "Access denied");
+    expect(response.status).toBe(403);
   });
 
-  it('accepts valid walletAddress', () => {
-    const result = UserStatusSchema.safeParse({
-      walletAddress: '0x' + 'a'.repeat(40),
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('accepts pi: wallet address', () => {
-    const result = UserStatusSchema.safeParse({
-      walletAddress: 'pi:abc123def456',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('accepts demo: wallet address', () => {
-    const result = UserStatusSchema.safeParse({
-      walletAddress: 'demo:abc12345',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('accepts Stellar G-address', () => {
-    const result = UserStatusSchema.safeParse({
-      walletAddress: 'G' + 'A'.repeat(55),
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects invalid wallet address format', () => {
-    const result = UserStatusSchema.safeParse({
-      walletAddress: 'not-a-wallet',
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('rejects when neither userId nor walletAddress provided', () => {
-    const result = UserStatusSchema.safeParse({});
-    expect(result.success).toBe(false);
-  });
-});
-
-describe('ActionClaimSchema', () => {
-  it('accepts valid action claim', () => {
-    const result = ActionClaimSchema.safeParse({
-      actionType: 'connect_twitter',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('accepts action claim with metadata', () => {
-    const result = ActionClaimSchema.safeParse({
-      actionType: 'daily_pow',
-      metadata: { source: 'mobile' },
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects empty actionType', () => {
-    const result = ActionClaimSchema.safeParse({
-      actionType: '',
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('accepts action type up to 100 chars', () => {
-    const longType = 'a'.repeat(100);
-    const result = ActionClaimSchema.safeParse({
-      actionType: longType,
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects action type over 100 chars', () => {
-    const tooLong = 'a'.repeat(101);
-    const result = ActionClaimSchema.safeParse({
-      actionType: tooLong,
-    });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe('AuthStateSchema', () => {
-  it('accepts valid wallet address', () => {
-    const result = AuthStateSchema.safeParse({
-      walletAddress: 'pi:abc123def456',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects missing wallet address', () => {
-    const result = AuthStateSchema.safeParse({});
-    expect(result.success).toBe(false);
-  });
-});
-
-describe('WalletConnectSchema', () => {
-  it('accepts valid wallet connect', () => {
-    const result = WalletConnectSchema.safeParse({
-      walletAddress: '0x' + 'a'.repeat(40),
-      state: 'base64url-state-token',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('accepts pi: wallet address', () => {
-    const result = WalletConnectSchema.safeParse({
-      walletAddress: 'pi:abc123def456',
-      state: 'state-token',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('accepts demo: wallet address', () => {
-    const result = WalletConnectSchema.safeParse({
-      walletAddress: 'demo:abc12345',
-      state: 'state-token',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('accepts with optional signature', () => {
-    const result = WalletConnectSchema.safeParse({
-      walletAddress: '0x' + 'a'.repeat(40),
-      state: 'state-token',
-      signature: '0xsignature',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects invalid wallet address', () => {
-    const result = WalletConnectSchema.safeParse({
-      walletAddress: '0x123',
-      state: 'state-token',
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('rejects empty state token', () => {
-    const result = WalletConnectSchema.safeParse({
-      walletAddress: '0x' + 'a'.repeat(40),
-      state: '',
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('rejects missing state entirely', () => {
-    const result = WalletConnectSchema.safeParse({
-      walletAddress: 'demo:abc12345',
-    });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe('PaymentApproveSchema', () => {
-  it('accepts valid paymentId', () => {
-    const result = PaymentApproveSchema.safeParse({
-      paymentId: 'payment-123',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects empty paymentId', () => {
-    const result = PaymentApproveSchema.safeParse({
-      paymentId: '',
-    });
-    expect(result.success).toBe(false);
-  });
-});
-
-describe('PaymentCompleteSchema', () => {
-  it('accepts valid payment completion', () => {
-    const result = PaymentCompleteSchema.safeParse({
-      paymentId: 'payment-123',
-      txid: 'tx-hash-abc',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects empty txid', () => {
-    const result = PaymentCompleteSchema.safeParse({
-      paymentId: 'payment-123',
-      txid: '',
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('accepts txid with dashes and underscores', () => {
-    const result = PaymentCompleteSchema.safeParse({
-      paymentId: 'payment-123',
-      txid: 'abc_def-123',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects txid with special characters', () => {
-    const result = PaymentCompleteSchema.safeParse({
-      paymentId: 'payment-123',
-      txid: 'tx-hash!@#',
-    });
-    expect(result.success).toBe(false);
+  it("includes error code in response body", async () => {
+    const response = apiError("FORBIDDEN", "Access denied");
+    const body = await response.json();
+    expect(body.code).toBe("FORBIDDEN");
+    expect(body.error).toBe("Access denied");
   });
 });

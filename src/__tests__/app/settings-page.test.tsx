@@ -33,6 +33,15 @@ jest.mock("@/components/ErrorBanner", () => ({
   ErrorBanner: () => null,
 }));
 
+// Mock ThemeToggle and LanguageToggle (require context providers)
+jest.mock("@/components/ThemeToggle", () => ({
+  ThemeToggle: () => null,
+}));
+jest.mock("@/components/LanguageToggle", () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 // Mock tiers lib to avoid side effects
 jest.mock("@/lib/tiers", () => ({
   getLevelProgress: jest.fn().mockReturnValue(0),

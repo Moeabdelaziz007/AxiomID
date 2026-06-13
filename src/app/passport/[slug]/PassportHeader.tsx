@@ -12,7 +12,7 @@ import LanguageToggle from "@/components/LanguageToggle";
  * @returns The header JSX element containing the brand link, language toggle, and language-specific label.
  */
 export function PassportHeader() {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <header className="w-full border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-xl px-6 py-4 z-10">
@@ -28,7 +28,7 @@ export function PassportHeader() {
         <div className="flex items-center gap-3">
           <LanguageToggle />
           <span className="text-[10px] font-mono text-gray-500 uppercase">
-            {language === "ar" ? "جواز سفر العميل" : "AGENT PASSPORT"}
+            {t('agent_passport')}
           </span>
         </div>
       </div>

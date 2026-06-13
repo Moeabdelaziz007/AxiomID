@@ -30,18 +30,19 @@ This release marks a massive pivot from a "Student Project" to a "Unicorn-Level 
 -   **Schema Expansion:**
     -   Added `User` model (Wallet Address, XP, Tier).
     -   Added `Action` model (Proof of Work tracking).
-    -   Added `Vault` model (Staking mechanism for "Proof of Time").
-    -   Added `Integration` model (Meta-Aggregator logic).
+    -   Added `Stamp` model (Verifiable Credentials).
+    -   Added `XpLedger` model (XP transaction history).
+    -   Added `UserAgent` model (Autonomous agent management).
 -   **API Routes:**
-    -   `POST /api/auth/connect`: Upsert user logic (Ghost Tier default).
+    -   `POST /api/auth/connect`: Upsert user logic (Visitor Tier default).
     -   `POST /api/action/claim`: Server-side XP verification and Tier calculation.
 
 #### 🧠 Strategy & Logic
 -   **New Tier Logic:**
-    -   **Ghost (0 XP):** Unverified.
-    -   **Spark (100 XP):** Social Proof.
-    -   **Pulse (500 XP):** Transaction History.
-    -   **Axiom (1000 XP):** Skin in the Game (Staking).
+    -   **Visitor (0 XP):** Unverified.
+    -   **Citizen (100 XP):** Social Proof.
+    -   **Validator (500 XP):** Transaction History.
+    -   **Sovereign (1000 XP):** Skin in the Game (Staking).
 -   **Gap Analysis:** Conducted deep dive into World Network & Gitcoin.
     -   *Conclusion:* We win on Privacy (No Orbs) and Financial Stake.
 

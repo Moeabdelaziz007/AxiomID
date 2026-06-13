@@ -1,7 +1,7 @@
 <!-- ════════════════ AIX SOVEREIGN STACK · UNIFIED BRANDING ════════════════ -->
 
 <div align="center">
-  <img src="./public/assets/aix-stack-header-v2.svg" alt="The AIX Sovereign Stack. Echo369. L0 Root Authority. L1 Protocol. L2 Runtime. L3 Marketplace. L4-L6 Satellites" width="100%"/>
+  <img src="./public/axiomid-banner.png" alt="AxiomID Banner" width="100%" />
 </div>
 
 <div align="center">
@@ -45,7 +45,7 @@
 </p>
 
 <div align="center">
-  <img src="https://img.shields.io/badge/Status-Beta_V1.0.4-00ff41?style=for-the-badge" alt="Status" />
+  <img src="https://img.shields.io/badge/Status-Beta_V1.0.0-00ff41?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/Stack-Next.js_16_|_Prisma_|_PostgreSQL-000000?style=for-the-badge&logo=next.js" alt="Stack" />
   <img src="https://img.shields.io/badge/Aesthetic-Sophisticated_Cyberpunk-00d4ff?style=for-the-badge&logoColor=white" alt="Aesthetic" />
 </div>
@@ -102,18 +102,30 @@ axiomid/
 │   │   ├── page.tsx                  # 🖥️ The Command Center (Bento Grid)
 │   │   ├── globals.css               # 🎨 Dark Engineering Theme
 │   │   ├── layout.tsx                # Root layout + providers
-│   │   ├── dashboard/page.tsx        # User dashboard
-│   │   ├── passport/[slug]/page.tsx  # Public agent passport
+│   │   ├── error.tsx                 # Page-level error boundary
+│   │   ├── global-error.tsx          # Root error boundary
+│   │   ├── not-found.tsx             # Custom 404 page
+│   │   ├── dashboard/
+│   │   │   ├── page.tsx              # User dashboard (tabs: passport, actions, agent, terminal)
+│   │   │   └── settings/page.tsx     # User settings & profile
+│   │   ├── passport/[slug]/
+│   │   │   └── page.tsx              # Public agent passport view
 │   │   ├── status/page.tsx           # Network status monitor
 │   │   ├── privacy/page.tsx          # Privacy policy
 │   │   ├── terms/page.tsx            # Terms of service
 │   │   ├── context/
 │   │   │   ├── wallet-context.tsx    # 🧠 Global State Management
+│   │   │   ├── language-context.tsx  # i18n (EN/AR) context
 │   │   │   └── sandbox-provider.tsx  # Pi Browser sandbox init
-│   │   └── api/                      # ⚡ Backend Logic (13 routes)
+│   │   └── api/                      # ⚡ Backend Logic (20 routes)
 │   │       ├── auth/connect/         # Wallet Authentication
+│   │       ├── auth/logout/          # Session logout
 │   │       ├── auth/pi/              # Pi Network Authentication
-│   │       ├── action/claim/         # XP & Tier Logic
+│   │       ├── auth/state/           # OAuth state token
+│   │       ├── credential-status/    # VC credential status
+│   │       ├── did-document/         # DID document endpoint
+│   │       ├── passport/[slug]/      # Public passport lookup
+│   │       ├── passport/[slug]/verify/ # Passport verification
 │   │       ├── agent/                # Agent CRUD
 │   │       ├── agent/activate/       # Agent activation
 │   │       ├── agent/main/           # Agent action execution
@@ -122,27 +134,41 @@ axiomid/
 │   │       ├── pi/kya/claim/         # KYA verification
 │   │       ├── pi/payment/approve/   # Payment approval
 │   │       ├── pi/payment/complete/  # Payment completion
+│   │       ├── stamp/                # Stamp listing
+│   │       ├── stamp/claim/          # Stamp claiming
 │   │       ├── status/               # Network status
 │   │       └── user/status/          # User status
 │   ├── components/
 │   │   ├── AgentPassport.tsx         # Passport card with verification
 │   │   ├── AgentQR.tsx               # QR code generator
+│   │   ├── ErrorBanner.tsx           # Global floating error banner
+│   │   ├── LanguageToggle.tsx        # EN/AR language switcher
+│   │   ├── StampBoard.tsx            # Stamp collection grid
+│   │   ├── StampCard.tsx             # Individual stamp card
+│   │   ├── ThemeToggle.tsx           # Dark/light mode toggle
 │   │   ├── TrustScoreGauge.tsx       # SVG trust score ring
-│   │   └── VerificationBadge.tsx     # KYA/KYC status badge
+│   │   ├── VerificationBadge.tsx     # KYA/KYC status badge
+│   │   └── XPBurst.tsx              # XP animation effect
 │   ├── lib/
 │   │   ├── prisma.ts                 # Database Client (Prisma singleton)
 │   │   ├── actions.ts                # "Proof of Work" Definitions
 │   │   ├── tiers.ts                  # Gamification Logic
+│   │   ├── trust.ts                  # Trust score algorithm (70/30 XP/stamp)
 │   │   ├── auth-middleware.ts         # Pi token verification + cache
+│   │   ├── crypto.ts                 # VC signing + token encryption
+│   │   ├── did.ts                    # DID generation (did:axiom:*)
 │   │   ├── errors.ts                 # Standardized API error/success
 │   │   ├── ip.ts                     # Client IP resolver
+│   │   ├── logger.ts                 # Structured logger
 │   │   ├── oauth-state.ts            # CSRF state token signing
 │   │   ├── pi-sdk.ts                 # Pi SDK v2.0 integration
 │   │   ├── pi-sandbox.ts             # Pi Browser sandbox compat
 │   │   ├── rate-limiter.ts           # In-memory sliding window
-│   │   └── validators.ts             # Zod schemas for all inputs
+│   │   ├── sanitize.ts               # Input sanitization
+│   │   ├── validators.ts             # Zod schemas for all inputs
+│   │   └── vc.ts                     # W3C Verifiable Credential signing
 │   ├── data/
-│   │   └── skills.json               # Agent skill registry
+│   │   └── skills.json               # Agent skill registry (90 skills)
 │   ├── middleware.ts                  # Subdomain rewrite + body size limit
 │   └── types/
 │       └── global.d.ts               # Pi Browser global types
@@ -308,10 +334,6 @@ npm run dev
 
 <sub>Satellites: [**L4 `AlphaAxiom`**](https://github.com/Moeabdelaziz007/AlphaAxiom) &nbsp;.&nbsp; [**L5 `PiWorker-OS`**](https://github.com/Moeabdelaziz007/PiWorker-OS) &nbsp;.&nbsp; [**L6 `GemClaw`**](https://github.com/Moeabdelaziz007/GemClaw)</sub>
 
-</div>
-
-<div align="center">
-  <img src="./public/assets/aix-footer-quote-v2.svg" alt="AIX Stack. Echo369. King is not Born, he is Made." width="100%"/>
 </div>
 
 <!-- ════════════════ /AIX SOVEREIGN STACK . FOOTER ════════════════ -->

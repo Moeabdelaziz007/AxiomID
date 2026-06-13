@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { BentoCard } from "@/components/BentoCard";
 
 export default function Terms() {
   return (
@@ -26,7 +25,7 @@ export default function Terms() {
 
       {/* Content */}
       <div className="max-w-3xl mx-auto px-4 pb-20 relative z-10">
-        <BentoCard>
+        <div className="bento-card p-6 md:p-8">
           <div className="flex items-center gap-3 mb-6">
             <span className="px-3 py-1 rounded-full text-[10px] font-mono bg-neon-green/10 text-neon-green border border-neon-green/20">
               LEGAL
@@ -92,7 +91,7 @@ export default function Terms() {
               </p>
             </section>
           </div>
-        </BentoCard>
+        </div>
 
         {/* Footer */}
         <div className="mt-8 text-center">

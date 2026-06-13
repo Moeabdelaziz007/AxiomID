@@ -6,6 +6,7 @@ import { TrustScoreGauge } from "./TrustScoreGauge";
 import type { Tier } from "@/lib/tiers";
 import { calculateTrustScore } from "@/lib/trust";
 import { getLevelProgress, getNextLevelXP } from "@/lib/tiers";
+import { useLanguage } from "@/app/context/language-context";
 
 interface Action {
   type: string;
@@ -57,6 +58,7 @@ const STAMP_DEFS = [
  * @returns The StampBoard React element.
  */
 export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps) {
+  const { t } = useLanguage();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [activeVc, setActiveVc] = useState<any | null>(null);
   const [copied, setCopied] = useState(false);
@@ -84,19 +86,19 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
     try {
       const raw = stamp.metadata;
       if (!raw || typeof raw !== "string" || raw.trim() === "" || raw.trim() === "{}") {
-        setActiveVc({ error: "No Verifiable Credential data available for this stamp." });
+        setActiveVc({ error: t("vc_no_data") });
         vcDialogRef.current?.showModal();
         return;
       }
       const parsedVc = JSON.parse(raw);
       if (!parsedVc || typeof parsedVc !== "object" || Object.keys(parsedVc).length === 0) {
-        setActiveVc({ error: "Credential metadata is empty." });
+        setActiveVc({ error: t("vc_empty_metadata") });
       } else {
         setActiveVc(parsedVc);
       }
       vcDialogRef.current?.showModal();
     } catch {
-      setActiveVc({ error: "Failed to parse Verifiable Credential payload." });
+      setActiveVc({ error: t("vc_parse_error") });
       vcDialogRef.current?.showModal();
     }
   };
@@ -144,12 +146,12 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
         {/* Trust Gauge card */}
         <div className="bento-card p-6 flex items-center justify-between border border-white/5 bg-white/[0.01]">
           <div className="space-y-2">
-            <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">Trust Score</h3>
+            <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">{t('trust_score')}</h3>
             <p className="text-xs text-gray-400 max-w-[160px] leading-relaxed">
-              Earn stamps to build your cryptographic trust score.
+              {t('trust_score_desc')}
             </p>
             <div className="pt-2 font-mono text-[10px] text-gray-500">
-              Stamps: <span className="text-neon-green font-bold">{claimedCount}</span> / {totalStamps}
+              {t('stamps_label')} <span className="text-neon-green font-bold">{claimedCount}</span> / {totalStamps}
             </div>
           </div>
           <div className="flex-shrink-0">
@@ -161,9 +163,9 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
         <div className="bento-card p-6 flex flex-col justify-between border border-white/5 bg-white/[0.01] md:col-span-2 col-span-1">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">Level Progress</h3>
+              <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">{t('level_progress')}</h3>
               <p className="text-xs text-gray-400 mt-1 font-mono">
-                Current Tier: <span className="text-neon-green font-bold">{user?.tier || "VISITOR"}</span>
+                {t('current_tier')} <span className="text-neon-green font-bold">{user?.tier || "VISITOR"}</span>
               </p>
             </div>
             <span className="text-[10px] font-mono text-gray-500">
@@ -179,9 +181,9 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
               />
             </div>
             <div className="flex justify-between text-[9px] font-mono text-gray-500">
-              <span>{progressPercent}% Complete</span>
+              <span>{progressPercent}{t('percent_complete')}</span>
               {user?.tier !== "Sovereign" && (
-                <span>Next Tier: {nextTierName} ({(nextTierXp - currentXp).toLocaleString()} XP needed)</span>
+                <span>{t('next_tier')} {nextTierName} ({(nextTierXp - currentXp).toLocaleString()} {t('xp_needed')})</span>
               )}
             </div>
           </div>
@@ -191,8 +193,8 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
       {/* Stamps Grid */}
       <div>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">Live Stamps Collection</h3>
-          <span className="text-[10px] font-mono text-gray-500">Complete tasks to anchor verifiable credentials</span>
+          <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">{t('live_stamps_collection')}</h3>
+          <span className="text-[10px] font-mono text-gray-500">{t('stamps_collection_desc')}</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -223,17 +225,17 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-base font-bold text-white font-mono">
-                W3C Verifiable Credential
+                {t('w3c_vc_title')}
               </h3>
               <p className="text-[9px] text-gray-500 font-mono mt-0.5">
-                Cryptographically signed claim payload
+                {t('w3c_vc_subtitle')}
               </p>
             </div>
             <button
               onClick={() => vcDialogRef.current?.close()}
               className="text-gray-500 hover:text-white text-xs font-mono border border-white/5 hover:border-white/10 px-2 py-0.5 rounded cursor-pointer"
             >
-              CLOSE
+              {t('close')}
             </button>
           </div>
 
@@ -248,7 +250,7 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
                   onClick={copyVcPayload}
                   className="flex-1 btn-primary py-2 text-[10px] font-mono"
                 >
-                  {copied ? "COPIED!" : "COPY PAYLOAD"}
+                  {copied ? t('copied') : t('copy_payload')}
                 </button>
                 <button
                   onClick={() => {
@@ -262,7 +264,7 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
                   }}
                   className="btn-ghost py-2 text-[10px] font-mono px-4"
                 >
-                  DOWNLOAD JSON
+                  {t('download_json')}
                 </button>
               </div>
             </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/app/context/language-context";
+
 interface TrustScoreGaugeProps {
   score: number;
   size?: number;
@@ -12,17 +14,10 @@ function getScoreColor(score: number): string {
   return "#ef4444";
 }
 
-function getScoreLabel(score: number): string {
-  if (score >= 90) return "EXCELLENT";
-  if (score >= 70) return "STRONG";
-  if (score >= 50) return "MODERATE";
-  if (score >= 30) return "LOW";
-  return "NEW";
-}
-
 export function TrustScoreGauge({ score, size = 120 }: TrustScoreGaugeProps) {
+  const { t } = useLanguage();
   const color = getScoreColor(score);
-  const label = getScoreLabel(score);
+  const label = score >= 90 ? t('score_excellent') : score >= 70 ? t('score_strong') : score >= 50 ? t('score_moderate') : score >= 30 ? t('score_low') : t('score_new');
   const strokeWidth = 8;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -66,7 +61,7 @@ export function TrustScoreGauge({ score, size = 120 }: TrustScoreGaugeProps) {
         >
           {score}
         </span>
-        <span className="text-[8px] text-gray-500 tracking-wider">{label}</span>
+        <span className="text-[8px] tracking-wider" style={{ color: 'var(--text-muted)' }}>{label}</span>
       </div>
     </div>
   );

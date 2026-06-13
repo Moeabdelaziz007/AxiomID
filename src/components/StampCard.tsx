@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { XPBurst } from "./XPBurst";
+import { useLanguage } from "@/app/context/language-context";
 
 interface StampCardProps {
   type: string;
@@ -26,6 +27,7 @@ export function StampCard({
   onInspectVc,
   isAutomatic = false,
 }: StampCardProps) {
+  const { t } = useLanguage();
   const [showInput, setShowInput] = useState(false);
   const [handle, setHandle] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -35,9 +37,9 @@ export function StampCard({
   if (isConnected && metadata) {
     try {
       const parsed = JSON.parse(metadata);
-      displayHandle = parsed.credentialSubject?.handle || parsed.credentialSubject?.username || "Verified";
+      displayHandle = parsed.credentialSubject?.handle || parsed.credentialSubject?.username || t('verified');
     } catch {
-      displayHandle = "Verified";
+      displayHandle = t('verified');
     }
   }
 
@@ -81,7 +83,7 @@ export function StampCard({
               </p>
             ) : (
               <p className="text-[10px] text-gray-500 font-mono mt-1">
-                Reward: <span className="text-neon-green">+{xp} XP</span>
+                {t('reward_label')} <span className="text-neon-green">+{xp} XP</span>
               </p>
             )}
           </div>
@@ -92,7 +94,7 @@ export function StampCard({
             ? "bg-neon-green/10 text-neon-green border border-neon-green/20"
             : "bg-white/5 text-gray-400 border border-white/5"
         }`}>
-          {isConnected ? "CLAIMED" : `+${xp} XP`}
+          {isConnected ? t('claimed') : `+${xp} XP`}
         </span>
       </div>
 
@@ -105,7 +107,7 @@ export function StampCard({
             <svg className="w-3.5 h-3.5 text-neon-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
-            INSPECT VC
+            {t('inspect_vc')}
           </button>
         ) : showInput ? (
           <form onSubmit={handleSubmit} className="space-y-2">
@@ -114,7 +116,7 @@ export function StampCard({
               required
               value={handle}
               onChange={(e) => setHandle(e.target.value)}
-              placeholder={type === "connect_google" ? "Email address" : "Username / Handle"}
+              placeholder={type === "connect_google" ? t('placeholder_email') : t('placeholder_username')}
               className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
             />
             <div className="flex gap-1.5">
@@ -123,14 +125,14 @@ export function StampCard({
                 disabled={submitting}
                 className="flex-1 btn-primary py-1.5 text-[9px]"
               >
-                {submitting ? "CLAIMING..." : "SUBMIT"}
+                {submitting ? t('claiming') : t('submit')}
               </button>
               <button
                 type="button"
                 onClick={() => setShowInput(false)}
                 className="btn-ghost py-1.5 text-[9px] px-2.5"
               >
-                CANCEL
+                {t('cancel')}
               </button>
             </div>
           </form>
@@ -146,7 +148,7 @@ export function StampCard({
             disabled={submitting}
             className="w-full btn-primary text-[10px] py-1.5"
           >
-            {submitting ? "CLAIMING..." : isAutomatic ? "CLAIM STAMP" : "CONNECT PROFILE"}
+            {submitting ? t('claiming') : isAutomatic ? t('claim_stamp') : t('connect_profile')}
           </button>
         )}
       </div>

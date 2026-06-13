@@ -31,7 +31,7 @@ interface PassportData {
  */
 export function PassportView() {
   const { slug } = useParams<{ slug: string }>();
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const [passport, setPassport] = useState<PassportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,8 +41,8 @@ export function PassportView() {
     const shareUrl = window.location.href;
     if (navigator.share) {
       navigator.share({
-        title: `${passport?.username}'s AxiomID Agent Passport`,
-        text: `Check out my verified AxiomID Agent Passport!`,
+        title: t('share_title'),
+        text: t('share_text'),
         url: shareUrl,
       }).catch(console.error);
     } else {
@@ -55,11 +55,13 @@ export function PassportView() {
   useEffect(() => {
     if (!slug) return;
 
-    fetch(`/api/passport/${encodeURIComponent(slug)}`)
+    const abortController = new AbortController();
+
+    fetch(`/api/passport/${encodeURIComponent(slug)}`, { signal: abortController.signal })
       .then(async (res) => {
         if (!res.ok) {
           const data = await res.json().catch(() => null);
-          throw new Error(data?.message || "Passport not found");
+          throw new Error(data?.message || t('passport_not_found'));
         }
         return res.json();
       })
@@ -68,10 +70,13 @@ export function PassportView() {
         setLoading(false);
       })
       .catch((err) => {
-        setError(err instanceof Error ? err.message : "Failed to load passport");
+        if (err.name === "AbortError") return;
+        setError(err instanceof Error ? err.message : t('passport_load_error'));
         setLoading(false);
       });
-  }, [slug]);
+
+    return () => abortController.abort();
+  }, [slug, t]);
 
   return (
     <>
@@ -90,10 +95,10 @@ export function PassportView() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-4">{language === "ar" ? "جواز السفر غير موجود" : "Passport Not Found"}</h2>
+          <h2 className="text-2xl font-bold text-white mb-4">{t('passport_not_found')}</h2>
           <p className="text-gray-400 mb-8">{error}</p>
           <Link href="/" className="btn-primary text-xs">
-            {language === "ar" ? "أنشئ جواز سفرك" : "CREATE YOUR PASSPORT"}
+            {t('create_your_passport')}
           </Link>
         </div>
       ) : passport ? (
@@ -122,16 +127,16 @@ export function PassportView() {
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 10.742l4.639-2.32m0 0a3 3 0 114.12 4.119l-4.64 2.32m0 0a3 3 0 11-4.119-4.12l4.64-2.32z" />
               </svg>
-              {shareCopied ? (language === "ar" ? "تم نسخ الرابط!" : "LINK COPIED!") : (language === "ar" ? "مشاركة الجواز" : "SHARE PASSPORT")}
+              {shareCopied ? t('link_copied') : t('share_passport')}
             </button>
           </div>
 
           <div className="mt-8 text-center">
             <p className="text-xs text-gray-500 mb-4">
-              {language === "ar" ? "هذا الجواز موثق من بروتوكول AxiomID" : "This passport is verified by AxiomID Protocol"}
+              {t('passport_verified_by')}
             </p>
             <Link href="/" className="btn-primary text-xs">
-              {language === "ar" ? "أنشئ جواز سفرك" : "CREATE YOUR PASSPORT"}
+              {t('create_your_passport')}
             </Link>
           </div>
         </>

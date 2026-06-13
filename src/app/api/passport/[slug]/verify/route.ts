@@ -1,6 +1,7 @@
 import { logger } from '@/lib/logger';
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { apiError, apiSuccess } from "@/lib/errors";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { createUserDid } from "@/lib/did";
@@ -79,7 +80,7 @@ export async function GET(
   const ip = getClientIp(_request);
   const rateLimit = await checkRateLimit(`passport-verify:${ip}`, RATE_LIMITS.authenticated);
   if (!rateLimit.allowed) {
-    return NextResponse.json({ error: "RATE_LIMITED" }, { status: 429 });
+    return apiError("RATE_LIMITED", "Too many requests. Try again later.");
   }
 
   const includeStamps = {
@@ -98,7 +99,7 @@ export async function GET(
     });
 
     if (agentByPublicId?.user) {
-      return NextResponse.json(buildVerificationResponse(agentByPublicId.user));
+      return apiSuccess(buildVerificationResponse(agentByPublicId.user));
     }
 
     // 2. Resolve by User Wallet Address
@@ -108,7 +109,7 @@ export async function GET(
     });
 
     if (userByWallet) {
-      return NextResponse.json(buildVerificationResponse(userByWallet));
+      return apiSuccess(buildVerificationResponse(userByWallet));
     }
 
     // 3. Resolve by User Pi Username
@@ -118,7 +119,7 @@ export async function GET(
     });
 
     if (userByUsername) {
-      return NextResponse.json(buildVerificationResponse(userByUsername));
+      return apiSuccess(buildVerificationResponse(userByUsername));
     }
 
     // 4. Resolve by User DID
@@ -128,15 +129,12 @@ export async function GET(
     });
 
     if (userByDid) {
-      return NextResponse.json(buildVerificationResponse(userByDid));
+      return apiSuccess(buildVerificationResponse(userByDid));
     }
 
-    return NextResponse.json(
-      { error: "NOT_FOUND", message: "No passport found for this identity slug" },
-      { status: 404 }
-    );
+    return apiError("NOT_FOUND", "No passport found for this identity slug");
   } catch (error) {
     logger.error("[PASSPORT-VERIFY-API] Database error:", error);
-    return NextResponse.json({ error: "INTERNAL_ERROR" }, { status: 500 });
+    return apiError("INTERNAL_ERROR", "Failed to verify passport");
   }
 }

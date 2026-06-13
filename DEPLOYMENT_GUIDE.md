@@ -10,10 +10,10 @@ The site is a Next.js 16 (App Router) application that ships as a Vercel
 project. Pi Network is wired in two ways: the `public/validation-key.txt`
 hash proves we control `axiomid.app` to the Pi Developer Portal (it is
 public, not a secret), and `PI_API_KEY` / `PI_WALLET_PRIVATE_SEED` are
-env vars read from `process.env.PI_API_KEY` in the server-side API routes (e.g. `src/app/api/pi/payment/approve/route.ts`) for any server-side Pi Platform API call. There are two CI workflows on Blacksmith runners:
-`ci` runs type-check, lint and tests on every PR; `deploy` runs a Vercel
-preview on every PR and a Vercel production deploy on every push to
-`main`.
+env vars read from `process.env.PI_API_KEY` in the server-side API routes (e.g. `src/app/api/pi/payment/approve/route.ts`) for any server-side Pi Platform API call. There is one CI workflow on
+GitHub Actions (`ci.yml`) that runs type-check, lint and tests on every
+PR and push to `main`. Vercel handles preview and production deploys
+automatically when connected to the repository.
 
 ## One-time Vercel setup
 

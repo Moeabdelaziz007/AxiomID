@@ -24,7 +24,7 @@ export function patchPostMessageForSandbox(): void {
   }) as typeof window.postMessage;
 }
 
-export function listenForPiSDKMessages(): void {
+export function listenForPiSDKMessages(): () => void {
   function handlePiMessage(event: MessageEvent) {
     if (typeof event.data !== "string") return;
     if (event.origin !== "https://app.minepi.com" && event.origin !== "https://sandbox.minepi.com" && event.origin !== "null") return;
@@ -55,11 +55,12 @@ export function listenForPiSDKMessages(): void {
   }
 
   window.addEventListener("message", handlePiMessage);
+  return () => window.removeEventListener("message", handlePiMessage);
 }
 
-export function initSandboxCompatibility(): void {
+export function initSandboxCompatibility(): (() => void) | void {
   if (typeof window === "undefined") return;
 
   patchPostMessageForSandbox();
-  listenForPiSDKMessages();
+  return listenForPiSDKMessages();
 }

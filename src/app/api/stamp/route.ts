@@ -5,15 +5,14 @@ import { apiError, apiSuccess } from "@/lib/errors";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { requireAuth } from "@/lib/auth-middleware";
-
-const TOTAL_STAMPS_COUNT = 6;
+import { calculateTrustScore, TOTAL_STAMPS } from "@/lib/trust";
 
 /**
  * Retrieve the authenticated user's stamps and compute a trust score.
  *
  * @returns An API response object containing:
  *  - `stamps`: an array of the user's stamp records ordered by newest first,
- *  - `trustScore`: an integer 0–100 representing (claimedStamps / totalStamps) * 100,
+ *  - `trustScore`: an integer 0–100 computed via the canonical 70/30 XP/stamp blend,
  *  - `totalStampsCount`: the reference total number of stamps,
  *  - `claimedStampsCount`: the number of stamps returned.
  * Returns an API error response when the request is rate limited, authentication fails, or a database error occurs.
@@ -34,12 +33,12 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    const trustScore = TOTAL_STAMPS_COUNT > 0 ? Math.round((stamps.length / TOTAL_STAMPS_COUNT) * 100) : 0;
+    const trustScore = calculateTrustScore(auth.user.xp || 0, stamps.length);
 
     return apiSuccess({
       stamps,
       trustScore,
-      totalStampsCount: TOTAL_STAMPS_COUNT,
+      totalStampsCount: TOTAL_STAMPS,
       claimedStampsCount: stamps.length,
     });
   } catch (error) {

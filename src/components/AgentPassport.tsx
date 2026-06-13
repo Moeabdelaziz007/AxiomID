@@ -3,6 +3,7 @@
 import { VerificationBadge } from "./VerificationBadge";
 import { TrustScoreGauge } from "./TrustScoreGauge";
 import type { Tier } from "@/lib/tiers";
+import { useLanguage } from "@/app/context/language-context";
 
 interface AgentPassportProps {
   username: string;
@@ -63,11 +64,12 @@ export function AgentPassport({
   agentStatus,
   xp,
 }: AgentPassportProps) {
+  const { t } = useLanguage();
   const tierColor = getTierColor(tier);
   const displayAddress = stellarAddress || walletAddress;
   const shortAddress = displayAddress && displayAddress.length > 20
     ? `${displayAddress.slice(0, 10)}...${displayAddress.slice(-8)}`
-    : displayAddress || 'No address';
+    : displayAddress || t('no_address');
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -76,14 +78,14 @@ export function AgentPassport({
   return (
     <div className="passport-card p-0 animate-holographic">
       {/* Top bar */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-white/5">
+      <div className="flex items-center justify-between px-6 py-3 border-b" style={{ borderColor: 'var(--card-border)' }}>
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded bg-neon-green/20 flex items-center justify-center border border-neon-green/50">
             <span className="text-neon-green font-bold text-[10px]">A</span>
           </div>
-          <span className="font-mono text-xs tracking-wider text-white">AXIOMID</span>
+          <span className="font-mono text-xs tracking-wider" style={{ color: 'var(--text-primary)' }}>AXIOMID</span>
         </div>
-        <span className="font-mono text-[9px] text-gray-500 tracking-widest">AGENT PASSPORT</span>
+        <span className="font-mono text-[9px] tracking-widest" style={{ color: 'var(--text-muted)' }}>{t('agent_passport')}</span>
       </div>
 
       {/* Main content */}
@@ -105,34 +107,34 @@ export function AgentPassport({
 
           {/* Name + DID */}
           <div className="text-center">
-            <h3 className="text-lg font-bold text-white font-mono">{username}</h3>
+            <h3 className="text-lg font-bold font-mono" style={{ color: 'var(--text-primary)' }}>{username}</h3>
             <div className="flex items-center justify-center gap-2 mt-1">
-              <p className="text-[10px] text-gray-500 font-mono break-all">{did}</p>
-              <button onClick={() => copyToClipboard(did)} className="text-gray-500 hover:text-white" aria-label="Copy DID">📋</button>
+              <p className="text-[10px] font-mono break-all" style={{ color: 'var(--text-muted)' }}>{did}</p>
+              <button onClick={() => copyToClipboard(did)} className="hover:text-white" style={{ color: 'var(--text-muted)' }} aria-label="Copy DID">📋</button>
             </div>
           </div>
 
           {/* Wallet */}
-          <div className="w-full bg-white/5 rounded-lg px-3 py-2 border border-white/5">
-            <span className="text-[9px] text-gray-500 font-mono block">WALLET</span>
+          <div className="w-full rounded-lg px-3 py-2 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
+            <span className="text-[9px] font-mono block" style={{ color: 'var(--text-muted)' }}>{t('label_wallet')}</span>
             <div className="flex items-center justify-between">
               <span className="text-[11px] text-neon-green font-mono">{shortAddress}</span>
-              {displayAddress && <button onClick={() => copyToClipboard(displayAddress)} className="text-gray-500 hover:text-white" aria-label="Copy Wallet Address">📋</button>}
+              {displayAddress && <button onClick={() => copyToClipboard(displayAddress)} className="hover:text-white" style={{ color: 'var(--text-muted)' }} aria-label="Copy Wallet Address">📋</button>}
             </div>
           </div>
 
           {/* Agent info */}
           {agentName && (
-            <div className="w-full bg-white/5 rounded-lg px-3 py-2 border border-white/5">
-              <span className="text-[9px] text-gray-500 font-mono block">AGENT</span>
+            <div className="w-full rounded-lg px-3 py-2 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
+              <span className="text-[9px] font-mono block" style={{ color: 'var(--text-muted)' }}>{t('label_agent')}</span>
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-white font-mono">{agentName}</span>
+                <span className="text-[11px] font-mono" style={{ color: 'var(--text-primary)' }}>{agentName}</span>
                 <span className={`text-[8px] font-mono px-1.5 py-0.5 rounded ${
                   agentStatus?.toUpperCase() === "ACTIVE"
                     ? "bg-neon-green/10 text-neon-green border border-neon-green/20"
-                    : "bg-white/5 text-gray-400 border border-white/10"
-                }`}>
-                  {agentStatus?.toUpperCase() || "NONE"}
+                    : "border"
+                }`} style={agentStatus?.toUpperCase() !== "ACTIVE" ? { background: 'var(--bg-card)', color: 'var(--text-muted)', borderColor: 'var(--card-border)' } : undefined}>
+                  {agentStatus?.toUpperCase() || t('status_none')}
                 </span>
               </div>
             </div>
@@ -156,51 +158,51 @@ export function AgentPassport({
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-              <span>TIER: {tier.toUpperCase()}</span>
+              <span>{t('tier_label')}: {tier.toUpperCase()}</span>
             </span>
           </div>
 
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white/5 rounded-xl p-3 border border-white/5 text-center">
-              <span className="text-[9px] text-gray-500 font-mono block">TRUST</span>
+            <div className="rounded-xl p-3 border text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
+              <span className="text-[9px] font-mono block" style={{ color: 'var(--text-muted)' }}>{t('label_trust')}</span>
               <TrustScoreGauge score={trustScore} size={64} />
             </div>
-            <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col items-center justify-center">
-              <span className="text-[9px] text-gray-500 font-mono block">XP</span>
-              <span className="text-xl font-bold text-white font-mono">{xp.toLocaleString()}</span>
+            <div className="rounded-xl p-3 border flex flex-col items-center justify-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
+              <span className="text-[9px] font-mono block" style={{ color: 'var(--text-muted)' }}>{t('label_xp')}</span>
+              <span className="text-xl font-bold font-mono" style={{ color: 'var(--text-primary)' }}>{xp.toLocaleString()}</span>
             </div>
-            <div className="bg-white/5 rounded-xl p-3 border border-white/5 flex flex-col items-center justify-center">
-              <span className="text-[9px] text-gray-500 font-mono block">ISSUED</span>
-              <span className="text-[11px] text-white font-mono">{new Date(issuedDate).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</span>
+            <div className="rounded-xl p-3 border flex flex-col items-center justify-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
+              <span className="text-[9px] font-mono block" style={{ color: 'var(--text-muted)' }}>{t('label_issued')}</span>
+              <span className="text-[11px] font-mono" style={{ color: 'var(--text-primary)' }}>{new Date(issuedDate).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</span>
             </div>
           </div>
 
           {/* KYA Manifest */}
-          <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+          <div className="rounded-xl p-4 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
             <div className="flex items-center gap-2 mb-3">
               <svg className="w-4 h-4 text-axiom-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <span className="text-[10px] text-gray-400 font-mono tracking-wider">KYA MANIFEST</span>
+              <span className="text-[10px] tracking-wider" style={{ color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{t('kya_manifest')}</span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
               <div>
-                <span className="text-gray-500">Principal: </span>
-                <span className="text-white">{username}</span>
+                <span style={{ color: 'var(--text-muted)' }}>{t('manifest_principal')} </span>
+                <span style={{ color: 'var(--text-primary)' }}>{username}</span>
               </div>
               <div>
-                <span className="text-gray-500">Network: </span>
-                <span className="text-electric-blue">Pi Network</span>
+                <span style={{ color: 'var(--text-muted)' }}>{t('manifest_network')} </span>
+                <span className="text-electric-blue">{t('pi_network')}</span>
               </div>
               <div>
-                <span className="text-gray-500">KYC Bound: </span>
-                <span className={kycStatus === "verified" ? "text-neon-green" : "text-gray-400"}>
-                  {kycStatus === "verified" ? "YES" : "NO"}
+                <span style={{ color: 'var(--text-muted)' }}>{t('manifest_kyc_bound')} </span>
+                <span className={kycStatus === "verified" ? "text-neon-green" : ""} style={kycStatus !== "verified" ? { color: 'var(--text-muted)' } : undefined}>
+                  {kycStatus === "verified" ? t('yes') : t('no')}
                 </span>
               </div>
               <div>
-                <span className="text-gray-500">License: </span>
+                <span style={{ color: 'var(--text-muted)' }}>{t('manifest_license')} </span>
                 <span className="text-axiom-purple">AxiomID v1</span>
               </div>
             </div>
@@ -209,11 +211,11 @@ export function AgentPassport({
       </div>
 
       {/* Bottom bar */}
-      <div className="flex items-center justify-between px-6 py-3 border-t border-white/5 bg-white/[0.01]">
-        <span className="text-[9px] text-gray-600 font-mono">
-          AxiomID Verified • Pi Compatible Identity
+      <div className="flex items-center justify-between px-6 py-3 border-t" style={{ borderColor: 'var(--card-border)', background: 'var(--bg-card)' }}>
+        <span className="text-[9px] font-mono" style={{ color: 'var(--text-muted)' }}>
+          {t('passport_footer_verified')}
         </span>
-        <span className="text-[9px] text-gray-600 font-mono">
+        <span className="text-[9px] font-mono" style={{ color: 'var(--text-muted)' }}>
           {new Date(issuedDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
         </span>
       </div>

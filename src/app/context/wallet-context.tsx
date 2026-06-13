@@ -242,7 +242,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const pushLog = useCallback((msg: string) => {
-    setWalletLogs((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
+    setWalletLogs((prev) => {
+      const next = [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`];
+      return next.length > 200 ? next.slice(-200) : next;
+    });
   }, []);
 
   const clearWalletLogs = useCallback(() => setWalletLogs([]), []);

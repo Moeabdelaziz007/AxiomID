@@ -1,6 +1,7 @@
 import { logger } from '@/lib/logger';
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { apiError, apiSuccess } from "@/lib/errors";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { createUserDid } from "@/lib/did";
@@ -80,7 +81,7 @@ export async function GET(
   const ip = getClientIp(_request);
   const rateLimit = await checkRateLimit(`passport:${ip}`, RATE_LIMITS.authenticated);
   if (!rateLimit.allowed) {
-    return NextResponse.json({ error: "RATE_LIMITED" }, { status: 429 });
+    return apiError("RATE_LIMITED", "Too many requests. Try again later.");
   }
 
   try {
@@ -94,7 +95,7 @@ export async function GET(
     });
 
     if (agentByPublicId) {
-      return NextResponse.json(buildPassportResponse(agentByPublicId.user));
+      return apiSuccess(buildPassportResponse(agentByPublicId.user));
     }
 
     const userByWallet = await prisma.user.findUnique({
@@ -103,7 +104,7 @@ export async function GET(
     });
 
     if (userByWallet) {
-      return NextResponse.json(buildPassportResponse(userByWallet));
+      return apiSuccess(buildPassportResponse(userByWallet));
     }
 
     const userByUsername = await prisma.user.findFirst({
@@ -112,7 +113,7 @@ export async function GET(
     });
 
     if (userByUsername) {
-      return NextResponse.json(buildPassportResponse(userByUsername));
+      return apiSuccess(buildPassportResponse(userByUsername));
     }
 
     const userByDid = await prisma.user.findFirst({
@@ -121,12 +122,12 @@ export async function GET(
     });
 
     if (userByDid) {
-      return NextResponse.json(buildPassportResponse(userByDid));
+      return apiSuccess(buildPassportResponse(userByDid));
     }
 
-    return NextResponse.json({ error: "NOT_FOUND", message: "No passport found for this slug" }, { status: 404 });
+    return apiError("NOT_FOUND", "No passport found for this slug");
   } catch (error) {
     logger.error("[PASSPORT-API] Database error:", error);
-    return NextResponse.json({ error: "INTERNAL_ERROR" }, { status: 500 });
+    return apiError("INTERNAL_ERROR", "Failed to retrieve passport");
   }
 }
