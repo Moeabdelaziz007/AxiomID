@@ -48,3 +48,8 @@ next-env.d.ts
 # misc caches
 .cache/
 .swc/
+
+# secrets / keys (NEVER commit)
+public/validation-key.txt
+*.key
+*.pem
