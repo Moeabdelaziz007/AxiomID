@@ -168,7 +168,7 @@ export default function Home() {
           )}
           {user ? (
             <div className="flex items-center gap-2">
-              <Link href="/dashboard" className="btn-primary text-xs px-4 py-2">
+              <Link href="/dashboard" prefetch={false} className="btn-primary text-xs px-4 py-2">
                 {t("nav_dashboard")}
               </Link>
               <button
@@ -262,13 +262,13 @@ export default function Home() {
                   </>
                 )}
               </button>
-              <Link href="/dashboard" className="btn-ghost w-fit text-center">
+              <Link href="/dashboard" prefetch={false} className="btn-ghost w-fit text-center">
                 {t("view_demo")}
               </Link>
             </div>
           ) : (
             <div className="flex flex-col sm:flex-row gap-3 mt-2">
-              <Link href="/dashboard" className="btn-primary flex items-center justify-center gap-2 w-fit">
+              <Link href="/dashboard" prefetch={false} className="btn-primary flex items-center justify-center gap-2 w-fit">
                 {t("enter_dashboard")}
               </Link>
               <button

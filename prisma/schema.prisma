@@ -348,3 +348,18 @@ enum EphemeralDidStatus {
   EXPIRED
   REVOKED
 }
+
+// ─────────────────────────────────────────────
+// AGENT SELF-REVIEW LOGS (META-LOOP)
+// ─────────────────────────────────────────────
+
+model SelfReviewLog {
+  id          String   @id @default(uuid())
+  actionName  String   @db.VarChar(255)
+  score       Float
+  critique    String   @db.Text
+  telemetry   String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  @@index([actionName])
+}

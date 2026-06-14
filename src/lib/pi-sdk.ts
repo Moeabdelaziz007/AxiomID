@@ -14,36 +14,137 @@ export function getLastPiError(): string | null {
   return lastError;
 }
 
-export async function connectPi(pushLog?: any): Promise<PiAuthResult> {
-  try {
-    // Pi Browser: use injected window.Pi SDK
-    if (typeof window !== "undefined" && typeof window.Pi?.authenticate === "function") {
-      pushLog?.("Using Pi Browser SDK...");
-      const result = await Promise.race([
-        window.Pi.authenticate({ scopes: ["username", "payments"] }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("Pi authentication timed out")), 15000),
-        ),
-      ]) as { user: { uid: string; username: string; name: string; stellarAddress?: string }; accessToken: string };
+let isInitialized = false;
 
-      if (!result?.user) {
-        throw new Error("Authentication failed - no user data received");
+export function loadPiSdk(): Promise<unknown> {
+  if (typeof window === "undefined" || typeof document === "undefined" || process.env.NODE_ENV === "test") {
+    return Promise.resolve(null);
+  }
+  const win = window as unknown as { Pi?: unknown };
+  if (win.Pi) return Promise.resolve(win.Pi);
+
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector('script[src*="minepi.com/pi-sdk.js"]');
+    if (existing) {
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (win.Pi) {
+          clearInterval(interval);
+          resolve(win.Pi);
+        } else if (attempts > 50) {
+          clearInterval(interval);
+          reject(new Error("Timeout waiting for existing Pi SDK script to load"));
+        }
+      }, 100);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://sdk.minepi.com/pi-sdk.js";
+    script.async = true;
+    script.onload = () => {
+      if (win.Pi) {
+        resolve(win.Pi);
+      } else {
+        reject(new Error("Pi SDK loaded but window.Pi is undefined"));
       }
-      if (!result.accessToken) {
-        throw new Error("Authentication failed - no token received");
+    };
+    script.onerror = () => reject(new Error("Failed to load Pi SDK script"));
+    document.head.appendChild(script);
+  });
+}
+
+export async function ensurePiInitialized(pushLog?: (msg: string) => void): Promise<unknown> {
+  if (typeof window === "undefined") return null;
+  const win = window as unknown as { Pi?: { init: (args: { version: string; sandbox: boolean }) => void } };
+  
+  if (process.env.NODE_ENV === "test" && win.Pi) {
+    return win.Pi;
+  }
+  
+  pushLog?.("Loading Pi SDK script...");
+  const Pi = await loadPiSdk();
+  if (!Pi) {
+    if (win.Pi) return win.Pi;
+    throw new Error("Pi SDK is not available in this environment.");
+  }
+
+  const piInstance = Pi as { init: (args: { version: string; sandbox: boolean }) => void };
+
+  if (!isInitialized) {
+    try {
+      pushLog?.("Initializing Pi SDK v2.0...");
+      piInstance.init({
+        version: "2.0",
+        sandbox: process.env.NEXT_PUBLIC_PI_SANDBOX === "true",
+      });
+      isInitialized = true;
+      pushLog?.("Pi SDK initialized successfully.");
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (errMsg.includes("already initialized")) {
+        isInitialized = true;
+        pushLog?.("Pi SDK was already initialized.");
+      } else {
+        pushLog?.(`Pi SDK init warning: ${errMsg}`);
       }
-      lastError = null;
-      pushLog?.(`Authenticated: ${result.user.name || result.user.uid}`);
-      return {
-        user: {
-          uid: result.user.uid ?? result.user.name,
-          username: result.user.username ?? result.user.name,
-          name: result.user.name,
+    }
+  }
+  return Pi;
+}
+
+function checkPiBrowser(): boolean {
+  if (typeof window === "undefined") return false;
+  const win = window as unknown as { Pi?: unknown };
+  if (win.Pi) return true;
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  if (/Pi Browser|minepi/i.test(ua)) return true;
+  try {
+    if (window.self !== window.top) {
+      const referrer = document.referrer || "";
+      if (referrer.includes("minepi.com") || referrer.includes("sandbox.minepi.com")) return true;
+    }
+  } catch {}
+  return false;
+}
+
+export async function connectPi(pushLog?: (msg: string) => void): Promise<PiAuthResult> {
+  try {
+    const inPiBrowser = typeof window !== "undefined" && checkPiBrowser();
+    if (inPiBrowser) {
+      const Pi = await ensurePiInitialized(pushLog);
+      
+      const piInstance = Pi as { authenticate: (args: { scopes: string[] }) => Promise<unknown> };
+      if (piInstance && typeof piInstance.authenticate === "function") {
+        pushLog?.("Requesting Pi authentication token...");
+        const result = await Promise.race([
+          piInstance.authenticate({ scopes: ["username", "payments"] }),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Pi authentication timed out")), 15000),
+          ),
+        ]) as { user: { uid: string; username: string; name: string; stellarAddress?: string }; accessToken: string };
+
+        if (!result?.user) {
+          throw new Error("Authentication failed - no user data received");
+        }
+        if (!result.accessToken) {
+          throw new Error("Authentication failed - no token received");
+        }
+        lastError = null;
+        pushLog?.(`Authenticated: ${result.user.name || result.user.uid}`);
+        return {
+          user: {
+            uid: result.user.uid ?? result.user.name,
+            username: result.user.username ?? result.user.name,
+            name: result.user.name,
+            stellarAddress: result.user.stellarAddress,
+          },
+          token: result.accessToken,
           stellarAddress: result.user.stellarAddress,
-        },
-        token: result.accessToken,
-        stellarAddress: result.user.stellarAddress,
-      };
+        };
+      }
     }
 
     // Server-side / Node.js: use PiSdkBase

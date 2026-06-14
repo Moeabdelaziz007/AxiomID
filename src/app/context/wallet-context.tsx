@@ -131,6 +131,7 @@ function removeLocalStorageItem(key: string): void {
  * @returns `true` if running in Pi Browser or embedded from `minepi.com`/`sandbox.minepi.com`, `false` otherwise.
  */
 function checkPiBrowser(): boolean {
+  if (typeof window !== "undefined" && (window as unknown as { Pi?: unknown }).Pi) return true;
   if (typeof navigator === "undefined") return false;
 
   const ua = navigator.userAgent;
@@ -648,6 +649,24 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         }
       })();
       return;
+    } else {
+      let checkCount = 0;
+      const checkInterval = setInterval(() => {
+        checkCount++;
+        if (checkPiBrowser()) {
+          clearInterval(checkInterval);
+          (async () => {
+            setIsLoading(true);
+            try {
+              await connectWallet();
+            } finally {
+              setIsLoading(false);
+            }
+          })();
+        } else if (checkCount > 15) {
+          clearInterval(checkInterval);
+        }
+      }, 200);
     }
 
     const storedWallet = getStoredWallet();

@@ -92,17 +92,28 @@ export function AgentPassport({
       <div className="flex flex-col md:flex-row gap-6 p-6">
         {/* Left: Photo + Basic Info */}
         <div className="flex flex-col items-center gap-4 md:w-48">
-          {/* Avatar */}
-          <div
-            className="w-24 h-24 rounded-2xl flex items-center justify-center border-2 text-3xl font-bold font-mono animate-glow-pulse"
-            style={{
-              borderColor: tierColor,
-              background: `linear-gradient(135deg, ${tierColor}15, ${tierColor}05)`,
-              color: tierColor,
-              boxShadow: `0 0 20px ${tierColor}20`,
-            }}
-          >
-            {getInitial(username)}
+          {/* Avatar -> Spinning Holographic Digital Fingerprint */}
+          <div className="relative w-28 h-28 flex items-center justify-center mb-2">
+            {/* Outer rotating neon ring */}
+            <div className="absolute inset-0 rounded-full border border-dashed border-neon-green/40 animate-spin" style={{ animationDuration: '10s' }} />
+            {/* Middle pulsing glow ring */}
+            <div className="absolute inset-2 rounded-full border border-neon-green/20 animate-ping" style={{ animationDuration: '3s' }} />
+            {/* Inner 3D sphere visualization */}
+            <div 
+              className="relative w-20 h-20 rounded-full flex items-center justify-center border-2 text-3xl font-bold font-mono overflow-hidden"
+              style={{
+                borderColor: tierColor,
+                background: `radial-gradient(circle, ${tierColor}30 0%, ${tierColor}05 70%)`,
+                color: tierColor,
+                boxShadow: `0 0 25px ${tierColor}40, inset 0 0 15px ${tierColor}30`,
+              }}
+            >
+              {/* Scanner line scanning up and down */}
+              <div className="absolute left-0 w-full h-[2px] bg-neon-green/80 shadow-[0_0_8px_#00ff41] animate-bounce" style={{ top: '50%', animationDuration: '4s' }} />
+              {/* Holographic matrix grid pattern */}
+              <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,_rgba(0,0,0,0.25)_50%),_linear-gradient(90deg,_rgba(255,0,0,0.06),_rgba(0,255,0,0.02),_rgba(0,0,255,0.06))] bg-[size:100%_4px,_6px_100%]" />
+              {getInitial(username)}
+            </div>
           </div>
 
           {/* Name + DID */}
@@ -175,6 +186,36 @@ export function AgentPassport({
             <div className="rounded-xl p-2 sm:p-3 border flex flex-col items-center justify-center text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
               <span className="text-[9px] font-mono block" style={{ color: 'var(--text-muted)' }}>{t('label_issued')}</span>
               <span className="text-[11px] font-mono" style={{ color: 'var(--text-primary)' }}>{new Date(issuedDate).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</span>
+            </div>
+          </div>
+
+          {/* System Modules Slots Grid */}
+          <div className="rounded-xl p-4 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] tracking-wider font-mono text-neon-green">⚡ SYSTEM MODULES</span>
+              <span className="text-[9px] font-mono text-gray-500">ACTIVE: 3/4</span>
+            </div>
+            <div className="grid grid-cols-4 gap-2 text-center font-mono text-[9px]">
+              <div className="relative rounded-lg p-2 border border-neon-green/30 bg-neon-green/5 flex flex-col items-center justify-center gap-1">
+                <span className="text-neon-green text-xs">π</span>
+                <span className="text-[8px] text-white">PI NET</span>
+                <span className="text-[7px] text-neon-green bg-neon-green/10 px-1 rounded">ON</span>
+              </div>
+              <div className="relative rounded-lg p-2 border border-neon-green/30 bg-neon-green/5 flex flex-col items-center justify-center gap-1">
+                <span className="text-neon-green text-xs">𝕏</span>
+                <span className="text-[8px] text-white">TWITTER</span>
+                <span className="text-[7px] text-neon-green bg-neon-green/10 px-1 rounded">ON</span>
+              </div>
+              <div className="relative rounded-lg p-2 border border-neon-green/30 bg-neon-green/5 flex flex-col items-center justify-center gap-1">
+                <span className="text-neon-green text-xs">git</span>
+                <span className="text-[8px] text-white">GITHUB</span>
+                <span className="text-[7px] text-neon-green bg-neon-green/10 px-1 rounded">ON</span>
+              </div>
+              <div className="relative rounded-lg p-2 border border-dashed border-gray-600 bg-black/40 flex flex-col items-center justify-center gap-1 opacity-60">
+                <span className="text-gray-500 text-xs">👁️</span>
+                <span className="text-[8px] text-gray-400">WORLD ID</span>
+                <span className="text-[7px] text-gray-500 bg-gray-800 px-1 rounded">SLOT</span>
+              </div>
             </div>
           </div>
 
