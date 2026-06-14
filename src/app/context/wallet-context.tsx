@@ -219,6 +219,30 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   useEffect(() => {
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      let reasonStr = "";
+      if (typeof event.reason === "string") {
+        reasonStr = event.reason;
+      } else if (event.reason instanceof Error) {
+        reasonStr = event.reason.message || event.reason.toString();
+      } else if (typeof event.reason === "object" && event.reason !== null) {
+        reasonStr = (event.reason as Record<string, unknown>).message as string || (event.reason as Record<string, unknown>).error as string || String(event.reason);
+      } else {
+        reasonStr = String(event.reason);
+      }
+
+      const isConnectionClosed =
+        reasonStr.toLowerCase().includes("connection closed") ||
+        reasonStr.toLowerCase().includes("connection_closed");
+
+      if (isConnectionClosed) {
+        event.preventDefault();
+        console.warn("Connection lost. Gracefully suppressing...");
+      }
+    };
+
+    window.addEventListener("unhandledrejection", handleUnhandledRejection);
+    
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       const registerSW = async () => {
         try {
@@ -234,9 +258,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         registerSW();
       } else {
         window.addEventListener("load", registerSW);
-        return () => window.removeEventListener("load", registerSW);
+        return () => {
+          window.removeEventListener("load", registerSW);
+          window.removeEventListener("unhandledrejection", handleUnhandledRejection);
+        };
       }
     }
+    
+    return () => window.removeEventListener("unhandledrejection", handleUnhandledRejection);
   }, []);
 
   const pushLog = useCallback((msg: string) => {
@@ -564,8 +593,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           reasonStr = event.reason;
         } else if (event.reason instanceof Error) {
           reasonStr = event.reason.message || event.reason.toString();
-        } else if (typeof event.reason === "object") {
-          reasonStr = (event.reason as any).message || (event.reason as any).error || String(event.reason);
+        } else if (typeof event.reason === "object" && event.reason !== null) {
+          reasonStr = (event.reason as Record<string, unknown>).message as string || (event.reason as Record<string, unknown>).error as string || String(event.reason);
         } else {
           reasonStr = String(event.reason);
         }

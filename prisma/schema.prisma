@@ -59,6 +59,9 @@ model User {
   delegatedTrustFrom DelegatedTrust[] @relation("DelegatedTrustFrom")
   delegatedTrustTo   DelegatedTrust[] @relation("DelegatedTrustTo")
 
+  // Ephemeral DIDs
+  ephemeralDids      EphemeralDid[]
+
   // Metadata
   metadata   String? @db.Text // JSON: arbitrary user metadata (max ~10KB)
   lastActive DateTime?
@@ -325,4 +328,23 @@ model DelegatedTrust {
   createdAt     DateTime @default(now())
 
   @@unique([fromDid, toDid], name: "delegation_unique")
+}
+
+model EphemeralDid {
+  id        String   @id @default(uuid())
+  did       String   @unique @db.VarChar(255)
+  parentDid String?  @db.VarChar(255)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  status    EphemeralDidStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+enum EphemeralDidStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
 }

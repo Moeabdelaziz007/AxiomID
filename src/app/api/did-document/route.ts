@@ -15,6 +15,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "DID not found" }, { status: 404 });
     }
 
+    if (!user.did) {
+      return NextResponse.json({ error: "User has no DID configured" }, { status: 400 });
+    }
+
     try {
       const doc = buildDidDocument(user.did);
       return NextResponse.json(doc, {

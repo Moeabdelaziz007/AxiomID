@@ -3,7 +3,7 @@ import { requireAuth } from "@/lib/auth-middleware";
 import { prisma } from "@/lib/prisma";
 import { apiError, apiSuccess } from "@/lib/errors";
 
-export async function POST(req: NextRequest, { params }: { params: { slug: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const auth = await requireAuth(req);
   if (auth.error) return auth.error;
 
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
   return apiSuccess(skillReview, 201);
 }
 
-export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const skill = await prisma.skill.findUnique({ where: { slug } });
   if (!skill) return apiError("NOT_FOUND", "Skill not found");

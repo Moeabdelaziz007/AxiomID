@@ -54,8 +54,9 @@ export async function POST(request: NextRequest) {
       if (existing.userId !== auth.user.id) {
         return apiError('FORBIDDEN', 'Payment does not belong to authenticated user');
       }
-      if (existing.status === 'approved' || existing.status === 'completed') {
-        return apiSuccess({ status: existing.status, paymentId });
+      if (existing.status === 'ESCROWED' || existing.status === 'RELEASED') {
+        const clientStatus = existing.status === 'ESCROWED' ? 'approved' : 'completed';
+        return apiSuccess({ status: clientStatus, paymentId });
       }
     }
 
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
     await prisma.piPayment.upsert({
       where: { paymentId },
       update: {
-        status: 'approved',
+        status: 'ESCROWED',
         amount: approveData.amount || 0,
         memo: approveData.memo || null,
         metadata: safeJsonStringify(approveData.metadata),
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
         amount: approveData.amount || 0,
         memo: approveData.memo || null,
         metadata: safeJsonStringify(approveData.metadata),
-        status: 'approved',
+        status: 'ESCROWED',
         network: 'pi',
       },
     });

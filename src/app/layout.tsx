@@ -127,6 +127,30 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white min-h-screen overflow-x-hidden`}
       >
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.addEventListener('unhandledrejection', function(event) {
+                if (!event.reason) return;
+                var reasonStr = '';
+                if (typeof event.reason === 'string') {
+                  reasonStr = event.reason;
+                } else if (event.reason instanceof Error) {
+                  reasonStr = event.reason.message || event.reason.toString();
+                } else if (typeof event.reason === 'object') {
+                  reasonStr = event.reason.message || event.reason.error || String(event.reason);
+                } else {
+                  reasonStr = String(event.reason);
+                }
+                var normalized = reasonStr.toLowerCase();
+                if (normalized.indexOf('connection closed') !== -1 || normalized.indexOf('connection_closed') !== -1) {
+                  event.preventDefault();
+                  console.warn('[System] Suppressed early connection closure:', event.reason);
+                }
+              });
+            `
+          }}
+        />
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-black">
           Skip to content
         </a>

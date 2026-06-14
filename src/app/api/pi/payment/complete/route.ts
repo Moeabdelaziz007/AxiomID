@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       return apiError('FORBIDDEN', 'Payment does not belong to authenticated user');
     }
 
-    if (payment.status === 'completed') {
+    if (payment.status === 'RELEASED') {
       return apiSuccess({
         status: 'completed',
         paymentId,
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       const updatedPayment = await tx.piPayment.update({
         where: { paymentId },
         data: {
-          status: 'completed',
+          status: 'RELEASED',
           txid,
         },
       });
