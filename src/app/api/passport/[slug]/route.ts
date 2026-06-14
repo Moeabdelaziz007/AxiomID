@@ -71,11 +71,18 @@ function buildPassportResponse(user: PassportUser) {
  * @param params - An object whose `slug` route parameter will be decoded and used to find the passport
  * @returns A NextResponse containing the passport JSON when a user is found, or a JSON error object with `error` set to `RATE_LIMITED`, `NOT_FOUND`, or `INTERNAL_ERROR` and the corresponding HTTP status
  */
+import { PassportSlugParamSchema } from "@/lib/validators";
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
+  const parsedParams = PassportSlugParamSchema.safeParse({ slug });
+  if (!parsedParams.success) {
+    return apiError("VALIDATION_ERROR", parsedParams.error.issues[0].message, parsedParams.error.issues);
+  }
+
   const decodedSlug = decodeURIComponent(slug);
 
   const ip = getClientIp(_request);

@@ -1,15 +1,20 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { apiError, apiSuccess } from "@/lib/errors";
+import { CredentialStatusQuerySchema } from "@/lib/validators";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const credentialId = searchParams.get("credentialId");
-  const subjectId = searchParams.get("subjectId");
+  const parsed = CredentialStatusQuerySchema.safeParse({
+    credentialId: searchParams.get("credentialId"),
+    subjectId: searchParams.get("subjectId"),
+  });
 
-  if (!credentialId && !subjectId) {
-    return apiError("VALIDATION_ERROR", "credentialId or subjectId required");
+  if (!parsed.success) {
+    return apiError("VALIDATION_ERROR", parsed.error.issues[0].message, parsed.error.issues);
   }
+
+  const { credentialId, subjectId } = parsed.data;
 
   try {
     const rawDid = credentialId || subjectId || "";

@@ -42,7 +42,7 @@ jest.mock("@/lib/auth-middleware", () => ({
   requireAuth: jest.fn().mockResolvedValue({
     error: null,
     user: {
-      id: "user-1",
+      id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
       walletAddress: "pi:testuser",
       piUid: "pi-uid-1",
       piUsername: "testuser",
@@ -92,7 +92,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
       mockPrisma.stamp.findMany.mockResolvedValue([
         {
           id: "stamp-1",
-          userId: "user-1",
+          userId: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
           type: "connect_twitter",
           provider: "twitter",
           xpAwarded: 50,
@@ -113,7 +113,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
   describe("POST /api/stamp/claim", () => {
     it("claims stamp, signs VC, and registers transaction", async () => {
       mockPrisma.stamp.findUnique.mockResolvedValue(null);
-      mockPrisma.user.findUnique.mockResolvedValue({ id: "user-1", xp: 0 } as any);
+      mockPrisma.user.findUnique.mockResolvedValue({ id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", xp: 0 } as any);
 
       const tx = {
         stamp: {
@@ -125,13 +125,14 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
         },
         action: {
           create: jest.fn().mockResolvedValue({}),
+          findFirst: jest.fn().mockResolvedValue(null),
         },
         xpLedger: {
           create: jest.fn().mockResolvedValue({ id: "ledger-1" }),
         },
         user: {
-          findUnique: jest.fn().mockResolvedValue({ id: "user-1", xp: 0 }),
-          update: jest.fn().mockResolvedValue({ id: "user-1", xp: 50, tier: "Visitor" }),
+          findUnique: jest.fn().mockResolvedValue({ id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", xp: 0 }),
+          update: jest.fn().mockResolvedValue({ id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", xp: 50, tier: "Visitor" }),
         },
       };
 
@@ -156,7 +157,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
     it("verifies public passport by wallet slug", async () => {
       mockPrisma.userAgent.findUnique.mockResolvedValue(null);
       mockPrisma.user.findUnique.mockResolvedValue({
-        id: "user-1",
+        id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
         walletAddress: "pi:testuser",
         stellarAddress: "GSTELLAR123",
         piUsername: "testuser",

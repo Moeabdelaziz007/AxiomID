@@ -162,13 +162,15 @@ model PiPayment {
 // ─────────────────────────────────────────────
 
 model Action {
-  id        String   @id @default(uuid())
-  type      String   @db.VarChar(50) // "connect_twitter" | "daily_pow" | etc
-  xp        Int
-  metadata  String?  @db.Text // JSON: extra context
-  timestamp DateTime @default(now())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String   @id @default(uuid())
+  type       String   @db.VarChar(50) // "connect_twitter" | "daily_pow" | etc
+  xp         Int
+  metadata   String?  @db.Text // JSON: extra context
+  timestamp  DateTime @default(now())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hash       String?  @unique @db.VarChar(64)
+  parentHash String?  @db.VarChar(64)
 
   @@unique([userId, type], name: "user_action_unique")
   @@index([userId])

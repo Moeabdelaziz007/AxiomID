@@ -4,6 +4,11 @@ const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12;
 const AUTH_TAG_LENGTH = 16;
 
+import { z } from 'zod';
+
+const PlaintextSchema = z.string().min(1);
+const CiphertextSchema = z.string().min(1);
+
 function getKey(): Buffer {
   const raw = process.env.PI_TOKEN_ENCRYPTION_KEY;
   if (!raw) throw new Error('PI_TOKEN_ENCRYPTION_KEY not set');
@@ -15,6 +20,7 @@ function getKey(): Buffer {
 }
 
 export function encryptToken(plaintext: string): string {
+  PlaintextSchema.parse(plaintext);
   const key = getKey();
   const iv = crypto.randomBytes(IV_LENGTH);
   const cipher = crypto.createCipheriv(ALGORITHM, key, iv, { authTagLength: AUTH_TAG_LENGTH });
@@ -24,6 +30,7 @@ export function encryptToken(plaintext: string): string {
 }
 
 export function decryptToken(ciphertext: string): string {
+  CiphertextSchema.parse(ciphertext);
   const key = getKey();
   if (!ciphertext || typeof ciphertext !== 'string') {
     throw new Error('decryptToken: ciphertext must be a non-empty string');

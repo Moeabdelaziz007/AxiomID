@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { apiError, apiSuccess } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
+import { SlugParamSchema, SkillUpdateSchema } from '@/lib/validators';
 
 /**
  * GET /api/skills/[slug] — Get full skill detail including manifest, agent script, and tests.
@@ -13,6 +14,11 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
+  const parsedParams = SlugParamSchema.safeParse({ slug });
+  if (!parsedParams.success) {
+    return apiError('VALIDATION_ERROR', parsedParams.error.issues[0].message, parsedParams.error.issues);
+  }
+
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`skill-detail:${ip}`, RATE_LIMITS.anonymous);
   if (!rateLimit.allowed) {
@@ -68,6 +74,11 @@ export async function PATCH(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
+  const parsedParams = SlugParamSchema.safeParse({ slug });
+  if (!parsedParams.success) {
+    return apiError('VALIDATION_ERROR', parsedParams.error.issues[0].message, parsedParams.error.issues);
+  }
+
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`skill-update:${ip}`, RATE_LIMITS.authenticated);
   if (!rateLimit.allowed) {
@@ -81,26 +92,17 @@ export async function PATCH(
     return apiError('VALIDATION_ERROR', 'Invalid JSON body');
   }
 
-  if (!body || typeof body !== 'object') {
-    return apiError('VALIDATION_ERROR', 'Request body required');
+  const parsedBody = SkillUpdateSchema.safeParse(body);
+  if (!parsedBody.success) {
+    return apiError('VALIDATION_ERROR', parsedBody.error.issues[0].message, parsedBody.error.issues);
   }
+
+  const updateData = parsedBody.data;
 
   try {
     const existing = await prisma.skill.findUnique({ where: { slug } });
     if (!existing) {
       return apiError('NOT_FOUND', `Skill "${slug}" not found`);
-    }
-
-    const allowedUpdates = [
-      'name', 'description', 'manifestMd', 'agentScript', 'testSuite',
-      'tier', 'pricePi', 'version', 'status', 'isPublished',
-    ];
-
-    const updateData: Record<string, unknown> = {};
-    for (const field of allowedUpdates) {
-      if ((body as Record<string, unknown>)[field] !== undefined) {
-        updateData[field] = (body as Record<string, unknown>)[field];
-      }
     }
 
     const skill = await prisma.skill.update({
@@ -130,6 +132,11 @@ export async function DELETE(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
+  const parsedParams = SlugParamSchema.safeParse({ slug });
+  if (!parsedParams.success) {
+    return apiError('VALIDATION_ERROR', parsedParams.error.issues[0].message, parsedParams.error.issues);
+  }
+
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`skill-delete:${ip}`, RATE_LIMITS.authenticated);
   if (!rateLimit.allowed) {

@@ -12,6 +12,7 @@ import { requireAuth } from "@/lib/auth-middleware";
 import { safeJsonStringify } from "@/lib/sanitize";
 import { signSocialCredential } from "@/lib/vc";
 import { createUserDid } from "@/lib/did";
+import { calculateActionHash, GENESIS_HASH } from "@/lib/trust-chain";
 
 /**
  * Handle a stamp claim request by authenticating the user, validating input, signing stamp metadata,
@@ -102,13 +103,32 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Also create an Action record for backwards-compatibility / general ledger
+      // Fetch the last globally created action to chain hashes
+      const lastAction = await tx.action.findFirst({
+        orderBy: { timestamp: 'desc' },
+        select: { hash: true },
+      });
+      const parentHash = lastAction?.hash || GENESIS_HASH;
+
+      const actionTimestamp = new Date();
+      const actionHash = calculateActionHash(parentHash, {
+        type: actionType,
+        xp: actionDef.xp,
+        metadata: finalMetadata,
+        userId: authUser.id,
+        timestamp: actionTimestamp,
+      });
+
+      // Also create an Action record for backwards-compatibility / general ledger with cryptographic audit hash
       await tx.action.create({
         data: {
           userId: authUser.id,
           type: actionType,
           xp: actionDef.xp,
           metadata: finalMetadata,
+          timestamp: actionTimestamp,
+          hash: actionHash,
+          parentHash,
         },
       });
 

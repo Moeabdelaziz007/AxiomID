@@ -1,13 +1,25 @@
 import { NextRequest } from "next/server";
 import { requireAuth } from "@/lib/auth-middleware";
 import { apiError, apiSuccess } from "@/lib/errors";
+import { PresenceHeartbeatSchema } from "@/lib/validators";
 
 export async function POST(req: NextRequest) {
   const auth = await requireAuth(req);
   if (auth.error) return auth.error;
 
-  const { agentId } = await req.json();
-  if (!agentId) return apiError("VALIDATION_ERROR", "Missing agentId");
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return apiError("VALIDATION_ERROR", "Invalid JSON body");
+  }
+
+  const parsed = PresenceHeartbeatSchema.safeParse(body);
+  if (!parsed.success) {
+    return apiError("VALIDATION_ERROR", parsed.error.issues[0].message, parsed.error.issues);
+  }
+
+  const { agentId } = parsed.data;
 
   // Forward to Cloudflare Durable Object
   const backendUrl = process.env.CLOUDFLARE_BACKEND_URL;

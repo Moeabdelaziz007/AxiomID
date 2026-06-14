@@ -2,6 +2,15 @@ import { createPrivateKey, sign } from "crypto";
 import { createIssuerDid } from "./did";
 import { canonicalize } from "./sanitize";
 import { getIssuerPrivateKey } from "./crypto";
+import { z } from "zod";
+
+const SignSocialCredentialParamsSchema = z.object({
+  userId: z.string().min(1),
+  userDid: z.string().min(1),
+  platform: z.string().min(1),
+  handle: z.string().min(1),
+  walletAddress: z.string().min(1),
+});
 
 export function signSocialCredential(
   userId: string,
@@ -10,6 +19,8 @@ export function signSocialCredential(
   handle: string,
   walletAddress: string
 ) {
+  SignSocialCredentialParamsSchema.parse({ userId, userDid, platform, handle, walletAddress });
+
   const issuanceDate = new Date();
   const issuerDid = createIssuerDid();
 

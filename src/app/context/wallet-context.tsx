@@ -68,11 +68,18 @@ function isDemoWalletAddress(walletAddress?: string | null): boolean {
 }
 
 function createDemoWalletAddress(): string {
-  const isUUIDAvailable = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function";
-  const randomSuffix = isUUIDAvailable
-    ? crypto.randomUUID().slice(0, 8)
-    : Math.random().toString(36).substring(2, 10);
-  return `demo:${randomSuffix}`;
+  if (typeof crypto !== "undefined") {
+    if (typeof crypto.randomUUID === "function") {
+      return `demo:${crypto.randomUUID().slice(0, 8)}`;
+    }
+    if (typeof crypto.getRandomValues === "function") {
+      const arr = new Uint8Array(4);
+      crypto.getRandomValues(arr);
+      const hex = Array.from(arr).map((b) => b.toString(16).padStart(2, "0")).join("");
+      return `demo:${hex}`;
+    }
+  }
+  throw new Error("Cryptographic random source not available");
 }
 
 function getStoredWallet(): string | null {
@@ -131,7 +138,6 @@ function removeLocalStorageItem(key: string): void {
  * @returns `true` if running in Pi Browser or embedded from `minepi.com`/`sandbox.minepi.com`, `false` otherwise.
  */
 function checkPiBrowser(): boolean {
-  if (typeof window !== "undefined" && (window as unknown as { Pi?: unknown }).Pi) return true;
   if (typeof navigator === "undefined") return false;
 
   const ua = navigator.userAgent;
@@ -408,9 +414,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     try {
       const inPiBrowser = checkPiBrowser();
       const isSandbox = process.env.NEXT_PUBLIC_PI_SANDBOX === "true";
+      const win = typeof window !== "undefined" ? (window as unknown as { Pi?: unknown }) : {};
+      const hasPiSdk = !!win.Pi;
       pushLog(`Pi Browser: ${inPiBrowser ? "detected ✅" : "not found"}`);
+      pushLog(`Pi SDK present: ${hasPiSdk ? "yes ✅" : "no"}`);
 
-      if (!inPiBrowser && !isSandbox) {
+      if (!inPiBrowser && !isSandbox && !hasPiSdk) {
         if (!isDemoWalletAllowed()) {
           throw new Error("Pi Browser required. Open this app inside Pi Browser to authenticate.");
         }
@@ -422,7 +431,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (!inPiBrowser && isSandbox) {
+      if (!inPiBrowser && isSandbox && !hasPiSdk) {
         if (!isDemoWalletAllowed()) {
           throw new Error("Pi Browser required (Sandbox mode active, but demo wallets are disabled).");
         }

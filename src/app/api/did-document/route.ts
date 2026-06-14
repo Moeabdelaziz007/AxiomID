@@ -2,10 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { createIssuerDid } from "@/lib/did";
 import { buildDidDocument } from "@/lib/did-document";
 import { resolveDid } from "@/lib/did-resolver";
+import { DidDocumentQuerySchema } from "@/lib/validators";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const didParam = searchParams.get("did");
+  const parsed = DidDocumentQuerySchema.safeParse({
+    did: searchParams.get("did"),
+  });
+
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+  }
+
+  const { did: didParam } = parsed.data;
 
   // If a specific DID is requested, resolve it from DB
   if (didParam) {

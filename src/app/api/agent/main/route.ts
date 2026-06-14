@@ -6,11 +6,7 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { requireAuth } from '@/lib/auth-middleware';
 import { safeJsonStringify } from '@/lib/sanitize';
-
-interface AgentMainBody {
-  action: string;
-  params?: Record<string, unknown>;
-}
+import { AgentMainSchema } from '@/lib/validators';
 
 /**
  * Handle an authenticated agent action dispatch request and return a standardized API response.
@@ -36,18 +32,13 @@ export async function POST(request: NextRequest) {
   } catch {
     return apiError('VALIDATION_ERROR', 'Invalid JSON body');
   }
-  if (!body || typeof body !== 'object') {
-    return apiError('VALIDATION_ERROR', 'Invalid request body');
+
+  const parsed = AgentMainSchema.safeParse(body);
+  if (!parsed.success) {
+    return apiError('VALIDATION_ERROR', parsed.error.issues[0].message, parsed.error.issues);
   }
 
-  const { action, params } = body as AgentMainBody;
-  if (!action || typeof action !== "string") {
-    return apiError("VALIDATION_ERROR", "action is required");
-  }
-
-  if (!/^[a-zA-Z0-9_-]+$/.test(action) || action.length > 100) {
-    return apiError("VALIDATION_ERROR", "action must be alphanumeric, underscores, or hyphens, and max 100 characters");
-  }
+  const { action, params } = parsed.data;
   const sanitizedAction = action;
 
   try {

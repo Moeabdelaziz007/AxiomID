@@ -37,7 +37,7 @@ jest.mock("@/lib/auth-middleware", () => ({
   requireAuth: jest.fn().mockResolvedValue({
     error: null,
     user: {
-      id: "user-1",
+      id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
       walletAddress: "pi:testuser",
       piUid: "pi-uid-1",
       piUsername: "testuser",
@@ -73,19 +73,20 @@ function makeTx(overrides: {
         overrides.action ?? {
           id: "action-1",
           type: "connect_twitter",
-          userId: "user-1",
+          userId: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
           xp: 50,
           metadata: "{}",
           timestamp: new Date(),
         }
       ),
+      findFirst: jest.fn().mockResolvedValue(null),
     },
     stamp: {
       create: jest.fn().mockResolvedValue(
         overrides.stamp ?? {
           id: "stamp-1",
           type: "connect_twitter",
-          userId: "user-1",
+          userId: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
           xpAwarded: 50,
           metadata: "{}",
           timestamp: new Date(),
@@ -96,8 +97,8 @@ function makeTx(overrides: {
       create: jest.fn().mockResolvedValue(overrides.ledger ?? { id: "ledger-1" }),
     },
     user: {
-      findUnique: jest.fn().mockResolvedValue(overrides.user !== undefined ? overrides.user : { id: "user-1", xp: 0 }),
-      update: jest.fn().mockResolvedValue(overrides.userUpdate ?? { id: "user-1", xp: 50, tier: "Visitor" }),
+      findUnique: jest.fn().mockResolvedValue(overrides.user !== undefined ? overrides.user : { id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", xp: 0 }),
+      update: jest.fn().mockResolvedValue(overrides.userUpdate ?? { id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", xp: 50, tier: "Visitor" }),
     },
   };
 }
@@ -119,11 +120,11 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
 
   describe("signSocialCredential utility", () => {
     it("generates a valid W3C credential and proof signature with Ed25519 key", () => {
-      const vc = signSocialCredential("user-1", "did:axiom:user-1", "twitter", "cryptojoker", "pi:testuser");
+      const vc = signSocialCredential("9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", "did:axiom:user-9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", "twitter", "cryptojoker", "pi:testuser");
 
       expect(vc["@context"]).toContain("https://www.w3.org/2018/credentials/v1");
       expect(vc.type).toContain("SocialIdentityCredential");
-      expect(vc.credentialSubject.id).toBe("did:axiom:user-1");
+      expect(vc.credentialSubject.id).toBe("did:axiom:user-9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d");
       expect(vc.credentialSubject.platform).toBe("twitter");
       expect(vc.credentialSubject.handle).toBe("cryptojoker");
       expect(vc.credentialSubject.walletAddress).toBe("pi:testuser");
@@ -136,7 +137,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
     it("throws error when ISSUER_PRIVATE_KEY is missing", () => {
       delete process.env.ISSUER_PRIVATE_KEY;
       expect(() =>
-        signSocialCredential("user-1", "did:axiom:user-1", "twitter", "cryptojoker", "pi:testuser")
+        signSocialCredential("9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", "did:axiom:user-9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", "twitter", "cryptojoker", "pi:testuser")
       ).toThrow("ISSUER_PRIVATE_KEY not set");
     });
   });
@@ -144,7 +145,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
   describe("POST /api/stamp/claim route integration", () => {
     it("saves signed VC inside Action metadata when claiming connect_twitter", async () => {
       mockPrisma.stamp.findUnique.mockResolvedValue(null);
-      mockPrisma.user.findUnique.mockResolvedValue({ id: "user-1", xp: 0 } as any);
+      mockPrisma.user.findUnique.mockResolvedValue({ id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", xp: 0 } as any);
 
       const tx = makeTx();
       mockPrisma.$transaction.mockImplementation(async (fn: any) => fn(tx));
@@ -173,7 +174,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
 
     it("saves signed VC inside Action metadata when claiming connect_discord", async () => {
       mockPrisma.stamp.findUnique.mockResolvedValue(null);
-      mockPrisma.user.findUnique.mockResolvedValue({ id: "user-1", xp: 0 } as any);
+      mockPrisma.user.findUnique.mockResolvedValue({ id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", xp: 0 } as any);
 
       const tx = makeTx();
       mockPrisma.$transaction.mockImplementation(async (fn: any) => fn(tx));

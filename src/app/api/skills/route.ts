@@ -5,6 +5,7 @@ import { apiError, apiSuccess } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { SkillTier } from '@prisma/client';
+import { SkillsListQuerySchema, SkillPublishSchema } from '@/lib/validators';
 
 /**
  * GET /api/skills — List published skills from the Agentic Marketplace.
@@ -18,10 +19,18 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
-  const tier = searchParams.get('tier');
-  const search = searchParams.get('q');
-  const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 100);
-  const offset = parseInt(searchParams.get('offset') || '0', 10);
+  const parsedQuery = SkillsListQuerySchema.safeParse({
+    tier: searchParams.get('tier'),
+    q: searchParams.get('q'),
+    limit: searchParams.get('limit'),
+    offset: searchParams.get('offset'),
+  });
+
+  if (!parsedQuery.success) {
+    return apiError('VALIDATION_ERROR', parsedQuery.error.issues[0].message, parsedQuery.error.issues);
+  }
+
+  const { tier, q: search, limit, offset } = parsedQuery.data;
 
   try {
     const where: Record<string, unknown> = {
@@ -98,8 +107,9 @@ export async function POST(request: NextRequest) {
     return apiError('VALIDATION_ERROR', 'Invalid JSON body');
   }
 
-  if (!body || typeof body !== 'object') {
-    return apiError('VALIDATION_ERROR', 'Request body required');
+  const parsed = SkillPublishSchema.safeParse(body);
+  if (!parsed.success) {
+    return apiError('VALIDATION_ERROR', parsed.error.issues[0].message, parsed.error.issues);
   }
 
   const {
@@ -112,18 +122,7 @@ export async function POST(request: NextRequest) {
     tier,
     pricePi,
     version,
-  } = body as Record<string, unknown>;
-
-  // Validation
-  if (!slug || typeof slug !== 'string' || !/^[a-z0-9-]+$/.test(slug)) {
-    return apiError('VALIDATION_ERROR', 'slug must be lowercase alphanumeric with hyphens');
-  }
-  if (!name || typeof name !== 'string') {
-    return apiError('VALIDATION_ERROR', 'name is required');
-  }
-  if (!manifestMd || typeof manifestMd !== 'string') {
-    return apiError('VALIDATION_ERROR', 'manifestMd is required — the full SKILL.md content');
-  }
+  } = parsed.data;
 
   try {
     // Check slug uniqueness
