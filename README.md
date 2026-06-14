@@ -180,47 +180,51 @@ axiomid/
 
 ---
 
-## 🤝 The Consortium: 1 Human + 4 AI Agents
+## 🤝 The Consortium: 1 Human + 5 AI Agents
 
-AxiomID is the **Root Authority** of the [**Sovereign AI Stack**](https://github.com/Moeabdelaziz007#07-architects--ai-collaborators--المعماريون-والمتعاونون-الذكيون): 5 sovereign projects engineered by **1 human and 12 AI agents** in total. AxiomID alone carries the fingerprints of **4 of those 12 agents**, derived from commit history (direct authors, `Co-authored-by` trailers, and review attributions).
+AxiomID is the **Root Authority** of the [**Sovereign AI Stack**](https://github.com/Moeabdelaziz007#07-architects--ai-collaborators--المعماريون-والمتعاونون-الذكيون): 5 sovereign projects engineered by **1 human and 5 specialized AI agents** working in complete alignment.
 
 <div align="center">
 <table>
 <tr>
-<td align="center" width="180" valign="top">
+<td align="center" width="220" valign="top">
   <a href="https://github.com/Moeabdelaziz007"><img src="https://github.com/Moeabdelaziz007.png" width="80" style="border-radius:50%;"/></a><br/><br/>
   <b>Mohamed Abdelaziz</b><br/>
   <sub>🏛️ Founder &amp; Lead Architect<br/>Vision · First Principles · Final Authority</sub>
 </td>
-<td align="center" width="180" valign="top">
-  <a href="https://jules.google"><img src="https://img.shields.io/badge/AI-Jules-10b981?style=for-the-badge&logo=googlecloud&logoColor=white" height="40"/></a><br/><br/>
-  <b>Jules</b><br/>
+<td align="center" width="220" valign="top">
+  <a href="https://jules.google"><img src="https://img.shields.io/badge/AI-Jules_v0-10b981?style=for-the-badge&logo=googlecloud&logoColor=white" height="40"/></a><br/><br/>
+  <b>Jules v0</b><br/>
   <sub>🔁 Autonomous Agent<br/>Code generation · Refactoring · Security</sub>
 </td>
-<td align="center" width="180" valign="top">
-  <a href="https://blacksmith.sh"><img src="https://img.shields.io/badge/AI-Codesmith-ff6b35?style=for-the-badge&logo=githubactions&logoColor=white" height="40"/></a><br/><br/>
-  <b>Codesmith</b><br/>
-  <sub>🔨 Forge &amp; CI Steward<br/>Blacksmith · Autofix · PRs</sub>
-</td>
-<td align="center" width="180" valign="top">
+<td align="center" width="220" valign="top">
   <a href="https://gemini.google.com"><img src="https://img.shields.io/badge/AI-Gemini-4285F4?style=for-the-badge&logo=googlegemini&logoColor=white" height="40"/></a><br/><br/>
   <b>Gemini</b><br/>
-  <sub>🧠 Strategic AI Model<br/>Systems thinking · Logic core · Roadmap</sub>
+  <sub>🧠 Code Auditor<br/>Quality assurance · Verification · AST Checks</sub>
 </td>
 </tr>
 <tr>
-<td colspan="4" align="center">
-  <a href="https://antigravity.google"><img src="https://img.shields.io/badge/IDE-Google_Antigravity-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white" height="36"/></a>&nbsp;
-  <a href="https://github.com/Moeabdelaziz007#07-architects--ai-collaborators--المعماريون-والمتعاونون-الذكيون"><img src="https://img.shields.io/badge/SEE_ALL-12_AI_Agents_across_the_stack-39FF14?style=for-the-badge&logo=github&logoColor=39FF14" height="36"/></a>
-  <br/><br/>
-  <em>Mission Control, Cross-Surface Orchestration &amp; Vibe-Coding Environment</em>
+<td align="center" width="220" valign="top">
+  <a href="https://coderabbit.ai"><img src="https://img.shields.io/badge/AI-CodeRabbit-ff6b35?style=for-the-badge&logo=githubactions&logoColor=white" height="40"/></a><br/><br/>
+  <b>CodeRabbit</b><br/>
+  <sub>🐇 PR Reviewer<br/>Continuous feedback · Autofixes · Linting</sub>
+</td>
+<td align="center" width="220" valign="top">
+  <a href="https://opencode.sh"><img src="https://img.shields.io/badge/AI_Platform-OpenCode-39FF14?style=for-the-badge&logo=git&logoColor=white" height="40"/></a><br/><br/>
+  <b>OpenCode</b><br/>
+  <sub>🌐 Agent Platform<br/>Autonomous execution · Environment Sync</sub>
+</td>
+<td align="center" width="220" valign="top">
+  <a href="https://antigravity.google"><img src="https://img.shields.io/badge/IDE-Google_Antigravity-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white" height="40"/></a><br/><br/>
+  <b>Antigravity</b><br/>
+  <sub>🚀 Agentic IDE<br/>Mission control · Pair programming · Reasoning</sub>
 </td>
 </tr>
 </table>
 </div>
 
 <p align="center">
-  <em>Built in the Agent-First Era using Google Antigravity.</em>
+  <em>Built in the Agent-First Era using Google Antigravity and the OpenCode ecosystem.</em>
 </p>
 
 ---
@@ -325,15 +329,25 @@ npm run dev
 ---
 
 <div align="center">
-
-**👑 L0 . ROOT AUTHORITY . `axiomid-project` . YOU ARE HERE** &nbsp;.&nbsp; Sovereign Core: [**L1 `aix-format`**](https://github.com/Moeabdelaziz007/aix-format) &nbsp;.&nbsp; [**L2 `iqra`**](https://github.com/Moeabdelaziz007/iqra) &nbsp;.&nbsp; [**L3 `aix-agent-skills`**](https://github.com/Moeabdelaziz007/aix-agent-skills)
-
+  <h3>📐 The AIX Sovereign Stack</h3>
 </div>
 
 <div align="center">
 
-<sub>Satellites: [**L4 `AlphaAxiom`**](https://github.com/Moeabdelaziz007/AlphaAxiom) &nbsp;.&nbsp; [**L5 `PiWorker-OS`**](https://github.com/Moeabdelaziz007/PiWorker-OS) &nbsp;.&nbsp; [**L6 `GemClaw`**](https://github.com/Moeabdelaziz007/GemClaw)</sub>
+| Tier | Layer | Repository | Role / Description |
+| :--- | :--- | :--- | :--- |
+| 👑 **Root** | **L0** | [**`axiomid-project`**](https://github.com/Moeabdelaziz007/axiomid-project) | **📍 YOU ARE HERE** · Sole Issuer of `did:axiom:*` |
+| 🌀 **Core** | **L1** | [**`aix-format`**](https://github.com/Moeabdelaziz007/aix-format) | Protocol · Agent Passport · TrustChain |
+| 🌀 **Core** | **L2** | [**`iqra`**](https://github.com/Moeabdelaziz007/iqra) | Runtime · Sovereign AI OS · Conscience Engine |
+| 🌀 **Core** | **L3** | [**`aix-agent-skills`**](https://github.com/Moeabdelaziz007/aix-agent-skills) | Skills Marketplace · Decoupled Capabilities |
+| 🛰️ **Satellite** | **L4** | [**`AlphaAxiom`**](https://github.com/Moeabdelaziz007/AlphaAxiom) | Trading & Exchange Integrations |
+| 🛰️ **Satellite** | **L5** | [**`PiWorker-OS`**](https://github.com/Moeabdelaziz007/PiWorker-OS) | Pi Network Nodes & Escrow Automation |
+| 🛰️ **Satellite** | **L6** | [**`GemClaw`**](https://github.com/Moeabdelaziz007/GemClaw) | Voice Forge & Real-Time Gemini Stream |
 
+</div>
+
+<div align="center">
+  <sub>All repositories are bound by the Unified Sovereign Constitution.</sub>
 </div>
 
 <!-- ════════════════ /AIX SOVEREIGN STACK . FOOTER ════════════════ -->
