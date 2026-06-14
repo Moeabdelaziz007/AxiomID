@@ -159,25 +159,27 @@ export default function Dashboard() {
               <span className="text-xl font-bold text-neon-green font-mono">AXIOM</span>
               <span className="text-xl font-bold text-white font-mono">ID</span>
             </Link>
-            <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-4">
               <div>
                 <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{t("dashboard_title")}</h1>
                 <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>Agent Identity Layer v1.0.0</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               <LanguageToggle />
               <button
                 onClick={() => {
                   localStorage.removeItem("axiom_onboarding_completed");
                   setShowOnboarding(true);
                 }}
-                className="btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5"
+                className="btn-ghost text-xs px-2 sm:px-3 py-1.5 flex items-center gap-1.5"
+                title={t("replay_onboarding")}
               >
-                {t("replay_onboarding")}
+                <svg className="w-3.5 h-3.5 sm:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                <span className="hidden sm:inline">{t("replay_onboarding")}</span>
               </button>
               {user && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
                   <Link
                     href={{ pathname: "/dashboard/settings" }}
                     className="btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5"
@@ -186,7 +188,7 @@ export default function Dashboard() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    {t("nav_settings")}
+                    <span className="hidden sm:inline">{t("nav_settings")}</span>
                   </Link>
                   <button
                     onClick={() => {
@@ -200,7 +202,7 @@ export default function Dashboard() {
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
-                    {t("logout")}
+                    <span className="hidden sm:inline">{t("logout")}</span>
                   </button>
                 </div>
               )}
@@ -699,8 +701,8 @@ export default function Dashboard() {
 
       {/* ── BOTTOM NAV ── */}
       <footer className="fixed bottom-0 left-0 right-0 backdrop-blur-md border-t z-40" style={{ background: 'color-mix(in srgb, var(--bg-card) 90%, transparent)', borderColor: 'var(--card-border)' }}>
-        <div className="max-w-7xl mx-auto px-4 py-4" role="tablist">
-          <div className="flex justify-center gap-4">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-4" role="tablist">
+          <div className="flex justify-around sm:justify-center gap-1 sm:gap-4 overflow-x-auto no-scrollbar">
             {([
               { id: "passport" as TabId, icon: "🆔", label: language === "ar" ? "الجواز" : "Passport" },
               { id: "actions" as TabId, icon: "⚡", label: language === "ar" ? "العمليات" : "Actions" },
@@ -719,7 +721,7 @@ export default function Dashboard() {
                   aria-selected={isActive}
                   disabled={tab.disabled}
                   onClick={() => handleTabClick(tab.id)}
-                  className={`flex flex-col items-center gap-1 px-5 py-2 rounded-lg transition-all relative group ${
+                  className={`flex flex-col items-center gap-1 px-2 sm:px-5 py-2 rounded-lg transition-all relative group flex-shrink-0 ${
                     tab.disabled
                       ? "opacity-40 cursor-not-allowed"
                       : isActive
@@ -728,10 +730,10 @@ export default function Dashboard() {
                   }`}
                   style={!tab.disabled && !isActive ? { color: 'var(--text-muted)' } : undefined}
                 >
-                  <span className="text-xl">{tab.icon}</span>
-                  <span className="text-xs font-mono">{tab.label}</span>
+                  <span className="text-lg sm:text-xl">{tab.icon}</span>
+                  <span className="text-[10px] sm:text-xs font-mono">{tab.label}</span>
                   {tab.disabled && (
-                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-[9px] font-mono px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', border: '1px solid var(--card-border)' }}>
+                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-[9px] font-mono px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50" style={{ background: 'var(--bg-card)', color: 'var(--text-muted)', border: '1px solid var(--card-border)' }}>
                       {language === "ar" ? "قريباً" : "Coming Soon"}
                     </span>
                   )}

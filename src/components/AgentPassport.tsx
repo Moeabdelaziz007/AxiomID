@@ -163,16 +163,16 @@ export function AgentPassport({
           </div>
 
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-xl p-3 border text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="rounded-xl p-2 sm:p-3 border text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
               <span className="text-[9px] font-mono block" style={{ color: 'var(--text-muted)' }}>{t('label_trust')}</span>
               <TrustScoreGauge score={trustScore} size={64} />
             </div>
-            <div className="rounded-xl p-3 border flex flex-col items-center justify-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
+            <div className="rounded-xl p-2 sm:p-3 border flex flex-col items-center justify-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
               <span className="text-[9px] font-mono block" style={{ color: 'var(--text-muted)' }}>{t('label_xp')}</span>
-              <span className="text-xl font-bold font-mono" style={{ color: 'var(--text-primary)' }}>{xp.toLocaleString()}</span>
+              <span className="text-base sm:text-xl font-bold font-mono" style={{ color: 'var(--text-primary)' }}>{xp.toLocaleString()}</span>
             </div>
-            <div className="rounded-xl p-3 border flex flex-col items-center justify-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
+            <div className="rounded-xl p-2 sm:p-3 border flex flex-col items-center justify-center text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
               <span className="text-[9px] font-mono block" style={{ color: 'var(--text-muted)' }}>{t('label_issued')}</span>
               <span className="text-[11px] font-mono" style={{ color: 'var(--text-primary)' }}>{new Date(issuedDate).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</span>
             </div>
@@ -186,7 +186,7 @@ export function AgentPassport({
               </svg>
               <span className="text-[10px] tracking-wider" style={{ color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{t('kya_manifest')}</span>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] font-mono">
               <div>
                 <span style={{ color: 'var(--text-muted)' }}>{t('manifest_principal')} </span>
                 <span style={{ color: 'var(--text-primary)' }}>{username}</span>
