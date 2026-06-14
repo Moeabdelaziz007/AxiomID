@@ -101,7 +101,12 @@ export async function POST(request: NextRequest) {
       let newTier = 'Visitor';
       let newBalance = 0;
 
-      const metadata = payment.metadata ? JSON.parse(payment.metadata) : {};
+      let metadata: Record<string, unknown> = {};
+      try {
+        metadata = payment.metadata ? JSON.parse(payment.metadata) : {};
+      } catch {
+        logger.warn('[PI-PAYMENT] Malformed metadata for payment:', paymentId);
+      }
       const purpose = metadata.purpose || 'payment';
 
       if (payment.userId && payment.userId !== 'unknown') {

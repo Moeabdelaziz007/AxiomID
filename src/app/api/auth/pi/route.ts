@@ -2,7 +2,7 @@ import { logger } from '@/lib/logger';
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { PiAuthSchema } from '@/lib/validators';
-import { apiError, apiSuccess } from '@/lib/errors';
+import { apiError, apiSuccess, rateLimitHeaders } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { calculateTier } from '@/lib/tiers';
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`pi-auth:${ip}`, RATE_LIMITS.piAuth);
   if (!rateLimit.allowed) {
-    return apiError('RATE_LIMITED', 'Too many authentication attempts. Try again later.');
+    return apiError('RATE_LIMITED', 'Too many authentication attempts. Try again later.', undefined, rateLimitHeaders(rateLimit));
   }
 
   let body: unknown;

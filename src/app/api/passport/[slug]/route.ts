@@ -1,7 +1,7 @@
 import { logger } from '@/lib/logger';
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { apiError, apiSuccess } from "@/lib/errors";
+import { apiError, apiSuccess, rateLimitHeaders } from "@/lib/errors";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { createUserDid } from "@/lib/did";
@@ -81,48 +81,32 @@ export async function GET(
   const ip = getClientIp(_request);
   const rateLimit = await checkRateLimit(`passport:${ip}`, RATE_LIMITS.authenticated);
   if (!rateLimit.allowed) {
-    return apiError("RATE_LIMITED", "Too many requests. Try again later.");
+    return apiError("RATE_LIMITED", "Too many requests. Try again later.", undefined, rateLimitHeaders(rateLimit));
   }
 
   try {
+    // Try agent publicId first (indexed, unique)
     const agentByPublicId = await prisma.userAgent.findUnique({
       where: { publicId: decodedSlug },
-      include: {
-        user: {
-          include: AGENT_SELECT,
-        },
-      },
+      include: { user: { include: AGENT_SELECT } },
     });
-
     if (agentByPublicId) {
       return apiSuccess(buildPassportResponse(agentByPublicId.user));
     }
 
-    const userByWallet = await prisma.user.findUnique({
-      where: { walletAddress: decodedSlug },
+    // Single OR query for wallet, username, and DID (all indexed)
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { walletAddress: decodedSlug },
+          { piUsername: decodedSlug },
+          { did: decodedSlug },
+        ],
+      },
       include: AGENT_SELECT,
     });
-
-    if (userByWallet) {
-      return apiSuccess(buildPassportResponse(userByWallet));
-    }
-
-    const userByUsername = await prisma.user.findFirst({
-      where: { piUsername: decodedSlug },
-      include: AGENT_SELECT,
-    });
-
-    if (userByUsername) {
-      return apiSuccess(buildPassportResponse(userByUsername));
-    }
-
-    const userByDid = await prisma.user.findFirst({
-      where: { did: decodedSlug },
-      include: AGENT_SELECT,
-    });
-
-    if (userByDid) {
-      return apiSuccess(buildPassportResponse(userByDid));
+    if (user) {
+      return apiSuccess(buildPassportResponse(user));
     }
 
     return apiError("NOT_FOUND", "No passport found for this slug");

@@ -29,11 +29,21 @@ const STATUS_MAP: Record<ErrorCode, number> = {
   INTERNAL_ERROR: 500,
 };
 
-export function apiError(code: ErrorCode, message: string, details?: unknown): NextResponse<ApiError> {
+export function apiError(code: ErrorCode, message: string, details?: unknown, headers?: Record<string, string>): NextResponse<ApiError> {
   const status = STATUS_MAP[code] ?? 500;
-  return NextResponse.json({ error: message, code, details }, { status });
+  return NextResponse.json({ error: message, code, details }, { status, headers });
 }
 
-export function apiSuccess<T>(data: T, status = 200): NextResponse<T> {
-  return NextResponse.json(data, { status });
+export function apiSuccess<T>(data: T, status = 200, headers?: Record<string, string>): NextResponse<T> {
+  return NextResponse.json(data, { status, headers });
+}
+
+/**
+ * Build rate-limit headers from a RateLimitResult for inclusion in HTTP responses.
+ */
+export function rateLimitHeaders(result: { remaining: number; resetAt: number }): Record<string, string> {
+  return {
+    'X-RateLimit-Remaining': String(result.remaining),
+    'X-RateLimit-Reset': String(Math.ceil(result.resetAt / 1000)),
+  };
 }

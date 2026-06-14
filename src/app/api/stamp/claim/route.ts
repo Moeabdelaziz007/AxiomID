@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ActionClaimSchema } from "@/lib/validators";
-import { apiError, apiSuccess } from "@/lib/errors";
+import { apiError, apiSuccess, rateLimitHeaders } from "@/lib/errors";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { ACTIONS } from "@/lib/actions";
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`stamp-claim:${ip}`, RATE_LIMITS.authenticated);
   if (!rateLimit.allowed) {
-    return apiError("RATE_LIMITED", "Too many claim attempts. Try again later.");
+    return apiError("RATE_LIMITED", "Too many claim attempts. Try again later.", undefined, rateLimitHeaders(rateLimit));
   }
 
   const auth = await requireAuth(request);

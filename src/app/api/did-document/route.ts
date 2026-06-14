@@ -60,14 +60,11 @@ function buildDidDocument(did: string, publicKeyPem?: string) {
         method.publicKeyPem = publicKeyPem;
       }
     } catch (err) {
-      console.warn("[DID-DOCUMENT] Failed to parse key with createPublicKey, using fallback:", err);
-      // Fallback for tests or invalid PEM format
-      method.type = "JsonWebKey2020";
-      method.publicKeyJwk = {
-        kty: "OKP",
-        crv: "Ed25519",
-        x: "fallback-public-key-placeholder-for-testing"
-      };
+      console.error("[DID-DOCUMENT] Failed to parse issuer public key:", err);
+      return NextResponse.json(
+        { error: "Failed to parse ISSUER_PUBLIC_KEY. Ensure it is a valid Ed25519 or RSA PEM key." },
+        { status: 500 }
+      );
     }
 
     doc.verificationMethod = [method];
