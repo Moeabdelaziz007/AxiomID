@@ -105,13 +105,15 @@ export function resolveWikilinkTarget(
     return path.relative(rootDir, potentialPath);
   }
 
-  // Otherwise, try matching filename with .md extension in the project
   const searchName = target.endsWith('.md') ? target : `${target}.md`;
-  
-  // Also check if it's a code file (e.g. [[src/lib/did.ts]])
-  const codePath = path.join(rootDir, target);
+  const potentialSearchPath = path.resolve(currentDir, searchName);
+  if (fs.existsSync(potentialSearchPath) && fs.statSync(potentialSearchPath).isFile()) {
+    return path.relative(rootDir, potentialSearchPath).replace(/\\/g, '/');
+  }
+
+  const codePath = path.join(rootDir, searchName);
   if (fs.existsSync(codePath) && fs.statSync(codePath).isFile()) {
-    return target;
+    return searchName.replace(/\\/g, '/');
   }
 
   return null;
