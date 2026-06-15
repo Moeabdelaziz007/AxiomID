@@ -18,7 +18,14 @@ export function calculateGraphHash(
   timestamp: number
 ): string {
   // Sort nodes and edges deterministically to guarantee identical hash for identical data
-  const sortedNodes = [...nodes].sort((a, b) => a.id.localeCompare(b.id));
+  const sortedNodes = [...nodes].map(node => ({
+    ...node,
+    metadata: Object.keys(node.metadata || {}).sort().reduce((acc, key) => {
+      acc[key] = node.metadata[key];
+      return acc;
+    }, {} as Record<string, any>)
+  })).sort((a, b) => a.id.localeCompare(b.id));
+
   const sortedEdges = [...edges].sort((a, b) => {
     const compareSource = a.source.localeCompare(b.source);
     if (compareSource !== 0) return compareSource;
