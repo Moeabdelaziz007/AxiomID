@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { MemoryGraph } from '../../../lib/memory/graph';
 import { TopologicalRouter } from '../../../lib/memory/router';
 

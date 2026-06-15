@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * @jest-environment node
  *
@@ -59,7 +60,7 @@ function createPresenceDOAlarm(ctx: {
   storage: { put: jest.Mock };
 }) {
   let status = true;
-  let lastHeartbeat = Date.now();
+  const lastHeartbeat = Date.now();
 
   const alarm = async (): Promise<void> => {
     status = false;
@@ -260,7 +261,7 @@ describe('PresenceDO.alarm() method', () => {
   it('persists the updated presence to storage with status=false', async () => {
     const mockPut = jest.fn().mockResolvedValue(undefined);
     const ctx = { storage: { put: mockPut } };
-    const { alarm, getLastHeartbeat } = createPresenceDOAlarm(ctx);
+    const { alarm } = createPresenceDOAlarm(ctx);
 
     await alarm();
 

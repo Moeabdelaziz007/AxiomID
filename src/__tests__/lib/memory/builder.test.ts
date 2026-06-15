@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import fs from 'fs';
-import path from 'path';
 import { buildMemoryGraph, calculateGraphHash, buildAndSaveMemoryGraph } from '../../../lib/memory/builder';
 import { scanProjectAST } from '../../../lib/memory/extractors/ast-extractor';
 import { extractGitInfo } from '../../../lib/memory/extractors/git-extractor';

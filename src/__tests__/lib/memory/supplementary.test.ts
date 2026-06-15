@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * @jest-environment node
  *
@@ -7,7 +7,6 @@
  */
 
 import fs from 'fs';
-import path from 'path';
 import { buildAndSaveMemoryGraph, calculateGraphHash, buildMemoryGraph } from '../../../lib/memory/builder';
 import { scanProjectAST } from '../../../lib/memory/extractors/ast-extractor';
 import { extractGitInfo } from '../../../lib/memory/extractors/git-extractor';

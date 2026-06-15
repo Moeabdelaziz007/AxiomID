@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
-import { validateNode, validateEdge, validateGraph, MemoryNodeTypeSchema, MemoryEdgeTypeSchema } from '../../../lib/memory/graph';
+import { validateNode, validateEdge, validateGraph } from '../../../lib/memory/graph';
 import { ZodError } from 'zod';
 
 describe('AxiomMemory Graph Schema', () => {

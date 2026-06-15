@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
 import fs from 'fs';
 import path from 'path';
-import { globFiles, resolveImportPath, extractASTInfo } from '../../../lib/memory/extractors/ast-extractor';
-import { extractGitInfo, isGitRepository } from '../../../lib/memory/extractors/git-extractor';
-import { parseFrontmatter, extractWikilinks, resolveWikilinkTarget, extractDocInfo } from '../../../lib/memory/extractors/doc-extractor';
+import { resolveImportPath, extractASTInfo } from '../../../lib/memory/extractors/ast-extractor';
+import { extractGitInfo } from '../../../lib/memory/extractors/git-extractor';
+import { parseFrontmatter, extractWikilinks, extractDocInfo } from '../../../lib/memory/extractors/doc-extractor';
 
 jest.mock('fs', () => {
   const original = jest.requireActual('fs');
@@ -217,8 +217,6 @@ describe('AxiomMemory Extractors', () => {
     });
 
     it('should return empty wikilinks array for body with no wikilink syntax', () => {
-      const links = extractWikilinks('This doc has no [[links]] at all except regular text.');
-      // Wait — "[[links]]" IS a wikilink. Let's use text without brackets:
       const linksNoBrackets = extractWikilinks('No wikilinks here at all. Just text.');
       expect(linksNoBrackets).toEqual([]);
     });

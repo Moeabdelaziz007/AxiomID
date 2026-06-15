@@ -91,7 +91,7 @@ export function extractGitInfo(rootDir: string, maxCommits = 50): {
 
     // Add co-occurrence edges for files changed together in the same commit.
     // Limited to commits with 5 or fewer files to avoid O(N^2) edge explosion.
-    for (const [_commitId, files] of commitFiles.entries()) {
+    for (const [, files] of commitFiles.entries()) {
       if (files.length > 1 && files.length <= 5) {
         for (let i = 0; i < files.length; i++) {
           for (let j = i + 1; j < files.length; j++) {
