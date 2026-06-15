@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, ReactNode } from "react";
 import { Tier, getLevelProgress, getNextLevelXP } from "@/lib/tiers";
 import { calculateTrustScore } from "@/lib/trust";
-import { connectPi, runWalletTest, checkPiBrowser } from "@/lib/pi-sdk";
+import { connectPi, runWalletTest, checkPiBrowser, PiSdkError, PiSdkErrorCode } from "@/lib/pi-sdk";
 
 export interface User {
   id: string;
@@ -429,7 +429,16 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         } catch (err: unknown) {
           const msg = err instanceof Error ? err.message : String(err);
           pushLog(`Pi SDK auth failed: ${msg}`);
-          if (msg.includes("NOT_IN_PI_BROWSER") || msg.includes("Pi SDK is not available") || msg.includes("Pi SDK script")) {
+
+          // Check if this is a Pi SDK availability error using typed error codes
+          const isPiSdkUnavailable = err instanceof PiSdkError && (
+            err.code === PiSdkErrorCode.NOT_IN_PI_BROWSER ||
+            err.code === PiSdkErrorCode.SDK_NOT_AVAILABLE ||
+            err.code === PiSdkErrorCode.SDK_SCRIPT_LOAD_FAILED ||
+            err.code === PiSdkErrorCode.SDK_SCRIPT_TIMEOUT
+          );
+
+          if (isPiSdkUnavailable) {
             if (isDemoWalletAllowed()) {
               pushLog("Pi SDK not available — falling back to demo wallet");
               const walletAddress = getStoredDemoWalletOrNew();
