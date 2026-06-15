@@ -50,7 +50,7 @@ export default {
     
     if (url.pathname === "/heartbeat" || url.pathname === "/") {
       const authHeader = request.headers.get("X-Shared-Secret");
-      if (!authHeader || authHeader !== env.SHARED_SECRET_TOKEN_VERCEL_CF) {
+      if (!env.SHARED_SECRET_TOKEN_VERCEL_CF || !authHeader || authHeader !== env.SHARED_SECRET_TOKEN_VERCEL_CF) {
         return new Response("Unauthorized", { status: 401 });
       }
 
