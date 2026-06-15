@@ -137,19 +137,24 @@ export function StampCard({
             </div>
           </form>
         ) : (
-          <button
-            onClick={() => {
-              if (isAutomatic) {
-                handleAutoClaim();
-              } else {
-                setShowInput(true);
-              }
-            }}
-            disabled={submitting}
-            className="w-full btn-primary text-[10px] py-1.5"
-          >
-            {submitting ? t('claiming') : isAutomatic ? t('claim_stamp') : t('connect_profile')}
-          </button>
+            <button
+              onClick={() => {
+                if (stamp.url) {
+                  window.open(stamp.url, "_blank");
+                } else {
+                  alert(t("stamp_connect_alert", { name: stamp.name }));
+                }
+              }}
+              className="btn-primary text-[9px] min-h-[44px] min-w-[44px] px-3 sm:px-4 py-2"
+            >
+              {t("stamp_connect")}
+            </button>
+            <button
+              onClick={() => onInspect(stamp)}
+              className="btn-ghost text-[9px] min-h-[44px] min-w-[44px] px-3 sm:px-4 py-2"
+            >
+              {t("stamp_inspect")}
+            </button>
         )}
       </div>
     </div>

@@ -233,7 +233,7 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
             </div>
             <button
               onClick={() => vcDialogRef.current?.close()}
-              className="text-gray-500 hover:text-white text-xs font-mono border border-white/5 hover:border-white/10 px-2 py-0.5 rounded cursor-pointer"
+              className="text-gray-500 hover:text-white text-xs font-mono border border-white/5 hover:border-white/10 px-3 py-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded cursor-pointer"
             >
               {t('close')}
             </button>

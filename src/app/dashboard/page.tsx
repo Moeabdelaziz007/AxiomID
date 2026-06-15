@@ -656,7 +656,7 @@ export default function Dashboard() {
 
       {/* ── TERMINAL OVERLAY ── */}
       {showTerminal && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 backdrop-blur-md max-h-[40vh] overflow-hidden flex flex-col" style={{ background: 'color-mix(in srgb, var(--bg-card) 95%, transparent)', borderTop: '1px solid var(--card-border)' }}>
+        <div className="fixed bottom-16 left-0 right-0 z-40 backdrop-blur-md max-h-[50vh] sm:max-h-[40vh] overflow-hidden flex flex-col" style={{ background: 'color-mix(in srgb, var(--bg-card) 95%, transparent)', borderTop: '1px solid var(--card-border)' }}>
           <div className="flex items-center justify-between px-4 py-2 border-b" style={{ borderColor: 'var(--card-border)' }}>
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono text-neon-green">TERMINAL</span>
@@ -665,19 +665,19 @@ export default function Dashboard() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => { clearWalletLogs(); setLogs(INITIAL_LOGS); }}
-                className="text-[10px] font-mono transition-colors px-2 py-1 rounded border" style={{ color: 'var(--text-muted)', borderColor: 'var(--card-border)' }}
+                className="text-[10px] font-mono transition-colors px-3 py-2 min-h-[44px] rounded border" style={{ color: 'var(--text-muted)', borderColor: 'var(--card-border)' }}
               >
                 CLEAR
               </button>
               <button
                 onClick={runWalletTest}
-                className="text-[10px] font-mono text-neon-green transition-colors px-2 py-1 rounded border border-neon-green/20 hover:border-neon-green/40"
+                className="text-[10px] font-mono text-neon-green transition-colors px-3 py-2 min-h-[44px] rounded border border-neon-green/20 hover:border-neon-green/40"
               >
                 RUN TEST
               </button>
               <button
                 onClick={() => { setShowTerminal(false); setActiveTab("passport"); }}
-                className="text-gray-500 hover:text-white transition-colors ml-2"
+                className="text-gray-500 hover:text-white transition-colors ml-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -722,7 +722,7 @@ export default function Dashboard() {
                   aria-selected={isActive}
                   disabled={tab.disabled}
                   onClick={() => handleTabClick(tab.id)}
-                  className={`flex flex-col items-center gap-1 px-2 sm:px-5 py-2 rounded-lg transition-all relative group flex-shrink-0 ${
+                  className={`flex flex-col items-center gap-1 px-2 sm:px-5 py-2 min-h-[48px] rounded-lg transition-all relative group flex-shrink-0 ${
                     tab.disabled
                       ? "opacity-40 cursor-not-allowed"
                       : isActive
@@ -748,7 +748,7 @@ export default function Dashboard() {
       {/* ── ONBOARDING MODAL ── */}
       {showOnboarding && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
-          <div className="bento-card max-w-md w-full p-8 relative flex flex-col border border-white/10 shadow-2xl">
+          <div className="bento-card max-w-md w-full p-6 sm:p-8 relative flex flex-col border border-white/10 shadow-2xl">
             {/* Header */}
             <div className="flex justify-between items-start mb-6">
               <div>

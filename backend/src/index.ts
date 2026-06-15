@@ -22,7 +22,6 @@ export class PresenceDO extends DurableObject {
       this.lastHeartbeat = Date.now();
       await this.ctx.storage.put("presence", { status: this.status, lastHeartbeat: this.lastHeartbeat });
       
-      // Set an alarm for TTL cleanup (e.g., 10 minutes)
       await this.ctx.storage.setAlarm(Date.now() + 10 * 60 * 1000);
       
       return new Response("OK", { status: 200 });
@@ -31,10 +30,14 @@ export class PresenceDO extends DurableObject {
     return new Response("Not Found", { status: 404 });
   }
 
+  async alarm(): Promise<void> {
+    this.status = false;
+    await this.ctx.storage.put("presence", { status: this.status, lastHeartbeat: this.lastHeartbeat });
+  }
+
   async queue(batch: MessageBatch<any>): Promise<void> {
     for (const message of batch.messages) {
       const { jobId } = message.body;
-      // Implement harvest logic here
       console.log(`Processing harvest job: ${jobId}`);
       message.ack();
     }
@@ -44,15 +47,22 @@ export class PresenceDO extends DurableObject {
 export default {
   async fetch(request: Request, env: any): Promise<Response> {
     const url = new URL(request.url);
-    if (url.pathname === "/heartbeat") {
-      const id = env.PRESENCE_DO.idFromName(url.searchParams.get("agentId") || "default");
+    
+    if (url.pathname === "/heartbeat" || url.pathname === "/") {
+      const authHeader = request.headers.get("X-Shared-Secret");
+      if (!authHeader || authHeader !== env.SHARED_SECRET_TOKEN_VERCEL_CF) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+
+      const agentId = url.searchParams.get("agentId") || "default";
+      const id = env.PRESENCE_DO.idFromName(agentId);
       const obj = env.PRESENCE_DO.get(id);
       return obj.fetch(request);
     }
+
     return new Response("Not Found", { status: 404 });
   },
   async queue(batch: MessageBatch<any>, env: any): Promise<void> {
-    // You can also route to a DO or directly process
     const id = env.PRESENCE_DO.idFromName("harvest-processor");
     const obj = env.PRESENCE_DO.get(id);
     await obj.queue(batch);

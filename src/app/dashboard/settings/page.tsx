@@ -192,20 +192,20 @@ export default function SettingsPage() {
       <ErrorBanner />
 
       <header className="sticky top-0 z-40 backdrop-blur-md border-b" style={{ background: 'color-mix(in srgb, var(--bg-card) 90%, transparent)', borderColor: 'var(--card-border)' }}>
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-green/20 to-electric-blue/20 flex items-center justify-center">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-green/20 to-electric-blue/20 flex items-center justify-center shrink-0">
               <span className="text-neon-green font-bold text-xl">A</span>
             </div>
-            <div>
-              <h1 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{t('settings_page_title')}</h1>
-              <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{t('settings_page_desc')}</p>
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-lg font-bold truncate" style={{ color: 'var(--text-primary)' }}>{t('settings_page_title')}</h1>
+              <p className="text-xs font-mono hidden sm:block" style={{ color: 'var(--text-muted)' }}>{t('settings_page_desc')}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <ThemeToggle />
             <LanguageToggle />
-            <Link href="/dashboard" className="btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5">
+            <Link href="/dashboard" className="btn-ghost text-xs px-2 sm:px-3 py-1.5 hidden sm:flex items-center gap-1.5">
               {t('settings_dashboard_link')}
             </Link>
           </div>

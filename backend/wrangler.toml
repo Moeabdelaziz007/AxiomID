@@ -2,13 +2,16 @@ name = "axiomid-backend"
 main = "src/index.ts"
 compatibility_date = "2026-06-14"
 
+[vars]
+ENVIRONMENT = "production"
+
 [[durable_objects.bindings]]
 name = "PRESENCE_DO"
 class_name = "PresenceDO"
 
 [[migrations]]
 tag = "v1"
-new_classes = ["PresenceDO"]
+new_sqlite_classes = ["PresenceDO"]
 
 [[queues.producers]]
 queue = "harvest-queue"

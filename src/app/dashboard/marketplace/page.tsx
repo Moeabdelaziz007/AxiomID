@@ -118,27 +118,27 @@ export default function MarketplacePage() {
 
       <header className="sticky top-0 z-50 backdrop-blur-md border-b" style={{ background: "color-mix(in srgb, var(--bg-card) 90%, transparent)", borderColor: "var(--card-border)" }}>
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Link href="/dashboard" className="btn-ghost text-xs px-3 py-1.5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <Link href="/dashboard" className="btn-ghost text-xs px-2 sm:px-3 py-1.5 shrink-0">
                 ← DASHBOARD
               </Link>
-              <div className="w-px h-6 bg-white/10" />
-              <div>
-                <h1 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>
+              <div className="w-px h-6 bg-white/10 hidden sm:block" />
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-lg font-bold truncate" style={{ color: "var(--text-primary)" }}>
                   🧬 Agentic Marketplace
                 </h1>
-                <p className="text-[10px] font-mono" style={{ color: "var(--text-muted)" }}>
+                <p className="text-[10px] font-mono hidden sm:block" style={{ color: "var(--text-muted)" }}>
                   Genomic Repository of AI Capabilities — Pi Powered
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setShowPublish(!showPublish)}
-                className="btn-primary text-xs px-4 py-2"
+                className="btn-primary text-xs px-3 sm:px-4 py-2"
               >
-                {showPublish ? "BROWSE SKILLS" : "PUBLISH SKILL"}
+                {showPublish ? "BROWSE" : "PUBLISH"}
               </button>
             </div>
           </div>
@@ -159,7 +159,7 @@ export default function MarketplacePage() {
                 placeholder="Search skills... (agent-memory, voice-wizard, sovereign-constitution)"
                 className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
               />
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {["", "BASIC_TOOL", "ADVANCED_TOOL", "PRO", "SOVEREIGN"].map((tier) => (
                   <button
                     key={tier}

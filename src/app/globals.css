@@ -63,7 +63,6 @@ body {
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
-  contain: layout style;
 }
 
 /* ============================================
@@ -124,7 +123,6 @@ body {
   position: relative;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
   will-change: transform;
-  contain: layout style;
 }
 
 .bento-card:hover {
@@ -560,4 +558,52 @@ a:focus-visible {
 
 .animate-stamp-unlock {
   animation: stamp-unlock 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ============================================
+   NO SCROLLBAR UTILITY
+   ============================================ */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE OVERRIDES
+   ============================================ */
+@media (max-width: 639px) {
+  .bento-card {
+    border-radius: 14px;
+  }
+
+  .passport-card {
+    border-radius: 14px;
+  }
+
+  .btn-primary {
+    padding: 8px 16px;
+    font-size: 0.7rem;
+  }
+
+  .btn-ghost {
+    padding: 6px 12px;
+    font-size: 0.7rem;
+  }
+
+  .badge {
+    font-size: 9px;
+    padding: 3px 8px;
+  }
+}
+
+/* ============================================
+   SAFE AREA INSETS (iOS notch)
+   ============================================ */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }

@@ -26,8 +26,23 @@ function PassportHero({ user }: { user: { piUsername?: string | null; walletAddr
       const y = (e.clientY / window.innerHeight - 0.5) * 15;
       setTilt({ x, y });
     };
+    const handleTouch = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        const x = (touch.clientX / window.innerWidth - 0.5) * 15;
+        const y = (touch.clientY / window.innerHeight - 0.5) * 15;
+        setTilt({ x, y });
+      }
+    };
+    const handleTouchEnd = () => setTilt({ x: 0, y: 0 });
     window.addEventListener("mousemove", handleMouse);
-    return () => window.removeEventListener("mousemove", handleMouse);
+    window.addEventListener("touchmove", handleTouch, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd);
+    return () => {
+      window.removeEventListener("mousemove", handleMouse);
+      window.removeEventListener("touchmove", handleTouch);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
   }, []);
 
   const hasUser = !!user;
@@ -140,16 +155,16 @@ export default function Home() {
       )}
 
       {/* Header */}
-      <header className="w-full max-w-6xl flex justify-between items-center px-6 py-6 z-10">
-        <div className="flex items-center gap-3">
+      <header className="w-full max-w-6xl flex flex-wrap justify-between items-center gap-3 px-4 sm:px-6 py-4 sm:py-6 z-10">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded bg-neon-green/20 flex items-center justify-center border border-neon-green/50">
               <span className="text-neon-green font-bold">A</span>
             </div>
-            <span className="font-mono text-xl tracking-tighter">AXIOM<span className="text-gray-600">ID</span></span>
+            <span className="font-mono text-lg sm:text-xl tracking-tighter">AXIOM<span className="text-gray-600">ID</span></span>
           </div>
-          <div className="w-px h-6 bg-white/10" />
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-[#8B5CF6]/10 border border-[#8B5CF6]/30">
+          <div className="w-px h-6 bg-white/10 hidden sm:block" />
+          <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded bg-[#8B5CF6]/10 border border-[#8B5CF6]/30">
             <svg viewBox="0 0 100 100" className="w-4 h-4 text-[#8B5CF6]" fill="currentColor">
               <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.3"/>
               <text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text>
@@ -158,22 +173,22 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <LanguageToggle />
           <ThemeToggle />
           {isPiBrowser && !user && (
-            <span className="text-[10px] font-mono text-electric-blue px-2 py-1 rounded-full border border-electric-blue/30 bg-electric-blue/5">
+            <span className="hidden sm:inline text-[10px] font-mono text-electric-blue px-2 py-1 rounded-full border border-electric-blue/30 bg-electric-blue/5">
               Pi Browser
             </span>
           )}
           {user ? (
             <div className="flex items-center gap-2">
-              <Link href="/dashboard" prefetch={false} className="btn-primary text-xs px-4 py-2">
+              <Link href="/dashboard" prefetch={false} className="btn-primary text-xs px-3 sm:px-4 py-2">
                 {t("nav_dashboard")}
               </Link>
               <button
                 onClick={() => logout()}
-                className="btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5"
+                className="btn-ghost text-xs px-3 py-1.5 hidden sm:flex items-center gap-1.5"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -185,7 +200,7 @@ export default function Home() {
             <button
               onClick={connectWallet}
               disabled={isConnecting}
-              className="btn-primary text-xs px-4 py-2"
+              className="btn-primary text-xs px-3 sm:px-4 py-2"
             >
               {isConnecting ? t("connecting") : t("connect")}
             </button>
