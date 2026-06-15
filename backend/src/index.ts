@@ -27,6 +27,17 @@ export class PresenceDO extends DurableObject {
       return new Response("OK", { status: 200 });
     }
     
+    if (url.pathname === "/status") {
+      return new Response(JSON.stringify({
+        status: this.status,
+        lastHeartbeat: this.lastHeartbeat,
+        agentId: url.searchParams.get("agentId") || "default",
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    
     return new Response("Not Found", { status: 404 });
   }
 
@@ -48,9 +59,20 @@ export default {
   async fetch(request: Request, env: any): Promise<Response> {
     const url = new URL(request.url);
     
-    if (url.pathname === "/heartbeat" || url.pathname === "/") {
+    if (url.pathname === "/heartbeat" || url.pathname === "/" || url.pathname === "/status") {
       const authHeader = request.headers.get("X-Shared-Secret");
-      if (!env.SHARED_SECRET_TOKEN_VERCEL_CF || !authHeader || authHeader !== env.SHARED_SECRET_TOKEN_VERCEL_CF) {
+      if (!env.SHARED_SECRET_TOKEN_VERCEL_CF || !authHeader) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+      const secret = env.SHARED_SECRET_TOKEN_VERCEL_CF;
+      if (authHeader.length !== secret.length) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+      let match = 0;
+      for (let i = 0; i < authHeader.length; i++) {
+        match |= authHeader.charCodeAt(i) ^ secret.charCodeAt(i);
+      }
+      if (match !== 0) {
         return new Response("Unauthorized", { status: 401 });
       }
 
