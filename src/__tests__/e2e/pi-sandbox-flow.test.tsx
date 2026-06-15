@@ -16,7 +16,9 @@ jest.mock("@/lib/pi-sdk", () => {
   const actual = jest.requireActual("@/lib/pi-sdk");
   return {
     ...actual,
-    connectPi: jest.fn(() => Promise.reject(new Error("Pi authentication failed: NOT_IN_PI_BROWSER"))),
+    connectPi: jest.fn(() => Promise.reject(
+      new actual.PiSdkError(actual.PiSdkErrorCode.NOT_IN_PI_BROWSER, "Pi SDK authenticate function not available.")
+    )),
   };
 });
 

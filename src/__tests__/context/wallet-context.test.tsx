@@ -1,7 +1,7 @@
 import React from "react";
 import { render, waitFor, act } from "@testing-library/react";
 import { WalletProvider, useWallet } from "@/app/context/wallet-context";
-import { connectPi } from "@/lib/pi-sdk";
+import { connectPi, PiSdkError, PiSdkErrorCode } from "@/lib/pi-sdk";
 
 // Mock the Pi SDK base module (virtual — no actual package)
 jest.mock('@pinetwork/pi-sdk-js', () => ({
@@ -279,8 +279,10 @@ describe("WalletProvider & WalletContext", () => {
     process.env.NEXT_PUBLIC_PI_SANDBOX = "true";
     setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)");
 
-    // Mock connectPi to throw NOT_IN_PI_BROWSER so fallback to demo wallet triggers
-    mockConnectPi.mockRejectedValue(new Error("Pi authentication failed: NOT_IN_PI_BROWSER"));
+    // Mock connectPi to throw PiSdkError NOT_IN_PI_BROWSER so fallback to demo wallet triggers
+    mockConnectPi.mockRejectedValue(
+      new PiSdkError(PiSdkErrorCode.NOT_IN_PI_BROWSER, "Pi SDK authenticate function not available.")
+    );
 
     // First mock the state token endpoint
     mockFetch.mockResolvedValueOnce({

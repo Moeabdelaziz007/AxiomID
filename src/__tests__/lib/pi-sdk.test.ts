@@ -204,13 +204,13 @@ describe('pi-sdk', () => {
 
   describe('connectPi', () => {
     // Tests 1-4 verify PiSdkBase error handling through the browser path
-    // (connectPi rejects in jsdom, which wraps all errors as "Pi authentication failed: ...")
+    // (connectPi rejects in jsdom, which now re-throws PiSdkError directly)
 
     it('throws when PiSdkBase.connect fails (server-side fallback)', async () => {
       const mockInstance = { connect: jest.fn().mockRejectedValue(new Error('Connection error')) };
       MockPiSdkBase.mockImplementationOnce(() => mockInstance as any);
 
-      await expect(connectPi()).rejects.toThrow('Pi authentication failed');
+      await expect(connectPi()).rejects.toThrow('Pi SDK is not available');
     });
 
     it('throws when get_user returns null after successful connect', async () => {
@@ -218,7 +218,7 @@ describe('pi-sdk', () => {
       MockPiSdkBase.mockImplementationOnce(() => mockInstance as any);
       (PiSdkBase as any).get_user = jest.fn().mockReturnValue(null);
 
-      await expect(connectPi()).rejects.toThrow('Pi authentication failed');
+      await expect(connectPi()).rejects.toThrow('Pi SDK is not available');
     });
 
     it('throws when accessToken is falsy after successful connect', async () => {
@@ -227,7 +227,7 @@ describe('pi-sdk', () => {
       (PiSdkBase as any).get_user = jest.fn().mockReturnValue({ uid: 'u1', name: 'User' });
       (PiSdkBase as any).accessToken = null;
 
-      await expect(connectPi()).rejects.toThrow('Pi authentication failed');
+      await expect(connectPi()).rejects.toThrow('Pi SDK is not available');
     });
 
     it('calls pushLog with error message on failure', async () => {
