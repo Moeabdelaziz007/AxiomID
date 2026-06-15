@@ -111,9 +111,11 @@ export const DidDocumentQuerySchema = z.object({
   did: z.string().optional().nullable(),
 });
 
-export const PassportSlugParamSchema = z.object({
+export const SlugParamSchema = z.object({
   slug: z.string().min(1, 'slug is required'),
 });
+
+export const PassportSlugParamSchema = SlugParamSchema;
 
 // Type definitions
 export type PiAuthInput = z.infer<typeof PiAuthSchema>;
@@ -133,4 +135,5 @@ export type OrderCreateInput = z.infer<typeof OrderCreateSchema>;
 export type OrderActionInput = z.infer<typeof OrderActionSchema>;
 export type CredentialStatusQueryInput = z.infer<typeof CredentialStatusQuerySchema>;
 export type DidDocumentQueryInput = z.infer<typeof DidDocumentQuerySchema>;
+export type SlugParamInput = z.infer<typeof SlugParamSchema>;
 export type PassportSlugParamInput = z.infer<typeof PassportSlugParamSchema>;
