@@ -41,7 +41,8 @@ export function globMarkdownFiles(dir: string, rootDir: string): string[] {
 /**
  * Extracts and parses YAML frontmatter from the beginning of content.
  *
- * @returns An object with `frontmatter` containing the parsed metadata as key-value pairs (with `[...]` notation converted to arrays) and `body` containing the remaining content after the frontmatter block. If no frontmatter block is found, `frontmatter` is empty and `body` is the original content.
+ * @param content - The text to parse, potentially containing a frontmatter block.
+ * @returns An object with `frontmatter` containing parsed metadata as key-value pairs (with `[...]` notation converted to arrays) and `body` containing the remaining content after the frontmatter block. If no frontmatter block is found, `frontmatter` is empty and `body` is the original content.
  */
 export function parseFrontmatter(content: string): {
   frontmatter: Record<string, any>;
@@ -80,7 +81,7 @@ export function parseFrontmatter(content: string): {
 /**
  * Extracts wikilink targets from Markdown text.
  *
- * @returns An array of extracted wikilink targets.
+ * @returns An array of wikilink targets, excluding any display text after `|`.
  */
 export function extractWikilinks(body: string): string[] {
   const links: string[] = [];
@@ -202,9 +203,10 @@ export function extractDocInfo(
 }
 
 /**
- * Aggregates document nodes and relationship edges by scanning Markdown files in a directory.
+ * Extracts document metadata and relationships from Markdown files in a directory.
  *
- * @returns An object containing a `nodes` array of document nodes and an `edges` array of relationship edges.
+ * @param rootDir - The directory to scan
+ * @returns An object with `nodes` containing document metadata and `edges` containing discovered relationships
  */
 export function scanProjectDocs(rootDir: string): {
   nodes: MemoryNode[];

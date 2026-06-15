@@ -109,13 +109,11 @@ function PassportHero({ user }: { user: { piUsername?: string | null; walletAddr
 }
 
 /**
- * Render the application's public landing Home page with localized content and live network statistics.
+ * Displays the public landing page for the AxiomID agent identity platform.
  *
- * Uses wallet and language hooks to drive header and CTA state (connect, dashboard, logout, language/theme toggles).
- * On mount it fetches "/api/status" to populate the Live Stats bar (users, agents, xp, payments).
- * Displays a sandbox banner when NEXT_PUBLIC_PI_SANDBOX === "true" and renders the hero, floating passport, features, tiers, and footer.
+ * Includes a responsive header with wallet connection state and language/theme toggles, a hero section with a floating passport card, live network statistics fetched from the `/api/status` endpoint, feature overview, tier level cards, and footer. Conditionally displays a sandbox mode banner based on environment configuration.
  *
- * @returns The React element representing the Home page.
+ * @returns A React element.
  */
 export default function Home() {
   const { user, connectWallet, isConnecting, isPiBrowser, logout } = useWallet();

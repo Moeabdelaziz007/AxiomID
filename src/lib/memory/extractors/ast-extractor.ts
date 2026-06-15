@@ -4,11 +4,12 @@ import ts from 'typescript';
 import { MemoryNode, MemoryEdge } from '../graph';
 
 /**
- * Enumerates all TypeScript and JavaScript source files in a directory tree.
+ * Collects all TypeScript and JavaScript source files from a directory tree.
  *
- * Recursively scans `dir` for files with extensions `.ts`, `.tsx`, `.js`, or `.jsx`,
- * excluding `.d.ts` files. Skips these directories: `node_modules`, `.git`, `.next`, `.jolli`, `dist`, `out`, and `build`.
+ * Recursively walks `dir`, including files with extensions `.ts`, `.tsx`, `.js`, or `.jsx`,
+ * except `.d.ts` files. Skips directories: `node_modules`, `.git`, `.next`, `.jolli`, `dist`, `out`, and `build`.
  *
+ * @param dir - The root directory to start scanning from.
  * @returns An array of absolute file paths.
  */
 export function globFiles(dir: string, rootDir: string): string[] {
@@ -46,12 +47,11 @@ export function globFiles(dir: string, rootDir: string): string[] {
 }
 
 /**
- * Resolves an import specifier to a relative path from the workspace root.
+ * Resolves a local import specifier to a workspace-root-relative path.
  *
- * Supports relative imports and the `@/` alias mapped to `src/`.
- * External dependencies are not resolved.
+ * Handles relative imports and `@/` alias imports mapped to `src/`.
  *
- * @returns The relative path from `rootDir` to the resolved file, or `null` if the import could not be resolved
+ * @returns The relative path from `rootDir` to the resolved file, or `null` if the import cannot be resolved
  */
 export function resolveImportPath(
   importee: string,

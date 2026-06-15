@@ -22,7 +22,9 @@ export function isGitRepository(rootDir: string): boolean {
  * Extracts Git commits and file relationships from a repository.
  *
  * Returns empty results if Git is unavailable or the directory is not a Git repository.
+ * On git log execution failure, returns nodes and edges accumulated before the error.
  *
+ * @param maxCommits - Maximum number of commits to extract
  * @returns An object with `nodes` (commit nodes) and `edges` (commit-to-file references and file co-occurrence relationships)
  */
 export function extractGitInfo(rootDir: string, maxCommits = 50): {

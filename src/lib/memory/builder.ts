@@ -7,8 +7,10 @@ import { extractGitInfo } from './extractors/git-extractor';
 import { scanProjectDocs } from './extractors/doc-extractor';
 
 /**
- * Computes a deterministic SHA-256 hash of a graph's nodes, edges, and timestamp.
+ * Computes a deterministic SHA-256 hash for a graph based on its nodes, edges, and timestamp.
  *
+ * @param nodes - The graph nodes to include in the hash computation
+ * @param edges - The graph edges to include in the hash computation
  * @param timestamp - The timestamp to include in the hash computation
  * @returns A hex-encoded SHA-256 hash
  */
@@ -44,9 +46,9 @@ export function calculateGraphHash(
 }
 
 /**
- * Scans project sources and constructs a Topological Memory Graph.
+ * Builds and validates a memory graph for a project by aggregating data from multiple sources.
  *
- * @param rootDir - The root directory to scan
+ * @param rootDir - The root directory of the project to scan
  * @returns The validated memory graph.
  */
 export function buildMemoryGraph(rootDir: string): MemoryGraph {

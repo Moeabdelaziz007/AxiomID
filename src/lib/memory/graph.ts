@@ -58,7 +58,8 @@ export type MemoryGraph = z.infer<typeof MemoryGraphSchema>;
 /**
  * Validates an unknown value as a memory node.
  *
- * @returns The validated node.
+ * @returns The validated memory node.
+ * @throws If the input does not conform to the memory node schema.
  */
 export function validateNode(node: unknown): MemoryNode {
   return MemoryNodeSchema.parse(node);
@@ -68,7 +69,7 @@ export function validateNode(node: unknown): MemoryNode {
  * Validates an unknown value as a memory edge.
  *
  * @param edge - The value to validate
- * @returns The input typed as a `MemoryEdge` if valid
+ * @returns The validated edge
  * @throws If the input does not conform to the memory edge structure
  */
 export function validateEdge(edge: unknown): MemoryEdge {
@@ -76,9 +77,10 @@ export function validateEdge(edge: unknown): MemoryEdge {
 }
 
 /**
- * Validates a graph object.
+ * Validates that an object conforms to the MemoryGraph schema.
  *
- * @returns The validated graph object, typed as MemoryGraph.
+ * @throws If the input does not match the expected MemoryGraph structure.
+ * @returns The validated graph object.
  */
 export function validateGraph(graph: unknown): MemoryGraph {
   return MemoryGraphSchema.parse(graph);
