@@ -35,5 +35,16 @@ binding = "DB"
 database_name = "axiomid-edge"
 database_id = "64c6f62f-0df0-455f-ba4f-c63a572e6663"
 
+# --- Workers AI (for embeddings) ---
+[ai]
+binding = "AI"
+
+# --- Vectorize (for semantic search) ---
+[[vectorize_indexes]]
+binding = "SEARCH_VECTORS"
+index_name = "axiomid-search"
+dimensions = 384
+metric = "cosine"
+
 # --- Secrets (set via `wrangler secret put`) ---
 # PERPLEXITY_API_KEY = set via `wrangler secret put PERPLEXITY_API_KEY`

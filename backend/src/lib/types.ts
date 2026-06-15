@@ -9,6 +9,8 @@ export interface Env {
   DB: D1Database;
   PRESENCE_DO: DurableObjectNamespace;
   HARVEST_QUEUE: Queue;
+  AI: Ai;
+  SEARCH_VECTORS: VectorizeIndex;
   ENVIRONMENT: string;
 }
 

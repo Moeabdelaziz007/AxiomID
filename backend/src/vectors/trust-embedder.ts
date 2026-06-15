@@ -1,6 +1,6 @@
 /**
- * Vectorize trust graph embeddings.
- * Embeds trust relationships for semantic search.
+ * Vectorize trust graph embeddings using Workers AI.
+ * Real ML embeddings for semantic trust search.
  */
 
 import type { Env } from "../lib/types";
@@ -8,13 +8,20 @@ import type { Env } from "../lib/types";
 export interface TrustVector {
   id: string;
   values: number[];
-  namespace?: string;
   metadata: {
     did: string;
     trustScore: number;
     delegations: number;
     lastUpdated: number;
   };
+}
+
+export interface SearchResult {
+  id: string;
+  score: number;
+  did: string;
+  trustScore: number;
+  metadata: Record<string, unknown>;
 }
 
 export class TrustEmbedder {
@@ -25,14 +32,100 @@ export class TrustEmbedder {
   }
 
   /**
-   * Generate embedding for a trust profile.
-   * Uses a simple feature vector (placeholder for Workers AI).
+   * Generate embedding using Workers AI.
+   * Falls back to feature vector if AI binding unavailable.
    */
   async embedTrustProfile(did: string, trustScore: number, delegationCount: number): Promise<number[]> {
-    // Simple 384-dim embedding: trust score features
-    const features = new Array(384).fill(0);
+    try {
+      // Use Workers AI for real embeddings
+      const text = `DID:${did} trust:${trustScore.toFixed(3)} delegations:${delegationCount} level:${this.getTrustLevel(trustScore)}`;
+      const response = await this.env.AI.run("@cf/baai/bge-small-en-v1.5", { text: [text] }) as { data: number[][] };
+      if (response?.data?.[0]) {
+        return response.data[0];
+      }
+    } catch (err) {
+      console.warn("[Vectorize] Workers AI embedding failed, using fallback:", err);
+    }
 
-    // Core trust features (first 10 dims)
+    // Fallback: feature-based vector
+    return this.fallbackEmbedding(did, trustScore, delegationCount);
+  }
+
+  /**
+   * Upsert trust vector into Vectorize index.
+   */
+  async upsertVector(did: string, trustScore: number, delegationCount: number): Promise<void> {
+    const values = await this.embedTrustProfile(did, trustScore, delegationCount);
+    const id = `trust:${did}`;
+
+    await this.env.SEARCH_VECTORS.upsert([{
+      id,
+      values,
+      metadata: {
+        did,
+        trustScore,
+        delegations: delegationCount,
+        lastUpdated: Date.now(),
+        level: this.getTrustLevel(trustScore),
+      },
+    }]);
+  }
+
+  /**
+   * Query similar trust profiles from Vectorize.
+   */
+  async querySimilar(did: string, topK: number = 5): Promise<SearchResult[]> {
+    const values = await this.embedTrustProfile(did, 0.5, 0);
+
+    const results = await this.env.SEARCH_VECTORS.query(values, {
+      topK,
+      returnMetadata: true,
+    });
+
+    return results.matches.map((match) => ({
+      id: match.id,
+      score: match.score,
+      did: (match.metadata?.did as string) || "",
+      trustScore: (match.metadata?.trustScore as number) || 0,
+      metadata: match.metadata || {},
+    }));
+  }
+
+  /**
+   * Search by text query.
+   */
+  async searchByText(query: string, topK: number = 10): Promise<SearchResult[]> {
+    try {
+      const response = await this.env.AI.run("@cf/baai/bge-small-en-v1.5", { text: [query] }) as { data: number[][] };
+      if (response?.data?.[0]) {
+        const results = await this.env.SEARCH_VECTORS.query(response.data[0], {
+          topK,
+          returnMetadata: true,
+        });
+        return results.matches.map((match) => ({
+          id: match.id,
+          score: match.score,
+          did: (match.metadata?.did as string) || "",
+          trustScore: (match.metadata?.trustScore as number) || 0,
+          metadata: match.metadata || {},
+        }));
+      }
+    } catch (err) {
+      console.warn("[Vectorize] Text search failed:", err);
+    }
+    return [];
+  }
+
+  private getTrustLevel(score: number): string {
+    if (score >= 0.8) return "sovereign";
+    if (score >= 0.6) return "validator";
+    if (score >= 0.4) return "citizen";
+    if (score >= 0.2) return "visitor";
+    return "newcomer";
+  }
+
+  private fallbackEmbedding(did: string, trustScore: number, delegationCount: number): number[] {
+    const features = new Array(384).fill(0);
     features[0] = trustScore;
     features[1] = delegationCount / 10;
     features[2] = trustScore * (delegationCount / 10);
@@ -43,35 +136,11 @@ export class TrustEmbedder {
     features[7] = trustScore < 0.3 ? 1 : 0;
     features[8] = Math.floor(trustScore * 10) / 10;
     features[9] = Math.min(1, delegationCount * 0.1);
-
-    // Hash-based pseudo-embedding for remaining dims
     for (let i = 10; i < 384; i++) {
       const hash = this.simpleHash(`${did}:${i}`);
       features[i] = (hash % 1000) / 1000;
     }
-
     return features;
-  }
-
-  /**
-   * Upsert trust vector into Vectorize index.
-   */
-  async upsertVector(did: string, trustScore: number, delegationCount: number): Promise<void> {
-    const values = await this.embedTrustProfile(did, trustScore, delegationCount);
-
-    // Will be called via Vectorize binding when available
-    console.log(`[Vectorize] Upserting vector for ${did} (score: ${trustScore})`);
-  }
-
-  /**
-   * Query similar trust profiles from Vectorize.
-   */
-  async querySimilar(did: string, topK: number = 5): Promise<Array<{ id: string; score: number; did: string }>> {
-    const values = await this.embedTrustProfile(did, 0.5, 0);
-
-    // Will be called via Vectorize binding when available
-    console.log(`[Vectorize] Querying similar for ${did} (topK: ${topK})`);
-    return [];
   }
 
   private simpleHash(str: string): number {

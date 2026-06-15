@@ -12,6 +12,7 @@ import { TrustEngine } from "./lib/trust";
 import { SkillsMarketplace } from "./routes/skills";
 import { AgentDispatcher } from "./routes/agent-dispatch";
 import { handleMcp } from "./mcp/handler";
+import { handleSearch, handleSearchSimilar } from "./routes/search";
 
 export class Router {
   private kv: KVHelper;
@@ -70,6 +71,15 @@ export class Router {
     // --- MCP Server ---
     if (path === "/mcp") {
       return handleMcp(request, this.env);
+    }
+
+    // --- Semantic Search ---
+    if (path === "/api/search" && method === "GET") {
+      return handleSearch(request, this.env);
+    }
+
+    if (path === "/api/search/similar" && method === "GET") {
+      return handleSearchSimilar(request, this.env);
     }
 
     // --- Health ---
