@@ -195,3 +195,36 @@ describe("Dashboard page — authenticated user content", () => {
     expect(screen.getByText("AxiomID Dashboard")).toBeInTheDocument();
   });
 });
+
+describe("Dashboard page — Marketplace tab navigation (PR change)", () => {
+  it("renders the Marketplace tab button", () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: authenticatedUser }));
+    render(<Dashboard />);
+    expect(screen.getByRole("tab", { name: /marketplace/i })).toBeInTheDocument();
+  });
+
+  it("Marketplace tab is no longer disabled (PR change)", () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: authenticatedUser }));
+    render(<Dashboard />);
+    const tab = screen.getByRole("tab", { name: /marketplace/i });
+    expect(tab).not.toBeDisabled();
+  });
+
+  it("clicking Marketplace tab navigates to /dashboard/marketplace", () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: authenticatedUser }));
+    render(<Dashboard />);
+
+    act(() => {
+      screen.getByRole("tab", { name: /marketplace/i }).click();
+    });
+
+    expect(mockRouterPush).toHaveBeenCalledWith("/dashboard/marketplace");
+  });
+
+  it("does NOT render a 'Coming Soon' tooltip on the Marketplace tab (PR change)", () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: authenticatedUser }));
+    render(<Dashboard />);
+    // The disabled tooltip was removed in this PR
+    expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
+  });
+});

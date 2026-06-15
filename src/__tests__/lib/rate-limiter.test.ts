@@ -95,4 +95,33 @@ describe('checkRateLimit (in-memory)', () => {
     expect(RATE_LIMITS.piAuth.maxRequests).toBe(5);
     expect(RATE_LIMITS.payment.maxRequests).toBe(10);
   });
+
+  it('RATE_LIMITS.public has correct maxRequests (PR addition)', () => {
+    expect(RATE_LIMITS.public.maxRequests).toBe(60);
+  });
+
+  it('RATE_LIMITS.public has 60-second window', () => {
+    expect(RATE_LIMITS.public.windowMs).toBe(60_000);
+  });
+
+  it('RATE_LIMITS.public sits between anonymous (30) and authenticated (100) limits', () => {
+    expect(RATE_LIMITS.public.maxRequests).toBeGreaterThan(RATE_LIMITS.anonymous.maxRequests);
+    expect(RATE_LIMITS.public.maxRequests).toBeLessThan(RATE_LIMITS.authenticated.maxRequests);
+  });
+
+  it('allows exactly 60 requests under RATE_LIMITS.public before blocking', async () => {
+    const key = 'public-limit-boundary-test';
+    const config = RATE_LIMITS.public;
+
+    // Make 60 requests — all should be allowed
+    for (let i = 0; i < config.maxRequests; i++) {
+      const result = await checkRateLimit(key, config);
+      expect(result.allowed).toBe(true);
+    }
+
+    // 61st request should be blocked
+    const blocked = await checkRateLimit(key, config);
+    expect(blocked.allowed).toBe(false);
+    expect(blocked.remaining).toBe(0);
+  });
 });
