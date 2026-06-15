@@ -50,9 +50,8 @@ describe("AgentPassport — Copy DID button (PR change: emoji → Lucide SVG)", 
   });
 
   it("Copy DID button renders an SVG icon, not emoji text", () => {
-    const { container } = render(<AgentPassport {...defaultProps} />);
+    render(<AgentPassport {...defaultProps} />);
     const copyDidButton = screen.getByRole("button", { name: /copy did/i });
-    // SVG should be inside the button (Lucide Copy icon)
     expect(copyDidButton.querySelector("svg")).toBeInTheDocument();
     // Old emoji "📋" should NOT appear as text
     expect(copyDidButton.textContent).not.toContain("📋");
@@ -125,9 +124,8 @@ describe("AgentPassport — SYSTEM MODULES Zap icon (PR change: emoji → Lucide
   });
 
   it("renders an SVG element near the SYSTEM MODULES label (Zap icon)", () => {
-    const { container } = render(<AgentPassport {...defaultProps} />);
+    render(<AgentPassport {...defaultProps} />);
     const modulesLabel = screen.getByText(/system modules/i);
-    // The parent span contains the Zap SVG icon
     const parentSpan = modulesLabel.closest("span");
     expect(parentSpan).not.toBeNull();
     expect(parentSpan?.querySelector("svg")).toBeInTheDocument();
@@ -151,9 +149,8 @@ describe("AgentPassport — WORLD ID Eye icon (PR change: emoji → Lucide SVG)"
   });
 
   it("renders an SVG element in the WORLD ID slot (Eye icon)", () => {
-    const { container } = render(<AgentPassport {...defaultProps} />);
+    render(<AgentPassport {...defaultProps} />);
     const worldIdText = screen.getByText("WORLD ID");
-    // The parent div contains the Eye SVG icon
     const parentDiv = worldIdText.closest("div");
     expect(parentDiv).not.toBeNull();
     expect(parentDiv?.querySelector("svg")).toBeInTheDocument();

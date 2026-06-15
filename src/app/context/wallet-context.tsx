@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, ReactNode } from "react";
 import { Tier, getLevelProgress, getNextLevelXP } from "@/lib/tiers";
 import { calculateTrustScore } from "@/lib/trust";
-import { connectPi, runWalletTest } from "@/lib/pi-sdk";
+import { connectPi, runWalletTest, checkPiBrowser } from "@/lib/pi-sdk";
 
 export interface User {
   id: string;
@@ -128,34 +128,6 @@ function removeLocalStorageItem(key: string): void {
   } catch (e) {
     console.warn(`localStorage remove failed for key ${key}:`, e);
   }
-}
-
-/**
- * Detects whether the current environment is the Pi Browser or an embedded Pi context.
- *
- * Inspects the user agent for Pi Browser identifiers and, when running inside an iframe, checks the document referrer for minepi domains.
- *
- * @returns `true` if running in Pi Browser or embedded from `minepi.com`/`sandbox.minepi.com`, `false` otherwise.
- */
-function checkPiBrowser(): boolean {
-  if (typeof navigator === "undefined") return false;
-
-  const ua = navigator.userAgent;
-  if (/Pi Browser|minepi/i.test(ua)) return true;
-
-  try {
-    if (window.self !== window.top) {
-      const referrer = document.referrer || "";
-      if (referrer) {
-        try {
-          const referrerHost = new URL(referrer).hostname.toLowerCase();
-          if (referrerHost === "minepi.com" || referrerHost.endsWith(".minepi.com")) return true;
-        } catch { /* malformed URL — fall through */ }
-      }
-    }
-  } catch { /* cross-origin — fall through */ }
-
-  return false;
 }
 
 interface ApiResponse {
@@ -421,85 +393,72 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       const isSandbox = process.env.NEXT_PUBLIC_PI_SANDBOX === "true";
       const win = typeof window !== "undefined" ? (window as unknown as { Pi?: unknown }) : {};
       const hasPiSdk = !!win.Pi;
-      pushLog(`Pi Browser: ${inPiBrowser ? "detected ✅" : "not found"}`);
-      pushLog(`Pi SDK present: ${hasPiSdk ? "yes ✅" : "no"}`);
+      pushLog(`Pi Browser: ${inPiBrowser ? "detected" : "not detected via UA"}`);
+      pushLog(`Pi SDK present: ${hasPiSdk ? "yes" : "no"}`);
 
-      if (!inPiBrowser && !isSandbox && !hasPiSdk) {
-        if (!isDemoWalletAllowed()) {
-          throw new Error("Pi Browser required. Open this app inside Pi Browser to authenticate.");
-        }
-        pushLog("Not in Pi Browser, but demo wallets are allowed. Connecting demo wallet...");
-        const walletAddress = getStoredDemoWalletOrNew();
-        pushLog(`Demo wallet: ${walletAddress}`);
-        await connectDemoWallet(walletAddress);
-        pushLog("Logged in successfully ✅");
-        return;
-      }
+      if (typeof window !== "undefined") {
+        pushLog("Attempting Pi SDK authentication...");
+        try {
+          const result = await connectPi(pushLog);
+          const accessToken = result.token;
+          const piUser = result.user;
 
-      if (!inPiBrowser && isSandbox && !hasPiSdk) {
-        if (!isDemoWalletAllowed()) {
-          throw new Error("Pi Browser required (Sandbox mode active, but demo wallets are disabled).");
-        }
-        pushLog("Sandbox mode active...");
-        const walletAddress = getStoredDemoWalletOrNew();
-        pushLog(`Demo wallet: ${walletAddress}`);
-        await connectDemoWallet(walletAddress);
-        pushLog("Logged in successfully ✅");
-        return;
-      }
+          setPiAccessToken(accessToken);
+          setLocalStorageItem("pi_access_token", accessToken);
+          const walletAddress = `pi:${piUser.uid}`;
+          const stellarAddress = piUser.stellarAddress || piUser.wallet_address || null;
+          pushLog(`Wallet: ${walletAddress}`);
+          if (stellarAddress) pushLog(`Stellar Address: ${stellarAddress}`);
 
-      pushLog("Authenticating via Pi SDK...");
-      let accessToken: string;
-      let piUser: { uid: string; username: string; name: string; wallet_address?: string; stellarAddress?: string };
+          pushLog("Verifying authentication with server...");
+          const res = await fetch("/api/auth/pi", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              accessToken,
+              uid: piUser.uid,
+              username: piUser.username,
+            }),
+          });
 
-      try {
-        const result = await connectPi(pushLog);
-        accessToken = result.token;
-        piUser = result.user;
-      } catch (err: unknown) {
-        if (err instanceof Error && err.message === "NOT_IN_PI_BROWSER") {
-          if (!isDemoWalletAllowed()) {
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || "Authentication failed");
+          }
+
+          const data = await res.json();
+          setLocalStorageItem("axiomid_wallet", walletAddress);
+          setUser(mapApiUser(data, {
+            stellarAddress: stellarAddress,
+          }));
+          pushLog("Wallet authenticated successfully!");
+          return;
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : String(err);
+          pushLog(`Pi SDK auth failed: ${msg}`);
+          if (msg.includes("NOT_IN_PI_BROWSER") || msg.includes("Pi SDK is not available") || msg.includes("Pi SDK script")) {
+            if (isDemoWalletAllowed()) {
+              pushLog("Pi SDK not available — falling back to demo wallet");
+              const walletAddress = getStoredDemoWalletOrNew();
+              pushLog(`Demo wallet: ${walletAddress}`);
+              await connectDemoWallet(walletAddress);
+              pushLog("Logged in with demo wallet");
+              return;
+            }
             throw new Error("Pi Browser required. Open this app inside Pi Browser to authenticate.");
           }
-          pushLog("Not inside Pi Browser — using demo wallet");
-          const walletAddress = getStoredDemoWalletOrNew();
-          pushLog(`Demo wallet: ${walletAddress}`);
-          await connectDemoWallet(walletAddress);
-          pushLog("Logged in successfully");
-          return;
+          throw err;
         }
-        throw err;
       }
 
-      setPiAccessToken(accessToken);
-      setLocalStorageItem("pi_access_token", accessToken);
-      const walletAddress = `pi:${piUser.uid}`;
-      const stellarAddress = piUser.stellarAddress || piUser.wallet_address || null;
-      pushLog(`Wallet: ${walletAddress}`);
-      if (stellarAddress) pushLog(`Stellar Address: ${stellarAddress}`);
-
-      pushLog("Verifying authentication with server...");
-      const res = await fetch("/api/auth/pi", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          accessToken,
-          uid: piUser.uid,
-          username: piUser.username,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Authentication failed");
+      if (isDemoWalletAllowed()) {
+        pushLog("Not in browser — connecting demo wallet...");
+        const walletAddress = getStoredDemoWalletOrNew();
+        await connectDemoWallet(walletAddress);
+        pushLog("Logged in successfully");
+        return;
       }
-
-      const data = await res.json();
-      setLocalStorageItem("axiomid_wallet", walletAddress);
-      setUser(mapApiUser(data, {
-        stellarAddress: stellarAddress,
-      }));
-      pushLog("✅ Wallet authenticated successfully!");
+      throw new Error("Pi Browser required. Open this app inside Pi Browser to authenticate.");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Connection failed";
       console.error("Auth error:", message);

@@ -94,13 +94,13 @@ export async function ensurePiInitialized(pushLog?: (msg: string) => void): Prom
   return Pi;
 }
 
-function checkPiBrowser(): boolean {
+export function checkPiBrowser(): boolean {
   if (typeof window === "undefined") return false;
   const win = window as unknown as { Pi?: unknown };
   if (win.Pi) return true;
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
-  if (/Pi Browser|minepi/i.test(ua)) return true;
+  if (/Pi Browser|minepi|PiApp/i.test(ua)) return true;
   try {
     if (window.self !== window.top) {
       const referrer = document.referrer || "";
@@ -110,15 +110,21 @@ function checkPiBrowser(): boolean {
       }
     }
   } catch {}
+  try {
+    if (typeof window.location !== "undefined") {
+      const host = window.location.hostname.toLowerCase();
+      if (host === "minepi.com" || host.endsWith(".minepi.com")) return true;
+    }
+  } catch {}
   return false;
 }
 
 export async function connectPi(pushLog?: (msg: string) => void): Promise<PiAuthResult> {
   try {
-    const inPiBrowser = typeof window !== "undefined" && checkPiBrowser();
-    if (inPiBrowser) {
+    if (typeof window !== "undefined") {
+      pushLog?.("Browser environment detected — loading Pi SDK...");
       const Pi = await ensurePiInitialized(pushLog);
-      
+
       const piInstance = Pi as { authenticate: (args: { scopes: string[] }) => Promise<unknown> };
       if (piInstance && typeof piInstance.authenticate === "function") {
         pushLog?.("Requesting Pi authentication token...");
@@ -148,6 +154,7 @@ export async function connectPi(pushLog?: (msg: string) => void): Promise<PiAuth
           stellarAddress: result.user.stellarAddress,
         };
       }
+      throw new Error("NOT_IN_PI_BROWSER");
     }
 
     // Server-side / Node.js: use PiSdkBase
