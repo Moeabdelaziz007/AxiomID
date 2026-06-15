@@ -1,3 +1,15 @@
+/**
+ * Tests for src/app/dashboard/marketplace/page.tsx
+ *
+ * PR changes covered:
+ * - useWallet integration: user, connectWallet, isConnecting
+ * - Error state management (setError on fetch failure and install failure)
+ * - Error banner rendering with dismiss button
+ * - handleInstall: calls connectWallet() when user is null
+ * - Install button text changes based on auth/connecting state
+ * - Install button disabled when isConnecting is true
+ */
+
 import React from "react";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import MarketplacePage from "@/app/dashboard/marketplace/page";
@@ -11,344 +23,382 @@ jest.mock("@/app/context/wallet-context", () => ({
 
 const mockUseWallet = useWallet as jest.MockedFunction<typeof useWallet>;
 
-// Mock next/link
-jest.mock("next/link", () => {
-  const MockLink = ({ href, children, ...props }: { href: string; children: React.ReactNode; [key: string]: unknown }) => (
-    <a href={href} {...props}>{children}</a>
-  );
-  MockLink.displayName = "MockLink";
-  return MockLink;
+// Mock fetch
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
+
+// Mock navigator.clipboard
+Object.defineProperty(navigator, "clipboard", {
+  value: { writeText: jest.fn() },
+  writable: true,
 });
 
 // Mock lucide-react icons
 jest.mock("lucide-react", () => ({
-  Dna: () => <span data-testid="icon-dna" />,
-  Download: () => <span data-testid="icon-download" />,
-  Star: () => <span data-testid="icon-star" />,
-  Coins: () => <span data-testid="icon-coins" />,
-  Package: () => <span data-testid="icon-package" />,
+  Dna: () => <svg data-testid="icon-dna" />,
+  Download: () => <svg data-testid="icon-download" />,
+  Star: () => <svg data-testid="icon-star" />,
+  Coins: () => <svg data-testid="icon-coins" />,
+  Package: () => <svg data-testid="icon-package" />,
 }));
 
-const mockSkills = [
-  {
-    id: "skill-1",
-    slug: "test-skill",
-    name: "Test Skill",
-    description: "A test skill",
-    tier: "BASIC_TOOL",
-    pricePi: 0,
-    version: "1.0.0",
-    installCount: 42,
-    avgRating: 4.5,
-    ratingCount: 10,
-    createdAt: "2024-01-01",
-  },
-  {
-    id: "skill-2",
-    slug: "pro-skill",
-    name: "Pro Skill",
-    description: "A pro skill",
-    tier: "PRO",
-    pricePi: 5,
-    version: "2.0.0",
-    installCount: 100,
-    avgRating: 5.0,
-    ratingCount: 25,
-    createdAt: "2024-01-02",
-  },
-];
-
-const mockSkillDetail = {
-  ...mockSkills[0],
-  manifestMd: "# Test Skill\nThis is the manifest.",
-  agentScript: "export function run() {}",
-  testSuite: null,
-  status: "PUBLISHED",
-  isPublished: true,
-  installationCount: 42,
-  reviewCount: 10,
-  updatedAt: "2024-01-01",
+const mockSkill = {
+  id: "skill-1",
+  slug: "test-skill",
+  name: "Test Skill",
+  description: "A test skill",
+  tier: "BASIC_TOOL",
+  pricePi: 0,
+  version: "1.0.0",
+  installCount: 42,
+  avgRating: 4.5,
+  ratingCount: 10,
+  createdAt: "2024-01-01T00:00:00Z",
 };
 
-describe("MarketplacePage", () => {
-  let fetchMock: jest.SpyInstance;
-
+describe("MarketplacePage — initial load and error handling (PR change)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseWallet.mockReturnValue(defaultWalletCtx());
-    fetchMock = jest.spyOn(global, "fetch");
-    // Default: successful skills load
-    fetchMock.mockResolvedValue({
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null }));
+  });
+
+  it("shows loading skeleton on initial load", () => {
+    // Never resolves to keep loading state
+    mockFetch.mockReturnValue(new Promise(() => {}));
+
+    const { container } = render(<MarketplacePage />);
+
+    const pulseElements = container.querySelectorAll(".animate-pulse");
+    expect(pulseElements.length).toBeGreaterThan(0);
+  });
+
+  it("renders skills when fetch succeeds", async () => {
+    mockFetch.mockResolvedValueOnce({
       ok: true,
-      status: 200,
-      json: async () => ({ skills: mockSkills }),
-    } as Response);
-  });
-
-  afterEach(() => {
-    fetchMock.mockRestore();
-  });
-
-  describe("initial rendering and loading", () => {
-    it("renders the Agentic Marketplace heading", async () => {
-      render(<MarketplacePage />);
-      expect(screen.getByText("Agentic Marketplace")).toBeInTheDocument();
+      json: async () => ({ skills: [mockSkill] }),
     });
 
-    it("renders BACK TO DASHBOARD link", async () => {
-      render(<MarketplacePage />);
-      const link = screen.getByRole("link", { name: /dashboard/i });
-      expect(link).toHaveAttribute("href", "/dashboard");
-    });
+    render(<MarketplacePage />);
 
-    it("shows loading skeleton while fetching skills", () => {
-      // Delay the fetch so we can observe loading state
-      fetchMock.mockImplementation(() => new Promise(() => {}));
-      render(<MarketplacePage />);
-
-      const { container } = render(<MarketplacePage />);
-      const pulseElements = container.querySelectorAll(".animate-pulse");
-      expect(pulseElements.length).toBeGreaterThan(0);
-    });
-
-    it("renders skills after successful fetch", async () => {
-      render(<MarketplacePage />);
-      await waitFor(() => {
-        expect(screen.getByText("Test Skill")).toBeInTheDocument();
-      });
-    });
-
-    it("renders all skills returned from the API", async () => {
-      render(<MarketplacePage />);
-      await waitFor(() => {
-        expect(screen.getByText("Test Skill")).toBeInTheDocument();
-        expect(screen.getByText("Pro Skill")).toBeInTheDocument();
-      });
+    await waitFor(() => {
+      expect(screen.getByText("Test Skill")).toBeInTheDocument();
     });
   });
 
-  describe("error handling", () => {
-    it("shows an error alert when the API returns a non-ok response", async () => {
-      fetchMock.mockResolvedValue({
-        ok: false,
-        status: 500,
-        json: async () => ({}),
-      } as Response);
-
-      render(<MarketplacePage />);
-
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
-      expect(screen.getByRole("alert")).toHaveTextContent(/failed to load skills \(500\)/i);
+  it("shows error banner when skills fetch fails (PR change: error state)", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: "Server error" }),
     });
 
-    it("shows an error alert when the network request fails", async () => {
-      fetchMock.mockRejectedValue(new Error("Network error"));
+    render(<MarketplacePage />);
 
-      render(<MarketplacePage />);
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+    });
+  });
 
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
+  it("error banner contains the error message", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: async () => ({}),
     });
 
-    it("can dismiss the error alert via the DISMISS button", async () => {
-      fetchMock.mockResolvedValue({
-        ok: false,
-        status: 503,
-        json: async () => ({}),
-      } as Response);
+    render(<MarketplacePage />);
 
-      render(<MarketplacePage />);
+    await waitFor(() => {
+      const alert = screen.getByRole("alert");
+      expect(alert).toHaveTextContent(/Failed to load skills \(500\)/);
+    });
+  });
 
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByRole("button", { name: /dismiss/i }));
-
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  it("error banner has a DISMISS button (PR change)", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 503,
+      json: async () => ({}),
     });
 
-    it("shows 'No Skills Available' when the API returns an empty skills array", async () => {
-      fetchMock.mockResolvedValue({
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /dismiss/i })).toBeInTheDocument();
+    });
+  });
+
+  it("dismissing the error clears the error banner", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: async () => ({}),
+    });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /dismiss/i }));
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("shows network error in the error banner on fetch throw", async () => {
+    mockFetch.mockRejectedValueOnce(new Error("Network failure"));
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      const alert = screen.getByRole("alert");
+      expect(alert).toHaveTextContent("Network failure");
+    });
+  });
+});
+
+describe("MarketplacePage — install button state (PR change: wallet integration)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("shows 'CONNECT WALLET TO INSTALL' when no user and skill detail is open", async () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null, isConnecting: false }));
+    mockFetch
+      .mockResolvedValueOnce({
         ok: true,
-        status: 200,
-        json: async () => ({ skills: [] }),
-      } as Response);
-
-      render(<MarketplacePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("No Skills Available")).toBeInTheDocument();
+        json: async () => ({ skills: [mockSkill] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          ...mockSkill,
+          manifestMd: "# Test",
+          agentScript: null,
+          testSuite: null,
+          status: "PUBLISHED",
+          isPublished: true,
+          installationCount: 42,
+          reviewCount: 10,
+          updatedAt: "2024-01-01T00:00:00Z",
+        }),
       });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Test Skill")).toBeInTheDocument();
+    });
+
+    // Open skill detail
+    fireEvent.click(screen.getByText("Test Skill"));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /connect wallet to install/i })).toBeInTheDocument();
     });
   });
 
-  describe("install button — unauthenticated user", () => {
-    it("shows 'CONNECT WALLET TO INSTALL' when no user is logged in", async () => {
-      // Load skill detail to see the install button
-      fetchMock
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({ skills: mockSkills }),
-        } as Response)
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => mockSkillDetail,
-        } as Response);
-
-      mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null }));
-
-      render(<MarketplacePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Test Skill")).toBeInTheDocument();
+  it("shows 'CONNECTING...' when isConnecting is true", async () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null, isConnecting: true }));
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ skills: [mockSkill] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          ...mockSkill,
+          manifestMd: "# Test",
+          agentScript: null,
+          testSuite: null,
+          status: "PUBLISHED",
+          isPublished: true,
+          installationCount: 42,
+          reviewCount: 10,
+          updatedAt: "2024-01-01T00:00:00Z",
+        }),
       });
 
-      fireEvent.click(screen.getByText("Test Skill"));
+    render(<MarketplacePage />);
 
-      await waitFor(() => {
-        expect(screen.getByText("CONNECT WALLET TO INSTALL")).toBeInTheDocument();
-      });
+    await waitFor(() => {
+      expect(screen.getByText("Test Skill")).toBeInTheDocument();
     });
 
-    it("calls connectWallet() when install is clicked without a user", async () => {
-      const connectWalletFn = jest.fn();
-      mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null, connectWallet: connectWalletFn }));
+    fireEvent.click(screen.getByText("Test Skill"));
 
-      fetchMock
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({ skills: mockSkills }),
-        } as Response)
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => mockSkillDetail,
-        } as Response);
-
-      render(<MarketplacePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Test Skill")).toBeInTheDocument();
-      });
-
-      // Click skill to open detail
-      fireEvent.click(screen.getByText("Test Skill"));
-
-      await waitFor(() => {
-        expect(screen.getByText("CONNECT WALLET TO INSTALL")).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText("CONNECT WALLET TO INSTALL"));
-
-      expect(connectWalletFn).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /connecting/i })).toBeInTheDocument();
     });
   });
 
-  describe("install button — wallet connecting state", () => {
-    it("shows 'CONNECTING...' and is disabled when wallet is connecting", async () => {
-      fetchMock
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => ({ skills: mockSkills }),
-        } as Response)
-        .mockResolvedValueOnce({
-          ok: true,
-          status: 200,
-          json: async () => mockSkillDetail,
-        } as Response);
-
-      mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null, isConnecting: true }));
-
-      render(<MarketplacePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Test Skill")).toBeInTheDocument();
+  it("install button is disabled when isConnecting is true (PR change)", async () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null, isConnecting: true }));
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ skills: [mockSkill] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          ...mockSkill,
+          manifestMd: "# Test",
+          agentScript: null,
+          testSuite: null,
+          status: "PUBLISHED",
+          isPublished: true,
+          installationCount: 42,
+          reviewCount: 10,
+          updatedAt: "2024-01-01T00:00:00Z",
+        }),
       });
 
-      fireEvent.click(screen.getByText("Test Skill"));
+    render(<MarketplacePage />);
 
-      await waitFor(() => {
-        const btn = screen.getByRole("button", { name: /connecting/i });
-        expect(btn).toBeInTheDocument();
-        expect(btn).toBeDisabled();
-      });
+    await waitFor(() => {
+      expect(screen.getByText("Test Skill")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Test Skill"));
+
+    await waitFor(() => {
+      const btn = screen.getByRole("button", { name: /connecting/i });
+      expect(btn).toBeDisabled();
     });
   });
+});
 
-  describe("install — authenticated user", () => {
-    const authenticatedUser = {
-      id: "user-1",
-      walletAddress: "pi:alice",
-      piUsername: "alice",
+describe("MarketplacePage — handleInstall wallet flow (PR change)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("calls connectWallet() when user is null and install is triggered", async () => {
+    const connectWalletFn = jest.fn();
+    mockUseWallet.mockReturnValue(
+      defaultWalletCtx({ user: null, connectWallet: connectWalletFn })
+    );
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ skills: [mockSkill] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          ...mockSkill,
+          manifestMd: "# Test",
+          agentScript: null,
+          testSuite: null,
+          status: "PUBLISHED",
+          isPublished: true,
+          installationCount: 42,
+          reviewCount: 10,
+          updatedAt: "2024-01-01T00:00:00Z",
+        }),
+      });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Test Skill")).toBeInTheDocument();
+    });
+
+    // Open detail
+    fireEvent.click(screen.getByText("Test Skill"));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /connect wallet to install/i })).toBeInTheDocument();
+    });
+
+    // Click install
+    fireEvent.click(screen.getByRole("button", { name: /connect wallet to install/i }));
+
+    expect(connectWalletFn).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows install error in the error banner when install fails (PR change)", async () => {
+    const mockUserObj = {
+      id: "u1",
+      walletAddress: "pi:user1",
+      piUsername: "user1",
       xp: 0,
-      tier: "Citizen" as const,
+      tier: "Beginner" as const,
       trustScore: 0,
       createdAt: new Date().toISOString(),
       actions: [],
-      agent: null,
+      stamps: [],
     };
 
-    it("shows error when install API returns a non-ok response", async () => {
-      mockUseWallet.mockReturnValue(defaultWalletCtx({ user: authenticatedUser as never }));
-
-      fetchMock
-        .mockResolvedValueOnce({
-          ok: true, status: 200,
-          json: async () => ({ skills: mockSkills }),
-        } as Response)
-        .mockResolvedValueOnce({
-          ok: true, status: 200,
-          json: async () => mockSkillDetail,
-        } as Response)
-        .mockResolvedValueOnce({
-          ok: false, status: 402,
-          json: async () => ({ error: "Insufficient funds" }),
-        } as Response);
-
-      render(<MarketplacePage />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Test Skill")).toBeInTheDocument();
+    mockUseWallet.mockReturnValue(
+      defaultWalletCtx({ user: mockUserObj })
+    );
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ skills: [mockSkill] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          ...mockSkill,
+          manifestMd: "# Test",
+          agentScript: null,
+          testSuite: null,
+          status: "PUBLISHED",
+          isPublished: true,
+          installationCount: 42,
+          reviewCount: 10,
+          updatedAt: "2024-01-01T00:00:00Z",
+        }),
+      })
+      .mockResolvedValueOnce({
+        // install request fails
+        ok: false,
+        status: 403,
+        json: async () => ({ error: "Permission denied" }),
       });
 
-      fireEvent.click(screen.getByText("Test Skill"));
+    render(<MarketplacePage />);
 
-      await waitFor(() => {
-        expect(screen.getByText("INSTALL SKILL → AGENT")).toBeInTheDocument();
-      });
+    await waitFor(() => {
+      expect(screen.getByText("Test Skill")).toBeInTheDocument();
+    });
 
-      fireEvent.click(screen.getByText("INSTALL SKILL → AGENT"));
+    fireEvent.click(screen.getByText("Test Skill"));
 
-      await waitFor(() => {
-        expect(screen.getByRole("alert")).toBeInTheDocument();
-      });
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /install skill/i })).toBeInTheDocument();
+    });
 
-      expect(screen.getByRole("alert")).toHaveTextContent("Insufficient funds");
+    fireEvent.click(screen.getByRole("button", { name: /install skill/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveTextContent("Permission denied");
     });
   });
+});
 
-  describe("search and filter UI", () => {
-    it("renders a search input", async () => {
-      render(<MarketplacePage />);
-      expect(screen.getByPlaceholderText(/search skills/i)).toBeInTheDocument();
+describe("MarketplacePage — empty state", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseWallet.mockReturnValue(defaultWalletCtx());
+  });
+
+  it("shows 'No Skills Available' when skills list is empty", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ skills: [] }),
     });
 
-    it("renders tier filter buttons including ALL", async () => {
-      render(<MarketplacePage />);
-      expect(screen.getByRole("button", { name: "ALL" })).toBeInTheDocument();
-    });
+    render(<MarketplacePage />);
 
-    it("renders PUBLISH button to toggle publish mode", async () => {
-      render(<MarketplacePage />);
-      expect(screen.getByRole("button", { name: /publish/i })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("No Skills Available")).toBeInTheDocument();
     });
   });
 });

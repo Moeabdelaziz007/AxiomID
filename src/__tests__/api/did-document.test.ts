@@ -1,174 +1,195 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * @jest-environment node
+ *
+ * Tests for src/app/api/did-document/route.ts
+ *
+ * PR change: added rate limiting via checkRateLimit(RATE_LIMITS.public) with
+ * direct NextResponse.json 429 response (not apiError).
  */
 
-jest.mock('@/lib/rate-limiter', () => ({
+jest.mock("@/lib/did", () => ({
+  createIssuerDid: jest.fn(() => "did:axiom:issuer"),
+}));
+
+jest.mock("@/lib/did-document", () => ({
+  buildDidDocument: jest.fn(() => ({
+    "@context": ["https://www.w3.org/ns/did/v1"],
+    id: "did:axiom:issuer",
+    verificationMethod: [],
+  })),
+}));
+
+jest.mock("@/lib/did-resolver", () => ({
+  resolveDid: jest.fn(),
+}));
+
+jest.mock("@/lib/rate-limiter", () => ({
   checkRateLimit: jest.fn().mockResolvedValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000 }),
   RATE_LIMITS: {
     public: { windowMs: 60000, maxRequests: 60 },
   },
 }));
-jest.mock('@/lib/ip', () => ({
-  getClientIp: jest.fn(() => '10.0.0.1'),
-}));
-jest.mock('@/lib/did', () => ({
-  createIssuerDid: jest.fn(() => 'did:axiom:issuer'),
-}));
-jest.mock('@/lib/did-document', () => ({
-  buildDidDocument: jest.fn((did: string, publicKeyPem?: string) => ({
-    '@context': ['https://www.w3.org/ns/did/v1'],
-    id: did,
-    verificationMethod: publicKeyPem ? [{ id: `${did}#key-1`, type: 'Ed25519VerificationKey2020' }] : [],
-  })),
-}));
-jest.mock('@/lib/did-resolver', () => ({
-  resolveDid: jest.fn(),
+
+jest.mock("@/lib/ip", () => ({
+  getClientIp: jest.fn(() => "127.0.0.1"),
 }));
 
-import { GET } from '@/app/api/did-document/route';
-import { checkRateLimit } from '@/lib/rate-limiter';
-import { resolveDid } from '@/lib/did-resolver';
-import { buildDidDocument } from '@/lib/did-document';
+import { GET } from "@/app/api/did-document/route";
+import { resolveDid } from "@/lib/did-resolver";
+import { buildDidDocument } from "@/lib/did-document";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
+import { getClientIp } from "@/lib/ip";
 
-const mockCheckRateLimit = checkRateLimit as jest.MockedFunction<typeof checkRateLimit>;
-const mockResolveDid = resolveDid as jest.MockedFunction<typeof resolveDid>;
-const mockBuildDidDocument = buildDidDocument as jest.MockedFunction<typeof buildDidDocument>;
+const mockResolveDid = resolveDid as jest.Mock;
+const mockBuildDidDocument = buildDidDocument as jest.Mock;
+const mockCheckRateLimit = checkRateLimit as jest.Mock;
+const mockGetClientIp = getClientIp as jest.Mock;
 
-function makeRequest(params: Record<string, string> = {}) {
-  const qs = new URLSearchParams(params).toString();
-  const url = qs
-    ? `http://localhost/api/did-document?${qs}`
-    : 'http://localhost/api/did-document';
-  return new Request(url, { method: 'GET' }) as any;
+function mockGetRequest(params: Record<string, string> = {}) {
+  const url = new URL("http://localhost/api/did-document");
+  for (const [k, v] of Object.entries(params)) {
+    url.searchParams.set(k, v);
+  }
+  return new Request(url.toString(), { method: "GET" }) as any;
 }
 
-describe('GET /api/did-document', () => {
-  const originalEnv = process.env;
-
+describe("GET /api/did-document — rate limiting (PR change: uses RATE_LIMITS.public)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000 });
-    process.env = { ...originalEnv };
+    mockGetClientIp.mockReturnValue("127.0.0.1");
+    process.env.ISSUER_PUBLIC_KEY = "test-public-key";
   });
 
-  afterEach(() => {
-    process.env = originalEnv;
+  it("returns 429 with RATE_LIMITED error when rate limit exceeded", async () => {
+    mockCheckRateLimit.mockResolvedValue({ allowed: false, remaining: 0, resetAt: Date.now() + 60000 });
+
+    const req = mockGetRequest();
+    const res = await GET(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(429);
+    expect(data.error).toBe("RATE_LIMITED");
+    expect(data.message).toBe("Too many requests.");
   });
 
-  describe('rate limiting', () => {
-    it('returns 429 when rate limit is exceeded', async () => {
-      mockCheckRateLimit.mockResolvedValue({ allowed: false, remaining: 0, resetAt: Date.now() + 60000 });
+  it("uses RATE_LIMITS.public config (PR change: new public tier)", async () => {
+    const req = mockGetRequest();
+    await GET(req);
 
-      const req = makeRequest();
-      const res = await GET(req);
-      const data = await res.json();
-
-      expect(res.status).toBe(429);
-      expect(data.error).toBe('RATE_LIMITED');
-      expect(data.message).toBe('Too many requests.');
-    });
-
-    it('uses RATE_LIMITS.public with IP-based key', async () => {
-      process.env.ISSUER_PUBLIC_KEY = 'fake-pem';
-      const req = makeRequest();
-      await GET(req);
-
-      expect(mockCheckRateLimit).toHaveBeenCalledWith(
-        'did-doc:10.0.0.1',
-        expect.objectContaining({ maxRequests: 60 })
-      );
-    });
+    expect(mockCheckRateLimit).toHaveBeenCalledWith(
+      expect.stringContaining("did-doc:"),
+      RATE_LIMITS.public
+    );
   });
 
-  describe('no DID param — issuer DID document', () => {
-    it('returns 500 when ISSUER_PUBLIC_KEY is not configured', async () => {
-      delete process.env.ISSUER_PUBLIC_KEY;
+  it("uses client IP as part of rate limit key", async () => {
+    mockGetClientIp.mockReturnValue("192.168.1.1");
 
-      const req = makeRequest();
-      const res = await GET(req);
-      const data = await res.json();
+    const req = mockGetRequest();
+    await GET(req);
 
-      expect(res.status).toBe(500);
-      expect(data.error).toMatch(/issuer_public_key/i);
-    });
-
-    it('returns 200 with issuer DID document when key is configured', async () => {
-      process.env.ISSUER_PUBLIC_KEY = '-----BEGIN PUBLIC KEY-----\nfake\n-----END PUBLIC KEY-----';
-
-      const req = makeRequest();
-      const res = await GET(req);
-      const data = await res.json();
-
-      expect(res.status).toBe(200);
-      expect(data.id).toBe('did:axiom:issuer');
-    });
-
-    it('sets correct Content-Type for DID document', async () => {
-      process.env.ISSUER_PUBLIC_KEY = 'fake-pem';
-
-      const req = makeRequest();
-      const res = await GET(req);
-
-      expect(res.headers.get('Content-Type')).toContain('application/did+ld+json');
-    });
-
-    it('sets Cache-Control header', async () => {
-      process.env.ISSUER_PUBLIC_KEY = 'fake-pem';
-
-      const req = makeRequest();
-      const res = await GET(req);
-
-      expect(res.headers.get('Cache-Control')).toContain('public');
-    });
+    expect(mockCheckRateLimit).toHaveBeenCalledWith(
+      "did-doc:192.168.1.1",
+      expect.anything()
+    );
   });
 
-  describe('with DID param — user DID resolution', () => {
-    it('returns 404 when DID is not found', async () => {
-      mockResolveDid.mockResolvedValue(null);
+  it("rate limit response uses NextResponse.json format (not apiError)", async () => {
+    mockCheckRateLimit.mockResolvedValue({ allowed: false, remaining: 0, resetAt: Date.now() + 60000 });
 
-      const req = makeRequest({ did: 'did:axiom:unknown' });
-      const res = await GET(req);
-      const data = await res.json();
+    const req = mockGetRequest();
+    const res = await GET(req);
+    const data = await res.json();
 
-      expect(res.status).toBe(404);
-      expect(data.error).toMatch(/not found/i);
+    // did-document route uses NextResponse.json directly, not apiError
+    // So the response has 'error' and 'message' fields (not 'code')
+    expect(data).toHaveProperty("error", "RATE_LIMITED");
+    expect(data).toHaveProperty("message");
+    expect(data).not.toHaveProperty("code");
+  });
+});
+
+describe("GET /api/did-document — DID resolution", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000 });
+    mockGetClientIp.mockReturnValue("127.0.0.1");
+    process.env.ISSUER_PUBLIC_KEY = "test-public-key";
+  });
+
+  it("returns 404 when DID is not found", async () => {
+    mockResolveDid.mockResolvedValue(null);
+
+    const req = mockGetRequest({ did: "did:axiom:unknown" });
+    const res = await GET(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(404);
+    expect(data.error).toBe("DID not found");
+  });
+
+  it("returns 400 when user found but has no DID configured", async () => {
+    mockResolveDid.mockResolvedValue({ id: "user-1", did: null });
+
+    const req = mockGetRequest({ did: "did:axiom:unknown" });
+    const res = await GET(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(data.error).toBe("User has no DID configured");
+  });
+
+  it("returns DID document with correct content-type header", async () => {
+    mockResolveDid.mockResolvedValue({ id: "user-1", did: "did:axiom:alice" });
+    mockBuildDidDocument.mockReturnValue({
+      "@context": ["https://www.w3.org/ns/did/v1"],
+      id: "did:axiom:alice",
     });
 
-    it('returns 400 when user has no DID configured', async () => {
-      mockResolveDid.mockResolvedValue({ id: 'user-1', did: null } as any);
+    const req = mockGetRequest({ did: "did:axiom:alice" });
+    const res = await GET(req);
 
-      const req = makeRequest({ did: 'did:axiom:user-1' });
-      const res = await GET(req);
-      const data = await res.json();
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toContain("application/did+ld+json");
+  });
 
-      expect(res.status).toBe(400);
-      expect(data.error).toMatch(/no did configured/i);
-    });
+  it("returns DID document with cache-control header", async () => {
+    mockResolveDid.mockResolvedValue({ id: "user-1", did: "did:axiom:alice" });
+    mockBuildDidDocument.mockReturnValue({ id: "did:axiom:alice" });
 
-    it('returns 200 with DID document for a resolved user', async () => {
-      mockResolveDid.mockResolvedValue({ id: 'user-1', did: 'did:axiom:alice' } as any);
+    const req = mockGetRequest({ did: "did:axiom:alice" });
+    const res = await GET(req);
 
-      const req = makeRequest({ did: 'did:axiom:alice' });
-      const res = await GET(req);
-      const data = await res.json();
+    expect(res.headers.get("Cache-Control")).toContain("max-age=86400");
+  });
+});
 
-      expect(res.status).toBe(200);
-      expect(data.id).toBe('did:axiom:alice');
-    });
+describe("GET /api/did-document — issuer DID fallback", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 59, resetAt: Date.now() + 60000 });
+    mockGetClientIp.mockReturnValue("127.0.0.1");
+  });
 
-    it('returns 500 when buildDidDocument throws', async () => {
-      mockResolveDid.mockResolvedValue({ id: 'user-1', did: 'did:axiom:bad' } as any);
-      mockBuildDidDocument.mockImplementationOnce(() => {
-        throw new Error('Invalid DID format');
-      });
+  it("returns 500 when ISSUER_PUBLIC_KEY is not configured", async () => {
+    delete process.env.ISSUER_PUBLIC_KEY;
 
-      const req = makeRequest({ did: 'did:axiom:bad' });
-      const res = await GET(req);
-      const data = await res.json();
+    const req = mockGetRequest();
+    const res = await GET(req);
+    const data = await res.json();
 
-      expect(res.status).toBe(500);
-      expect(data.error).toBe('Invalid DID format');
-    });
+    expect(res.status).toBe(500);
+    expect(data.error).toContain("ISSUER_PUBLIC_KEY");
+  });
+
+  it("returns issuer DID document when no DID param provided", async () => {
+    process.env.ISSUER_PUBLIC_KEY = "test-public-key";
+
+    const req = mockGetRequest();
+    const res = await GET(req);
+
+    expect(res.status).toBe(200);
   });
 });

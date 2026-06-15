@@ -1,292 +1,305 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * @jest-environment node
  *
- * Tests for src/middleware.ts
+ * Tests for src/middleware.ts — CORS handling, host validation, and preflight (PR changes).
  *
- * Covers the PR changes:
- * - CORS preflight handling (OPTIONS method)
- * - getAllowedOrigin logic and CORS header application
- * - applyCorsHeaders added to normal requests
- * - Removal of vercel.app wildcard from isAllowedHost
+ * PR changes covered:
+ * - OPTIONS preflight handler returning 204 with CORS headers
+ * - getAllowedOrigin logic (same-origin, explicit allowlist, localhost)
+ * - applyCorsHeaders applied to all responses
+ * - isAllowedHost: removed .vercel.app wildcard support
+ * - CORS_ALLOWED_ORIGINS allowlist introduced
+ *
+ * NOTE: src/middleware.ts as written in this PR contains a syntax error —
+ * a missing closing brace `}` for the inner `if (isSubdomain)` block at line 114.
+ * These tests document the intended behavior; they will pass once that bug is fixed.
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { middleware } from "@/middleware";
 
+// Helper to create a mock NextRequest
 function makeRequest(
-  path: string,
+  url: string,
   options: {
     method?: string;
-    host?: string;
-    origin?: string;
-    contentLength?: string;
+    headers?: Record<string, string>;
+    contentLength?: number;
   } = {}
 ): NextRequest {
-  const { method = "GET", host = "localhost", origin, contentLength } = options;
-  const url = `https://${host}${path}`;
-  const headers: Record<string, string> = { host };
-  if (origin) headers["origin"] = origin;
-  if (contentLength) headers["content-length"] = contentLength;
-
-  return new NextRequest(url, { method, headers });
+  const { method = "GET", headers = {}, contentLength } = options;
+  const reqHeaders: Record<string, string> = { ...headers };
+  if (contentLength !== undefined) {
+    reqHeaders["content-length"] = String(contentLength);
+  }
+  return new NextRequest(url, { method, headers: reqHeaders });
 }
 
-describe("middleware — CORS preflight (OPTIONS)", () => {
-  it("returns 204 for OPTIONS request from an allowed origin", () => {
-    const req = makeRequest("/api/test", {
+describe("middleware — CORS preflight (PR change: OPTIONS handler)", () => {
+  it("responds with 204 for OPTIONS request from allowed origin", () => {
+    const req = makeRequest("https://axiomid.app/api/test", {
       method: "OPTIONS",
-      origin: "https://axiomid.app",
+      headers: { origin: "https://axiomid.app" },
     });
-
     const res = middleware(req);
-
-    expect(res?.status).toBe(204);
+    expect(res.status).toBe(204);
   });
 
-  it("sets Access-Control-Allow-Origin header for allowed origin", () => {
-    const req = makeRequest("/api/test", {
+  it("sets Access-Control-Allow-Origin header for allowed origin in preflight", () => {
+    const req = makeRequest("https://axiomid.app/api/test", {
       method: "OPTIONS",
-      origin: "https://axiomid.app",
+      headers: { origin: "https://axiomid.app" },
     });
-
     const res = middleware(req);
-
-    expect(res?.headers.get("Access-Control-Allow-Origin")).toBe("https://axiomid.app");
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe("https://axiomid.app");
   });
 
-  it("sets Access-Control-Allow-Methods header for preflight", () => {
-    const req = makeRequest("/api/test", {
+  it("sets Access-Control-Allow-Methods in preflight response", () => {
+    const req = makeRequest("https://axiomid.app/api/test", {
       method: "OPTIONS",
-      origin: "http://localhost:3000",
+      headers: { origin: "http://localhost:3000" },
     });
-
     const res = middleware(req);
-
-    expect(res?.headers.get("Access-Control-Allow-Methods")).toContain("GET");
-    expect(res?.headers.get("Access-Control-Allow-Methods")).toContain("POST");
+    expect(res.headers.get("Access-Control-Allow-Methods")).toBe(
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
   });
 
-  it("sets Access-Control-Allow-Headers header for preflight", () => {
-    const req = makeRequest("/api/test", {
+  it("sets Access-Control-Allow-Headers in preflight response", () => {
+    const req = makeRequest("https://axiomid.app/api/test", {
       method: "OPTIONS",
-      origin: "http://localhost:3000",
+      headers: { origin: "http://localhost:3000" },
     });
-
     const res = middleware(req);
-
-    expect(res?.headers.get("Access-Control-Allow-Headers")).toContain("Content-Type");
-    expect(res?.headers.get("Access-Control-Allow-Headers")).toContain("Authorization");
+    expect(res.headers.get("Access-Control-Allow-Headers")).toBe(
+      "Content-Type, Authorization, X-Shared-Secret"
+    );
   });
 
-  it("sets Access-Control-Max-Age header for preflight", () => {
-    const req = makeRequest("/api/test", {
+  it("sets Access-Control-Max-Age to 86400 in preflight response", () => {
+    const req = makeRequest("https://axiomid.app/api/test", {
       method: "OPTIONS",
-      origin: "https://axiomid.app",
+      headers: { origin: "http://localhost:3000" },
     });
-
     const res = middleware(req);
-
-    expect(res?.headers.get("Access-Control-Max-Age")).toBe("86400");
+    expect(res.headers.get("Access-Control-Max-Age")).toBe("86400");
   });
 
-  it("does NOT set CORS headers for OPTIONS from a disallowed origin", () => {
-    const req = makeRequest("/api/test", {
+  it("does NOT set CORS headers for disallowed origin in preflight", () => {
+    const req = makeRequest("https://axiomid.app/api/test", {
       method: "OPTIONS",
-      origin: "https://evil.example.com",
+      headers: { origin: "https://evil.com" },
     });
-
     const res = middleware(req);
-
-    // Should still return 204, but without CORS headers
-    expect(res?.status).toBe(204);
-    expect(res?.headers.get("Access-Control-Allow-Origin")).toBeNull();
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBeNull();
   });
 });
 
-describe("middleware — CORS headers on regular requests", () => {
-  it("adds Access-Control-Allow-Origin for GET request from localhost:3000", () => {
-    const req = makeRequest("/api/test", {
-      host: "localhost",
-      origin: "http://localhost:3000",
+describe("middleware — CORS headers on normal responses (PR change: applyCorsHeaders)", () => {
+  it("applies CORS headers for axiomid.app origin on regular GET", () => {
+    const req = makeRequest("https://axiomid.app/dashboard", {
+      method: "GET",
+      headers: { host: "axiomid.app", origin: "https://axiomid.app" },
     });
-
     const res = middleware(req);
-
-    expect(res?.headers.get("Access-Control-Allow-Origin")).toBe("http://localhost:3000");
+    // NextResponse.next() with CORS headers applied
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe("https://axiomid.app");
   });
 
-  it("adds CORS headers for www.axiomid.app origin", () => {
-    const req = makeRequest("/api/test", {
-      host: "axiomid.app",
-      origin: "https://www.axiomid.app",
+  it("applies CORS headers for localhost:3000 in development", () => {
+    const req = makeRequest("http://localhost:3000/dashboard", {
+      method: "GET",
+      headers: { host: "localhost:3000", origin: "http://localhost:3000" },
     });
-
     const res = middleware(req);
-
-    expect(res?.headers.get("Access-Control-Allow-Origin")).toBe("https://www.axiomid.app");
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe("http://localhost:3000");
   });
 
-  it("adds CORS headers for axiomid.vercel.app origin (allowlist)", () => {
-    const req = makeRequest("/api/test", {
-      host: "axiomid.app",
-      origin: "https://axiomid.vercel.app",
+  it("applies CORS headers for explicit allowlist origin (axiomid.vercel.app)", () => {
+    const req = makeRequest("https://axiomid.app/api/test", {
+      method: "GET",
+      headers: { host: "axiomid.app", origin: "https://axiomid.vercel.app" },
     });
-
     const res = middleware(req);
-
-    expect(res?.headers.get("Access-Control-Allow-Origin")).toBe("https://axiomid.vercel.app");
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
+      "https://axiomid.vercel.app"
+    );
   });
 
-  it("does NOT add CORS headers for an unknown origin", () => {
-    const req = makeRequest("/api/test", {
-      host: "axiomid.app",
-      origin: "https://attacker.example.com",
+  it("does NOT apply CORS headers when origin is absent", () => {
+    const req = makeRequest("https://axiomid.app/dashboard", {
+      method: "GET",
+      headers: { host: "axiomid.app" },
     });
-
     const res = middleware(req);
-
-    expect(res?.headers.get("Access-Control-Allow-Origin")).toBeNull();
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBeNull();
   });
 
-  it("does NOT add CORS headers when no origin header is present", () => {
-    const req = makeRequest("/api/test", { host: "axiomid.app" });
-
+  it("does NOT apply CORS headers for unknown origin", () => {
+    const req = makeRequest("https://axiomid.app/dashboard", {
+      method: "GET",
+      headers: { host: "axiomid.app", origin: "https://attacker.example.com" },
+    });
     const res = middleware(req);
-
-    expect(res?.headers.get("Access-Control-Allow-Origin")).toBeNull();
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBeNull();
   });
 });
 
-describe("middleware — getAllowedOrigin logic", () => {
-  it("allows subdomains of axiomid.app (same-origin)", () => {
-    const req = makeRequest("/api/test", {
-      host: "axiomid.app",
-      origin: "https://alice.axiomid.app",
+describe("middleware — getAllowedOrigin via CORS behavior (PR change)", () => {
+  it("allows subdomains of axiomid.app as origin", () => {
+    const req = makeRequest("https://axiomid.app/api/test", {
+      method: "GET",
+      headers: { host: "axiomid.app", origin: "https://sub.axiomid.app" },
     });
-
     const res = middleware(req);
-
-    expect(res?.headers.get("Access-Control-Allow-Origin")).toBe("https://alice.axiomid.app");
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
+      "https://sub.axiomid.app"
+    );
   });
 
-  it("allows localhost in any port", () => {
-    const req = makeRequest("/api/test", {
-      host: "localhost",
-      origin: "http://localhost:3001",
+  it("allows www.axiomid.app as origin via explicit allowlist", () => {
+    const req = makeRequest("https://axiomid.app/api/test", {
+      method: "GET",
+      headers: { host: "axiomid.app", origin: "https://www.axiomid.app" },
     });
-
     const res = middleware(req);
-
-    expect(res?.headers.get("Access-Control-Allow-Origin")).toBe("http://localhost:3001");
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
+      "https://www.axiomid.app"
+    );
   });
 
-  it("does NOT allow arbitrary vercel.app subdomains (regression for removed wildcard)", () => {
-    const req = makeRequest("/api/test", {
-      host: "axiomid.app",
-      origin: "https://some-other-axiomid.vercel.app",
+  it("allows localhost:3001 via explicit allowlist", () => {
+    const req = makeRequest("http://localhost:3001/api/test", {
+      method: "GET",
+      headers: { host: "localhost:3001", origin: "http://localhost:3001" },
     });
-
     const res = middleware(req);
-
-    expect(res?.headers.get("Access-Control-Allow-Origin")).toBeNull();
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(
+      "http://localhost:3001"
+    );
   });
 
-  it("handles malformed origin gracefully without throwing", () => {
-    const req = makeRequest("/api/test", {
-      host: "axiomid.app",
-      origin: "not-a-url",
+  it("rejects invalid origin string gracefully (no CORS header set)", () => {
+    const req = makeRequest("https://axiomid.app/dashboard", {
+      method: "GET",
+      headers: { host: "axiomid.app", origin: "not-a-valid-url" },
     });
+    const res = middleware(req);
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBeNull();
+  });
+});
 
-    expect(() => middleware(req)).not.toThrow();
+describe("middleware — isAllowedHost (PR change: removed vercel.app wildcard)", () => {
+  it("returns 403 for disallowed host", () => {
+    const req = makeRequest("https://evil.com/api/test", {
+      headers: { host: "evil.com" },
+    });
+    const res = middleware(req);
+    expect(res.status).toBe(403);
+  });
+
+  it("allows localhost host", () => {
+    const req = makeRequest("http://localhost:3000/dashboard", {
+      headers: { host: "localhost:3000" },
+    });
+    const res = middleware(req);
+    expect(res.status).not.toBe(403);
+  });
+
+  it("allows axiomid.app host", () => {
+    const req = makeRequest("https://axiomid.app/dashboard", {
+      headers: { host: "axiomid.app" },
+    });
+    const res = middleware(req);
+    expect(res.status).not.toBe(403);
+  });
+
+  it("allows subdomains of axiomid.app", () => {
+    const req = makeRequest("https://alice.axiomid.app/profile", {
+      headers: { host: "alice.axiomid.app" },
+    });
+    // Subdomains may trigger rewrite logic, but should not return 403
+    const res = middleware(req);
+    expect(res.status).not.toBe(403);
+  });
+
+  it("rejects random vercel.app host that includes 'axiomid' in name (PR change: removed vercel wildcard)", () => {
+    // In the old code, 'axiomid.vercel.app' as a HOST was allowed.
+    // In the new code, the wildcard .vercel.app host check was removed.
+    const req = makeRequest("https://axiomid.vercel.app/dashboard", {
+      headers: { host: "axiomid.vercel.app" },
+    });
+    const res = middleware(req);
+    expect(res.status).toBe(403);
   });
 });
 
 describe("middleware — request body size limit", () => {
   it("returns 413 when content-length exceeds 1MB", () => {
-    const req = makeRequest("/api/test", {
-      host: "axiomid.app",
-      contentLength: String(1024 * 1024 + 1),
+    const req = makeRequest("https://axiomid.app/api/test", {
+      method: "POST",
+      headers: { host: "axiomid.app" },
+      contentLength: 1024 * 1024 + 1,
     });
-
     const res = middleware(req);
-
-    expect(res?.status).toBe(413);
+    expect(res.status).toBe(413);
   });
 
-  it("allows requests at exactly 1MB content-length", () => {
-    const req = makeRequest("/api/test", {
-      host: "axiomid.app",
-      contentLength: String(1024 * 1024),
+  it("allows requests exactly at 1MB content-length", () => {
+    const req = makeRequest("https://axiomid.app/api/test", {
+      method: "POST",
+      headers: { host: "axiomid.app" },
+      contentLength: 1024 * 1024,
     });
-
     const res = middleware(req);
-
-    expect(res?.status).not.toBe(413);
-  });
-});
-
-describe("middleware — host validation", () => {
-  it("blocks requests from disallowed hosts", () => {
-    const req = makeRequest("/api/test", {
-      host: "evil.example.com",
-    });
-
-    const res = middleware(req);
-
-    expect(res?.status).toBe(403);
+    expect(res.status).not.toBe(413);
   });
 
-  it("allows requests from localhost", () => {
-    const req = makeRequest("/api/test", {
-      host: "localhost",
+  it("allows requests with no content-length header", () => {
+    const req = makeRequest("https://axiomid.app/api/test", {
+      method: "POST",
+      headers: { host: "axiomid.app" },
     });
-
     const res = middleware(req);
-
-    expect(res?.status).not.toBe(403);
-  });
-
-  it("allows requests from axiomid.app", () => {
-    const req = makeRequest("/api/test", {
-      host: "axiomid.app",
-    });
-
-    const res = middleware(req);
-
-    expect(res?.status).not.toBe(403);
-  });
-
-  it("allows requests from www.axiomid.app", () => {
-    const req = makeRequest("/api/test", {
-      host: "www.axiomid.app",
-    });
-
-    const res = middleware(req);
-
-    expect(res?.status).not.toBe(403);
-  });
-
-  it("does NOT allow a non-axiomid vercel.app host (regression for removed wildcard)", () => {
-    const req = makeRequest("/api/test", {
-      host: "other-project.vercel.app",
-    });
-
-    const res = middleware(req);
-
-    expect(res?.status).toBe(403);
+    expect(res.status).not.toBe(413);
   });
 });
 
-describe("middleware — .well-known/did.json rewrite", () => {
+describe("middleware — well-known DID rewrite", () => {
   it("rewrites /.well-known/did.json to /api/did-document", () => {
-    const req = makeRequest("/.well-known/did.json", {
-      host: "axiomid.app",
+    const req = makeRequest("https://axiomid.app/.well-known/did.json", {
+      headers: { host: "axiomid.app" },
     });
+    const res = middleware(req);
+    // NextResponse.rewrite returns a 200 (the rewritten response)
+    // We can verify the response isn't an error
+    expect(res.status).not.toBe(403);
+    expect(res.status).not.toBe(413);
+  });
+});
 
-    const res = middleware(req) as NextResponse;
+describe("middleware — invalid subdomain rejection", () => {
+  it("returns 400 for subdomain with invalid characters", () => {
+    const req = makeRequest("https://_invalid_.axiomid.app/profile", {
+      headers: { host: "_invalid_.axiomid.app" },
+    });
+    const res = middleware(req);
+    expect(res.status).toBe(400);
+  });
 
-    // The rewrite doesn't change status, it rewrites internally
-    expect(res).toBeDefined();
+  it("returns 400 for subdomain with leading hyphen", () => {
+    const req = makeRequest("https://-bad.axiomid.app/profile", {
+      headers: { host: "-bad.axiomid.app" },
+    });
+    const res = middleware(req);
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 for subdomain with trailing hyphen", () => {
+    const req = makeRequest("https://bad-.axiomid.app/profile", {
+      headers: { host: "bad-.axiomid.app" },
+    });
+    const res = middleware(req);
+    expect(res.status).toBe(400);
   });
 });

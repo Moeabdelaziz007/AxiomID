@@ -196,21 +196,8 @@ describe("Dashboard page — authenticated user content", () => {
   });
 });
 
-describe("Dashboard page — Marketplace tab navigation (PR change)", () => {
-  it("renders the Marketplace tab button", () => {
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: authenticatedUser }));
-    render(<Dashboard />);
-    expect(screen.getByRole("tab", { name: /marketplace/i })).toBeInTheDocument();
-  });
-
-  it("Marketplace tab is no longer disabled (PR change)", () => {
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: authenticatedUser }));
-    render(<Dashboard />);
-    const tab = screen.getByRole("tab", { name: /marketplace/i });
-    expect(tab).not.toBeDisabled();
-  });
-
-  it("clicking Marketplace tab navigates to /dashboard/marketplace", () => {
+describe("Dashboard page — marketplace tab navigation (PR change)", () => {
+  it("clicking Marketplace tab calls router.push('/dashboard/marketplace')", () => {
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user: authenticatedUser }));
     render(<Dashboard />);
 
@@ -221,10 +208,41 @@ describe("Dashboard page — Marketplace tab navigation (PR change)", () => {
     expect(mockRouterPush).toHaveBeenCalledWith("/dashboard/marketplace");
   });
 
-  it("does NOT render a 'Coming Soon' tooltip on the Marketplace tab (PR change)", () => {
+  it("marketplace tab is rendered without 'disabled' attribute (PR change: removed disabled)", () => {
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user: authenticatedUser }));
     render(<Dashboard />);
-    // The disabled tooltip was removed in this PR
+
+    const marketplaceTab = screen.getByRole("tab", { name: /marketplace/i });
+    expect(marketplaceTab).not.toBeDisabled();
+  });
+
+  it("marketplace tab does not show 'Coming Soon' tooltip text", () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: authenticatedUser }));
+    render(<Dashboard />);
+
     expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument();
+  });
+
+  it("marketplace tab is visible in the tab list", () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: authenticatedUser }));
+    render(<Dashboard />);
+
+    expect(screen.getByRole("tab", { name: /marketplace/i })).toBeInTheDocument();
+  });
+
+  it("marketplace tab click does not change the active tab (navigation leaves the page)", () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: authenticatedUser }));
+    render(<Dashboard />);
+
+    // Verify passport tab is initially active (aria-selected=true)
+    const passportTab = screen.getByRole("tab", { name: /passport/i });
+    expect(passportTab).toHaveAttribute("aria-selected", "true");
+
+    act(() => {
+      screen.getByRole("tab", { name: /marketplace/i }).click();
+    });
+
+    // Passport should still be selected because marketplace nav redirects away
+    expect(passportTab).toHaveAttribute("aria-selected", "true");
   });
 });
