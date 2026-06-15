@@ -118,7 +118,7 @@ export function extractASTInfo(
   nodes: MemoryNode[];
   edges: MemoryEdge[];
 } {
-  const relativeFilePath = path.relative(rootDir, filePath);
+  const relativeFilePath = path.relative(rootDir, filePath).replace(/\\/g, '/');
   const nodes: MemoryNode[] = [];
   const edges: MemoryEdge[] = [];
 
