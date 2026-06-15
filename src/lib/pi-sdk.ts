@@ -106,7 +106,7 @@ function checkPiBrowser(): boolean {
       const referrer = document.referrer || "";
       if (referrer) {
         const referrerHost = new URL(referrer).hostname.toLowerCase();
-        if (referrerHost === "minepi.com" || referrerHost === "sandbox.minepi.com") return true;
+        if (referrerHost === "minepi.com" || referrerHost.endsWith(".minepi.com")) return true;
       }
     }
   } catch {}
