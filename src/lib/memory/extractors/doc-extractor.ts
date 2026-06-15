@@ -2,15 +2,15 @@ import fs from 'fs';
 import path from 'path';
 import { MemoryNode, MemoryEdge } from '../graph';
 
+const IGNORED_DIRS = new Set(['node_modules', '.git', '.next', '.jolli', 'dist', 'out', 'build']);
+
 /**
- * Recursively scans a directory for Markdown files, skipping `node_modules`, `.git`, `.next`, `.jolli`, and `dist`.
- *
- * @returns An array of full file paths to all discovered `.md` files, or an empty array if the directory does not exist.
+ * Recursively find all Markdown files in a directory.
  */
 export function globMarkdownFiles(dir: string, rootDir: string): string[] {
   let results: string[] = [];
   if (!fs.existsSync(dir)) return results;
-  
+
   const list = fs.readdirSync(dir);
 
   for (const file of list) {
@@ -18,13 +18,7 @@ export function globMarkdownFiles(dir: string, rootDir: string): string[] {
     const stat = fs.statSync(fullPath);
 
     if (stat.isDirectory()) {
-      if (
-        file === 'node_modules' ||
-        file === '.git' ||
-        file === '.next' ||
-        file === '.jolli' ||
-        file === 'dist'
-      ) {
+      if (IGNORED_DIRS.has(file)) {
         continue;
       }
       results = results.concat(globMarkdownFiles(fullPath, rootDir));
@@ -39,10 +33,7 @@ export function globMarkdownFiles(dir: string, rootDir: string): string[] {
 }
 
 /**
- * Extracts and parses YAML frontmatter from the beginning of content.
- *
- * @param content - The text to parse, potentially containing a frontmatter block.
- * @returns An object with `frontmatter` containing parsed metadata as key-value pairs (with `[...]` notation converted to arrays) and `body` containing the remaining content after the frontmatter block. If no frontmatter block is found, `frontmatter` is empty and `body` is the original content.
+ * Parses simple YAML frontmatter.
  */
 export function parseFrontmatter(content: string): {
   frontmatter: Record<string, any>;
@@ -79,9 +70,7 @@ export function parseFrontmatter(content: string): {
 }
 
 /**
- * Extracts wikilink targets from Markdown text.
- *
- * @returns An array of wikilink targets, excluding any display text after `|`.
+ * Extracts all [[Wikilinks]] from a body of markdown text.
  */
 export function extractWikilinks(body: string): string[] {
   const links: string[] = [];
@@ -97,14 +86,7 @@ export function extractWikilinks(body: string): string[] {
 }
 
 /**
- * Resolves a wikilink target to a project-relative file path.
- *
- * Searches for the target file by checking relative to the current document's directory and then at the project root. If the target does not have a `.md` extension, the function appends it during the search.
- *
- * @param target - The wikilink target name, with or without a `.md` extension
- * @param currentDocPath - The file path of the document containing the wikilink
- * @param rootDir - The project root directory
- * @returns The project-relative file path if found, or `null` if the target cannot be resolved
+ * Resolves a wikilink target name to a file/document ID in the project.
  */
 export function resolveWikilinkTarget(
   target: string,
@@ -119,26 +101,23 @@ export function resolveWikilinkTarget(
     return path.relative(rootDir, potentialPath);
   }
 
-  const searchName = target.endsWith('.md') ? target : `${target}.md`;
-  const potentialSearchPath = path.resolve(currentDir, searchName);
-  if (fs.existsSync(potentialSearchPath) && fs.statSync(potentialSearchPath).isFile()) {
-    return path.relative(rootDir, potentialSearchPath).replace(/\\/g, '/');
+  // Try matching with .md extension (for doc wikilinks without extension)
+  if (!target.endsWith('.md')) {
+    const mdPath = path.resolve(currentDir, `${target}.md`);
+    if (fs.existsSync(mdPath) && fs.statSync(mdPath).isFile()) {
+      return path.relative(rootDir, mdPath).replace(/\\/g, '/');
+    }
   }
 
-  const codePath = path.join(rootDir, searchName);
+  // Try resolving as a code file relative to project root (e.g. [[src/lib/did.ts]])
+  const codePath = path.join(rootDir, target);
   if (fs.existsSync(codePath) && fs.statSync(codePath).isFile()) {
-    return searchName.replace(/\\/g, '/');
+    return target.replace(/\\/g, '/');
   }
 
   return null;
-}
-
 /**
- * Reads a markdown file and extracts document metadata and relationships as graph nodes and edges.
- *
- * @param filePath - Absolute path to the markdown file
- * @param rootDir - The root directory used to compute relative paths in the result
- * @returns An object containing document nodes and relationship edges extracted from the file
+ * Extracts metadata, wikilinks, and creates nodes & edges for a markdown file.
  */
 export function extractDocInfo(
   filePath: string,
@@ -203,10 +182,7 @@ export function extractDocInfo(
 }
 
 /**
- * Extracts document metadata and relationships from Markdown files in a directory.
- *
- * @param rootDir - The directory to scan
- * @returns An object with `nodes` containing document metadata and `edges` containing discovered relationships
+ * Scans the workspace for markdown documentation and returns nodes and edges.
  */
 export function scanProjectDocs(rootDir: string): {
   nodes: MemoryNode[];

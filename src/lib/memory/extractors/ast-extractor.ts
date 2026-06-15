@@ -3,14 +3,10 @@ import path from 'path';
 import ts from 'typescript';
 import { MemoryNode, MemoryEdge } from '../graph';
 
+const IGNORED_DIRS = new Set(['node_modules', '.git', '.next', '.jolli', 'dist', 'out', 'build']);
+
 /**
- * Collects all TypeScript and JavaScript source files from a directory tree.
- *
- * Recursively walks `dir`, including files with extensions `.ts`, `.tsx`, `.js`, or `.jsx`,
- * except `.d.ts` files. Skips directories: `node_modules`, `.git`, `.next`, `.jolli`, `dist`, `out`, and `build`.
- *
- * @param dir - The root directory to start scanning from.
- * @returns An array of absolute file paths.
+ * Recursively gets all TS/JS files in a directory, ignoring node_modules, .git, .next, etc.
  */
 export function globFiles(dir: string, rootDir: string): string[] {
   let results: string[] = [];
@@ -20,17 +16,8 @@ export function globFiles(dir: string, rootDir: string): string[] {
     const fullPath = path.join(dir, file);
     const stat = fs.statSync(fullPath);
 
-    // Skip ignored directories
     if (stat.isDirectory()) {
-      if (
-        file === 'node_modules' ||
-        file === '.git' ||
-        file === '.next' ||
-        file === '.jolli' ||
-        file === 'dist' ||
-        file === 'out' ||
-        file === 'build'
-      ) {
+      if (IGNORED_DIRS.has(file)) {
         continue;
       }
       results = results.concat(globFiles(fullPath, rootDir));
@@ -47,11 +34,8 @@ export function globFiles(dir: string, rootDir: string): string[] {
 }
 
 /**
- * Resolves a local import specifier to a workspace-root-relative path.
- *
- * Handles relative imports and `@/` alias imports mapped to `src/`.
- *
- * @returns The relative path from `rootDir` to the resolved file, or `null` if the import cannot be resolved
+ * Resolves an imported module path to a relative path from workspace root.
+ * Supports relative imports and '@/' alias.
  */
 export function resolveImportPath(
   importee: string,
@@ -103,13 +87,7 @@ export function resolveImportPath(
 }
 
 /**
- * Extracts imports and exported symbols from a TypeScript or JavaScript file.
- *
- * Creates nodes for the file itself and for each top-level exported declaration (class, interface, function, enum, or type alias), and creates edges representing import relationships and export associations.
- *
- * @param filePath - Absolute path to the file to analyze.
- * @param rootDir - Project root directory; relative paths in graph nodes are computed from this.
- * @returns An object with `nodes` (file and symbol nodes) and `edges` (import and export relationships).
+ * Parses a TS/JS file AST to extract imports and top-level exported symbols.
  */
 export function extractASTInfo(
   filePath: string,
@@ -118,17 +96,18 @@ export function extractASTInfo(
   nodes: MemoryNode[];
   edges: MemoryEdge[];
 } {
-  const relativeFilePath = path.relative(rootDir, filePath).replace(/\\/g, '/');
+  const relativeFilePath = path.relative(rootDir, filePath);
   const nodes: MemoryNode[] = [];
   const edges: MemoryEdge[] = [];
 
   // Add the file node itself
+  const stat = fs.statSync(filePath);
   nodes.push({
     id: relativeFilePath,
     type: 'file',
     metadata: {
-      size: fs.statSync(filePath).size,
-      mtime: fs.statSync(filePath).mtime.toISOString(),
+      size: stat.size,
+      mtime: stat.mtime.toISOString(),
       extension: path.extname(filePath)
     }
   });
@@ -177,12 +156,12 @@ export function extractASTInfo(
         if (hasExport && node.name) {
           const symbolName = node.name.text;
           const symbolId = `${relativeFilePath}#${symbolName}`;
-          let symbolKind = 'unknown';
-          if (ts.isClassDeclaration(node)) symbolKind = 'class';
-          else if (ts.isInterfaceDeclaration(node)) symbolKind = 'interface';
-          else if (ts.isFunctionDeclaration(node)) symbolKind = 'function';
-          else if (ts.isEnumDeclaration(node)) symbolKind = 'enum';
-          else if (ts.isTypeAliasDeclaration(node)) symbolKind = 'type';
+          const symbolKind =
+            ts.isClassDeclaration(node) ? 'class' :
+            ts.isInterfaceDeclaration(node) ? 'interface' :
+            ts.isFunctionDeclaration(node) ? 'function' :
+            ts.isEnumDeclaration(node) ? 'enum' :
+            ts.isTypeAliasDeclaration(node) ? 'type' : 'unknown';
 
           nodes.push({
             id: symbolId,
@@ -217,10 +196,7 @@ export function extractASTInfo(
 }
 
 /**
- * Scans the entire project and builds a graph of its code structure and file hierarchy.
- *
- * @returns An object containing deduplicated nodes (files, exports, directories) and
- *          edges (imports, exports, containment) representing the project's structure.
+ * Scans the entire project and extracts AST nodes and edges.
  */
 export function scanProjectAST(rootDir: string): {
   nodes: MemoryNode[];
@@ -247,9 +223,15 @@ export function scanProjectAST(rootDir: string): {
 
   // Also add directory nodes for hierarchical completeness
   const dirs = new Set<string>();
+  const dirToFiles = new Map<string, string[]>();
+
   for (const node of allNodes) {
     if (node.type === 'file') {
-      let dir = path.dirname(node.id);
+      const immediateDir = path.dirname(node.id);
+      if (!dirToFiles.has(immediateDir)) dirToFiles.set(immediateDir, []);
+      dirToFiles.get(immediateDir)!.push(node.id);
+
+      let dir = immediateDir;
       while (dir && dir !== '.' && dir !== '/' && dir !== '') {
         dirs.add(dir);
         dir = path.dirname(dir);
@@ -261,33 +243,18 @@ export function scanProjectAST(rootDir: string): {
     allNodes.push({
       id: dir,
       type: 'directory',
-      metadata: {
-        name: path.basename(dir)
-      }
+      metadata: { name: path.basename(dir) }
     });
 
     // Connect directory to parent directory
     const parent = path.dirname(dir);
     if (parent && parent !== '.' && parent !== '/' && parent !== '') {
-      allEdges.push({
-        source: parent,
-        target: dir,
-        type: 'contains',
-        weight: 0.5 // Structural edge
-      });
+      allEdges.push({ source: parent, target: dir, type: 'contains', weight: 0.5 });
     }
 
-    // Connect parent directory to direct files
-    // Find all files that are directly in this directory
-    for (const node of allNodes) {
-      if (node.type === 'file' && path.dirname(node.id) === dir) {
-        allEdges.push({
-          source: dir,
-          target: node.id,
-          type: 'contains',
-          weight: 0.5
-        });
-      }
+    // Connect directory to its direct files
+    for (const fileId of dirToFiles.get(dir) ?? []) {
+      allEdges.push({ source: dir, target: fileId, type: 'contains', weight: 0.5 });
     }
   }
 

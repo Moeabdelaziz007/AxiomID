@@ -1,4 +1,4 @@
-import { MemoryGraph, MemoryNode, MemoryEdge } from './graph';
+import { MemoryGraph, MemoryNode } from './graph';
 
 export interface RoutedNode {
   node: MemoryNode;
@@ -11,32 +11,29 @@ export interface RoutedNode {
  * Uses Breadth-First Search (BFS) to gather relevant code context within a specified radius.
  */
 export class TopologicalRouter {
-  private graph: MemoryGraph;
   private adjacencyList: Map<string, Array<{ target: string; weight: number; type: string }>>;
   private nodeMap: Map<string, MemoryNode>;
 
   constructor(graph: MemoryGraph) {
-    this.graph = graph;
     this.adjacencyList = new Map();
     this.nodeMap = new Map();
-    this.buildIndex();
+    this.buildIndex(graph);
   }
 
   /**
    * Builds index maps for fast lookup during traversal.
    */
-  private buildIndex() {
-    // Index nodes
-    for (const node of this.graph.nodes) {
+  private buildIndex(graph: MemoryGraph) {
+    for (const node of graph.nodes) {
       this.nodeMap.set(node.id, node);
     }
 
     // Build undirected adjacency list for bidirectional traversal
-    for (const edge of this.graph.edges) {
+    for (const edge of graph.edges) {
       // Forward direction
       if (!this.adjacencyList.has(edge.source)) {
         this.adjacencyList.set(edge.source, []);
-      }
+
       this.adjacencyList.get(edge.source)!.push({
         target: edge.target,
         weight: edge.weight,

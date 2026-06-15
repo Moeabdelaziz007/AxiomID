@@ -2,9 +2,7 @@ import { execSync } from 'child_process';
 import { MemoryNode, MemoryEdge } from '../graph';
 
 /**
- * Determines whether a directory is inside a Git repository.
- *
- * @returns `true` if the directory is inside a Git repository, `false` otherwise.
+ * Checks if Git is installed and if the directory is a Git repository.
  */
 export function isGitRepository(rootDir: string): boolean {
   try {
@@ -19,13 +17,8 @@ export function isGitRepository(rootDir: string): boolean {
 }
 
 /**
- * Extracts Git commits and file relationships from a repository.
- *
- * Returns empty results if Git is unavailable or the directory is not a Git repository.
- * On git log execution failure, returns nodes and edges accumulated before the error.
- *
- * @param maxCommits - Maximum number of commits to extract
- * @returns An object with `nodes` (commit nodes) and `edges` (commit-to-file references and file co-occurrence relationships)
+ * Extracts Git commits and file co-occurrences.
+ * Bypasses and returns empty results gracefully if Git is not available.
  */
 export function extractGitInfo(rootDir: string, maxCommits = 50): {
   nodes: MemoryNode[];
@@ -51,7 +44,6 @@ export function extractGitInfo(rootDir: string, maxCommits = 50): {
 
     const lines = output.split('\n');
     let currentCommitId: string | null = null;
-    let currentCommitNode: MemoryNode | null = null;
     const commitFiles = new Map<string, string[]>();
 
     for (const line of lines) {
@@ -65,16 +57,11 @@ export function extractGitInfo(rootDir: string, maxCommits = 50): {
         const timestamp = parts[2] || new Date().toISOString();
 
         currentCommitId = `commit:${hash}`;
-        currentCommitNode = {
+        nodes.push({
           id: currentCommitId,
           type: 'commit',
-          metadata: {
-            hash,
-            author,
-            timestamp
-          }
-        };
-        nodes.push(currentCommitNode);
+          metadata: { hash, author, timestamp }
+        });
         commitFiles.set(currentCommitId, []);
       } else if (currentCommitId) {
         // This is a file modified in the current commit
@@ -92,9 +79,8 @@ export function extractGitInfo(rootDir: string, maxCommits = 50): {
       }
     }
 
-    // Optional: Add direct co-occurrence edges for files changed together in the same commit
-    // To avoid O(N^2) edge explosion, we only do this for commits with 5 or fewer files.
-    // This perfectly aligns with our "tinyminimicrosmallterboquansimualgotoplogy" (minimalism) mindset.
+    // Add co-occurrence edges for files changed together in the same commit.
+    // Limited to commits with 5 or fewer files to avoid O(N^2) edge explosion.
     for (const [commitId, files] of commitFiles.entries()) {
       if (files.length > 1 && files.length <= 5) {
         for (let i = 0; i < files.length; i++) {

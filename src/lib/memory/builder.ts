@@ -7,12 +7,7 @@ import { extractGitInfo } from './extractors/git-extractor';
 import { scanProjectDocs } from './extractors/doc-extractor';
 
 /**
- * Computes a deterministic SHA-256 hash for a graph based on its nodes, edges, and timestamp.
- *
- * @param nodes - The graph nodes to include in the hash computation
- * @param edges - The graph edges to include in the hash computation
- * @param timestamp - The timestamp to include in the hash computation
- * @returns A hex-encoded SHA-256 hash
+ * Deterministically computes a SHA-256 hash of nodes and edges to enforce the TrustChain (RULE 3).
  */
 export function calculateGraphHash(
   nodes: MemoryNode[],
@@ -20,14 +15,7 @@ export function calculateGraphHash(
   timestamp: number
 ): string {
   // Sort nodes and edges deterministically to guarantee identical hash for identical data
-  const sortedNodes = [...nodes].map(node => ({
-    ...node,
-    metadata: Object.keys(node.metadata || {}).sort().reduce((acc, key) => {
-      acc[key] = node.metadata[key];
-      return acc;
-    }, {} as Record<string, any>)
-  })).sort((a, b) => a.id.localeCompare(b.id));
-
+  const sortedNodes = [...nodes].sort((a, b) => a.id.localeCompare(b.id));
   const sortedEdges = [...edges].sort((a, b) => {
     const compareSource = a.source.localeCompare(b.source);
     if (compareSource !== 0) return compareSource;
@@ -46,10 +34,7 @@ export function calculateGraphHash(
 }
 
 /**
- * Builds and validates a memory graph for a project by aggregating data from multiple sources.
- *
- * @param rootDir - The root directory of the project to scan
- * @returns The validated memory graph.
+ * Builds the entire Topological Memory Graph for the project.
  */
 export function buildMemoryGraph(rootDir: string): MemoryGraph {
   console.log(`[Memory Builder] Starting build for root: ${rootDir}`);
@@ -125,22 +110,13 @@ export function buildMemoryGraph(rootDir: string): MemoryGraph {
 }
 
 /**
- * Constructs a memory graph from a project and persists it as JSON to disk.
- *
- * Creates the output directory if it does not exist.
- *
- * @param rootDir - The root directory of the project to scan
- * @param outputPath - The file path where the JSON graph should be written
- * @returns The constructed memory graph
+ * Builds the graph and saves it to a local JSON file.
  */
 export function buildAndSaveMemoryGraph(rootDir: string, outputPath: string): MemoryGraph {
   const graph = buildMemoryGraph(rootDir);
   
   // Ensure the output directory exists
-  const outputDir = path.dirname(outputPath);
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
   fs.writeFileSync(outputPath, JSON.stringify(graph, null, 2), 'utf-8');
   console.log(`[Memory Builder] Memory graph written to: ${outputPath}`);
