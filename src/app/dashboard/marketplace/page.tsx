@@ -115,7 +115,12 @@ export default function MarketplacePage() {
     }
     setInstalling(true);
     try {
-      const res = await fetch(`/api/skills/${slug}/install`, { method: "POST" });
+      const res = await fetch(`/api/skills/${slug}/install`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${user?.accessToken || ""}`
+        }
+      });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || `Install failed (${res.status})`);
