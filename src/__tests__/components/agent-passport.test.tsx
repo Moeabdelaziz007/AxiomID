@@ -169,7 +169,8 @@ describe("AgentPassport — WORLD ID Eye icon (PR change: emoji → Lucide SVG)"
 describe("AgentPassport — core identity rendering", () => {
   it("renders the username", () => {
     render(<AgentPassport {...defaultProps} username="axiomuser" />);
-    expect(screen.getByText("axiomuser")).toBeInTheDocument();
+    const headings = screen.getAllByRole("heading");
+    expect(headings.some((h) => h.textContent === "axiomuser")).toBe(true);
   });
 
   it("renders the DID text", () => {

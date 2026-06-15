@@ -16,7 +16,7 @@ jest.mock("@/lib/pi-sdk", () => {
   const actual = jest.requireActual("@/lib/pi-sdk");
   return {
     ...actual,
-    connectPi: jest.fn(),
+    connectPi: jest.fn(() => Promise.reject(new Error("Pi authentication failed: NOT_IN_PI_BROWSER"))),
   };
 });
 
@@ -146,14 +146,12 @@ describe("E2E Pi Sandbox WebView Flow", () => {
         return Promise.resolve({
           ok: true,
           json: async () => ({
-            user: {
-              id: "sandbox-user-999",
-              walletAddress: "demo:sandbox-1234",
-              xp: 150,
-              tier: "Citizen",
-              createdAt: new Date().toISOString(),
-              piUsername: "sandboxguy",
-            }
+            userId: "sandbox-user-999",
+            walletAddress: "demo:sandbox-1234",
+            xp: 150,
+            tier: "Citizen",
+            createdAt: new Date().toISOString(),
+            piUsername: "sandboxguy",
           }),
         });
       }
