@@ -99,19 +99,11 @@ export function extractWikilinks(body: string): string[] {
  *
  * @returns The file path relative to `rootDir` if the target exists, `null` otherwise
  */
-```
-
-KEEP_EXISTING
-
-```
-
-KEEP_EXISTING
 export function resolveWikilinkTarget(
   target: string,
   currentDocPath: string,
   rootDir: string
 ): string | null {
-  // If target already contains extension or path, resolve relative to current doc directory
   const currentDir = path.dirname(currentDocPath);
   const potentialPath = path.resolve(currentDir, target);
 
@@ -119,7 +111,6 @@ export function resolveWikilinkTarget(
     return path.relative(rootDir, potentialPath);
   }
 
-  // Try matching with .md extension (for doc wikilinks without extension)
   if (!target.endsWith('.md')) {
     const mdPath = path.resolve(currentDir, `${target}.md`);
     if (fs.existsSync(mdPath) && fs.statSync(mdPath).isFile()) {
@@ -127,13 +118,14 @@ export function resolveWikilinkTarget(
     }
   }
 
-  // Try resolving as a code file relative to project root (e.g. [[src/lib/did.ts]])
   const codePath = path.join(rootDir, target);
   if (fs.existsSync(codePath) && fs.statSync(codePath).isFile()) {
     return target.replace(/\\/g, '/');
   }
 
   return null;
+}
+
 /**
  * Parses a markdown file to extract document metadata and create graph nodes and edges.
  *

@@ -33,7 +33,7 @@ export class TopologicalRouter {
       // Forward direction
       if (!this.adjacencyList.has(edge.source)) {
         this.adjacencyList.set(edge.source, []);
-
+      }
       this.adjacencyList.get(edge.source)!.push({
         target: edge.target,
         weight: edge.weight,
