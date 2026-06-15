@@ -11,6 +11,7 @@ import { RateLimiter } from "./lib/rate-limiter";
 import { TrustEngine } from "./lib/trust";
 import { SkillsMarketplace } from "./routes/skills";
 import { AgentDispatcher } from "./routes/agent-dispatch";
+import { handleMcp } from "./mcp/handler";
 
 export class Router {
   private kv: KVHelper;
@@ -28,7 +29,7 @@ export class Router {
     this.rateLimiter = new RateLimiter(this.kv);
     this.trust = new TrustEngine(this.kv);
     this.skills = new SkillsMarketplace(this.kv, this.d1);
-    this.dispatcher = new AgentDispatcher(this.kv, this.d1);
+    this.dispatcher = new AgentDispatcher(this.kv, this.d1, env);
   }
 
   private async ensureD1(): Promise<void> {
@@ -65,6 +66,11 @@ export class Router {
   private async route(url: URL, request: Request): Promise<Response> {
     const path = url.pathname;
     const method = request.method;
+
+    // --- MCP Server ---
+    if (path === "/mcp") {
+      return handleMcp(request, this.env);
+    }
 
     // --- Health ---
     if (path === "/health" || path === "/") {
