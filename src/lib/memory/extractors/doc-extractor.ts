@@ -107,21 +107,27 @@ export function resolveWikilinkTarget(
   const currentDir = path.dirname(currentDocPath);
   const potentialPath = path.resolve(currentDir, target);
 
-  if (fs.existsSync(potentialPath) && fs.statSync(potentialPath).isFile()) {
-    return path.relative(rootDir, potentialPath);
-  }
+  try {
+    if (fs.statSync(potentialPath).isFile()) {
+      return path.relative(rootDir, potentialPath).replace(/\\/g, '/');
+    }
+  } catch {}
 
   if (!target.endsWith('.md')) {
-    const mdPath = path.resolve(currentDir, `${target}.md`);
-    if (fs.existsSync(mdPath) && fs.statSync(mdPath).isFile()) {
-      return path.relative(rootDir, mdPath).replace(/\\/g, '/');
-    }
+    try {
+      const mdPath = path.resolve(currentDir, `${target}.md`);
+      if (fs.statSync(mdPath).isFile()) {
+        return path.relative(rootDir, mdPath).replace(/\\/g, '/');
+      }
+    } catch {}
   }
 
-  const codePath = path.join(rootDir, target);
-  if (fs.existsSync(codePath) && fs.statSync(codePath).isFile()) {
-    return target.replace(/\\/g, '/');
-  }
+  try {
+    const codePath = path.join(rootDir, target);
+    if (fs.statSync(codePath).isFile()) {
+      return target.replace(/\\/g, '/');
+    }
+  } catch {}
 
   return null;
 }
@@ -138,7 +144,7 @@ export function extractDocInfo(
   nodes: MemoryNode[];
   edges: MemoryEdge[];
 } {
-  const relativeFilePath = path.relative(rootDir, filePath);
+  const relativeFilePath = path.relative(rootDir, filePath).replace(/\\/g, '/');
   const nodes: MemoryNode[] = [];
   const edges: MemoryEdge[] = [];
 

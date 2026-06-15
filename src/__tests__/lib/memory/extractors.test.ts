@@ -200,7 +200,7 @@ describe('AxiomMemory Extractors', () => {
 
       // Edges: 1 related (references) + 1 wikilink
       expect(edges).toHaveLength(2);
-      expect(edges.find(e => e.type === 'wikilink')?.target).toBe('src/lib/trust.ts');
+      expect(edges.find(e => e.type === 'wikilink')?.target).toBe('docs/src/lib/trust.ts');
     });
 
     it('should return empty body when content has no frontmatter', () => {

@@ -45,11 +45,10 @@ export function extractGitInfo(rootDir: string, maxCommits = 50): {
   }
 
   try {
-    // Run git log to get the last N commits and files changed in them
-    // Format: COMMIT:<hash>|<author>|<timestamp> followed by list of changed files
+    const safeMaxCommits = Math.max(1, Math.min(500, Math.floor(maxCommits)));
     const logFormat = 'COMMIT:%h|%an|%cI';
     const output = execSync(
-      `git log -n ${maxCommits} --name-only --pretty=format:"${logFormat}"`,
+      `git log -n ${safeMaxCommits} --name-only --pretty=format:"${logFormat}"`,
       { cwd: rootDir, encoding: 'utf-8' }
     );
 

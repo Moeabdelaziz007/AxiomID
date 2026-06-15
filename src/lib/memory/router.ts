@@ -93,13 +93,14 @@ export class TopologicalRouter {
             distance: nextDistance,
             accumulatedWeight: nextWeight
           });
-        } else {
-          // If we found a shorter path or a heavier path at the same distance, update it
-          if (nextDistance < existing.distance) {
-            visited.set(neighbor.target, { distance: nextDistance, weight: nextWeight });
-          } else if (nextDistance === existing.distance && nextWeight > existing.weight) {
-            visited.set(neighbor.target, { distance: existing.distance, weight: nextWeight });
-          }
+        } else if (nextDistance < existing.distance || (nextDistance === existing.distance && nextWeight > existing.weight)) {
+          // Found a shorter path or heavier path — update and re-queue
+          visited.set(neighbor.target, { distance: nextDistance, weight: nextWeight });
+          queue.push({
+            id: neighbor.target,
+            distance: nextDistance,
+            accumulatedWeight: nextWeight
+          });
         }
       }
     }
