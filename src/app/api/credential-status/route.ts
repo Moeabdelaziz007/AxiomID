@@ -12,7 +12,7 @@ import { getClientIp } from "@/lib/ip";
  */
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
-  const rateLimit = await checkRateLimit(`credential-status:${ip}`, RATE_LIMITS.authenticated);
+  const rateLimit = await checkRateLimit(`credential-status:${ip}`, RATE_LIMITS.anonymous);
   if (!rateLimit.allowed) {
     return apiError("RATE_LIMITED", "Too many requests. Try again later.");
   }
