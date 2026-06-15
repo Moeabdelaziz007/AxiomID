@@ -1,10 +1,21 @@
 /**
  * Real trust engine with Pi API integration + dialectic trust.
  * Replaces hardcoded placeholders with actual scoring.
+ *
+ * Physics-inspired:
+ * - Inverse Square Law for delegation trust decay
+ * - Boltzmann distribution for trust probability
+ * - Brownian motion for trust exploration
  */
 
 import { KVHelper } from "../db/kv";
 import { D1Helper } from "../db/d1";
+import {
+  inverseSquareDecay,
+  trustPropagation,
+  boltzmannTrustProbability,
+  brownianStep,
+} from "../../../src/lib/math-physics";
 
 export interface TrustBreakdown {
   xp: number;
@@ -145,12 +156,24 @@ export class TrustEngine {
   }
 
   private async computeDelegation(did: string): Promise<number> {
-    // Delegation trust: sum of delegator trust scores / count
+    // Delegation trust using Inverse Square Law (gravity)
+    // Trust diminishes with the square of delegation hops
     const trustors = await this.getTrustors(did);
     if (trustors.length === 0) return 0;
 
-    const totalTrust = trustors.reduce((sum, t) => sum + t.trustLevel, 0);
-    return Math.min(1, totalTrust / trustors.length);
+    // Apply inverse square law: trust = sourceTrust * weight / hops²
+    const chain = trustors.map((t, i) => ({
+      trust: t.trustLevel,
+      weight: 1.0 / (i + 1), // Weight decreases with distance
+    }));
+
+    const propagatedTrust = trustPropagation(chain);
+
+    // Apply Boltzmann distribution for probability normalization
+    const temperature = 0.5; // Lower temperature = sharper distribution
+    const boltzmannScore = boltzmannTrustProbability(propagatedTrust, temperature);
+
+    return Math.min(1, propagatedTrust * 0.7 + boltzmannScore * 0.3);
   }
 
   private async computeDialectic(did: string): Promise<number> {

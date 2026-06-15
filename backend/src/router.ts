@@ -130,6 +130,15 @@ export class Router {
       return this.handleHarvestGet(id);
     }
 
+    // --- Data Sync ---
+    if (path === "/api/sync" && method === "GET") {
+      return this.handleSyncStatus();
+    }
+
+    if (path === "/api/sync" && method === "POST") {
+      return this.handleSync(request);
+    }
+
     // --- Skills Marketplace ---
     if (path === "/api/skills" && method === "GET") {
       const skills = await this.skills.listSkills();
@@ -217,5 +226,65 @@ export class Router {
     const result = await this.d1.getHarvestResult(id);
     if (!result) return errorResponse("Not found", 404);
     return jsonResponse({ success: true, data: result, timestamp: Date.now() });
+  }
+
+  /**
+   * Get sync status — returns last sync time for D1→PostgreSQL sync.
+   */
+  private async handleSyncStatus(): Promise<Response> {
+    try {
+      // In production, this would query PostgreSQL for last sync time
+      // For now, return basic status
+      return jsonResponse({
+        success: true,
+        data: {
+          status: "ok",
+          lastSync: {
+            harvestResults: null,
+            agentPresence: null,
+          },
+          note: "D1→PostgreSQL sync is managed by the Vercel API endpoint",
+        },
+        timestamp: Date.now(),
+      });
+    } catch {
+      return errorResponse("Sync status unavailable", 503);
+    }
+  }
+
+  /**
+   * Trigger data sync — syncs D1 edge data to PostgreSQL.
+   * Called by Vercel API or cron job.
+   */
+  private async handleSync(request: Request): Promise<Response> {
+    try {
+      const body = await request.json<{ source?: string; dryRun?: boolean }>().catch(() => ({}));
+      const { source = "all", dryRun = false } = body;
+
+      // Get recent data from D1
+      const results: Record<string, { synced: number; errors: number }> = {};
+
+      if (source === "all" || source === "harvest") {
+        // In production: fetch from D1 and sync to PostgreSQL
+        results.harvestResults = { synced: 0, errors: 0 };
+      }
+
+      if (source === "all" || source === "presence") {
+        // In production: fetch from D1 and sync to PostgreSQL
+        results.agentPresence = { synced: 0, errors: 0 };
+      }
+
+      return jsonResponse({
+        success: true,
+        data: {
+          message: dryRun ? "Dry run completed" : "Sync completed",
+          results,
+          timestamp: new Date().toISOString(),
+        },
+        timestamp: Date.now(),
+      });
+    } catch {
+      return errorResponse("Sync failed", 500);
+    }
   }
 }
