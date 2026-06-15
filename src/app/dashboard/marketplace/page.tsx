@@ -320,7 +320,7 @@ export default function MarketplacePage() {
 
                 <div className="flex items-center gap-4 text-[10px] font-mono mb-6">
                   <span className="text-neon-green"><Download className="w-3 h-3 inline mr-1" />{selectedSkill.installCount} installs</span>
-                  <span className="text-amber-400"><Star className="w-3 h-3 inline mr-1" />{selectedSkill.avgRating.toFixed(1)} ({selectedSkill.ratingCount})</span>
+                  <span className="text-amber-400"><Star className="w-3 h-3 inline mr-1" />{(selectedSkill.avgRating ?? 0).toFixed(1)} ({selectedSkill.ratingCount})</span>
                   <span className="text-electric-blue"><Coins className="w-3 h-3 inline mr-1" />{selectedSkill.pricePi === 0 ? "Free" : `${selectedSkill.pricePi} π`}</span>
                 </div>
 
