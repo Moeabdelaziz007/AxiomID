@@ -19,6 +19,7 @@ jest.mock("@/lib/prisma", () => ({
 jest.mock("@/lib/rate-limiter", () => ({
   checkRateLimit: jest.fn().mockResolvedValue({ allowed: true, remaining: 99, resetAt: Date.now() + 60000 }),
   RATE_LIMITS: {
+    anonymous: { windowMs: 60000, maxRequests: 30 },
     authenticated: { windowMs: 60000, maxRequests: 100 },
   },
 }));
@@ -62,7 +63,7 @@ describe("GET /api/credential-status — rate limiting (PR change)", () => {
     expect(data.code).toBe("RATE_LIMITED");
   });
 
-  it("uses RATE_LIMITS.authenticated config for rate limiting", async () => {
+  it("uses RATE_LIMITS.anonymous config for rate limiting", async () => {
     mockPrisma.user.findUnique.mockResolvedValue(null);
     mockPrisma.user.findFirst.mockResolvedValue(null);
 
@@ -71,7 +72,7 @@ describe("GET /api/credential-status — rate limiting (PR change)", () => {
 
     expect(mockCheckRateLimit).toHaveBeenCalledWith(
       expect.stringContaining("credential-status:"),
-      RATE_LIMITS.authenticated
+      RATE_LIMITS.anonymous
     );
   });
 

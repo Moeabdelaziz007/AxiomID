@@ -258,8 +258,8 @@ export class Router {
    */
   private async handleSync(request: Request): Promise<Response> {
     try {
-      const body = await request.json<{ source?: string; dryRun?: boolean }>().catch(() => ({}));
-      const { source = "all", dryRun = false } = body;
+      const raw = await request.json().catch(() => ({}));
+      const { source = "all", dryRun = false } = (raw as { source?: string; dryRun?: boolean });
 
       // Get recent data from D1
       const results: Record<string, { synced: number; errors: number }> = {};

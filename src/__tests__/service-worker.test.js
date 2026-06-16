@@ -9,14 +9,14 @@ const CACHE_NAME = "axiomid-v1";
 
 // --- Mock globals ---
 
-let mockCacheStorage;
+let _mockCacheStorage;
 let mockCaches;
 let registeredListeners;
 
 function makeMockCache() {
   const store = new Map();
   return {
-    addAll: jest.fn((urls) => Promise.resolve()),
+    addAll: jest.fn((_urls) => Promise.resolve()),
     put: jest.fn((req, res) => {
       store.set(typeof req === "string" ? req : req.url, res);
       return Promise.resolve();
@@ -57,7 +57,8 @@ function setupServiceWorkerGlobals() {
 function loadServiceWorker() {
   jest.resetModules();
   setupServiceWorkerGlobals();
-  require("../../../public/service-worker.js");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require("../../public/service-worker.js");
 }
 
 function makeEvent(overrides = {}) {
@@ -189,11 +190,11 @@ describe("service-worker.js — fetch event: API routes (network-first)", () => 
     global.fetch = originalFetch;
   });
 
-  it("calls fetch() for /api/ requests (network-first)", () => {
+  it("calls fetch() for public API routes (network-first)", () => {
     const mockFetch = jest.fn(() => Promise.resolve(makeResponse(true)));
     global.fetch = mockFetch;
 
-    const { event, request } = makeFetchEvent("https://axiomid.app/api/user/status");
+    const { event, request } = makeFetchEvent("https://axiomid.app/api/status");
     registeredListeners["fetch"](event);
 
     expect(event.respondWith).toHaveBeenCalled();
@@ -205,9 +206,9 @@ describe("service-worker.js — fetch event: API routes (network-first)", () => 
     const mockFetch = jest.fn(() => Promise.resolve(response));
     global.fetch = mockFetch;
 
-    const { event } = makeFetchEvent("https://axiomid.app/api/skills", "GET");
+    const { event } = makeFetchEvent("https://axiomid.app/api/status", "GET");
     registeredListeners["fetch"](event);
-    const result = await event.respondWith.mock.calls[0][0];
+    const _result = await event.respondWith.mock.calls[0][0];
 
     expect(mockCaches.open).toHaveBeenCalledWith(CACHE_NAME);
   });
@@ -217,26 +218,19 @@ describe("service-worker.js — fetch event: API routes (network-first)", () => 
     const mockFetch = jest.fn(() => Promise.resolve(response));
     global.fetch = mockFetch;
 
-    const { event } = makeFetchEvent("https://axiomid.app/api/skills/install", "POST");
+    const { event } = makeFetchEvent("https://axiomid.app/api/status", "POST");
     registeredListeners["fetch"](event);
-    await event.respondWith.mock.calls[0][0];
-
-    // caches.open should NOT have been called for a cache write
-    const openCalls = mockCaches.open.mock.calls;
-    // All open calls should be from install, not from cacheResponse in this path
-    const cacheWriteCalls = openCalls.filter(c => c[0] === CACHE_NAME);
-    // POST responses don't trigger cacheResponse, so no additional cache.put
-    const cache = mockCaches._cache;
-    expect(cache.put).not.toHaveBeenCalled();
+    // Service worker only handles GET — POST should not call respondWith
+    expect(event.respondWith).not.toHaveBeenCalled();
   });
 
   it("falls back to cache when API network request fails", async () => {
     global.fetch = jest.fn(() => Promise.reject(new Error("Network error")));
     mockCaches.match.mockResolvedValue(makeResponse(true));
 
-    const { event, request } = makeFetchEvent("https://axiomid.app/api/skills");
+    const { event, request } = makeFetchEvent("https://axiomid.app/api/status");
     registeredListeners["fetch"](event);
-    const result = await event.respondWith.mock.calls[0][0];
+    const _result = await event.respondWith.mock.calls[0][0];
 
     expect(mockCaches.match).toHaveBeenCalledWith(request);
   });
@@ -257,7 +251,7 @@ describe("service-worker.js — fetch event: static assets (cache-first)", () =>
     const cachedResponse = makeResponse(true);
     mockCaches.match.mockResolvedValue(cachedResponse);
 
-    const { event, request } = makeFetchEvent("https://axiomid.app/icon-192x192.png");
+    const { event, request: _request } = makeFetchEvent("https://axiomid.app/icon-192x192.png");
     registeredListeners["fetch"](event);
     const result = await event.respondWith.mock.calls[0][0];
 

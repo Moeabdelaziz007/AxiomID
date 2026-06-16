@@ -185,8 +185,8 @@ async function syncWithRetry(
  * Sync harvest results from D1 to PostgreSQL.
  * Uses entropy scoring to measure data quality.
  */
-async function syncHarvestResults(dryRun: boolean): Promise<SyncResult> {
-  let synced = 0;
+async function syncHarvestResults(_dryRun: boolean): Promise<SyncResult> {
+  const synced = 0;
   let errors = 0;
 
   try {
@@ -226,8 +226,8 @@ async function syncHarvestResults(dryRun: boolean): Promise<SyncResult> {
  * Sync agent presence from D1 to PostgreSQL.
  * Uses entropy scoring to measure status diversity.
  */
-async function syncAgentPresence(dryRun: boolean): Promise<SyncResult> {
-  let synced = 0;
+async function syncAgentPresence(_dryRun: boolean): Promise<SyncResult> {
+  const synced = 0;
   let errors = 0;
 
   try {

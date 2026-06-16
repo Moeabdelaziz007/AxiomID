@@ -37,6 +37,28 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
 
 process.env.PI_TOKEN_ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'; // 32-byte hex
 
+// Global Mock for framer-motion (simplify animations for tests)
+jest.mock("framer-motion", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require("react");
+  return {
+    motion: new Proxy({}, {
+      get: (_target, prop) => {
+        const Component = React.forwardRef(({ children, _whileHover, _whileTap, _initial, _animate, _exit, _transition, _viewport, _variants, _custom, ...props }, ref) => (
+          React.createElement(prop, { ...props, ref }, children)
+        ));
+        Component.displayName = `Motion.${String(prop)}`;
+        return Component;
+      },
+    }),
+    AnimatePresence: ({ children }) => children,
+    useInView: () => true,
+    useSpring: (val) => val,
+    useTransform: (val) => val,
+    useMotionValue: (val) => val,
+  };
+});
+
 // Global Mock for Language Context (preserves real exports, only overrides useLanguage)
 jest.mock("@/app/context/language-context", () => {
   const actual = jest.requireActual("@/app/context/language-context");
@@ -98,6 +120,47 @@ jest.mock("@/app/context/language-context", () => {
           vc_no_data: "No Verifiable Credential data available for this stamp.",
           vc_empty_metadata: "Credential metadata is empty.",
           vc_parse_error: "Failed to parse Verifiable Credential payload.",
+          welcome_back_name: "Welcome back, {username}",
+          agent_identity_ready: "Your agent identity is ready. Level",
+          demo_account: "Demo Account",
+          demo_not_valid: "Not valid for production use",
+          stat_level: "Level",
+          stat_xp: "XP",
+          stat_agent: "Agent",
+          agent_trust_label: "Trust",
+          stat_status: "Status",
+          no_skills_installed: "No skills installed",
+          kya_secure_did: "Secure your DID document by verifying your credentials.",
+          kya_verified_anchored: "✓ AxiomID Verification Anchored",
+          kya_identity_verified: "Your identity has been verified and permanently anchored under DID:",
+          kya_verification_pending: "Verification Pending",
+          kya_oracle_validating: "The oracle network is validating your credentials.",
+          kya_pi_username: "Pi Username",
+          kya_verifying: "VERIFYING...",
+          kya_verify_identity: "VERIFY IDENTITY",
+          agent_id_label: "Agent ID:",
+          agent_xp_label: "XP",
+          agent_last_active: "LAST ACTIVE",
+          agent_never_active: "Never",
+          agent_activating: "ACTIVATING...",
+          agent_activate: "ACTIVATE",
+          agent_pausing: "PAUSING...",
+          agent_pause: "PAUSE",
+          agent_resuming: "RESUMING...",
+          agent_resume: "RESUME",
+          terminal_title: "TERMINAL",
+          terminal_entries: "entries",
+          terminal_clear: "CLEAR",
+          terminal_run_test: "RUN TEST",
+          terminal_waiting: "Waiting for wallet activity...",
+          view_passport: "View Passport",
+          did_document: "DID Document",
+          create_agent_title: "Create Your Agent",
+          create_agent_desc: "Give your agent a name to get started.",
+          create_agent_tier_info: "Your agent will begin at Tier 1 with 0 XP.",
+          create_agent_placeholder: "Agent name (optional)",
+          create_agent_creating: "CREATING...",
+          create_agent_create: "CREATE",
         };
         return mockDict[key] || key;
       },

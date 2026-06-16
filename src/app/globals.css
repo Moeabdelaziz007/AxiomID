@@ -558,6 +558,29 @@ a:focus-visible {
 }
 
 /* ============================================
+   THEME-AWARE TOGGLE BUTTONS
+   ============================================ */
+.btn-toggle {
+  border-color: var(--card-border);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-secondary);
+}
+
+.btn-toggle:hover {
+  color: var(--text-primary);
+  border-color: var(--card-border-hover);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="light"] .btn-toggle {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="light"] .btn-toggle:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* ============================================
    MOBILE RESPONSIVE OVERRIDES
    ============================================ */
 @media (max-width: 639px) {

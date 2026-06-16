@@ -168,7 +168,7 @@ describe("POST /api/marketplace/order/create — business logic", () => {
   it("returns 404 when skill does not exist", async () => {
     mockPrisma.skill.findUnique.mockResolvedValue(null);
 
-    const req = mockPostRequest({ skillId: "nonexistent", agentId: "a1", amount: 1, paymentId: "p1" });
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", amount: 1, paymentId: "p1" });
     const res = await POST(req);
     const data = await res.json();
 
@@ -180,7 +180,7 @@ describe("POST /api/marketplace/order/create — business logic", () => {
     mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Test" } as any);
     mockPrisma.piPayment.create.mockResolvedValue({ id: "payment-abc" } as any);
 
-    const req = mockPostRequest({ skillId: "skill-1", agentId: "agent-1", amount: 5, paymentId: "pi-pay-1" });
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", amount: 5, paymentId: "pi-pay-1" });
     const res = await POST(req);
     const data = await res.json();
 
@@ -192,7 +192,7 @@ describe("POST /api/marketplace/order/create — business logic", () => {
     mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1" } as any);
     mockPrisma.piPayment.create.mockResolvedValue({ id: "payment-abc" } as any);
 
-    const req = mockPostRequest({ skillId: "skill-1", agentId: "agent-1", amount: 5, paymentId: "pi-pay-1" });
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", amount: 5, paymentId: "pi-pay-1" });
     await POST(req);
 
     expect(mockPrisma.piPayment.create).toHaveBeenCalledWith(

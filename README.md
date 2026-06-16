@@ -265,7 +265,7 @@ AxiomID is the **Root Authority** of the [**Sovereign AI Stack**](https://github
 
 We have conducted a deep **[Competitive Analysis](./STRATEGY.md)** of World Network, Gitcoin Passport, and others.
 
-### ✅ Completed (Phase A–J)
+### ✅ Completed (Phase A–K)
 
 | Phase | Status | Description |
 | :--- | :--- | :--- |
@@ -278,6 +278,7 @@ We have conducted a deep **[Competitive Analysis](./STRATEGY.md)** of World Netw
 | **G** | ✅ Done | MCP Server — 11 tools, JSON-RPC handler, deploy on Cloudflare |
 | **I** | ✅ Done | Cloudflare AI Search — Workers AI embeddings + Vectorize |
 | **J** | ✅ Done | CodeRabbit fixes — BFS re-queuing, command injection guard, path normalization |
+| **K** | ✅ Done | 4-Pillar Physics Algorithms + D1→PostgreSQL sync cron |
 
 ### 🔄 In Progress
 
@@ -311,6 +312,7 @@ We have conducted a deep **[Competitive Analysis](./STRATEGY.md)** of World Netw
 | **DO** | Cloudflare Durable Objects | PresenceDO | ✅ Deployed |
 | **KV** | Cloudflare KV | BRAIN_MEMORY | ✅ Reuse for harvest dedup |
 | **AI Search** | Cloudflare AI Search | — | ✅ Live |
+| **Sync** | Vercel Cron → D1→PostgreSQL | `*/10 * * * *` | ✅ Active |
 
 ### Secrets Management
 - `SHARED_SECRET_TOKEN_VERCEL_CF` — Set in both Vercel env + Wrangler secret
@@ -377,7 +379,7 @@ npx wrangler deploy
 ### Testing
 
 ```bash
-# Run all tests (719 tests, 6 skipped)
+# Run all tests (773 tests, 6 skipped)
 npm test
 
 # Type check
@@ -386,6 +388,53 @@ npx tsc --noEmit
 # Lint
 npm run lint
 ```
+
+---
+
+## 🧪 Physics-Inspired Algorithms
+
+AxiomID uses physics and information theory to power trust, delegation, and rate limiting. All algorithms are in `src/lib/math-physics.ts` with 54 validation tests.
+
+### Pillar 1 — Thermodynamics
+| Algorithm | Equation | Application |
+| :--- | :--- | :--- |
+| **Ideal Gas Law** | `PV = nRT` | Adaptive rate limit capacity under system load |
+| **Carnot Efficiency** | `η = 1 - T_cold/T_hot` | Maximum trust given noise level |
+| **Fick's Diffusion** | `J = -D × dC/dx` | Trust propagation from high→low concentration |
+| **Fourier's Heat** | `∂T/∂t = α∇²T` | Trust "heat" diffusion through graph |
+
+### Pillar 2 — Information Theory
+| Algorithm | Equation | Application |
+| :--- | :--- | :--- |
+| **Nyquist-Shannon** | `fs ≥ 2×fmax` | Minimum heartbeat frequency |
+| **Shannon-Hartley** | `C = B×log₂(1+S/N)` | Channel capacity for trust transmission |
+| **Huffman Coding** | Variable-length | Optimal trust data compression |
+| **Mutual Information** | `I(X;Y) = H(X)-H(X|Y)` | Trust correlation between DIDs |
+| **KL Divergence** | `D_KL(P‖Q)` | Distance between trust distributions |
+
+### Pillar 3 — Network & Game Theory
+| Algorithm | Source | Application |
+| :--- | :--- | :--- |
+| **PageRank** | Google (1998) | Recursive trust importance ranking |
+| **Spectral Clustering** | Graph Laplacian | Community detection in delegation networks |
+| **Nash Equilibrium** | Game Theory | Stable delegation strategies |
+| **Min-Cut Max-Flow** | Ford-Fulkerson | Trust bottleneck detection |
+
+### Pillar 4 — Stochastic Dynamics
+| Algorithm | Equation | Application |
+| :--- | :--- | :--- |
+| **Langevin Equation** | `m(d²x/dt²) = -γv + F + η` | Trust evolution under forces + noise |
+| **Fokker-Planck** | `∂P/∂t = -∂(μP)/∂x + ½∂²(σ²P)/∂x²` | Trust probability density evolution |
+| **Ising Model** | `H = -JΣsᵢsⱼ - hΣsᵢ` | Trust phase transitions (consensus vs fragmentation) |
+| **Kuramoto Model** | `dθᵢ/dt = ωᵢ + K/NΣsin(θⱼ-θᵢ)` | Trust synchronization |
+
+### Wiring
+| Module | Algorithms |
+| :--- | :--- |
+| `trust.ts` | Langevin, Fokker-Planck, Ising, Carnot, Fick, Fourier, SNR, KL |
+| `delegation.ts` | PageRank, Nash, best response, min-cut, community detection |
+| `rate-limiter.ts` | Ideal Gas Law adaptive capacity |
+| `sync/route.ts` | Nyquist-Shannon, Shannon-Hartley, mutual information, SNR |
 
 ---
 
@@ -417,6 +466,7 @@ npm run lint
 | `/api/agent` | POST | Agent CRUD |
 | `/api/stamp/claim` | POST | Claim a stamp |
 | `/api/status` | GET | User status |
+| `/api/sync` | GET/POST | D1→PostgreSQL sync (cron: `*/10 * * * *`) |
 
 ### CI/CD
 
@@ -426,7 +476,7 @@ This project uses **GitHub Actions** for continuous integration and **Vercel** f
 - Runs on every PR and push to `main`
 - Type-check (`npx tsc --noEmit`)
 - Lint (`npm run lint`)
-- Tests (`npm test` — 719 tests, 6 skipped)
+- Tests (`npm test` — 773 tests, 6 skipped)
 
 **Deployment**:
 - Vercel auto-deploys on push to `main` (production) and on PR branches (preview)
@@ -438,7 +488,7 @@ For detailed deployment instructions, see [`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_G
 
 ## 🤝 Contributing
 
-Contributions are welcome via PR. All PRs require passing CI (type-check, lint, 719 tests) and at least one CodeRabbit review approval.
+Contributions are welcome via PR. All PRs require passing CI (type-check, lint, 773 tests) and at least one CodeRabbit review approval.
 
 ```bash
 # Fork, then clone

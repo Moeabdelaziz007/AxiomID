@@ -1,9 +1,23 @@
 /**
  * Trust delegation chain resolver.
  * BFS traversal with cycle detection, max 3 hops.
+ * Enhanced with PageRank, Nash equilibrium, and min-cut bottleneck detection.
+ *
+ * Physics-inspired:
+ * - PageRank for recursive trust importance
+ * - Nash Equilibrium for stable delegation strategies
+ * - Min-Cut Max-Flow for trust bottleneck detection
  */
 
 import { D1Helper } from "../db/d1";
+import {
+  pageRankTrust,
+  nashEquilibrium,
+  bestResponseDynamics,
+  minCutTrustBottleneck,
+  fiedlerPartition,
+  type TopologyEdge,
+} from "../../../src/lib/math-physics";
 
 export interface DelegationEdge {
   delegator_did: string;
@@ -18,12 +32,93 @@ export interface TrustChain {
   hop: number;
 }
 
+export interface PageRankResult {
+  did: string;
+  rank: number;
+}
+
 export class DelegationResolver {
   private d1: D1Helper;
   private maxHops = 3;
 
   constructor(d1: D1Helper) {
     this.d1 = d1;
+  }
+
+  /**
+   * Compute PageRank for all DIDs in the delegation graph.
+   * Physics: PR(A) = (1-d)/N + d Σ PR(Tᵢ)/C(Tᵢ)
+   */
+  async computePageRank(dampingFactor: number = 0.85): Promise<PageRankResult[]> {
+    const { nodes, edges } = await this.delegationsToGraph();
+    const ranks = pageRankTrust(nodes, edges, dampingFactor, 100);
+
+    return nodes
+      .map((did) => ({ did, rank: ranks.get(did) || 0 }))
+      .sort((a, b) => b.rank - a.rank);
+  }
+
+  /**
+   * Nash equilibrium detection — find DIDs whose delegation strategies
+   * are stable (no agent can improve by changing unilaterally).
+   */
+  async computeNashEquilibrium(): Promise<string[]> {
+    const trustSums = await this.delegateeTrustSums();
+
+    const agents = Array.from(trustSums.entries()).map(([did, trustSum]) => ({
+      id: did,
+      currentTrust: trustSum,
+      alternativeTrusts: [
+        { trust: trustSum * 0.5, profit: -trustSum * 0.3 },
+        { trust: trustSum * 1.5, profit: trustSum * 0.2 - 0.1 },
+        { trust: trustSum * 2.0, profit: trustSum * 0.3 - 0.2 },
+      ],
+    }));
+
+    return nashEquilibrium(agents);
+  }
+
+  /**
+   * Best response dynamics — find optimal delegation strategies.
+   */
+  async computeBestResponses(): Promise<Map<string, string>> {
+    const trustSums = await this.delegateeTrustSums();
+
+    const agents = Array.from(trustSums.entries()).map(([did, trustSum]) => ({
+      id: did,
+      strategies: [
+        { label: "maintain", payoff: trustSum },
+        { label: "increase", payoff: trustSum * 1.2 - 0.1 },
+        { label: "decrease", payoff: trustSum * 0.8 },
+        { label: "remove", payoff: 0 },
+      ],
+    }));
+
+    return bestResponseDynamics(agents);
+  }
+
+  /**
+   * Min-cut trust bottleneck — find weakest links in delegation chain.
+   * Physics: max flow = min cut (Ford-Fulkerson theorem)
+   */
+  async computeTrustBottleneck(
+    sourceDid: string,
+    sinkDid: string,
+  ): Promise<{ maxFlow: number; bottleneckDids: string[] }> {
+    const { edges } = await this.delegationsToGraph();
+    const result = minCutTrustBottleneck(edges, sourceDid, sinkDid);
+    return {
+      maxFlow: result.maxFlow,
+      bottleneckDids: result.bottleneckNodes,
+    };
+  }
+
+  /**
+   * Community detection — find trust communities via Fiedler partition.
+   */
+  async computeTrustCommunities(): Promise<{ communityA: string[]; communityB: string[] }> {
+    const { nodes, edges } = await this.delegationsToGraph();
+    return fiedlerPartition(nodes, edges);
   }
 
   /**
@@ -119,8 +214,48 @@ export class DelegationResolver {
   }
 
   /**
-   * Get all DIDs that trust a given DID (incoming delegations).
+   * Build nodes array and edges list from all active delegations.
+   * Shared by computePageRank, computeTrustBottleneck, and computeTrustCommunities.
    */
+  private async delegationsToGraph(): Promise<{ nodes: string[]; edges: TopologyEdge[] }> {
+    const allDelegations = await this.getAllDelegations();
+    const nodeSet = new Set<string>();
+    const edges: TopologyEdge[] = [];
+
+    for (const d of allDelegations) {
+      nodeSet.add(d.delegator_did);
+      nodeSet.add(d.delegatee_did);
+      edges.push({ source: d.delegator_did, target: d.delegatee_did, weight: d.trust_level });
+    }
+
+    return { nodes: Array.from(nodeSet), edges };
+  }
+
+  /**
+   * Accumulate total incoming trust per delegatee across all active delegations.
+   * Shared by computeNashEquilibrium and computeBestResponses.
+   */
+  private async delegateeTrustSums(): Promise<Map<string, number>> {
+    const allDelegations = await this.getAllDelegations();
+    const sums = new Map<string, number>();
+    for (const d of allDelegations) {
+      sums.set(d.delegatee_did, (sums.get(d.delegatee_did) || 0) + d.trust_level);
+    }
+    return sums;
+  }
+
+  /**
+   * Get all active delegations.
+   */
+  private async getAllDelegations(): Promise<DelegationEdge[]> {
+    const result = await this.d1.db
+      .prepare(
+        "SELECT * FROM trust_delegations WHERE (expires_at IS NULL OR expires_at > datetime('now'))"
+      )
+      .all<DelegationEdge>();
+    return result.results;
+  }
+
   async getTrusters(delegateeDid: string): Promise<DelegationEdge[]> {
     const result = await this.d1.db
       .prepare(

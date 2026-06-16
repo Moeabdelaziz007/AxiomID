@@ -6,6 +6,10 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   index-changes:
     name: Index Code Changes → Vectorize
@@ -24,9 +28,7 @@ jobs:
             echo "diff=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          # Save diff to file, split by file
           echo "$DIFF" > /tmp/pr.diff
-          # Count changed files
           FILE_COUNT=$(grep -c "^diff --git" /tmp/pr.diff || echo "0")
           echo "file_count=$FILE_COUNT" >> "$GITHUB_OUTPUT"
           echo "diff_lines=$(wc -l < /tmp/pr.diff)" >> "$GITHUB_OUTPUT"
@@ -36,10 +38,8 @@ jobs:
       - name: Extract file changes
         if: steps.diff.outputs.file_count != '0'
         run: |
-          # Extract file-level diffs
           csplit -z -f /tmp/file_ /tmp/pr.diff '/^diff --git/' '{*}' 2>/dev/null || true
 
-          # Build index payload
           echo '[]' > /tmp/changes.json
           for f in /tmp/file_*; do
             [ -f "$f" ] || continue
@@ -47,9 +47,8 @@ jobs:
             ADDED=$(grep -c '^+[^+]' "$f" || echo "0")
             REMOVED=$(grep -c '^-[^-]' "$f" || echo "0")
             EXTENSION="${FILE_PATH##*.}"
-            # Build JSON entry
             python3 -c "
-          import json, sys
+          import json
           with open('/tmp/changes.json') as fh:
               data = json.load(fh)
           data.append({
@@ -65,7 +64,6 @@ jobs:
           done
 
           echo "Indexed $(python3 -c "import json; print(len(json.load(open('/tmp/changes.json'))))" 2>/dev/null || echo 0) files"
-          cat /tmp/changes.json
 
       - name: Detect anomalies
         if: steps.diff.outputs.file_count != '0'
@@ -75,12 +73,10 @@ jobs:
           TOTAL_ADDED=$(python3 -c "import json; print(sum(f['added'] for f in json.load(open('/tmp/changes.json'))))" 2>/dev/null || echo 0)
           TOTAL_REMOVED=$(python3 -c "import json; print(sum(f['removed'] for f in json.load(open('/tmp/changes.json'))))" 2>/dev/null || echo 0)
 
-          # Anomaly: large PR (>500 lines changed)
           if [ "$TOTAL_ADDED" -gt 500 ] || [ "$TOTAL_REMOVED" -gt 500 ]; then
             ALERTS="$ALERTS\n⚠️ **Large PR**: +$TOTAL_ADDED / -$TOTAL_REMOVED lines across $FILE_COUNT files"
           fi
 
-          # Anomaly: security-sensitive files
           SEC_FILES=$(python3 -c "
           import json
           data = json.load(open('/tmp/changes.json'))
@@ -91,45 +87,43 @@ jobs:
             ALERTS="$ALERTS\n🔒 **Security-sensitive files changed**: $SEC_FILES files"
           fi
 
-          # Anomaly: many files changed
           if [ "$FILE_COUNT" -gt 20 ]; then
             ALERTS="$ALERTS\n📦 **Large scope**: $FILE_COUNT files changed"
           fi
 
           if [ -n "$ALERTS" ]; then
-            echo "### CI Intelligence Report" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔍 CI Intelligence Report" >> $GITHUB_STEP_SUMMARY
             echo -e "$ALERTS" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**PR**: #${{ github.event.pull_request.number }}" >> $GITHUB_STEP_SUMMARY
             echo "**Files**: $FILE_COUNT | **Added**: +$TOTAL_ADDED | **Removed**: -$TOTAL_REMOVED" >> $GITHUB_STEP_SUMMARY
           else
-            echo "### CI Intelligence: No anomalies detected" >> $GITHUB_STEP_SUMMARY
+            echo "### ✅ CI Intelligence: No anomalies detected" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Index to Vectorize
         if: steps.diff.outputs.file_count != '0'
         run: |
-          # Index each changed file as a code vector into Vectorize
-          # Uses Cloudflare Workers AI for 768-d embeddings
-          python3 << 'EOF'
-          import json, urllib.request, urllib.error, os
+          python3 << 'PYEOF'
+          import json, urllib.request, urllib.error, os, sys
 
           CF_ACCOUNT_ID = os.environ.get("CF_ACCOUNT_ID", "")
           CF_API_TOKEN = os.environ.get("CF_API_TOKEN", "")
-          VECTORIZE_INDEX = "ci-code-vectors"
+          VECTORIZE_INDEX = os.environ.get("VECTORIZE_INDEX", "ci-code-vectors")
 
           if not CF_ACCOUNT_ID or not CF_API_TOKEN:
-              print("Skipping Vectorize: CF_ACCOUNT_ID/CF_API_TOKEN not set")
-              exit(0)
+              print("⚠️  Skipping Vectorize: CF_ACCOUNT_ID/CF_API_TOKEN not set")
+              print("   See .github/CI_INTELLIGENCE_SETUP.md for setup instructions")
+              sys.exit(0)
 
           with open("/tmp/changes.json") as f:
               changes = json.load(f)
 
+          indexed = 0
+          failed = 0
           for change in changes:
-              # Build text representation for embedding
               text = f"File: {change['file']}\nExtension: {change['extension']}\nAdded: {change['added']} lines\nRemoved: {change['removed']} lines"
 
-              # Generate embedding via Workers AI
               try:
                   url = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/ai/run/@cf/baai/bge-base-en-v1.5"
                   payload = json.dumps({"text": text}).encode()
@@ -137,10 +131,9 @@ jobs:
                       "Authorization": f"Bearer {CF_API_TOKEN}",
                       "Content-Type": "application/json"
                   })
-                  resp = urllib.request.urlopen(req, timeout=10)
+                  resp = urllib.request.urlopen(req, timeout=15)
                   embedding = json.loads(resp.read())["result"]["data"][0]
 
-                  # Insert into Vectorize
                   vec_url = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/vectorize/indexes/{VECTORIZE_INDEX}/insert"
                   vec_payload = json.dumps({
                       "vectors": [{
@@ -160,18 +153,21 @@ jobs:
                       "Authorization": f"Bearer {CF_API_TOKEN}",
                       "Content-Type": "application/json"
                   })
-                  vec_resp = urllib.request.urlopen(vec_req, timeout=10)
-                  print(f"Indexed: {change['file']}")
+                  urllib.request.urlopen(vec_req, timeout=10)
+                  indexed += 1
+                  print(f"✅ Indexed: {change['file']}")
               except Exception as e:
-                  print(f"Failed to index {change['file']}: {e}")
+                  failed += 1
+                  print(f"❌ Failed {change['file']}: {e}")
 
-          print(f"Processed {len(changes)} files")
-          EOF
+          print(f"\n📊 Results: {indexed} indexed, {failed} failed out of {len(changes)} files")
+          PYEOF
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           CI_TIMESTAMP: ${{ github.event.pull_request.updated_at }}
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          VECTORIZE_INDEX: ${{ vars.VECTORIZE_INDEX || 'ci-code-vectors' }}
 
   update-index:
     name: Update Knowledge Base
@@ -184,16 +180,14 @@ jobs:
 
       - name: Index merged changes
         run: |
-          # Index the latest commit on main into Vectorize
           COMMIT_MSG=$(git log -1 --pretty=%s)
           FILES_CHANGED=$(git diff HEAD~1 --name-only | head -50)
           FILE_COUNT=$(echo "$FILES_CHANGED" | wc -l)
 
-          echo "### CI Intelligence: Main Branch Update" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔍 CI Intelligence: Main Branch Update" >> $GITHUB_STEP_SUMMARY
           echo "**Commit**: $COMMIT_MSG" >> $GITHUB_STEP_SUMMARY
           echo "**Files**: $FILE_COUNT" >> $GITHUB_STEP_SUMMARY
 
-          # Build index payload for main branch knowledge
           python3 << EOF
           import json, os
 
@@ -213,7 +207,6 @@ jobs:
 
       - name: Update KV metadata
         run: |
-          # Store last indexed commit in KV for dedup
           COMMIT_SHA=$(git rev-parse HEAD)
           echo "{\"last_commit\": \"$COMMIT_SHA\", \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > /tmp/kv-meta.json
           cat /tmp/kv-meta.json

@@ -8,14 +8,11 @@ import Link from "next/link";
 import { useLanguage } from "./context/language-context";
 import LanguageToggle from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Users, Bot, Ticket, Zap, AlertTriangle } from "lucide-react";
+import { Users, Bot, Ticket, Zap, AlertTriangle, ArrowRight, Shield, Fingerprint, Globe } from "lucide-react";
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
+import { AnimatedCounter } from "@/components/AnimatedCounter";
 
-/**
- * Renders an interactive passport card that displays user identity information with a 3D tilt effect responding to mouse and touch movement.
- *
- * @param user - Optional user object. Provides identity data for display. When null, shows placeholder values and pending badge states.
- * @returns A JSX element rendering the passport card.
- */
 function PassportHero({ user }: { user: { piUsername?: string | null; walletAddress?: string; tier?: Tier | null } | null }) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
@@ -47,17 +44,15 @@ function PassportHero({ user }: { user: { piUsername?: string | null; walletAddr
   const hasUser = !!user;
   const username = user?.piUsername || (user?.walletAddress ? (user.walletAddress.startsWith("pi:") ? user.walletAddress.slice(3) : user.walletAddress) : "Connect Wallet");
   const displayAddress = user?.walletAddress ? (user.walletAddress.length > 20 ? `${user.walletAddress.slice(0, 8)}...${user.walletAddress.slice(-6)}` : user.walletAddress) : "did:axiom:...";
-  const avatarText = user?.piUsername ? user.piUsername[0].toUpperCase() : (user?.walletAddress ? "👤" : "?");
+  const avatarText = user?.piUsername ? user.piUsername[0].toUpperCase() : (user?.walletAddress ? "\ud83d\udc64" : "?");
 
   return (
     <div
-      className="relative w-full max-w-md mx-auto h-64 cursor-pointer"
-      style={{
-        perspective: "1000px",
-      }}
+      className="relative w-full max-w-md mx-auto cursor-pointer"
+      style={{ perspective: "1000px" }}
     >
       <div
-        className="absolute inset-0 passport-card p-6 flex flex-col justify-between"
+        className="passport-card p-6 sm:p-8 flex flex-col justify-between min-h-[280px] sm:min-h-[320px]"
         style={{
           transform: `rotateY(${tilt.x * 0.3}deg) rotateX(${-tilt.y * 0.3}deg)`,
           transition: "transform 0.1s ease-out",
@@ -66,22 +61,22 @@ function PassportHero({ user }: { user: { piUsername?: string | null; walletAddr
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded bg-neon-green/20 flex items-center justify-center border border-neon-green/50">
-              <span className="text-neon-green font-bold text-[8px]">A</span>
+            <div className="w-6 h-6 rounded bg-neon-green/20 flex items-center justify-center border border-neon-green/50">
+              <span className="text-neon-green font-bold text-[9px]">A</span>
             </div>
-            <span className="font-mono text-[10px] tracking-wider text-white">AXIOMID</span>
+            <span className="font-mono text-[11px] tracking-wider text-white">AXIOMID</span>
           </div>
-          <span className="font-mono text-[8px] text-gray-500 tracking-widest">AGENT PASSPORT</span>
+          <span className="font-mono text-[9px] text-gray-500 tracking-widest">AGENT PASSPORT</span>
         </div>
 
         {/* Middle: Avatar + Info */}
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-neon-green/20 to-electric-blue/20 border border-neon-green/30 flex items-center justify-center text-2xl font-bold font-mono text-neon-green">
+        <div className="flex items-center gap-4 my-4">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-gradient-to-br from-neon-green/20 to-electric-blue/20 border border-neon-green/30 flex items-center justify-center text-2xl sm:text-3xl font-bold font-mono text-neon-green">
             {avatarText}
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-white font-mono">{username}</h3>
-            <p className="text-[9px] text-gray-500 font-mono mt-1">{displayAddress}</p>
+            <h3 className="text-sm sm:text-base font-bold text-white font-mono">{username}</h3>
+            <p className="text-[9px] sm:text-[10px] text-gray-500 font-mono mt-1 break-all">{displayAddress}</p>
             <div className="mt-2 flex gap-1.5">
               {["KYA", "KYC"].map((label) => (
                 <span key={label} className={`badge ${hasUser ? "badge-verified" : "badge-pending"}`}>
@@ -109,17 +104,32 @@ function PassportHero({ user }: { user: { piUsername?: string | null; walletAddr
   );
 }
 
-/**
- * Displays the public landing page for the AxiomID agent identity platform.
- *
- * Includes a responsive header with wallet connection state and language/theme toggles, a hero section with a floating passport card, live network statistics fetched from the `/api/status` endpoint, feature overview, tier level cards, and footer. Conditionally displays a sandbox mode banner based on environment configuration.
- *
- * @returns A React element.
- */
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] as const },
+  }),
+};
+
+const staggerContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08 } },
+};
+
+const _cardHover = {
+  rest: { scale: 1, y: 0 },
+  hover: { scale: 1.02, y: -4, transition: { duration: 0.3, ease: "easeOut" } },
+};
+
 export default function Home() {
   const { user, connectWallet, isConnecting, isPiBrowser, logout } = useWallet();
   const { t, language } = useLanguage();
   const [networkStats, setNetworkStats] = useState<{ users: number; agents: number; xp: number; payments: number } | null>(null);
+
+  const statsRef = useRef<HTMLDivElement>(null);
+  const statsInView = useInView(statsRef, { once: true, margin: "-80px" });
 
   useEffect(() => {
     let cancelled = false;
@@ -135,16 +145,15 @@ export default function Home() {
           payments: s.totalPayments ?? 0,
         });
       }
-    }).catch((err) => console.error("Failed to fetch network stats:", err));
+    }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
 
   return (
-    <main className="min-h-screen bg-grid flex flex-col items-center relative">
+    <main className="min-h-screen bg-grid flex flex-col items-center relative overflow-hidden">
       <div className="scanline" />
       <ErrorBanner />
 
-      {/* Sandbox Banner */}
       {process.env.NEXT_PUBLIC_PI_SANDBOX === "true" && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-4 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-[10px] font-mono tracking-wider">
           SANDBOX MODE
@@ -152,7 +161,12 @@ export default function Home() {
       )}
 
       {/* Header */}
-      <header className="w-full max-w-6xl flex flex-wrap justify-between items-center gap-3 px-4 sm:px-6 py-4 sm:py-6 z-10">
+      <motion.header
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-6xl flex flex-wrap justify-between items-center gap-3 px-4 sm:px-6 py-4 sm:py-6 z-10"
+      >
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded bg-neon-green/20 flex items-center justify-center border border-neon-green/50">
@@ -183,10 +197,7 @@ export default function Home() {
               <Link href="/dashboard" prefetch={false} className="btn-primary text-xs px-3 sm:px-4 py-2">
                 {t("nav_dashboard")}
               </Link>
-              <button
-                onClick={() => logout()}
-                className="btn-ghost text-xs px-3 py-1.5 hidden sm:flex items-center gap-1.5"
-              >
+              <button onClick={() => logout()} className="btn-ghost text-xs px-3 py-1.5 hidden sm:flex items-center gap-1.5">
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
@@ -194,31 +205,33 @@ export default function Home() {
               </button>
             </div>
           ) : (
-            <button
-              onClick={connectWallet}
-              disabled={isConnecting}
-              className="btn-primary text-xs px-3 sm:px-4 py-2"
-            >
+            <button onClick={connectWallet} disabled={isConnecting} className="btn-primary text-xs px-3 sm:px-4 py-2">
               {isConnecting ? t("connecting") : t("connect")}
             </button>
           )}
         </div>
-      </header>
+      </motion.header>
 
       {/* Hero Section */}
-      <div className="w-full max-w-6xl px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center mt-8 md:mt-16 z-10">
+      <div className="w-full max-w-6xl px-4 sm:px-6 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center mt-4 md:mt-12 z-10">
         {/* Left: Text */}
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-neon-green/10 text-neon-green border border-neon-green/20">
-              v1.0.0
-            </span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-electric-blue/10 text-electric-blue border border-electric-blue/20">
-              PI COMPATIBLE
-            </span>
-          </div>
+        <div className="flex flex-col gap-5">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="flex items-center gap-2"
+          >
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-neon-green/10 text-neon-green border border-neon-green/20">v1.0.0</span>
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-electric-blue/10 text-electric-blue border border-electric-blue/20">PI COMPATIBLE</span>
+          </motion.div>
 
-           <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1]">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight leading-[1.1]"
+          >
             {language === "en" ? (
               <>
                 Agent Identity
@@ -236,8 +249,14 @@ export default function Home() {
                 </span>
               </>
             )}
-          </h1>
-          <div className="flex items-center gap-2 text-[10px] font-mono">
+          </motion.h1>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="flex items-center gap-2 text-[10px] font-mono flex-wrap"
+          >
             <span className="px-2 py-0.5 rounded bg-[#8B5CF6]/10 text-[#8B5CF6] border border-[#8B5CF6]/20 flex items-center gap-1">
               <svg viewBox="0 0 100 100" className="w-3 h-3" fill="currentColor">
                 <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="5"/>
@@ -248,248 +267,271 @@ export default function Home() {
             <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
               {language === "en" ? "Pi Token Payments Only" : "مدفوعات Pi فقط"}
             </span>
-          </div>
+          </motion.div>
 
-          <p className="text-gray-400 max-w-md leading-relaxed text-sm md:text-base">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+            className="text-gray-400 max-w-md leading-relaxed text-sm md:text-base"
+          >
             {t("hero_desc")}
-          </p>
+          </motion.p>
 
-          {!user ? (
-            <div className="flex flex-col sm:flex-row gap-3 mt-2">
-              <button
-                onClick={connectWallet}
-                disabled={isConnecting}
-                className="btn-primary flex items-center gap-3 w-fit"
-              >
-                {isConnecting ? (
-                  <>
-                    <span className="animate-spin">⟳</span> {t("connecting")}
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
-                    {t("connect_wallet")}
-                  </>
-                )}
-              </button>
-              <Link href="/dashboard" prefetch={false} className="btn-ghost w-fit text-center">
-                {t("view_demo")}
-              </Link>
-            </div>
-          ) : (
-            <div className="flex flex-col sm:flex-row gap-3 mt-2">
-              <Link href="/dashboard" prefetch={false} className="btn-primary flex items-center justify-center gap-2 w-fit">
-                {t("enter_dashboard")}
-              </Link>
-              <button
-                onClick={logout}
-                className="btn-ghost w-fit text-center"
-              >
-                {t("logout")}
-              </button>
-            </div>
-          )}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+          >
+            {!user ? (
+              <div className="flex flex-col sm:flex-row gap-3 mt-1">
+                <button onClick={connectWallet} disabled={isConnecting} className="btn-primary flex items-center gap-3 w-fit group">
+                  {isConnecting ? (
+                    <><span className="animate-spin">⟳</span> {t("connecting")}</>
+                  ) : (
+                    <>
+                      <Shield className="w-4 h-4" />
+                      {t("connect_wallet")}
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+                <Link href="/dashboard" prefetch={false} className="btn-ghost w-fit text-center">
+                  {t("view_demo")}
+                </Link>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-3 mt-1">
+                <Link href="/dashboard" prefetch={false} className="btn-primary flex items-center justify-center gap-2 w-fit group">
+                  {t("enter_dashboard")}
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <button onClick={logout} className="btn-ghost w-fit text-center">{t("logout")}</button>
+              </div>
+            )}
+          </motion.div>
 
           {/* Trust indicators */}
-          <div className="flex flex-wrap gap-4 mt-4 text-[10px] font-mono text-gray-500">
-            <div className="flex items-center gap-1.5">
-              <svg className="w-3 h-3 text-neon-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span>{language === "en" ? "W3C DID Compliant" : "متوافق مع W3C DID"}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <svg className="w-3 h-3 text-neon-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span>{language === "en" ? "Stellar On-Chain" : "على الشبكة Stellar"}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <svg viewBox="0 0 100 100" className="w-3 h-3 text-[#8B5CF6]" fill="currentColor">
-                <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="5"/>
-                <text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text>
-              </svg>
-              <span>{language === "en" ? "Pi Network Ecosystem — Pi Only" : "نظام Pi البيئي — Pi فقط"}</span>
-            </div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.9, duration: 0.5 }}
+            className="flex flex-wrap gap-4 mt-2 text-[10px] font-mono text-gray-500"
+          >
+            {[
+              { icon: <Fingerprint className="w-3 h-3 text-neon-green" />, text: language === "en" ? "W3C DID Compliant" : "متوافق مع W3C DID" },
+              { icon: <Globe className="w-3 h-3 text-neon-green" />, text: language === "en" ? "Stellar On-Chain" : "على الشبكة Stellar" },
+              { icon: <svg viewBox="0 0 100 100" className="w-3 h-3 text-[#8B5CF6]" fill="currentColor"><circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="5"/><text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text></svg>, text: language === "en" ? "Pi Network — Pi Only" : "شبكة Pi — Pi فقط" },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-1.5">
+                {item.icon}
+                <span>{item.text}</span>
+              </div>
+            ))}
+          </motion.div>
         </div>
 
         {/* Right: Floating Passport */}
-        <div className="relative animate-float">
-          <PassportHero user={user} />
-          {/* Glow effect */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, rotateY: -10 }}
+          animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+          transition={{ delay: 0.4, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="relative"
+        >
+          <div className="animate-float">
+            <PassportHero user={user} />
+          </div>
           <div className="absolute inset-0 bg-gradient-to-tr from-neon-green/5 to-electric-blue/5 blur-3xl rounded-full scale-150 pointer-events-none animate-pulse-slow" />
-        </div>
+        </motion.div>
       </div>
 
       {/* Live Stats Bar */}
-      <div className="w-full max-w-6xl px-6 mt-12 z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bento-card border border-white/5 bg-white/[0.01]">
+      <div ref={statsRef} className="w-full max-w-6xl px-4 sm:px-6 mt-12 sm:mt-16 z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={statsInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 sm:p-6 bento-card border border-white/5 bg-white/[0.01]"
+        >
           {[
-            { label: t("stat_users"), value: networkStats?.users.toLocaleString() ?? "—", icon: <Users className="w-5 h-5" />, color: "text-neon-green" },
-            { label: t("stat_agents"), value: networkStats?.agents.toLocaleString() ?? "—", icon: <Bot className="w-5 h-5" />, color: "text-electric-blue" },
-            { label: t("total_xp"), value: networkStats?.xp.toLocaleString() ?? "—", icon: <Ticket className="w-5 h-5" />, color: "text-axiom-purple" },
-            { label: t("stat_tx"), value: networkStats?.payments.toLocaleString() ?? "—", icon: <Zap className="w-5 h-5" />, color: "text-axiom-gold" },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center md:text-left md:border-r border-white/5 last:border-0 md:px-4 flex flex-col md:flex-row md:items-center gap-3">
+            { label: t("stat_users"), value: networkStats?.users ?? 0, icon: <Users className="w-5 h-5" />, color: "text-neon-green" },
+            { label: t("stat_agents"), value: networkStats?.agents ?? 0, icon: <Bot className="w-5 h-5" />, color: "text-electric-blue" },
+            { label: t("total_xp"), value: networkStats?.xp ?? 0, icon: <Ticket className="w-5 h-5" />, color: "text-axiom-purple" },
+            { label: t("stat_tx"), value: networkStats?.payments ?? 0, icon: <Zap className="w-5 h-5" />, color: "text-axiom-gold" },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 15 }}
+              animate={statsInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.1 + i * 0.08, duration: 0.5 }}
+              className="text-center md:text-left md:border-r border-white/5 last:border-0 md:px-4 flex flex-col md:flex-row md:items-center gap-3"
+            >
               <span className="hidden md:inline">{stat.icon}</span>
               <div>
                 <p className="text-[10px] font-mono text-gray-500 uppercase tracking-wider">{stat.label}</p>
-                <h4 className={`text-lg md:text-xl font-bold font-mono mt-0.5 ${stat.color}`}>{stat.value}</h4>
+                <h4 className={`text-lg md:text-xl font-bold font-mono mt-0.5 ${stat.color}`}>
+                  {statsInView ? <AnimatedCounter target={stat.value} duration={1200} /> : "—"}
+                </h4>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
 
       {/* Features Grid */}
-      <div className="w-full max-w-6xl px-6 mt-24 md:mt-32 z-10">
-        <div className="text-center mb-12">
-          <span className="text-[10px] font-mono text-neon-green tracking-widest uppercase">{language === "en" ? "How It Works" : "كيف يعمل النظام؟"}</span>
-          <h2 className="text-2xl md:text-3xl font-bold text-white mt-2">{language === "en" ? "Three Steps to Agent Identity" : "ثلاث خطوات لبناء هوية العميل"}</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="w-full max-w-6xl px-4 sm:px-6 mt-16 sm:mt-24 z-10">
+        <SectionHeader
+          label={language === "en" ? "How It Works" : "كيف يعمل النظام؟"}
+          title={language === "en" ? "Three Steps to Agent Identity" : "ثلاث خطوات لبناء هوية العميل"}
+          labelColor="text-neon-green"
+        />
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-60px" }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-5"
+        >
           {[
             {
               step: "01",
               title: language === "en" ? "Connect" : "الاتصال",
               desc: language === "en" ? "Link your Pi wallet or any Stellar address. Your identity starts here." : "اربط محفظتك للبدء فورا في تأسيس هويتك الرقمية.",
-              icon: (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                </svg>
-              ),
+              icon: <Fingerprint className="w-6 h-6" />,
+              color: "text-neon-green",
             },
             {
               step: "02",
               title: language === "en" ? "Verify" : "التحقق",
               desc: language === "en" ? "Complete KYA + KYC. Build trust through social actions and on-chain activity." : "أكمل خطوات التوثيق (KYA) واربح طوابع الهوية الرقمية.",
-              icon: (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              ),
+              icon: <Shield className="w-6 h-6" />,
+              color: "text-electric-blue",
             },
             {
               step: "03",
               title: language === "en" ? "Deploy" : "التشغيل",
-              desc: language === "en" ? "Your Agent Passport is ready. Use it across the Pi ecosystem — Pi apps, dApps, and beyond — with Pi token payments only." : "جواز سفر العميل الخاص بك جاهز للاستخدام في نظام Pi البيئي — تطبيقات Pi والتطبيقات اللامركزية — مع مدفوعات Pi فقط.",
-              icon: (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              ),
+              desc: language === "en" ? "Your Agent Passport is ready. Use it across the Pi ecosystem with Pi token payments only." : "جواز سفر العميل الخاص بك جاهز للاستخدام في نظام Pi البيئي مع مدفوعات Pi فقط.",
+              icon: <Zap className="w-6 h-6" />,
+              color: "text-axiom-purple",
             },
           ].map((item) => (
-            <div key={item.step} className="bento-card p-6 flex flex-col gap-4">
+            <motion.div
+              key={item.step}
+              variants={fadeUp}
+              custom={0}
+              whileHover="hover"
+              className="bento-card p-6 flex flex-col gap-4 cursor-default group"
+            >
               <div className="flex items-center gap-3">
-                <span className="text-neon-green font-mono text-2xl font-bold">{item.step}</span>
+                <span className={`font-mono text-2xl font-bold ${item.color}`}>{item.step}</span>
                 <div className="w-px h-6 bg-white/10" />
-                <div className="text-neon-green">{item.icon}</div>
+                <div className={`${item.color} opacity-60 group-hover:opacity-100 transition-opacity`}>{item.icon}</div>
               </div>
               <h3 className="text-lg font-bold text-white">{item.title}</h3>
               <p className="text-sm text-gray-400 leading-relaxed">{item.desc}</p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
 
       {/* Why AxiomID? Section */}
-      <div className="w-full max-w-6xl px-6 mt-24 md:mt-32 z-10">
-        <div className="text-center mb-12">
-          <span className="text-[10px] font-mono text-axiom-purple tracking-widest uppercase">{language === "en" ? "The Sovereign Advantage" : "الميزة السيادية"}</span>
-          <h2 className="text-2xl md:text-3xl font-bold text-white mt-2">{language === "en" ? "Why Choose AxiomID?" : "لماذا تختار AxiomID؟"}</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="w-full max-w-6xl px-4 sm:px-6 mt-16 sm:mt-24 z-10">
+        <SectionHeader
+          label={language === "en" ? "The Sovereign Advantage" : "الميزة السيادية"}
+          title={language === "en" ? "Why Choose AxiomID?" : "لماذا تختار AxiomID؟"}
+          labelColor="text-axiom-purple"
+        />
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-60px" }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
           {/* Traditional Identity */}
-          <div className="bento-card p-6 border border-red-500/10 bg-red-500/[0.01] flex flex-col justify-between">
+          <motion.div variants={fadeUp} custom={0} className="bento-card p-6 border border-red-500/10 bg-red-500/[0.01] flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <AlertTriangle className="w-4 h-4 inline text-red-400" />
+                <AlertTriangle className="w-4 h-4 text-red-400" />
                 <h3 className="text-base font-bold text-red-400 font-mono">{language === "en" ? "Traditional Identity (Web2)" : "الهوية التقليدية (Web2)"}</h3>
               </div>
               <ul className="space-y-3.5 text-xs text-gray-400 font-mono">
-                <li className="flex items-start gap-2.5">
-                  <span className="text-red-500/70">✗</span>
-                  <span>{language === "en" ? "Siloed data: Your profiles are owned by third-party platforms." : "بيانات معزولة: ملفاتك الشخصية مملوكة لمنصات خارجية."}</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-red-500/70">✗</span>
-                  <span>{language === "en" ? "High friction: Repeated manual KYC checks for every app." : "خطوات معقدة: فحوصات KYC متكررة لكل تطبيق."}</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-red-500/70">✗</span>
-                  <span>{language === "en" ? "Vulnerable: Easy spoofing of digital identities and usernames." : "سهل الاختراق: انتحال سهل للهويات الرقمية وأسماء المستخدمين."}</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-red-500/70">✗</span>
-                  <span>{language === "en" ? "No AI integration: Machine agents cannot prove their authority or credentials." : "لا تكامل مع الذكاء الاصطناعي: لا يمكن للعملاء الآليين إثبات هويتهم."}</span>
-                </li>
+                {[
+                  language === "en" ? "Siloed data: Your profiles are owned by third-party platforms." : "بيانات معزولة: ملفاتك الشخصية مملوكة لمنصات خارجية.",
+                  language === "en" ? "High friction: Repeated manual KYC checks for every app." : "خطوات معقدة: فحوصات KYC متكررة لكل تطبيق.",
+                  language === "en" ? "Vulnerable: Easy spoofing of digital identities and usernames." : "سهل الاختراق: انتحال سهل للهويات الرقمية وأسماء المستخدمين.",
+                  language === "en" ? "No AI integration: Machine agents cannot prove their authority." : "لا تكامل مع الذكاء الاصطناعي: لا يمكن للعملاء الآليين إثبات هويتهم.",
+                ].map((text, i) => (
+                  <li key={i} className="flex items-start gap-2.5">
+                    <span className="text-red-500/70">✗</span>
+                    <span>{text}</span>
+                  </li>
+                ))}
               </ul>
             </div>
             <div className="border-t border-white/5 pt-4 mt-6 text-[10px] text-gray-500 font-mono">
-              {language === "en" ? "Result: Fragile security, high user friction, lack of agent trust." : "النتيجة: أمان هش، خطوات معقدة، غياب للثقة."}
+              {language === "en" ? "Result: Fragile security, high friction, no agent trust." : "النتيجة: أمان هش، خطوات معقدة، غياب للثقة."}
             </div>
-          </div>
+          </motion.div>
 
-          {/* AxiomID Passport */}
-          <div className="bento-card p-6 border border-neon-green/20 bg-neon-green/[0.01] flex flex-col justify-between">
+          {/* AxiomID */}
+          <motion.div variants={fadeUp} custom={1} className="bento-card p-6 border border-neon-green/20 bg-neon-green/[0.01] flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-neon-green text-lg">✓</span>
                 <h3 className="text-base font-bold text-neon-green font-mono">{language === "en" ? "AxiomID Stamps Passport" : "جواز سفر طوابع AxiomID"}</h3>
               </div>
               <ul className="space-y-3.5 text-xs text-gray-300 font-mono">
-                <li className="flex items-start gap-2.5">
-                  <span className="text-neon-green">✓</span>
-                  <span>{language === "en" ? "Decentralized: You own and carry your credentials via W3C DIDs." : "لامركزي: أنت تمتلك وتتحكم ببياناتك عبر المعرفات W3C DIDs."}</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-neon-green">✓</span>
-                  <span>{language === "en" ? "Verify once, prove everywhere: Single dashboard for all platform stamps." : "تحقق مرة واحدة، أثبت في كل مكان: لوحة تحكم واحدة لجميع طوابعك."}</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-neon-green">✓</span>
-                  <span>{language === "en" ? "Cryptographic security: Trust Score is math-verified on-chain." : "حماية تشفيرية: نقاط الثقة موثقة ومعتمدة رياضياً."}</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-neon-green">✓</span>
-                  <span>{language === "en" ? "Agent-native: Built for AI agents to represent you securely in automated tasks." : "مصمم للذكاء الاصطناعي: بني ليمثلك عميلك الآلي بأمان في المعاملات."}</span>
-                </li>
+                {[
+                  language === "en" ? "Decentralized: You own your credentials via W3C DIDs." : "لامركزي: أنت تمتلك بياناتك عبر W3C DIDs.",
+                  language === "en" ? "Verify once, prove everywhere: Single dashboard for all stamps." : "تحقق مرة، أثبت في كل مكان: لوحة تحكم واحدة لجميع طوابعك.",
+                  language === "en" ? "Cryptographic security: Trust Score verified on-chain." : "حماية تشفيرية: نقاط الثقة موثقة ومعتمدة رياضياً.",
+                  language === "en" ? "Agent-native: Built for AI agents to represent you securely." : "مصمم للذكاء الاصطناعي: يمثلك عميلك الآلي بأمان.",
+                ].map((text, i) => (
+                  <li key={i} className="flex items-start gap-2.5">
+                    <span className="text-neon-green">✓</span>
+                    <span>{text}</span>
+                  </li>
+                ))}
               </ul>
             </div>
             <div className="border-t border-white/5 pt-4 mt-6 text-[10px] text-gray-500 font-mono">
-              {language === "en" ? "Result: Frictionless authentication, resilient trust, delegation-ready." : "النتيجة: مصادقة خالية من الاحتكاك، ثقة مرنة، تفويض آمن."}
+              {language === "en" ? "Result: Frictionless auth, resilient trust, delegation-ready." : "النتيجة: مصادقة خالية من الاحتكاك، ثقة مرنة، تفويض آمن."}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* Tiers Section */}
-      <div className="w-full max-w-6xl px-6 mt-24 z-10">
-        <div className="text-center mb-12">
-          <span className="text-[10px] font-mono text-electric-blue tracking-widest uppercase">{t("tier")}</span>
-          <h2 className="text-2xl md:text-3xl font-bold text-white mt-2">{language === "en" ? "Level Up Your Identity" : "ارفع مستوى هويتك الرقمية"}</h2>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="w-full max-w-6xl px-4 sm:px-6 mt-16 sm:mt-24 z-10">
+        <SectionHeader
+          label={t("tier")}
+          title={language === "en" ? "Level Up Your Identity" : "ارفع مستوى هويتك الرقمية"}
+          labelColor="text-electric-blue"
+        />
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-60px" }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-4"
+        >
           {[
             { name: t("visitor"), xp: "0", color: "#64748b", desc: language === "en" ? "Connect wallet" : "اربط محفظتك" },
             { name: t("citizen"), xp: "100", color: "#00ff41", desc: language === "en" ? "Social + actions" : "تأكيدات وحسابات اجتماعية" },
             { name: t("validator"), xp: "500", color: "#00d4ff", desc: language === "en" ? "KYC verified" : "توثيق الهوية KYC" },
             { name: t("sovereign"), xp: "1000", color: "#a855f7", desc: language === "en" ? "Full delegation" : "تفويض كامل للذكاء الاصطناعي" },
           ].map((tier) => (
-            <div key={tier.name} className="bento-card p-5 text-center">
+            <motion.div
+              key={tier.name}
+              variants={fadeUp}
+              custom={0}
+              whileHover="hover"
+              className="bento-card p-5 text-center cursor-default"
+            >
               <div
                 className="w-10 h-10 rounded-xl mx-auto mb-3 flex items-center justify-center border"
-                style={{
-                  borderColor: `${tier.color}40`,
-                  background: `${tier.color}10`,
-                }}
+                style={{ borderColor: `${tier.color}40`, background: `${tier.color}10` }}
               >
                 <span className="font-mono font-bold text-sm animate-pulse-slow" style={{ color: tier.color }}>
                   {tier.name[0]}
@@ -497,16 +539,20 @@ export default function Home() {
               </div>
               <h4 className="text-sm font-bold text-white">{tier.name}</h4>
               <p className="text-[10px] text-gray-500 mt-1">{tier.desc}</p>
-              <span className="text-[10px] font-mono mt-2 block" style={{ color: tier.color }}>
-                {tier.xp} XP
-              </span>
-            </div>
+              <span className="text-[10px] font-mono mt-2 block" style={{ color: tier.color }}>{tier.xp} XP</span>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
 
       {/* Footer */}
-      <footer className="w-full max-w-6xl flex flex-col md:flex-row justify-between items-center mt-24 py-8 border-t border-white/5 text-[10px] font-mono text-gray-500 z-10 gap-4">
+      <motion.footer
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-6xl flex flex-col md:flex-row justify-between items-center mt-16 sm:mt-24 py-8 border-t border-white/5 text-[10px] font-mono text-gray-500 z-10 gap-4"
+      >
         <div>&copy; 2026 AxiomID. All rights reserved.</div>
         <div className="flex gap-4">
           <Link href="/status" className="hover:text-white transition-colors">{t("nav_status")}</Link>
@@ -514,7 +560,22 @@ export default function Home() {
           <Link href="/terms" className="hover:text-white transition-colors">{t("nav_terms")}</Link>
           <span className="text-gray-600">1.0.0</span>
         </div>
-      </footer>
+      </motion.footer>
     </main>
+  );
+}
+
+function SectionHeader({ label, title, labelColor }: { label: string; title: string; labelColor: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5 }}
+      className="text-center mb-10 sm:mb-12"
+    >
+      <span className={`text-[10px] font-mono ${labelColor} tracking-widest uppercase`}>{label}</span>
+      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mt-2">{title}</h2>
+    </motion.div>
   );
 }

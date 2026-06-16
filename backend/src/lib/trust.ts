@@ -15,7 +15,12 @@ import {
   trustPropagation,
   boltzmannTrustProbability,
   brownianStep,
-} from "../../../src/lib/math-physics";
+  langevinSimulation,
+  fokkerPlanckTrustEvolution,
+  isingTrustConsensus,
+  carnotTrustEfficiency,
+  fickTrustFlux,
+} from "./math-physics";
 
 export interface TrustBreakdown {
   xp: number;
@@ -131,6 +136,122 @@ export class TrustEngine {
         score: synthesisScore,
       },
     };
+  }
+
+  /**
+   * Langevin trust evolution — simulates trust change over time
+   * under external forces (evidence) and random noise (uncertainty).
+   *
+   * Physics: Langevin equation — m(d²x/dt²) = -γv + F(t) + η(t)
+   */
+  async computeLangevinTrust(
+    did: string,
+    externalForce?: number,
+  ): Promise<TrustResult> {
+    const base = await this.compute(did);
+    const force = externalForce ?? base.score * 0.5;
+    const { finalTrust } = langevinSimulation(
+      base.score,
+      force,
+      0.1,
+      0.05,
+      10,
+      0.1,
+    );
+
+    return {
+      did,
+      score: finalTrust,
+      breakdown: base.breakdown,
+      level: this.getTrustLevel(finalTrust),
+      cachedAt: base.cachedAt,
+    };
+  }
+
+  /**
+   * Fokker-Planck trust distribution — evolves probability density
+   * of trust scores across the system.
+   *
+   * Physics: ∂P/∂t = -∂(μP)/∂x + (1/2)∂²(σ²P)/∂x²
+   */
+  async computeFokkerPlanckDistribution(
+    dids: string[],
+    steps: number = 10,
+  ): Promise<{ grid: number[]; densities: number[][] }> {
+    const gridSize = 20;
+    const trustGrid = Array.from({ length: gridSize }, (_, i) => i / (gridSize - 1));
+
+    // Initialize from actual trust scores (bin into grid)
+    let probs = new Array(gridSize).fill(0);
+    if (dids.length > 0) {
+      const scores = await Promise.all(dids.map((did) => this.compute(did).then((r) => r.score)));
+      for (const score of scores) {
+        const bin = Math.min(gridSize - 1, Math.floor(score * gridSize));
+        probs[bin]++;
+      }
+      const total = scores.length;
+      probs = probs.map((p) => p / total);
+    } else {
+      probs.fill(1 / gridSize);
+    }
+
+    const densities: number[][] = [probs];
+    for (let step = 0; step < steps; step++) {
+      const drift = 0.05 - (step * 0.005);
+      const diffusion = 0.1;
+      probs = fokkerPlanckTrustEvolution(trustGrid, probs, drift, diffusion, 0.1);
+      densities.push(probs);
+    }
+
+    return { grid: trustGrid, densities };
+  }
+
+  /**
+   * Ising trust consensus — models trust as a spin system where
+   * agents align (+1 trusted, -1 untrusted).
+   *
+   * Physics: H = -J Σ sᵢsⱼ - h Σ sᵢ
+   */
+  async computeIsingConsensus(
+    n: number,
+    coupling: number = 1,
+    externalField: number = 0.2,
+    temperature: number = 0.5,
+  ): Promise<{
+    magnetization: number;
+    consensusReached: boolean;
+    simulation: ReturnType<typeof isingTrustConsensus>;
+  }> {
+    const result = isingTrustConsensus(n, coupling, externalField, temperature, 1000);
+    return {
+      magnetization: result.finalMagnetization,
+      consensusReached: Math.abs(result.finalMagnetization) > 0.7,
+      simulation: result,
+    };
+  }
+
+  /**
+   * Carnot trust efficiency — maximum achievable trust given noise.
+   *
+   * Physics: η = 1 - T_cold / T_hot
+   */
+  computeCarnotEfficiency(base: TrustResult): number {
+    return carnotTrustEfficiency(base.score, 1 - base.score);
+  }
+
+  /**
+   * Fick trust diffusion — how trust flows between connected agents.
+   *
+   * Physics: J = -D × dC/dx
+   */
+  async computeFickDiffusion(
+    dids: Array<{ sourceDid: string; targetDid: string; sourceTrust: number; targetTrust: number }>,
+  ): Promise<Array<{ sourceDid: string; targetDid: string; flux: number }>> {
+    return dids.map((d) => ({
+      sourceDid: d.sourceDid,
+      targetDid: d.targetDid,
+      flux: fickTrustFlux(d.sourceTrust, d.targetTrust, 0.5, 1),
+    }));
   }
 
   async invalidate(did: string): Promise<void> {
