@@ -3,25 +3,14 @@
  * @jest-environment node
  */
 
-// Mock the PiSdkBase module (virtual — no actual package installed)
-jest.mock('@pinetwork/pi-sdk-js', () => ({
-  PiSdkBase: jest.fn().mockImplementation(() => ({
-    connect: jest.fn(),
-    createPayment: jest.fn(),
-  })),
-}), { virtual: true });
-
-import { PiSdkBase } from '@pinetwork/pi-sdk-js';
 import {
   getLastPiError,
   isPiSdkLoaded,
   verifyStellarAddress,
-  transferPi,
+  createPiPayment,
   claimPiKya,
   connectPi,
 } from '@/lib/pi-sdk';
-
-const MockPiSdkBase = PiSdkBase as jest.MockedClass<typeof PiSdkBase>;
 
 describe('pi-sdk', () => {
   beforeEach(() => {
@@ -37,10 +26,6 @@ describe('pi-sdk', () => {
     });
 
     it('returns the last error message after a failed connectPi', async () => {
-      const mockInstance = { connect: jest.fn().mockRejectedValue(new Error('Auth failed')) };
-      MockPiSdkBase.mockImplementationOnce(() => mockInstance as any);
-      (PiSdkBase as any).get_user = jest.fn().mockReturnValue(null);
-
       await expect(connectPi()).rejects.toThrow();
       expect(getLastPiError()).toBeTruthy();
     });
@@ -116,26 +101,11 @@ describe('pi-sdk', () => {
     });
   });
 
-  describe('transferPi', () => {
+  describe('createPiPayment', () => {
     it('throws when Pi SDK is not loaded', async () => {
       // In node test environment, window is undefined so isPiSdkLoaded returns false
-      await expect(transferPi(1, 'GRECIPIENT')).rejects.toThrow('Pi SDK not loaded');
+      await expect(createPiPayment(1, 'test memo')).rejects.toThrow('Pi SDK not loaded');
     });
-
-    it('resolves with a mock transaction ID when Pi SDK is loaded', async () => {
-      const win = (global as any).window || {};
-      const originalPi = win.Pi;
-      win.Pi = { authenticate: jest.fn() };
-
-      const result = await transferPi(1.5, 'GRECIPIENT', 'test memo');
-      expect(result).toMatch(/^tx-mock-/);
-
-      if (originalPi !== undefined) {
-        win.Pi = originalPi;
-      } else {
-        win.Pi = undefined;
-      }
-    }, 1000);
   });
 
   describe('claimPiKya', () => {
@@ -203,46 +173,11 @@ describe('pi-sdk', () => {
   });
 
   describe('connectPi', () => {
-    // Tests 1-4 verify PiSdkBase error handling through the browser path
-    // (connectPi rejects in jsdom, which now re-throws PiSdkError directly)
-
-    it('throws when PiSdkBase.connect fails (server-side fallback)', async () => {
-      const mockInstance = { connect: jest.fn().mockRejectedValue(new Error('Connection error')) };
-      MockPiSdkBase.mockImplementationOnce(() => mockInstance as any);
-
+    it('throws when Pi SDK is not available (node environment)', async () => {
       await expect(connectPi()).rejects.toThrow('Pi SDK is not available');
     });
 
-    it('throws when get_user returns null after successful connect', async () => {
-      const mockInstance = { connect: jest.fn().mockResolvedValue(undefined) };
-      MockPiSdkBase.mockImplementationOnce(() => mockInstance as any);
-      (PiSdkBase as any).get_user = jest.fn().mockReturnValue(null);
-
-      await expect(connectPi()).rejects.toThrow('Pi SDK is not available');
-    });
-
-    it('throws when accessToken is falsy after successful connect', async () => {
-      const mockInstance = { connect: jest.fn().mockResolvedValue(undefined) };
-      MockPiSdkBase.mockImplementationOnce(() => mockInstance as any);
-      (PiSdkBase as any).get_user = jest.fn().mockReturnValue({ uid: 'u1', name: 'User' });
-      (PiSdkBase as any).accessToken = null;
-
-      await expect(connectPi()).rejects.toThrow('Pi SDK is not available');
-    });
-
-    it('calls pushLog with error message on failure', async () => {
-      const mockInstance = { connect: jest.fn().mockRejectedValue(new Error('SDK error')) };
-      MockPiSdkBase.mockImplementationOnce(() => mockInstance as any);
-      const pushLog = jest.fn();
-
-      await expect(connectPi(pushLog)).rejects.toThrow();
-      expect(pushLog).toHaveBeenCalledWith(expect.stringContaining('Auth error'));
-    });
-
-    // PiSdkBase success path is server-only (typeof window === "undefined") and
-    // unreachable in jsdom. The browser path with window.Pi covers the same
-    // return-shape contract — see "uses window.Pi.authenticate" test below.
-    it('returns PiAuthResult on successful auth via PiSdkBase', async () => {
+    it('returns PiAuthResult on successful auth via window.Pi', async () => {
       const mockAuthenticate = jest.fn().mockResolvedValue({
         user: { uid: 'uid-123', username: 'piuser', name: 'Pi User', stellarAddress: 'GSTELLAR' },
         accessToken: 'token-abc',

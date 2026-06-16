@@ -1,6 +1,28 @@
-import { PiSdkBase } from "@pinetwork/pi-sdk-js";
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+interface PiWindow {
+  Pi?: {
+    init: (args: { version: string; sandbox: boolean }) => void;
+    authenticate: (args: { scopes: string[] }) => Promise<{
+      user: { uid: string; username: string; name: string; stellarAddress?: string };
+      accessToken: string;
+    }>;
+    createPayment: (args: {
+      amount: number;
+      memo: string;
+      metadata?: Record<string, unknown>;
+      sandbox?: boolean;
+    }) => {
+      onReadyForServerApproval: (callback: (paymentId: string) => void) => void;
+      onReadyForServerCompletion: (callback: (paymentId: string, txid: string) => void) => void;
+      onError: (callback: (error: Error) => void) => void;
+    };
+  };
+}
+
+declare global {
+  interface Window extends PiWindow {}
+}
 
 export enum PiSdkErrorCode {
   NOT_IN_PI_BROWSER = "NOT_IN_PI_BROWSER",
@@ -157,92 +179,58 @@ export function checkPiBrowser(): boolean {
 
 export async function connectPi(pushLog?: (msg: string) => void): Promise<PiAuthResult> {
   try {
-    if (typeof window !== "undefined") {
-      pushLog?.("Browser environment detected — loading Pi SDK...");
-      const Pi = await ensurePiInitialized(pushLog);
-
-      const piInstance = Pi as { authenticate: (args: { scopes: string[] }) => Promise<unknown> };
-      if (piInstance && typeof piInstance.authenticate === "function") {
-        pushLog?.("Requesting Pi authentication token...");
-        const result = await Promise.race([
-          piInstance.authenticate({ scopes: ["username", "payments"] }),
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new PiSdkError(
-              PiSdkErrorCode.AUTHENTICATION_TIMEOUT,
-              "Pi authentication timed out"
-            )), 15000),
-          ),
-        ]) as { user: { uid: string; username: string; name: string; stellarAddress?: string }; accessToken: string };
-
-        if (!result?.user) {
-          throw new PiSdkError(
-            PiSdkErrorCode.AUTHENTICATION_FAILED,
-            "Authentication failed - no user data received"
-          );
-        }
-        if (!result.accessToken) {
-          throw new PiSdkError(
-            PiSdkErrorCode.AUTHENTICATION_FAILED,
-            "Authentication failed - no token received"
-          );
-        }
-        lastError = null;
-        pushLog?.(`Authenticated: ${result.user.name || result.user.uid}`);
-        return {
-          user: {
-            uid: result.user.uid ?? result.user.name,
-            username: result.user.username ?? result.user.name,
-            name: result.user.name,
-            stellarAddress: result.user.stellarAddress,
-          },
-          token: result.accessToken,
-          stellarAddress: result.user.stellarAddress,
-        };
-      }
+    if (typeof window === "undefined") {
       throw new PiSdkError(
         PiSdkErrorCode.NOT_IN_PI_BROWSER,
         "Pi Browser required. Pi SDK authenticate function not available."
       );
     }
 
-    // Server-side / Node.js: use PiSdkBase
-    pushLog?.("Using PiSdkBase (server)...");
-    const pi = new PiSdkBase();
-    await Promise.race([
-      pi.connect(),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new PiSdkError(
-          PiSdkErrorCode.AUTHENTICATION_TIMEOUT,
-          "Pi authentication timed out"
-        )), 15000),
-      ),
-    ]);
-    const user = PiSdkBase.user ?? PiSdkBase.get_user();
-    if (!user) {
-      throw new PiSdkError(
-        PiSdkErrorCode.AUTHENTICATION_FAILED,
-        "Authentication failed - no user data received"
-      );
+    pushLog?.("Browser environment detected — loading Pi SDK...");
+    const Pi = await ensurePiInitialized(pushLog);
+
+    const piInstance = Pi as { authenticate: (args: { scopes: string[] }) => Promise<unknown> };
+    if (piInstance && typeof piInstance.authenticate === "function") {
+      pushLog?.("Requesting Pi authentication token...");
+      const result = await Promise.race([
+        piInstance.authenticate({ scopes: ["username", "payments"] }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new PiSdkError(
+            PiSdkErrorCode.AUTHENTICATION_TIMEOUT,
+            "Pi authentication timed out"
+          )), 15000),
+        ),
+      ]) as { user: { uid: string; username: string; name: string; stellarAddress?: string }; accessToken: string };
+
+      if (!result?.user) {
+        throw new PiSdkError(
+          PiSdkErrorCode.AUTHENTICATION_FAILED,
+          "Authentication failed - no user data received"
+        );
+      }
+      if (!result.accessToken) {
+        throw new PiSdkError(
+          PiSdkErrorCode.AUTHENTICATION_FAILED,
+          "Authentication failed - no token received"
+        );
+      }
+      lastError = null;
+      pushLog?.(`Authenticated: ${result.user.name || result.user.uid}`);
+      return {
+        user: {
+          uid: result.user.uid ?? result.user.name,
+          username: result.user.username ?? result.user.name,
+          name: result.user.name,
+          stellarAddress: result.user.stellarAddress,
+        },
+        token: result.accessToken,
+        stellarAddress: result.user.stellarAddress,
+      };
     }
-    const token = PiSdkBase.accessToken;
-    if (!token) {
-      throw new PiSdkError(
-        PiSdkErrorCode.AUTHENTICATION_FAILED,
-        "Authentication failed - no token received"
-      );
-    }
-    lastError = null;
-    pushLog?.(`Authenticated: ${user.name || user.uid}`);
-    return {
-      user: {
-        uid: user.uid ?? user.name,
-        username: user.username ?? user.name,
-        name: user.name,
-        stellarAddress: user.stellarAddress,
-      },
-      token,
-      stellarAddress: user.stellarAddress,
-    };
+    throw new PiSdkError(
+      PiSdkErrorCode.NOT_IN_PI_BROWSER,
+      "Pi Browser required. Pi SDK authenticate function not available."
+    );
   } catch (error) {
     // If it's already a PiSdkError, re-throw it
     if (error instanceof PiSdkError) {
@@ -284,10 +272,10 @@ export async function runWalletTest(pushLog?: any): Promise<void> {
       pushLog?.(`Wallet test passed: ${result?.user?.username || result?.user?.uid || "unknown"}`);
       return;
     }
-    const pi = new PiSdkBase();
-    await pi.connect();
-    const user = PiSdkBase.user ?? PiSdkBase.get_user();
-    pushLog?.(`Wallet test passed: ${user?.name || "unknown"}`);
+    throw new PiSdkError(
+      PiSdkErrorCode.NOT_IN_PI_BROWSER,
+      "Pi Browser required for wallet test"
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : "Wallet test failed";
     pushLog?.(`Wallet test failed: ${message}`);
@@ -308,11 +296,34 @@ export async function verifyStellarAddress(stellarAddress: string): Promise<bool
   });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function transferPi(amount: number, recipient: string, memo?: string): Promise<string> {
+export async function createPiPayment(amount: number, memo: string, metadata?: Record<string, unknown>): Promise<string> {
   assertPiSdkLoaded();
-  return new Promise((resolve) => {
-    setTimeout(() => resolve("tx-mock-" + Date.now()), 100);
+  
+  return new Promise((resolve, reject) => {
+    const payment = window.Pi!.createPayment({
+      amount,
+      memo,
+      metadata: metadata || {},
+      sandbox: process.env.NEXT_PUBLIC_PI_SANDBOX === "true",
+    });
+
+    payment.onReadyForServerApproval((paymentId: string) => {
+      console.log("[Pi Payment] Ready for server approval:", paymentId);
+    });
+
+    payment.onReadyForServerCompletion((paymentId: string, txid: string) => {
+      console.log("[Pi Payment] Completed:", paymentId, txid);
+      resolve(txid);
+    });
+
+    payment.onError((error: Error) => {
+      console.error("[Pi Payment] Error:", error);
+      reject(new PiSdkError(
+        PiSdkErrorCode.GENERIC_ERROR,
+        `Payment failed: ${error.message}`,
+        error
+      ));
+    });
   });
 }
 
