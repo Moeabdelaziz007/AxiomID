@@ -37,6 +37,25 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
 
 process.env.PI_TOKEN_ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'; // 32-byte hex
 
+// Global Mock for framer-motion (simplify animations for tests)
+jest.mock("framer-motion", () => {
+  const React = require("react");
+  return {
+    motion: new Proxy({}, {
+      get: (_target, prop) => {
+        return React.forwardRef(({ children, whileHover, whileTap, initial, animate, exit, transition, viewport, variants, custom, ...props }, ref) => (
+          React.createElement(prop, { ...props, ref }, children)
+        ));
+      },
+    }),
+    AnimatePresence: ({ children }) => children,
+    useInView: () => true,
+    useSpring: (val) => val,
+    useTransform: (val) => val,
+    useMotionValue: (val) => val,
+  };
+});
+
 // Global Mock for Language Context (preserves real exports, only overrides useLanguage)
 jest.mock("@/app/context/language-context", () => {
   const actual = jest.requireActual("@/app/context/language-context");
