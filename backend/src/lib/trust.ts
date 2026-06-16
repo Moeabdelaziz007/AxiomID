@@ -20,7 +20,7 @@ import {
   isingTrustConsensus,
   carnotTrustEfficiency,
   fickTrustFlux,
-} from "../../../src/lib/math-physics";
+} from "./math-physics";
 
 export interface TrustBreakdown {
   xp: number;
@@ -175,6 +175,7 @@ export class TrustEngine {
    * Physics: ∂P/∂t = -∂(μP)/∂x + (1/2)∂²(σ²P)/∂x²
    */
   async computeFokkerPlanckDistribution(
+    dids: string[],
     steps: number = 10,
   ): Promise<{ grid: number[]; densities: number[][] }> {
     const gridSize = 20;

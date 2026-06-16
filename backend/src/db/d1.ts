@@ -28,41 +28,19 @@ export class D1Helper {
     if (this.initialized) return;
     this.initialized = true;
 
-    await this.db.exec(`
-      CREATE TABLE IF NOT EXISTS harvest_results (
-        id TEXT PRIMARY KEY,
-        query TEXT NOT NULL,
-        result TEXT NOT NULL,
-        citations TEXT,
-        user_did TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-      CREATE INDEX IF NOT EXISTS idx_harvest_user ON harvest_results(user_did);
-      CREATE INDEX IF NOT EXISTS idx_harvest_created ON harvest_results(created_at);
-      CREATE TABLE IF NOT EXISTS agent_presence (
-        agent_id TEXT PRIMARY KEY,
-        status TEXT DEFAULT 'offline',
-        last_heartbeat INTEGER,
-        metadata TEXT
-      );
-      CREATE TABLE IF NOT EXISTS trust_delegations (
-        delegator_did TEXT NOT NULL,
-        delegatee_did TEXT NOT NULL,
-        trust_level REAL DEFAULT 0.5,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        expires_at DATETIME,
-        PRIMARY KEY (delegator_did, delegatee_did)
-      );
-      CREATE INDEX IF NOT EXISTS idx_delegation_delegatee ON trust_delegations(delegatee_did);
-      CREATE TABLE IF NOT EXISTS skill_installs (
-        id TEXT PRIMARY KEY,
-        skill_slug TEXT NOT NULL,
-        user_did TEXT NOT NULL,
-        version TEXT,
-        installed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(skill_slug, user_did)
-      );
-    `);
+    const stmts = [
+      'CREATE TABLE IF NOT EXISTS harvest_results (id TEXT PRIMARY KEY, query TEXT NOT NULL, result TEXT NOT NULL, citations TEXT, user_did TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)',
+      'CREATE INDEX IF NOT EXISTS idx_harvest_user ON harvest_results(user_did)',
+      'CREATE INDEX IF NOT EXISTS idx_harvest_created ON harvest_results(created_at)',
+      'CREATE TABLE IF NOT EXISTS agent_presence (agent_id TEXT PRIMARY KEY, status TEXT DEFAULT \'offline\', last_heartbeat INTEGER, metadata TEXT)',
+      'CREATE TABLE IF NOT EXISTS trust_delegations (delegator_did TEXT NOT NULL, delegatee_did TEXT NOT NULL, trust_level REAL DEFAULT 0.5, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, expires_at DATETIME, PRIMARY KEY (delegator_did, delegatee_did))',
+      'CREATE INDEX IF NOT EXISTS idx_delegation_delegatee ON trust_delegations(delegatee_did)',
+      'CREATE TABLE IF NOT EXISTS skill_installs (id TEXT PRIMARY KEY, skill_slug TEXT NOT NULL, user_did TEXT NOT NULL, version TEXT, installed_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(skill_slug, user_did))',
+    ];
+
+    for (const sql of stmts) {
+      await this.db.exec(sql);
+    }
   }
 
   async saveHarvestResult(data: {
