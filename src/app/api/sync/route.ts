@@ -15,6 +15,10 @@ import {
   exponentialBackoff,
   shannonEntropy,
   dataFreshness,
+  nyquistMinSyncRate,
+  shannonHartleyCapacity,
+  mutualInformation,
+  trustSignalToNoise,
 } from "@/lib/math-physics";
 import {
   checkRateLimit,
@@ -126,6 +130,32 @@ export async function GET() {
       recentQueries.map((q) => q.query).join("")
     );
 
+    // Nyquist-Shannon: compute minimum sync frequency based on change rate
+    const changeRateHz = recentQueries.length / 86400; // Queries per day → Hz
+    const minSyncHz = nyquistMinSyncRate(changeRateHz);
+    const minSyncMinutes = Math.ceil(1 / (minSyncHz * 60));
+
+    // Shannon-Hartley: channel capacity for sync bandwidth
+    const bw = 100; // Hz — effective sync bandwidth
+    const signal = recentQueries.length;
+    const errorCount = recentQueries.filter((q) => !q.query).length || 1;
+    const noise = Math.max(1, errorCount);
+    const capacity = shannonHartleyCapacity(bw, signal, noise);
+
+    // Mutual information between queries and agent statuses
+    const presenceStatuses = await prisma.agentPresence.findMany({
+      select: { status: true },
+    });
+    const mi = recentQueries.length > 0 && presenceStatuses.length > 0
+      ? mutualInformation([
+          [recentQueries.length, presenceStatuses.filter((p) => p.status === "active").length],
+          [presenceStatuses.filter((p) => p.status === "idle").length, presenceStatuses.filter((p) => p.status === "offline").length],
+        ])
+      : 0;
+
+    // SNR of sync data quality
+    const snr = trustSignalToNoise(signal, noise);
+
     return apiSuccess({
       status: "ok",
       lastSync: {
@@ -137,6 +167,13 @@ export async function GET() {
         presenceFreshness,
         queryEntropy,
         totalQueries: recentQueries.length,
+      },
+      physics: {
+        nyquistMinSyncHz: minSyncHz,
+        minSyncIntervalMinutes: minSyncMinutes,
+        shannonHartleyCapacity: capacity,
+        mutualInformation: mi,
+        signalToNoiseRatio: snr,
       },
     });
   } catch (error) {

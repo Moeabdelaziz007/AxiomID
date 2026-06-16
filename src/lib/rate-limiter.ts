@@ -8,7 +8,7 @@
  * Also implements sliding window fallback for backward compatibility.
  */
 
-import { leakyBucketCheck, type LeakyBucketConfig, type LeakyBucketState } from "./math-physics";
+import { leakyBucketCheck, idealGasPressure, type LeakyBucketConfig, type LeakyBucketState } from "./math-physics";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -20,6 +20,8 @@ export interface RateLimitConfig {
   // Physics-inspired config
   drainRate?: number;      // Requests drained per second (Leaky Bucket)
   inflowRate?: number;     // Requests allowed per second
+  idealGasConstant?: number; // R in PV=nRT
+  systemTemperature?: number; // T in PV=nRT (system load factor)
 }
 
 export interface RateLimitResult {
@@ -30,6 +32,8 @@ export interface RateLimitResult {
   bucketLevel?: number;    // Current water level in bucket
   waitTimeMs?: number;     // Wait time if bucket overflow
   overflowCount?: number;  // Number of overflows (pressure indicator)
+  systemPressure?: number; // Pressure from Ideal Gas Law
+  adaptiveCapacity?: number; // Capacity after pressure adjustment
 }
 
 export const RATE_LIMITS = {
@@ -87,9 +91,24 @@ export async function checkRateLimit(
 
   const existing = store.get(key);
 
+  // Compute system pressure using Ideal Gas Law (PV = nRT)
+  // Higher pressure = system under load = adaptive capacity reduction
+  const systemLoad = store.size; // Number of active rate limit entries
+  const pressure = idealGasPressure(
+    systemLoad,
+    config.maxRequests * 10,
+    config.systemTemperature || 1.0,
+    config.idealGasConstant || 1.0,
+  );
+
+  // Adaptive capacity: reduce when pressure is high
+  const adaptiveCapacity = pressure > 1
+    ? Math.max(1, Math.floor(config.maxRequests / pressure))
+    : config.maxRequests;
+
   // Initialize bucket state
   const bucketConfig: LeakyBucketConfig = {
-    capacity: config.maxRequests,
+    capacity: adaptiveCapacity,
     drainRate: config.drainRate || config.maxRequests / (config.windowMs / 1000),
     inflowRate: config.inflowRate || config.maxRequests / (config.windowMs / 1000),
   };
@@ -113,11 +132,13 @@ export async function checkRateLimit(
 
     return {
       allowed: bucketResult.allowed,
-      remaining: config.maxRequests - 1,
+      remaining: adaptiveCapacity - 1,
       resetAt,
       bucketLevel: bucketResult.newState.level,
       waitTimeMs: bucketResult.waitTimeMs,
       overflowCount: bucketResult.newState.overflowCount,
+      systemPressure: pressure,
+      adaptiveCapacity,
     };
   }
 

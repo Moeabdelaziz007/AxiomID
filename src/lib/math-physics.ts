@@ -892,3 +892,964 @@ export function randomWalkTrust(
 
   return { visitCounts, stationaryDistribution };
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PILLAR 1 — IDEAL GAS LAW, CARNOT, FICK, FOURIER
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Ideal Gas Law — models request pressure in rate limiter.
+ *
+ * Physics analogy: PV = nRT
+ * Pressure × Volume = moles × gas constant × Temperature
+ *
+ * AxiomID: P = request pressure, V = bucket capacity,
+ * n = active requests, T = system load factor
+ */
+export function idealGasPressure(
+  activeRequests: number,
+  capacity: number,
+  temperature: number,
+  gasConstant: number = 1,
+): number {
+  if (capacity <= 0) return Infinity;
+  return (activeRequests * gasConstant * temperature) / capacity;
+}
+
+/**
+ * Carnot Efficiency — maximum theoretical efficiency of trust scoring.
+ *
+ * Physics analogy: η = 1 - T_cold / T_hot
+ * No heat engine can exceed Carnot efficiency.
+ *
+ * AxiomID: Maximum achievable trust score given current data quality.
+ * T_cold = noise level (uncertainty), T_hot = signal level (confidence)
+ */
+export function carnotTrustEfficiency(
+  signalStrength: number,
+  noiseLevel: number,
+): number {
+  if (signalStrength <= 0) return 0;
+  const efficiency = 1 - noiseLevel / signalStrength;
+  return Math.max(0, Math.min(1, efficiency));
+}
+
+/**
+ * Fick's First Law of Diffusion — trust propagates from high to low concentration.
+ *
+ * Physics analogy: J = -D × dC/dx
+ * Flux = -Diffusivity × Concentration gradient
+ *
+ * AxiomID: Trust diffuses from high-trust nodes to low-trust neighbors.
+ * J = trust flux, D = propagation rate, dC/dx = trust gradient
+ */
+export function fickTrustFlux(
+  sourceTrust: number,
+  targetTrust: number,
+  diffusivity: number = 0.5,
+  distance: number = 1,
+): number {
+  const gradient = (targetTrust - sourceTrust) / distance;
+  return -diffusivity * gradient;
+}
+
+/**
+ * Fick's Second Law — time evolution of trust concentration.
+ *
+ * Physics analogy: ∂C/∂t = D × ∂²C/∂x²
+ *
+ * AxiomID: How trust concentration changes over time at each node.
+ */
+export function fickTrustEvolution(
+  trustAtNode: number,
+  trustNeighbors: number[],
+  timeStep: number = 0.1,
+  diffusivity: number = 0.5,
+): number {
+  if (trustNeighbors.length === 0) return trustAtNode;
+
+  const averageNeighborTrust = trustNeighbors.reduce((a, b) => a + b, 0) / trustNeighbors.length;
+  const laplacian = trustAtNode - averageNeighborTrust;
+  const delta = diffusivity * laplacian * timeStep;
+
+  return Math.max(0, Math.min(1, trustAtNode - delta));
+}
+
+/**
+ * Fourier's Heat Equation — trust "heat" propagation through graph.
+ *
+ * Physics analogy: ∂T/∂t = α × ∇²T
+ * Alpha = thermal diffusivity = k / (ρ × cp)
+ *
+ * AxiomID: Trust heat diffuses through the network.
+ * Hot (high trust) nodes heat up cold (low trust) neighbors.
+ */
+export function fourierTrustHeat(
+  nodeTrust: number,
+  neighborTrusts: number[],
+  thermalDiffusivity: number = 0.3,
+  timeStep: number = 0.1,
+): number {
+  if (neighborTrusts.length === 0) return nodeTrust;
+
+  const averageNeighborTemp = neighborTrusts.reduce((a, b) => a + b, 0) / neighborTrusts.length;
+  const laplacian = averageNeighborTemp - nodeTrust;
+  const delta = thermalDiffusivity * laplacian * timeStep;
+
+  return Math.max(0, Math.min(1, nodeTrust + delta));
+}
+
+/**
+ * Thermal Equilibrium — trust system reaches steady state.
+ *
+ * Physics analogy: ∇²T = 0 (Laplace equation)
+ * No net heat flow when temperature gradient is zero.
+ *
+ * AxiomID: Trust distribution is stable when all nodes have equal trust.
+ */
+export function thermalEquilibriumError(
+  trustDistribution: number[],
+): number {
+  if (trustDistribution.length <= 1) return 0;
+  const mean = trustDistribution.reduce((a, b) => a + b, 0) / trustDistribution.length;
+  const variance = trustDistribution.reduce((sum, t) => sum + (t - mean) ** 2, 0) / trustDistribution.length;
+  return Math.sqrt(variance);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PILLAR 2 — NYQUIST-SHANNON, HUFFMAN, MUTUAL INFORMATION, SNR
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Nyquist-Shannon Sampling Theorem — minimum sync frequency.
+ *
+ * Physics analogy: fs ≥ 2 × fmax
+ * To reconstruct a signal perfectly, sample at least twice its max frequency.
+ *
+ * AxiomID: Minimum heartbeat frequency to capture all trust changes.
+ */
+export function nyquistMinSyncRate(
+  maxTrustChangeRate: number, // Hz — maximum trust changes per second
+): number {
+  return 2 * maxTrustChangeRate;
+}
+
+/**
+ * Shannon-Hartley Theorem — channel capacity for trust transmission.
+ *
+ * Physics analogy: C = B × log₂(1 + S/N)
+ * Channel capacity = Bandwidth × log₂(1 + Signal/Noise)
+ *
+ * AxiomID: Maximum trust information rate through delegation channel.
+ */
+export function shannonHartleyCapacity(
+  bandwidth: number,
+  signalPower: number,
+  noisePower: number,
+): number {
+  if (noisePower <= 0) return Infinity;
+  if (signalPower / noisePower <= 0) return 0;
+  return bandwidth * Math.log2(1 + signalPower / noisePower);
+}
+
+/**
+ * Huffman Coding — optimal prefix-free code for trust data compression.
+ *
+ * Physics analogy: Variable-length coding based on symbol probability.
+ * High-probability symbols get short codes, low-probability get long codes.
+ *
+ * AxiomID: Compress trust delegation data for efficient transmission.
+ */
+export interface HuffmanNode {
+  symbol: string | null;
+  frequency: number;
+  left: HuffmanNode | null;
+  right: HuffmanNode | null;
+  code: string;
+}
+
+export function buildHuffmanTree(symbols: Map<string, number>): HuffmanNode {
+  const nodes: HuffmanNode[] = Array.from(symbols.entries()).map(([symbol, frequency]) => ({
+    symbol,
+    frequency,
+    left: null,
+    right: null,
+    code: "",
+  }));
+
+  while (nodes.length > 1) {
+    nodes.sort((a, b) => a.frequency - b.frequency);
+    const left = nodes.shift()!;
+    const right = nodes.shift()!;
+
+    const parent: HuffmanNode = {
+      symbol: null,
+      frequency: left.frequency + right.frequency,
+      left,
+      right,
+      code: "",
+    };
+
+    nodes.push(parent);
+  }
+
+  return nodes[0];
+}
+
+export function buildHuffmanCodes(
+  node: HuffmanNode,
+  prefix: string = "",
+  codes: Map<string, string> = new Map(),
+): Map<string, string> {
+  if (node.symbol !== null) {
+    codes.set(node.symbol, prefix);
+  }
+  if (node.left) buildHuffmanCodes(node.left, prefix + "0", codes);
+  if (node.right) buildHuffmanCodes(node.right, prefix + "1", codes);
+  return codes;
+}
+
+export function huffmanCompress(data: string[], symbolFrequencies: Map<string, number>): { codes: Map<string, string>; encoded: string; compressionRatio: number } {
+  const tree = buildHuffmanTree(symbolFrequencies);
+  const codes = buildHuffmanCodes(tree);
+
+  const originalBits = data.length * 8; // Assume 8-bit symbols
+  let encodedBits = 0;
+  for (const symbol of data) {
+    const code = codes.get(symbol);
+    if (code) encodedBits += code.length;
+  }
+
+  return {
+    codes,
+    encoded: data.map((s) => codes.get(s) || "").join(""),
+    compressionRatio: originalBits > 0 ? encodedBits / originalBits : 0,
+  };
+}
+
+/**
+ * Mutual Information — trust correlation between two agents.
+ *
+ * Physics analogy: I(X;Y) = H(X) - H(X|Y)
+ * Measures reduction in uncertainty about X given knowledge of Y.
+ *
+ * AxiomID: How much trust information is shared between two DIDs.
+ */
+export function mutualInformation(
+  jointDistribution: number[][], // P(X,Y) matrix
+): number {
+  const nX = jointDistribution.length;
+  if (nX === 0) return 0;
+  const nY = jointDistribution[0].length;
+  if (nY === 0) return 0;
+
+  // Marginal distributions
+  const pX = new Array(nX).fill(0);
+  const pY = new Array(nY).fill(0);
+  let total = 0;
+
+  for (let i = 0; i < nX; i++) {
+    for (let j = 0; j < nY; j++) {
+      const val = jointDistribution[i][j];
+      pX[i] += val;
+      pY[j] += val;
+      total += val;
+    }
+  }
+
+  // Normalize
+  for (let i = 0; i < nX; i++) pX[i] /= total;
+  for (let j = 0; j < nY; j++) pY[j] /= total;
+
+  // MI = ΣΣ P(x,y) × log₂(P(x,y) / (P(x)×P(y)))
+  let mi = 0;
+  for (let i = 0; i < nX; i++) {
+    for (let j = 0; j < nY; j++) {
+      const pxy = jointDistribution[i][j] / total;
+      if (pxy > 0 && pX[i] > 0 && pY[j] > 0) {
+        mi += pxy * Math.log2(pxy / (pX[i] * pY[j]));
+      }
+    }
+  }
+
+  return mi;
+}
+
+/**
+ * Signal-to-Noise Ratio — trust signal quality metric.
+ *
+ * Physics analogy: SNR = P_signal / P_noise
+ * Higher SNR = cleaner trust signal.
+ */
+export function trustSignalToNoise(
+  signalPower: number,
+  noisePower: number,
+): number {
+  if (noisePower <= 0) return Infinity;
+  return signalPower / noisePower;
+}
+
+/**
+ * Kullback-Leibler Divergence — trust distribution distance.
+ *
+ * Physics analogy: D_KL(P||Q) = Σ P(x) × log(P(x) / Q(x))
+ * Measures how much information is lost when Q approximates P.
+ *
+ * AxiomID: How different two trust distributions are.
+ */
+export function klDivergence(
+  p: number[],
+  q: number[],
+): number {
+  if (p.length !== q.length) throw new Error("Distributions must have same length");
+
+  let dkl = 0;
+  for (let i = 0; i < p.length; i++) {
+    if (p[i] > 0 && q[i] > 0) {
+      dkl += p[i] * Math.log2(p[i] / q[i]);
+    }
+  }
+  return dkl;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PILLAR 3 — PAGERANK, SPECTRAL CLUSTERING, NASH EQUILIBRIUM, MIN-CUT
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * PageRank — recursive trust importance ranking.
+ *
+ * Physics analogy: A page is important if important pages link to it.
+ * PR(A) = (1-d)/N + d × Σ PR(Tᵢ)/C(Tᵢ)
+ *
+ * AxiomID: A DID is trustworthy if trustworthy DIDs vouch for it.
+ */
+export function pageRankTrust(
+  nodes: string[],
+  edges: TopologyEdge[],
+  dampingFactor: number = 0.85,
+  iterations: number = 100,
+): Map<string, number> {
+  const n = nodes.length;
+  if (n === 0) return new Map();
+
+  // Build adjacency matrix
+  const outDegrees = new Map<string, number>();
+  const inLinks = new Map<string, string[]>();
+
+  for (const node of nodes) {
+    outDegrees.set(node, 0);
+    inLinks.set(node, []);
+  }
+
+  for (const edge of edges) {
+    outDegrees.set(edge.source, (outDegrees.get(edge.source) || 0) + 1);
+    const links = inLinks.get(edge.target) || [];
+    links.push(edge.source);
+    inLinks.set(edge.target, links);
+  }
+
+  // Initialize ranks
+  const ranks = new Map<string, number>();
+  for (const node of nodes) ranks.set(node, 1 / n);
+
+  // Iterate
+  for (let iter = 0; iter < iterations; iter++) {
+    const newRanks = new Map<string, number>();
+    let sinkSum = 0;
+
+    // Handle sink nodes (no outgoing edges)
+    for (const node of nodes) {
+      if ((outDegrees.get(node) || 0) === 0) {
+        sinkSum += (ranks.get(node) || 0) / n;
+      }
+    }
+
+    for (const node of nodes) {
+      let rank = sinkSum;
+
+      // Add contributions from in-links
+      for (const inLink of inLinks.get(node) || []) {
+        rank += (ranks.get(inLink) || 0) / (outDegrees.get(inLink) || 1);
+      }
+
+      rank = (1 - dampingFactor) / n + dampingFactor * rank;
+      newRanks.set(node, rank);
+    }
+
+    // Update ranks
+    for (const node of nodes) {
+      ranks.set(node, newRanks.get(node) || 0);
+    }
+  }
+
+  return ranks;
+}
+
+/**
+ * Spectral Clustering — community detection using graph Laplacian.
+ *
+ * Physics analogy: Eigenvalues of Laplacian reveal graph structure.
+ * L = D - A (Laplacian = Degree matrix - Adjacency matrix)
+ *
+ * AxiomID: Find natural trust communities in delegation network.
+ */
+export function laplacianMatrix(
+  nodes: string[],
+  edges: TopologyEdge[],
+): number[][] {
+  const index = new Map<string, number>();
+  nodes.forEach((n, i) => index.set(n, i));
+  const n = nodes.length;
+  const L: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
+
+  for (const edge of edges) {
+    const i = index.get(edge.source);
+    const j = index.get(edge.target);
+    if (i === undefined || j === undefined) continue;
+
+    // Degree contribution
+    L[i][i] += edge.weight;
+    L[j][j] += edge.weight;
+
+    // Negative adjacency
+    L[i][j] -= edge.weight;
+    L[j][i] -= edge.weight;
+  }
+
+  return L;
+}
+
+/**
+ * Power Iteration — find dominant eigenvalue/eigenvector of Laplacian.
+ *
+ * Used for spectral clustering: the second smallest eigenvector (Fiedler)
+ * reveals the optimal community split.
+ */
+export function powerIteration(
+  matrix: number[][],
+  iterations: number = 100,
+): number[] {
+  const n = matrix.length;
+  let vector = Array.from({ length: n }, () => Math.random());
+
+  for (let iter = 0; iter < iterations; iter++) {
+    // Multiply matrix × vector
+    const newVector = new Array(n).fill(0);
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        newVector[i] += matrix[i][j] * vector[j];
+      }
+    }
+
+    // Normalize
+    const norm = Math.sqrt(newVector.reduce((sum, v) => sum + v * v, 0));
+    vector = newVector.map((v) => v / (norm || 1));
+  }
+
+  return vector;
+}
+
+/**
+ * Fiedler Vector — second smallest eigenvector for community detection.
+ * Nodes with same sign belong to same community.
+ */
+export function fiedlerPartition(
+  nodes: string[],
+  edges: TopologyEdge[],
+): { communityA: string[]; communityB: string[] } {
+  const L = laplacianMatrix(nodes, edges);
+  const vector = powerIteration(L, 100);
+  const mean = vector.reduce((a, b) => a + b, 0) / vector.length;
+
+  return {
+    communityA: nodes.filter((_, i) => vector[i] >= mean),
+    communityB: nodes.filter((_, i) => vector[i] < mean),
+  };
+}
+
+/**
+ * Nash Equilibrium — no agent can improve trust unilaterally.
+ *
+ * Game theory: A strategy profile where no player can benefit
+ * by changing their strategy while others keep theirs fixed.
+ *
+ * AxiomID: A trust configuration where no agent can improve
+ * their trust score without others changing theirs.
+ */
+export function nashEquilibrium(
+  agents: Array<{
+    id: string;
+    currentTrust: number;
+    alternativeTrusts: Array<{ trust: number; profit: number }>;
+  }>,
+): string[] {
+  const stableAgents: string[] = [];
+
+  for (const agent of agents) {
+    let isStable = true;
+
+    for (const alt of agent.alternativeTrusts) {
+      // Check if deviation is profitable
+      if (alt.profit > 0) {
+        isStable = false;
+        break;
+      }
+    }
+
+    if (isStable) {
+      stableAgents.push(agent.id);
+    }
+  }
+
+  return stableAgents;
+}
+
+/**
+ * Best Response Dynamics — agents iteratively choose optimal trust.
+ *
+ * Game theory: Each agent chooses the strategy that maximizes
+ * their payoff given others' strategies.
+ */
+export function bestResponseDynamics(
+  agents: Array<{
+    id: string;
+    strategies: Array<{ label: string; payoff: number }>;
+  }>,
+): Map<string, string> {
+  const bestResponses = new Map<string, string>();
+
+  for (const agent of agents) {
+    if (agent.strategies.length === 0) continue;
+    const best = agent.strategies.reduce((a, b) => a.payoff > b.payoff ? a : b);
+    bestResponses.set(agent.id, best.label);
+  }
+
+  return bestResponses;
+}
+
+/**
+ * Min-Cut Max-Flow — find trust bottlenecks in network.
+ *
+ * Physics analogy: max flow = min cut (Ford-Fulkerson theorem)
+ * The maximum amount of trust flowing through a network equals
+ * the minimum capacity cut that separates source from sink.
+ *
+ * AxiomID: Find the weakest link in a trust delegation chain.
+ */
+export function minCutTrustBottleneck(
+  edges: TopologyEdge[],
+  source: string,
+  sink: string,
+): { maxFlow: number; cutEdges: TopologyEdge[]; bottleneckNodes: string[] } {
+  // Build adjacency for Ford-Fulkerson (simplified Edmonds-Karp)
+  const graph = new Map<string, Map<string, number>>();
+
+  for (const edge of edges) {
+    if (!graph.has(edge.source)) graph.set(edge.source, new Map());
+    if (!graph.has(edge.target)) graph.set(edge.target, new Map());
+    graph.get(edge.source)!.set(edge.target, (graph.get(edge.source)!.get(edge.target) || 0) + edge.weight);
+    if (!graph.get(edge.target)!.has(edge.source)) {
+      graph.get(edge.target)!.set(edge.source, 0);
+    }
+  }
+
+  let maxFlow = 0;
+  const cutEdges: TopologyEdge[] = [];
+  const visitedNodes = new Set<string>();
+
+  // BFS to find augmenting path
+  function bfs(s: string, t: string, parent: Map<string, string | null>): boolean {
+    const visited = new Set<string>();
+    const queue: string[] = [s];
+    visited.add(s);
+
+    while (queue.length > 0) {
+      const u = queue.shift()!;
+      const neighbors = graph.get(u);
+
+      if (!neighbors) continue;
+      for (const [v, capacity] of neighbors) {
+        if (!visited.has(v) && capacity > 0) {
+          visited.add(v);
+          parent.set(v, u);
+          queue.push(v);
+          if (v === t) return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  // Edmonds-Karp
+  while (true) {
+    const parent = new Map<string, string | null>();
+    if (!bfs(source, sink, parent)) break;
+
+    let pathFlow = Infinity;
+    let v = sink;
+    while (v !== source) {
+      const u = parent.get(v);
+      if (!u) break;
+      const capacity = graph.get(u)?.get(v) || 0;
+      pathFlow = Math.min(pathFlow, capacity);
+      v = u;
+    }
+
+    // Update residual graph
+    v = sink;
+    while (v !== source) {
+      const u = parent.get(v);
+      if (!u) break;
+      const forward = graph.get(u);
+      const backward = graph.get(v);
+      if (forward) forward.set(v, (forward.get(v) || 0) - pathFlow);
+      if (backward) backward.set(u, (backward.get(u) || 0) + pathFlow);
+      v = u;
+    }
+
+    maxFlow += pathFlow;
+  }
+
+  // Find cut edges (edges from reachable to unreachable nodes after max flow)
+  const reachable = new Set<string>();
+  const dfsQ = [source];
+  reachable.add(source);
+  while (dfsQ.length > 0) {
+    const u = dfsQ.shift()!;
+    const neighbors = graph.get(u);
+    if (!neighbors) continue;
+    for (const [v, capacity] of neighbors) {
+      if (!reachable.has(v) && capacity > 0) {
+        reachable.add(v);
+        dfsQ.push(v);
+      }
+    }
+  }
+
+  for (const edge of edges) {
+    if (reachable.has(edge.source) && !reachable.has(edge.target)) {
+      cutEdges.push(edge);
+      visitedNodes.add(edge.source);
+      visitedNodes.add(edge.target);
+    }
+  }
+
+  return {
+    maxFlow,
+    cutEdges,
+    bottleneckNodes: Array.from(visitedNodes),
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PILLAR 4 — LANGEVIN, FOKKER-PLANCK, ISING, KURAMOTO
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Langevin Equation — trust dynamics with external forces and noise.
+ *
+ * Physics analogy: m(d²x/dt²) = -γv + F(t) + η(t)
+ * mass × acceleration = damping × velocity + external force + random noise
+ *
+ * AxiomID: Trust evolves under external influence (delegations, evidence)
+ * plus random fluctuations (uncertainty).
+ */
+export function langevinTrustDynamics(
+  currentTrust: number,
+  externalForce: number,     // F(t) — evidence/delegation push
+  damping: number = 0.1,     // γ — resistance to change
+  noiseStrength: number = 0.05, // η — random uncertainty
+  mass: number = 1,          // m — inertia (resistance to change)
+  timeStep: number = 0.1,   // dt
+): { newTrust: number; velocity: number } {
+  // Random thermal noise (Gaussian)
+  const u1 = Math.random();
+  const u2 = Math.random();
+  const noise = noiseStrength * Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+
+  // dv/dt = (F - γv + η) / m
+  const velocity = externalForce - damping * currentTrust + noise;
+
+  // dx/dt = v
+  const newTrust = currentTrust + velocity * timeStep / mass;
+
+  return {
+    newTrust: Math.max(0, Math.min(1, newTrust)),
+    velocity,
+  };
+}
+
+/**
+ * Langevin Simulation — multi-step trust evolution with Langevin equation.
+ */
+export function langevinSimulation(
+  initialTrust: number,
+  externalForce: number,
+  damping: number = 0.1,
+  noiseStrength: number = 0.05,
+  totalTime: number = 10,
+  timeStep: number = 0.1,
+): { trustHistory: number[]; finalTrust: number } {
+  const trustHistory = [initialTrust];
+  let trust = initialTrust;
+
+  for (let t = 0; t < totalTime; t += timeStep) {
+    const result = langevinTrustDynamics(trust, externalForce, damping, noiseStrength, 1, timeStep);
+    trust = result.newTrust;
+
+    // External force decays with time (evidence ages)
+    externalForce *= (1 - damping * timeStep);
+
+    trustHistory.push(trust);
+  }
+
+  return { trustHistory, finalTrust: trust };
+}
+
+/**
+ * Fokker-Planck Equation — probability density evolution of trust.
+ *
+ * Physics analogy: ∂P/∂t = -∂(μP)/∂x + (1/2)∂²(σ²P)/∂x²
+ * Drift + Diffusion governs probability density evolution.
+ *
+ * AxiomID: Evolution of trust score probability distribution.
+ */
+export function fokkerPlanckTrustEvolution(
+  trustGrid: number[],          // Discretized trust space [0,1]
+  probabilities: number[],      // Current probability density
+  drift: number,                // μ — systematic drift (bias)
+  diffusion: number,            // σ — random diffusion (uncertainty)
+  timeStep: number = 0.01,     // dt
+): number[] {
+  const n = trustGrid.length;
+  if (n < 3) return probabilities;
+
+  const newProbabilities = new Array(n).fill(0);
+  const dx = trustGrid[1] - trustGrid[0];
+
+  // Discretized Fokker-Planck
+  for (let i = 0; i < n; i++) {
+    // ∂(μP)/∂x term (drift)
+    const driftLeft = i > 0 ? drift * probabilities[i - 1] : 0;
+    const driftRight = i < n - 1 ? drift * probabilities[i + 1] : 0;
+    const driftTerm = -(driftRight - driftLeft) / (2 * dx);
+
+    // ∂²(σ²P)/∂x² term (diffusion)
+    const diffusionLeft = i > 0 ? diffusion * diffusion * probabilities[i - 1] : 0;
+    const diffusionCenter = diffusion * diffusion * probabilities[i];
+    const diffusionRight = i < n - 1 ? diffusion * diffusion * probabilities[i + 1] : 0;
+    const diffusionTerm = (diffusionRight - 2 * diffusionCenter + diffusionLeft) / (dx * dx);
+
+    newProbabilities[i] = probabilities[i] + timeStep * (driftTerm + 0.5 * diffusionTerm);
+
+    // Boundary conditions: trust stays in [0, 1]
+    if (i === 0 || i === n - 1) {
+      newProbabilities[i] = Math.max(0, newProbabilities[i]);
+    }
+  }
+
+  // Normalize
+  const total = newProbabilities.reduce((a, b) => a + b, 0);
+  if (total > 0) {
+    for (let i = 0; i < n; i++) {
+      newProbabilities[i] /= total;
+    }
+  }
+
+  return newProbabilities;
+}
+
+/**
+ * Ising Model — trust phase transitions (consensus vs fragmentation).
+ *
+ * Physics analogy: H = -J Σ sᵢsⱼ - h Σ sᵢ
+ * Hamiltonian = -Coupling × Σ(spin×neighbor) - External field × Σ(spin)
+ *
+ * AxiomID: sᵢ = +1 (trusted), sᵢ = -1 (untrusted)
+ * J = coupling strength, h = external trust field
+ */
+export function isingHamiltonian(
+  spins: number[],              // +1 for trusted, -1 for untrusted
+  coupling: number,             // J — interaction strength
+  externalField: number,        // h — external trust pressure
+  adjacencyMatrix: boolean[][], // Who is connected to whom
+): number {
+  const n = spins.length;
+  let hamiltonian = 0;
+
+  // Interaction term: -J × Σ sᵢsⱼ
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      if (adjacencyMatrix[i][j]) {
+        hamiltonian -= coupling * spins[i] * spins[j];
+      }
+    }
+  }
+
+  // External field term: -h × Σ sᵢ
+  for (let i = 0; i < n; i++) {
+    hamiltonian -= externalField * spins[i];
+  }
+
+  return hamiltonian;
+}
+
+/**
+ * Ising Magnetization — average trust alignment (order parameter).
+ *
+ * Physics analogy: M = (1/N) × Σ sᵢ
+ * M = +1 = all trusted (ferromagnetic), M = 0 = random (paramagnetic)
+ */
+export function isingMagnetization(spins: number[]): number {
+  if (spins.length === 0) return 0;
+  return spins.reduce((a, b) => a + b, 0) / spins.length;
+}
+
+/**
+ * Ising Metropolis Step — Monte Carlo move for Ising model.
+ * Accepts/rejects spin flips based on energy change.
+ */
+export function isingMetropolisStep(
+  spins: number[],
+  coupling: number,
+  externalField: number,
+  adjacencyMatrix: boolean[][],
+  temperature: number,
+): number[] {
+  const n = spins.length;
+  const i = Math.floor(Math.random() * n);
+
+  // Current Hamiltonian
+  const currentH = isingHamiltonian(spins, coupling, externalField, adjacencyMatrix);
+
+  // Flip spin
+  const newSpins = [...spins];
+  newSpins[i] *= -1;
+
+  // New Hamiltonian
+  const newH = isingHamiltonian(newSpins, coupling, externalField, adjacencyMatrix);
+
+  // Metropolis acceptance
+  const deltaH = newH - currentH;
+  if (deltaH < 0 || Math.random() < Math.exp(-deltaH / temperature)) {
+    return newSpins; // Accept flip
+  }
+
+  return spins; // Reject flip
+}
+
+/**
+ * Ising Simulation — simulate trust consensus over time.
+ */
+export function isingTrustConsensus(
+  n: number,
+  coupling: number,
+  externalField: number,
+  temperature: number,
+  steps: number = 1000,
+): { spins: number[]; magnetization: number[]; finalMagnetization: number } {
+  let spins: number[] = Array.from({ length: n }, () => Math.random() < 0.5 ? 1 : -1);
+
+  // Fully connected graph
+  const adjacency: boolean[][] = Array.from({ length: n }, () => new Array(n).fill(true));
+  for (let i = 0; i < n; i++) adjacency[i][i] = false;
+
+  const magnetizationHistory: number[] = [];
+
+  for (let step = 0; step < steps; step++) {
+    spins = isingMetropolisStep(spins, coupling, externalField, adjacency, temperature);
+    magnetizationHistory.push(isingMagnetization(spins));
+  }
+
+  return {
+    spins,
+    magnetization: magnetizationHistory,
+    finalMagnetization: magnetizationHistory[magnetizationHistory.length - 1],
+  };
+}
+
+/**
+ * Kuramoto Model — trust synchronization among agents.
+ *
+ * Physics analogy: dθᵢ/dt = ωᵢ + (K/N) × Σ sin(θⱼ - θᵢ)
+ * Each oscillator has natural frequency ωᵢ and couples to others with
+ * strength K. When coupling is strong enough, oscillators synchronize.
+ *
+ * AxiomID: θᵢ = trust phase (angle), ωᵢ = natural trust rate,
+ * K = coupling = delegation strength
+ */
+export function kuramotoTrustSync(
+  naturalFrequencies: number[],  // ωᵢ — each agent's natural trust rate
+  initialPhases: number[],       // θᵢ — initial trust phase angles
+  couplingStrength: number,      // K — delegation coupling
+  timeStep: number = 0.01,      // dt
+  totalTime: number = 10,       // total simulation time
+): { phases: number[][]; orderParameter: number[]; finalSync: number } {
+  const n = naturalFrequencies.length;
+  let phases = [...initialPhases];
+  const history: number[][] = [phases];
+  const orderParams: number[] = [];
+
+  for (let t = 0; t < totalTime; t += timeStep) {
+    const newPhases = new Array(n).fill(0);
+
+    for (let i = 0; i < n; i++) {
+      let sum = 0;
+      for (let j = 0; j < n; j++) {
+        if (i !== j) {
+          sum += Math.sin(phases[j] - phases[i]);
+        }
+      }
+      newPhases[i] = phases[i] + timeStep * (naturalFrequencies[i] + (couplingStrength / n) * sum);
+    }
+
+    phases = newPhases.map((p) => ((p % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI));
+    history.push(phases);
+
+    // Kuramoto order parameter: r = |(1/N) × Σ e^{iθⱼ}|
+    let realSum = 0;
+    let imagSum = 0;
+    for (const phase of phases) {
+      realSum += Math.cos(phase);
+      imagSum += Math.sin(phase);
+    }
+    const orderParam = Math.sqrt(realSum * realSum + imagSum * imagSum) / n;
+    orderParams.push(orderParam);
+  }
+
+  return {
+    phases: history,
+    orderParameter: orderParams,
+    finalSync: orderParams[orderParams.length - 1],
+  };
+}
+
+/**
+ * Kuramoto Critical Coupling — minimum coupling for synchronization.
+ *
+ * Physics analogy: K_critical = 2 / (π × g(0))
+ * where g is the distribution of natural frequencies.
+ *
+ * AxiomID: Minimum delegation strength needed for trust consensus.
+ */
+export function kuramotoCriticalCoupling(
+  naturalFrequencies: number[],
+): number {
+  if (naturalFrequencies.length < 2) return 0;
+
+  // Estimate frequency distribution at zero using KDE
+  const sorted = [...naturalFrequencies].sort((a, b) => a - b);
+  const bandwidth = 0.5 * (sorted[Math.floor(sorted.length * 0.75)] - sorted[Math.floor(sorted.length * 0.25)]);
+
+  if (bandwidth <= 0) return Infinity;
+
+  // g(0) ≈ count of frequencies near 0 / (n × bandwidth)
+  const nearZero = naturalFrequencies.filter((f) => Math.abs(f) < bandwidth).length;
+  const g0 = nearZero / (naturalFrequencies.length * bandwidth);
+
+  if (g0 <= 0) return Infinity;
+
+  return 2 / (Math.PI * g0);
+}
