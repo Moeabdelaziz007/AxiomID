@@ -154,20 +154,22 @@ export async function checkRateLimit(
   maybeCleanup();
 
   // Use both bucket and window for decision
-  const windowAllowed = newCount <= config.maxRequests;
+  const windowAllowed = newCount <= adaptiveCapacity;
   const bucketAllowed = bucketResult.allowed;
 
   return {
     allowed: windowAllowed && bucketAllowed,
-    remaining: Math.max(0, config.maxRequests - newCount),
+    remaining: Math.max(0, adaptiveCapacity - newCount),
     resetAt: existing.resetAt,
     bucketLevel: bucketResult.newState.level,
     waitTimeMs: bucketResult.waitTimeMs,
     overflowCount: bucketResult.newState.overflowCount,
+    systemPressure: pressure,
+    adaptiveCapacity,
   };
 }
 
-function maybeCleanup(): void {
+
   writeCounter++;
   if (writeCounter >= CLEANUP_INTERVAL) {
     writeCounter = 0;

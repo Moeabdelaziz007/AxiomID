@@ -138,8 +138,7 @@ export async function GET() {
     // Shannon-Hartley: channel capacity for sync bandwidth
     const bw = 100; // Hz — effective sync bandwidth
     const signal = recentQueries.length;
-    const errorCount = recentQueries.filter((q) => !q.query).length || 1;
-    const noise = Math.max(1, errorCount);
+    const noise = recentQueries.filter((q) => !q.query).length || 1;
     const capacity = shannonHartleyCapacity(bw, signal, noise);
 
     // Mutual information between queries and agent statuses

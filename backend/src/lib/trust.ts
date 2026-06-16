@@ -15,20 +15,11 @@ import {
   trustPropagation,
   boltzmannTrustProbability,
   brownianStep,
-  langevinTrustDynamics,
   langevinSimulation,
   fokkerPlanckTrustEvolution,
-  isingMagnetization,
   isingTrustConsensus,
   carnotTrustEfficiency,
   fickTrustFlux,
-  fickTrustEvolution,
-  fourierTrustHeat,
-  thermalEquilibriumError,
-  trustSignalToNoise,
-  klDivergence,
-  pageRankTrust,
-  kuramotoCriticalCoupling,
 } from "../../../src/lib/math-physics";
 
 export interface TrustBreakdown {
@@ -184,7 +175,6 @@ export class TrustEngine {
    * Physics: ∂P/∂t = -∂(μP)/∂x + (1/2)∂²(σ²P)/∂x²
    */
   async computeFokkerPlanckDistribution(
-    dids: string[],
     steps: number = 10,
   ): Promise<{ grid: number[]; densities: number[][] }> {
     const gridSize = 20;
@@ -233,10 +223,8 @@ export class TrustEngine {
    *
    * Physics: η = 1 - T_cold / T_hot
    */
-  computeCarnotEfficiency(did: string, base: TrustResult): number {
-    const noiseLevel = 1 - base.score;
-    const signalStrength = base.score;
-    return carnotTrustEfficiency(signalStrength, noiseLevel);
+  computeCarnotEfficiency(base: TrustResult): number {
+    return carnotTrustEfficiency(base.score, 1 - base.score);
   }
 
   /**
@@ -252,48 +240,6 @@ export class TrustEngine {
       targetDid: d.targetDid,
       flux: fickTrustFlux(d.sourceTrust, d.targetTrust, 0.5, 1),
     }));
-  }
-
-  /**
-   * Fourier trust heat — heat equation for trust propagation.
-   *
-   * Physics: ∂T/∂t = α × ∇²T
-   */
-  computeFourierHeat(
-    nodeTrust: number,
-    neighborTrusts: number[],
-  ): number {
-    return fourierTrustHeat(nodeTrust, neighborTrusts, 0.3, 0.1);
-  }
-
-  /**
-   * Thermal equilibrium error — how far from stable trust distribution.
-   */
-  computeThermalError(trustDist: number[]): number {
-    return thermalEquilibriumError(trustDist);
-  }
-
-  /**
-   * Trust signal-to-noise ratio.
-   */
-  computeSNR(signal: number, noise: number): number {
-    return trustSignalToNoise(signal, noise);
-  }
-
-  /**
-   * KL divergence between two trust distributions.
-   */
-  computeKLDivergence(p: number[], q: number[]): number {
-    return klDivergence(p, q);
-  }
-
-  /**
-   * Kuramoto critical coupling — minimum delegation for sync.
-   *
-   * Physics: K_c = 2 / (π × g(0))
-   */
-  computeCriticalCoupling(frequencies: number[]): number {
-    return kuramotoCriticalCoupling(frequencies);
   }
 
   async invalidate(did: string): Promise<void> {

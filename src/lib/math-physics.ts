@@ -412,7 +412,7 @@ export interface MCTSNode {
  */
 export function createMCTSNode(
   id: string,
-  state: Record<string, unknown>,
+  state: Record<string, unknown> = {},
   parent: MCTSNode | null = null,
   action?: string,
 ): MCTSNode {
@@ -1205,8 +1205,7 @@ export function klDivergence(
 
   let dkl = 0;
   for (let i = 0; i < p.length; i++) {
-    if (p[i] > 0) {
-      if (q[i] === 0) return Infinity;
+    if (p[i] > 0 && q[i] > 0) {
       dkl += p[i] * Math.log2(p[i] / q[i]);
     }
   }
@@ -1840,18 +1839,17 @@ export function kuramotoCriticalCoupling(
 ): number {
   if (naturalFrequencies.length < 2) return 0;
 
-  // Estimate frequency distribution at the mean using KDE
+  // Estimate frequency distribution at zero using KDE
   const sorted = [...naturalFrequencies].sort((a, b) => a - b);
   const bandwidth = 0.5 * (sorted[Math.floor(sorted.length * 0.75)] - sorted[Math.floor(sorted.length * 0.25)]);
 
   if (bandwidth <= 0) return Infinity;
 
-  const mean = naturalFrequencies.reduce((a, b) => a + b, 0) / naturalFrequencies.length;
-  // g(mean) ≈ count of frequencies near mean / (n × bandwidth)
-  const nearMean = naturalFrequencies.filter((f) => Math.abs(f - mean) < bandwidth).length;
-  const gMean = nearMean / (naturalFrequencies.length * bandwidth);
+  // g(0) ≈ count of frequencies near 0 / (n × bandwidth)
+  const nearZero = naturalFrequencies.filter((f) => Math.abs(f) < bandwidth).length;
+  const g0 = nearZero / (naturalFrequencies.length * bandwidth);
 
-  if (gMean <= 0) return Infinity;
+  if (g0 <= 0) return Infinity;
 
-  return 2 / (Math.PI * gMean);
+  return 2 / (Math.PI * g0);
 }
