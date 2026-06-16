@@ -154,27 +154,7 @@ export default function RootLayout({
           Skip to content
         </a>
         <Script src="https://sdk.minepi.com/pi-sdk.js" strategy="beforeInteractive" />
-        <Script
-          id="sw-register"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                if (document.readyState === 'complete') {
-                  navigator.serviceWorker.register('/service-worker.js').catch(function(err) {
-                    console.error('Service worker registration failed:', err);
-                  });
-                } else {
-                  window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('/service-worker.js').catch(function(err) {
-                      console.error('Service worker registration failed:', err);
-                    });
-                  });
-                }
-              }
-            `,
-          }}
-        />
+        <Script src="/register-sw.js" strategy="afterInteractive" />
         <ThemeProvider>
           <LanguageProvider>
             <SandboxProvider>
