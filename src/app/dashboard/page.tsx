@@ -47,7 +47,7 @@ export default function Dashboard() {
     walletLogs,
     clearWalletLogs,
     runWalletTest,
-    disconnectWallet,
+    disconnectWallet: _disconnectWallet,
     claimAction,
     createAgent,
     activateAgent,
