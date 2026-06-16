@@ -169,7 +169,7 @@ export async function checkRateLimit(
   };
 }
 
-
+function maybeCleanup(): void {
   writeCounter++;
   if (writeCounter >= CLEANUP_INTERVAL) {
     writeCounter = 0;

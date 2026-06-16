@@ -42,6 +42,10 @@ const mockRequireAuth = requireAuth as jest.Mock;
 const mockCheckRateLimit = checkRateLimit as jest.Mock;
 const mockGetClientIp = getClientIp as jest.Mock;
 
+const UUID_A = "123e4567-e89b-12d3-a456-426614174000";
+const UUID_B = "123e4567-e89b-12d3-a456-426614174001";
+const UUID_C = "123e4567-e89b-12d3-a456-426614174002";
+
 const mockUser = {
   id: "user-release",
   walletAddress: "pi:releaseuser",
@@ -70,7 +74,7 @@ describe("POST /api/marketplace/order/release — rate limiting (PR change)", ()
   it("returns 429 with RATE_LIMITED code when rate limit is exceeded", async () => {
     mockCheckRateLimit.mockResolvedValue({ allowed: false, remaining: 0, resetAt: Date.now() + 60000 });
 
-    const req = mockPostRequest({ paymentId: "pay-1" });
+    const req = mockPostRequest({ paymentId: UUID_A });
     const res = await POST(req);
     const data = await res.json();
 
@@ -80,13 +84,13 @@ describe("POST /api/marketplace/order/release — rate limiting (PR change)", ()
 
   it("uses RATE_LIMITS.payment config for rate limiting", async () => {
     mockPrisma.piPayment.findUnique.mockResolvedValue({
-      id: "pay-1",
+      id: UUID_A,
       userId: mockUser.id,
       status: "ESCROWED",
     } as any);
     mockPrisma.piPayment.update.mockResolvedValue({ status: "RELEASED" } as any);
 
-    const req = mockPostRequest({ paymentId: "pay-1" });
+    const req = mockPostRequest({ paymentId: UUID_A });
     await POST(req);
 
     expect(mockCheckRateLimit).toHaveBeenCalledWith(
@@ -98,11 +102,11 @@ describe("POST /api/marketplace/order/release — rate limiting (PR change)", ()
   it("uses client IP in rate limit key", async () => {
     mockGetClientIp.mockReturnValue("192.0.2.1");
     mockPrisma.piPayment.findUnique.mockResolvedValue({
-      id: "pay-1", userId: mockUser.id, status: "ESCROWED",
+      id: UUID_A, userId: mockUser.id, status: "ESCROWED",
     } as any);
     mockPrisma.piPayment.update.mockResolvedValue({ status: "RELEASED" } as any);
 
-    const req = mockPostRequest({ paymentId: "pay-1" });
+    const req = mockPostRequest({ paymentId: UUID_A });
     await POST(req);
 
     expect(mockCheckRateLimit).toHaveBeenCalledWith(
@@ -133,7 +137,7 @@ describe("POST /api/marketplace/order/release — auth and validation", () => {
     const { apiError } = jest.requireActual("@/lib/errors") as any;
     mockRequireAuth.mockResolvedValue({ error: apiError("UNAUTHORIZED", "Unauthorized"), user: null });
 
-    const req = mockPostRequest({ paymentId: "pay-1" });
+    const req = mockPostRequest({ paymentId: UUID_A });
     const res = await POST(req);
     const data = await res.json();
 
@@ -175,7 +179,7 @@ describe("POST /api/marketplace/order/release — business logic", () => {
   it("returns 404 when payment does not exist", async () => {
     mockPrisma.piPayment.findUnique.mockResolvedValue(null);
 
-    const req = mockPostRequest({ paymentId: "nonexistent" });
+    const req = mockPostRequest({ paymentId: UUID_A });
     const res = await POST(req);
     const data = await res.json();
 
@@ -185,12 +189,12 @@ describe("POST /api/marketplace/order/release — business logic", () => {
 
   it("returns 403 when payment belongs to a different user", async () => {
     mockPrisma.piPayment.findUnique.mockResolvedValue({
-      id: "pay-1",
+      id: UUID_A,
       userId: "another-user",
       status: "ESCROWED",
     } as any);
 
-    const req = mockPostRequest({ paymentId: "pay-1" });
+    const req = mockPostRequest({ paymentId: UUID_A });
     const res = await POST(req);
     const data = await res.json();
 
@@ -200,12 +204,12 @@ describe("POST /api/marketplace/order/release — business logic", () => {
 
   it("returns 409 when payment is not in ESCROWED status", async () => {
     mockPrisma.piPayment.findUnique.mockResolvedValue({
-      id: "pay-1",
+      id: UUID_A,
       userId: mockUser.id,
       status: "REFUNDED",
     } as any);
 
-    const req = mockPostRequest({ paymentId: "pay-1" });
+    const req = mockPostRequest({ paymentId: UUID_A });
     const res = await POST(req);
     const data = await res.json();
 
@@ -215,13 +219,13 @@ describe("POST /api/marketplace/order/release — business logic", () => {
 
   it("returns success with RELEASED status on valid release", async () => {
     mockPrisma.piPayment.findUnique.mockResolvedValue({
-      id: "pay-1",
+      id: UUID_A,
       userId: mockUser.id,
       status: "ESCROWED",
     } as any);
     mockPrisma.piPayment.update.mockResolvedValue({ status: "RELEASED" } as any);
 
-    const req = mockPostRequest({ paymentId: "pay-1" });
+    const req = mockPostRequest({ paymentId: UUID_A });
     const res = await POST(req);
     const data = await res.json();
 
@@ -231,30 +235,30 @@ describe("POST /api/marketplace/order/release — business logic", () => {
 
   it("updates payment status to RELEASED in the database", async () => {
     mockPrisma.piPayment.findUnique.mockResolvedValue({
-      id: "pay-1",
+      id: UUID_A,
       userId: mockUser.id,
       status: "ESCROWED",
     } as any);
     mockPrisma.piPayment.update.mockResolvedValue({ status: "RELEASED" } as any);
 
-    const req = mockPostRequest({ paymentId: "pay-1" });
+    const req = mockPostRequest({ paymentId: UUID_A });
     await POST(req);
 
     expect(mockPrisma.piPayment.update).toHaveBeenCalledWith({
-      where: { id: "pay-1" },
+      where: { id: UUID_A },
       data: { status: "RELEASED" },
     });
   });
 
   it("release differs from refund: status is RELEASED not REFUNDED", async () => {
     mockPrisma.piPayment.findUnique.mockResolvedValue({
-      id: "pay-release",
+      id: UUID_B,
       userId: mockUser.id,
       status: "ESCROWED",
     } as any);
     mockPrisma.piPayment.update.mockResolvedValue({ status: "RELEASED" } as any);
 
-    const req = mockPostRequest({ paymentId: "pay-release" });
+    const req = mockPostRequest({ paymentId: UUID_B });
     const res = await POST(req);
     const data = await res.json();
 

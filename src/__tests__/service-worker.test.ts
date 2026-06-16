@@ -215,7 +215,7 @@ describe("service-worker.js — fetch event: API routes (network-first)", () => 
     loadServiceWorker();
 
     const respondWithFn = jest.fn();
-    const request = new Request("https://axiomid.app/api/data", { method: "GET" });
+    const request = new Request("https://axiomid.app/api/status", { method: "GET" });
     fireEvent("fetch", {
       request,
       respondWith: respondWithFn,
@@ -237,15 +237,14 @@ describe("service-worker.js — fetch event: API routes (network-first)", () => 
     mockCache.put = putSpy;
     mockCacheStorage.open.mockResolvedValue(mockCache);
 
-    const request = new Request("https://axiomid.app/api/order/create", { method: "POST" });
+    const request = new Request("https://axiomid.app/api/status", { method: "POST" });
     fireEvent("fetch", {
       request,
       respondWith: respondWithFn,
     });
 
-    await respondWithFn.mock.calls[0][0];
-
-    expect(putSpy).not.toHaveBeenCalled();
+    // Service worker only handles GET — POST should not call respondWith
+    expect(respondWithFn).not.toHaveBeenCalled();
   });
 
   it("falls back to cache when API network request fails", async () => {
