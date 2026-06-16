@@ -2,7 +2,7 @@
 
 import { VerificationBadge } from "./VerificationBadge";
 import { TrustScoreGauge } from "./TrustScoreGauge";
-import type { Tier } from "@/lib/tiers";
+import { type Tier, getTierColor } from "@/lib/tiers";
 import { useLanguage } from "@/app/context/language-context";
 import { Copy, Eye, Zap } from "lucide-react";
 
@@ -19,15 +19,6 @@ interface AgentPassportProps {
   agentName?: string;
   agentStatus?: string;
   xp: number;
-}
-
-function getTierColor(tier: Tier): string {
-  switch (tier) {
-    case "Sovereign": return "#a855f7";
-    case "Validator": return "#00d4ff";
-    case "Citizen": return "#00ff41";
-    default: return "#64748b";
-  }
 }
 
 function getInitial(name: string): string {
@@ -193,7 +184,7 @@ export function AgentPassport({
           {/* System Modules Slots Grid */}
           <div className="rounded-xl p-4 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] tracking-wider font-mono text-neon-green"><Zap className="w-3 h-3 inline mr-1" /> SYSTEM MODULES</span>
+              <span className="text-[10px] tracking-wider font-mono text-neon-green"><Zap className="w-3 h-3 inline me-1" /> SYSTEM MODULES</span>
               <span className="text-[9px] font-mono text-gray-500">ACTIVE: 3/4</span>
             </div>
             <div className="grid grid-cols-4 gap-2 text-center font-mono text-[9px]">

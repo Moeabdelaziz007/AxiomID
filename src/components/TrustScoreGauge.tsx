@@ -1,17 +1,11 @@
 "use client";
 
 import { useLanguage } from "@/app/context/language-context";
+import { getScoreColor } from "@/lib/tiers";
 
 interface TrustScoreGaugeProps {
   score: number;
   size?: number;
-}
-
-function getScoreColor(score: number): string {
-  if (score >= 80) return "#00ff41";
-  if (score >= 60) return "#00d4ff";
-  if (score >= 40) return "#f59e0b";
-  return "#ef4444";
 }
 
 export function TrustScoreGauge({ score, size = 120 }: TrustScoreGaugeProps) {

@@ -12,14 +12,14 @@ export default function Error({
     <div style={{
       padding: "2rem",
       fontFamily: "monospace",
-      background: "#0a0a0a",
+      background: "var(--bg-deep)",
       color: "#ff4444",
       minHeight: "100vh",
     }}>
       <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
         [ERROR] Something broke
       </h1>
-      <pre style={{ whiteSpace: "pre-wrap", color: "#aaa", fontSize: "0.8rem" }}>
+      <pre style={{ whiteSpace: "pre-wrap", color: "var(--text-secondary)", fontSize: "0.8rem" }}>
         {process.env.NODE_ENV === "development" ? error.stack : `Something went wrong. Contact support with code: ${error.digest ?? "unknown"}`}
       </pre>
       <button
@@ -27,8 +27,8 @@ export default function Error({
         style={{
           marginTop: "1rem",
           padding: "0.5rem 1rem",
-          background: "#00ff41",
-          color: "#000",
+          background: "var(--neon-green)",
+          color: "#fff",
           border: "none",
           borderRadius: "8px",
           cursor: "pointer",

@@ -7,6 +7,24 @@ export const TIERS = {
   Sovereign: 1000,
 };
 
+export const TIER_COLORS: Record<Tier, string> = {
+  Visitor: '#64748b',
+  Citizen: '#00ff41',
+  Validator: '#00d4ff',
+  Sovereign: '#a855f7',
+};
+
+export function getTierColor(tier: Tier): string {
+  return TIER_COLORS[tier] ?? TIER_COLORS.Visitor;
+}
+
+export function getScoreColor(score: number): string {
+  if (score >= 80) return '#00ff41';
+  if (score >= 60) return '#00d4ff';
+  if (score >= 40) return '#f59e0b';
+  return '#ef4444';
+}
+
 export function calculateTier(xp: number): Tier {
   if (xp >= TIERS.Sovereign) return 'Sovereign';
   if (xp >= TIERS.Validator) return 'Validator';

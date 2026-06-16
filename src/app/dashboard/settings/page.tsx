@@ -253,7 +253,7 @@ export default function SettingsPage() {
                 <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{t('current_tier').toUpperCase()}</span>
                 <p className="text-2xl font-black tracking-wider" style={{ color: 'var(--text-primary)' }}>{tier.toUpperCase()}</p>
               </div>
-              <div className="text-right text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
+              <div className="text-end text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
                 {progressPercent.toFixed(0)}% to level {xp >= 1000 ? "Max" : "Up"}
               </div>
             </div>
@@ -324,22 +324,22 @@ export default function SettingsPage() {
             <p className="text-sm font-mono py-4 text-center" style={{ color: 'var(--text-muted)' }}>{t('settings_no_tx')}</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left font-mono text-xs">
+              <table className="w-full text-start font-mono text-xs">
                 <thead>
                   <tr className="border-b pb-2" style={{ borderColor: 'var(--card-border)', color: 'var(--text-muted)' }}>
                     <th className="py-2">{t('settings_tx_objective')}</th>
-                    <th className="py-2 text-right">{t('settings_balance_shift')}</th>
-                    <th className="py-2 text-right">{t('settings_timestamp')}</th>
+                    <th className="py-2 text-end">{t('settings_balance_shift')}</th>
+                    <th className="py-2 text-end">{t('settings_timestamp')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {statusDetails.recentLedger.map((entry) => (
                     <tr key={entry.id} className="border-b transition-colors" style={{ borderColor: 'var(--card-border)' }}>
                       <td className="py-3 uppercase font-bold tracking-wider" style={{ color: 'var(--text-primary)' }}>{entry.reason.replaceAll("_", " ")}</td>
-                      <td className={`py-3 text-right ${entry.amount >= 0 ? "text-neon-green" : "text-red-500"}`}>
+                      <td className={`py-3 text-end ${entry.amount >= 0 ? "text-neon-green" : "text-red-500"}`}>
                         {entry.amount >= 0 ? `+${entry.amount}` : entry.amount} XP
                       </td>
-                      <td className="py-3 text-right" style={{ color: 'var(--text-secondary)' }}>
+                      <td className="py-3 text-end" style={{ color: 'var(--text-secondary)' }}>
                         {new Date(entry.createdAt).toLocaleString()}
                       </td>
                     </tr>
