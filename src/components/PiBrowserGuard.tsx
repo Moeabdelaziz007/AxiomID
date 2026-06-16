@@ -1,0 +1,217 @@
+"use client";
+
+import { useState, useEffect, createContext, useContext, ReactNode } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Smartphone, Globe, Loader2, ExternalLink } from "lucide-react";
+
+interface PiBrowserContextType {
+  isPiBrowser: boolean;
+  isDetecting: boolean;
+  isSandbox: boolean;
+}
+
+const PiBrowserContext = createContext<PiBrowserContextType>({
+  isPiBrowser: false,
+  isDetecting: true,
+  isSandbox: false,
+});
+
+export const usePiBrowser = () => useContext(PiBrowserContext);
+
+interface PiBrowserGuardProps {
+  children: ReactNode;
+  fallback?: ReactNode;
+  showSplash?: boolean;
+}
+
+function detectPiBrowser(): boolean {
+  if (typeof window === "undefined") return false;
+  
+  const win = window as unknown as { Pi?: unknown };
+  if (win.Pi) return true;
+  
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  if (/Pi Browser|minepi|PiApp/i.test(ua)) return true;
+  
+  try {
+    if (window.self !== window.top) {
+      const referrer = document.referrer || "";
+      if (referrer) {
+        const referrerHost = new URL(referrer).hostname.toLowerCase();
+        if (referrerHost === "minepi.com" || referrerHost.endsWith(".minepi.com")) return true;
+      }
+    }
+  } catch {}
+  
+  try {
+    if (typeof window.location !== "undefined") {
+      const host = window.location.hostname.toLowerCase();
+      if (host === "minepi.com" || host.endsWith(".minepi.com")) return true;
+    }
+  } catch {}
+  
+  return false;
+}
+
+function detectSandbox(): boolean {
+  if (typeof window === "undefined") return false;
+  
+  const win = window as unknown as { Pi?: { sandbox?: boolean } };
+  if (win.Pi?.sandbox) return true;
+  
+  if (typeof navigator !== "undefined" && /sandbox/i.test(navigator.userAgent)) return true;
+  
+  try {
+    if (typeof window.location !== "undefined") {
+      const host = window.location.hostname.toLowerCase();
+      if (host.includes("sandbox")) return true;
+    }
+  } catch {}
+  
+  return false;
+}
+
+export function PiBrowserGuard({ 
+  children, 
+  fallback,
+  showSplash = true 
+}: PiBrowserGuardProps) {
+  const [isDetecting, setIsDetecting] = useState(true);
+  const [isPiBrowser, setIsPiBrowser] = useState(false);
+  const [isSandbox, setIsSandbox] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPiBrowser(detectPiBrowser());
+      setIsSandbox(detectSandbox());
+      setIsDetecting(false);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isDetecting && showSplash) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-deep)]">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <Loader2 className="w-8 h-8 text-electric-blue animate-spin" />
+          <p className="text-sm text-[var(--text-secondary)]">Detecting environment...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (!isPiBrowser && !isSandbox) {
+    if (fallback) {
+      return <>{fallback}</>;
+    }
+    
+    return (
+      <PiBrowserContext.Provider value={{ isPiBrowser, isDetecting, isSandbox }}>
+        {children}
+      </PiBrowserContext.Provider>
+    );
+  }
+
+  return (
+    <PiBrowserContext.Provider value={{ isPiBrowser, isDetecting, isSandbox }}>
+      {children}
+    </PiBrowserContext.Provider>
+  );
+}
+
+interface PiBrowserBannerProps {
+  onOpenInPi?: () => void;
+}
+
+export function PiBrowserBanner({ onOpenInPi }: PiBrowserBannerProps) {
+  const { isPiBrowser, isSandbox } = usePiBrowser();
+  
+  if (isPiBrowser) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="fixed top-0 left-0 right-0 z-50 bg-neon-green/10 border-b border-neon-green/20 px-4 py-2"
+      >
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Smartphone className="w-4 h-4 text-neon-green" />
+            <span className="text-xs font-mono text-neon-green">
+              {isSandbox ? "Pi Sandbox" : "Pi Browser"} Connected
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-neon-green/70">
+              Full functionality available
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return null;
+}
+
+interface PiBrowserPromptProps {
+  onConnect?: () => void;
+  onDismiss?: () => void;
+}
+
+export function PiBrowserPrompt({ onConnect, onDismiss }: PiBrowserPromptProps) {
+  const { isPiBrowser } = usePiBrowser();
+  
+  if (isPiBrowser) return null;
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      className="fixed bottom-4 left-4 right-4 z-50 sm:left-auto sm:right-4 sm:w-96"
+    >
+      <div className="bg-[var(--bg-card)] border border-[var(--card-border)] rounded-xl p-4 shadow-xl">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-electric-blue/10 flex items-center justify-center flex-shrink-0">
+            <Globe className="w-5 h-5 text-electric-blue" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+              Open in Pi Browser
+            </h3>
+            <p className="text-xs text-[var(--text-secondary)] mt-1">
+              For full functionality, open this app in Pi Browser.
+            </p>
+            <div className="flex gap-2 mt-3">
+              {onConnect && (
+                <button
+                  onClick={onConnect}
+                  className="text-xs px-3 py-1.5 rounded-lg bg-electric-blue/10 text-electric-blue border border-electric-blue/20 hover:bg-electric-blue/20 transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3 inline mr-1" />
+                  Open in Pi
+                </button>
+              )}
+              {onDismiss && (
+                <button
+                  onClick={onDismiss}
+                  className="text-xs px-3 py-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  Continue anyway
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+export default PiBrowserGuard;

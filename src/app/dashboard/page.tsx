@@ -21,6 +21,7 @@ import { KYAVerificationCard } from "@/components/dashboard/KYAVerificationCard"
 import { AgentControlsCard } from "@/components/dashboard/AgentControlsCard";
 import { CreateAgentCard } from "@/components/dashboard/CreateAgentCard";
 import { TerminalOverlay } from "@/components/dashboard/TerminalOverlay";
+import { PiBrowserGuard, PiBrowserBanner } from "@/components/PiBrowserGuard";
 
 type TabId = "passport" | "actions" | "terminal" | "marketplace" | "agent";
 
@@ -139,7 +140,8 @@ export default function Dashboard() {
   const agentStatus = (agent?.status ?? "NONE") as "ACTIVE" | "INACTIVE" | "PAUSED";
 
   return (
-    <>
+    <PiBrowserGuard showSplash={false}>
+      <PiBrowserBanner />
       {isLoading ? (
         <div className="space-y-6">
           <div className="bento-card p-8">
@@ -377,7 +379,7 @@ export default function Dashboard() {
           />
         )}
       </AnimatePresence>
-    </>
+    </PiBrowserGuard>
   );
 }
 
