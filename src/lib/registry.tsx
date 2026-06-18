@@ -1,10 +1,12 @@
+"use client";
+
 import { defineRegistry } from "@json-render/react";
 import { axiomCatalog } from "./catalog";
 import React from "react";
 import Link from "next/link";
+import type { Route } from "next";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type LinkItemProps = { label: string; href: any };
+type LinkItemProps = { label: string; href: string };
 
 const components = {
   Card: ({ props, children }: { props: { title?: string }; children?: React.ReactNode }) => (
@@ -14,7 +16,9 @@ const components = {
     </div>
   ),
   LinkItem: ({ props }: { props: LinkItemProps }) => (
-    <Link href={props.href} className="flex items-center justify-between p-3 rounded-xl border hover:bg-gray-100 dark:hover:bg-gray-700">
+    // href is a runtime-generated string from the JSON spec, so it cannot be
+    // statically verified against typedRoutes — cast to Route at this boundary.
+    <Link href={props.href as Route} className="flex items-center justify-between p-3 rounded-xl border hover:bg-gray-100 dark:hover:bg-gray-700">
       <span className="text-sm">{props.label}</span>
     </Link>
   ),
@@ -37,7 +41,9 @@ const components = {
 
 const actions = {
   refresh_data: async () => {
-    window.location.reload();
+    if (typeof window !== "undefined") {
+      window.location.reload();
+    }
   },
 };
 

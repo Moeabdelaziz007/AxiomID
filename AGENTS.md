@@ -34,11 +34,11 @@ Use `portless` for stable HTTPS dev URLs (Pi Browser testing, multi-service dev,
 npm install -g portless
 
 # Start dev with stable HTTPS URL
-portless axomid next dev
-# → https://axomid.localhost (auto-trusted certs)
+portless axiomid next dev
+# → https://axiomid.localhost (auto-trusted certs)
 
 # Share with team via Tailscale
-portless axomid --tailscale
+portless axiomid --tailscale
 ```
 
 ### Emulate — Local API Emulators for CI

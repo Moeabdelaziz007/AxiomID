@@ -7,6 +7,7 @@
  *
  * @see https://github.com/vercel-labs/emulate#nextjs-integration
  */
+import { NextResponse } from "next/server";
 import { createEmulateHandler } from "@emulators/adapter-next";
 import * as github from "@emulators/github";
 
@@ -22,7 +23,14 @@ if (process.env.NEXT_PUBLIC_EMULATE_GITHUB === "true") {
   };
 }
 
-const handler = createEmulateHandler({ services });
+// Never expose the emulator surface in production. The emulator route is a
+// dev/preview-only tool; in production every method returns 404.
+const notFound = () => NextResponse.json({ error: "Not found" }, { status: 404 });
+
+const handler =
+  process.env.NODE_ENV === "production"
+    ? { GET: notFound, POST: notFound, PUT: notFound, PATCH: notFound, DELETE: notFound }
+    : createEmulateHandler({ services });
 
 export const GET = handler.GET;
 export const POST = handler.POST;
