@@ -105,47 +105,11 @@ const components = {
   Metric: ({ props }: { props: { label: string; value: string } }) => (
     <div className="p-2">
       <div className="text-sm text-gray-500">{props.label}</div>
-const components = {
-  Card: ({
-    props,
-    children,
-  }: {
-    props: { title?: string; variant?: "plain" | "bento"; animate?: boolean };
-    children?: React.ReactNode;
-  }) => {
-    const isBento = props.variant === "bento";
-    const body = (
-      <>
-        {props.title && (
-          <h3
-            className="text-sm font-semibold mb-4"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            {props.title}
-          </h3>
-        )}
-        {children && <div className="space-y-2">{children}</div>}
-      </>
-    );
+      <div className="text-2xl font-bold">{props.value}</div>
+    </div>
+  ),
+};
 
-    if (isBento) {
-      return props.animate ? (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="bento-card p-5"
-          style={{ borderColor: 'var(--card-border)', background: 'rgba(255,255,255,0.02)' }}
-        >
-          {body}
-        </motion.div>
-      ) : (
-        <div className="bento-card p-5">{body}</div>
-      );
-    }
-
-    return <div className="p-4 border rounded shadow-sm bg-white dark:bg-gray-800">{body}</div>;
-  },
 const actions = {
   // A full reload is intentional here: this actions map is a plain object, not a
   // React component, so the next/navigation router hook (router.refresh()) is not

@@ -31,9 +31,16 @@ const isProdDeployment =
   process.env.VERCEL_ENV === "production" ||
   (process.env.VERCEL_ENV == null && process.env.NODE_ENV === "production");
 
-const handler = isProdDeployment
-  ? { GET: notFound, POST: notFound, PUT: notFound, PATCH: notFound, DELETE: notFound }
-  : createEmulateHandler({ services });
+// Defense in depth: the emulator is off by default and must be explicitly
+// enabled via a server-side flag, so it is never an insecure default even on a
+// misconfigured / internet-exposed non-production runtime (staging, self-hosted
+// dev). It is additionally always disabled on production deployments.
+const isEmulatorEnabled =
+  !isProdDeployment && process.env.EMULATE_ENABLED === "true";
+
+const handler = isEmulatorEnabled
+  ? createEmulateHandler({ services })
+  : { GET: notFound, POST: notFound, PUT: notFound, PATCH: notFound, DELETE: notFound };
 
 export const GET = handler.GET;
 export const POST = handler.POST;
