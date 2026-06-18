@@ -8,6 +8,8 @@ import { getClientIp } from '@/lib/ip';
 import { requireAuth } from '@/lib/auth-middleware';
 import { safeJsonStringify } from '@/lib/sanitize';
 
+export const maxDuration = 30;
+
 /**
  * Handle an authenticated Pi Network payment approval request, enforcing rate limits, verifying payer ownership, approving the payment with Pi's API, and persisting the result.
  *
