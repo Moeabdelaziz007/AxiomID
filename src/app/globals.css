@@ -16,6 +16,26 @@
   --text-secondary: #a1a1aa;
   --text-muted: #71717a;
   --font-mono: var(--font-geist-mono), 'SF Mono', monospace;
+
+  /* ── Semantic design-token aliases ──────────────────────────
+     These map clean, intent-based names onto the existing palette.
+     They reference the raw tokens above (via var()), so they stay
+     theme-correct automatically across :root and [data-theme="light"].
+     New components should prefer these over the raw color names. */
+  --surface: var(--bg-card);
+  --surface-hover: var(--bg-card-hover);
+  --surface-deep: var(--bg-deep);
+  --border: var(--card-border);
+  --border-hover: var(--card-border-hover);
+  --text: var(--text-primary);
+  --text-subtle: var(--text-secondary);
+  --text-faint: var(--text-muted);
+  --primary: var(--neon-green);
+  --primary-glow: var(--neon-green-glow);
+  --accent: var(--electric-blue);
+  --highlight: var(--axiom-purple);
+  --warning: var(--axiom-gold);
+  --danger: var(--badge-red);
 }
 
 [data-theme="light"] {
