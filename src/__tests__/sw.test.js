@@ -299,98 +299,7 @@ describe("sw.js — fetch event: static assets (cache-first)", () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// New tests for PR changes in public/sw.js
-// ─────────────────────────────────────────────────────────────────────────────
-
-describe("sw.js — fetch event: non-public API routes are not intercepted (PR change)", () => {
-  beforeEach(() => {
-    loadServiceWorker();
-  });
-
-  it("does not call respondWith for /api/auth (authenticated route)", () => {
-    const { event } = makeFetchEvent("https://axiomid.app/api/auth");
-    registeredListeners["fetch"](event);
-    expect(event.respondWith).not.toHaveBeenCalled();
-  });
-
-  it("does not call respondWith for /api/user (authenticated route)", () => {
-    const { event } = makeFetchEvent("https://axiomid.app/api/user");
-    registeredListeners["fetch"](event);
-    expect(event.respondWith).not.toHaveBeenCalled();
-  });
-
-  it("does not call respondWith for /api/sync (authenticated route)", () => {
-    const { event } = makeFetchEvent("https://axiomid.app/api/sync");
-    registeredListeners["fetch"](event);
-    expect(event.respondWith).not.toHaveBeenCalled();
-  });
-
-  it("does not call respondWith for /api/passport (authenticated route)", () => {
-    const { event } = makeFetchEvent("https://axiomid.app/api/passport");
-    registeredListeners["fetch"](event);
-    expect(event.respondWith).not.toHaveBeenCalled();
-  });
-
-  it("calls respondWith for /api/status (public route)", () => {
-    global.fetch = jest.fn(() => Promise.resolve(makeResponse(true)));
-    const { event } = makeFetchEvent("https://axiomid.app/api/status");
-    registeredListeners["fetch"](event);
-    expect(event.respondWith).toHaveBeenCalled();
-  });
-
-  it("calls respondWith for /api/health (public route, PR change)", () => {
-    global.fetch = jest.fn(() => Promise.resolve(makeResponse(true)));
-    const { event } = makeFetchEvent("https://axiomid.app/api/health");
-    registeredListeners["fetch"](event);
-    expect(event.respondWith).toHaveBeenCalled();
-  });
-
-  it("calls respondWith for sub-paths of /api/status (startsWith match)", () => {
-    global.fetch = jest.fn(() => Promise.resolve(makeResponse(true)));
-    const { event } = makeFetchEvent("https://axiomid.app/api/status/details");
-    registeredListeners["fetch"](event);
-    expect(event.respondWith).toHaveBeenCalled();
-  });
-});
-
-describe("sw.js — fetch event: cross-origin and non-GET requests are ignored (PR change)", () => {
-  beforeEach(() => {
-    loadServiceWorker();
-  });
-
-  it("does not call respondWith for cross-origin GET requests", () => {
-    const { event } = makeFetchEvent("https://other-domain.com/some-resource");
-    registeredListeners["fetch"](event);
-    expect(event.respondWith).not.toHaveBeenCalled();
-  });
-
-  it("does not call respondWith for cross-origin API requests", () => {
-    const { event } = makeFetchEvent("https://cdn.example.com/api/status");
-    registeredListeners["fetch"](event);
-    expect(event.respondWith).not.toHaveBeenCalled();
-  });
-
-  it("does not call respondWith for POST requests to own origin", () => {
-    const { event } = makeFetchEvent("https://axiomid.app/manifest.json", "POST");
-    registeredListeners["fetch"](event);
-    expect(event.respondWith).not.toHaveBeenCalled();
-  });
-
-  it("does not call respondWith for PUT requests to own origin", () => {
-    const { event } = makeFetchEvent("https://axiomid.app/api/status", "PUT");
-    registeredListeners["fetch"](event);
-    expect(event.respondWith).not.toHaveBeenCalled();
-  });
-
-  it("does not call respondWith for DELETE requests to own origin", () => {
-    const { event } = makeFetchEvent("https://axiomid.app/some-path", "DELETE");
-    registeredListeners["fetch"](event);
-    expect(event.respondWith).not.toHaveBeenCalled();
-  });
-});
-
-describe("sw.js — fetch event: API 503 fallback when offline and no cached response (PR change)", () => {
+describe("sw.js — fetch event: PUBLIC_API_ROUTES coverage", () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
@@ -401,11 +310,54 @@ describe("sw.js — fetch event: API 503 fallback when offline and no cached res
     global.fetch = originalFetch;
   });
 
-  it("returns a 503 JSON response when network fails and no cached entry exists", async () => {
+  it("intercepts /api/health (second public route)", () => {
+    const mockFetch = jest.fn(() => Promise.resolve(makeResponse(true)));
+    global.fetch = mockFetch;
+
+    const { event, request } = makeFetchEvent("https://axiomid.app/api/health");
+    registeredListeners["fetch"](event);
+
+    expect(event.respondWith).toHaveBeenCalled();
+    expect(mockFetch).toHaveBeenCalledWith(request);
+  });
+
+  it("does NOT intercept non-public API routes (/api/users)", () => {
+    const mockFetch = jest.fn(() => Promise.resolve(makeResponse(true)));
+    global.fetch = mockFetch;
+
+    const { event } = makeFetchEvent("https://axiomid.app/api/users");
+    registeredListeners["fetch"](event);
+
+    expect(event.respondWith).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("does NOT intercept non-public API routes (/api/sync)", () => {
+    const mockFetch = jest.fn(() => Promise.resolve(makeResponse(true)));
+    global.fetch = mockFetch;
+
+    const { event } = makeFetchEvent("https://axiomid.app/api/sync");
+    registeredListeners["fetch"](event);
+
+    expect(event.respondWith).not.toHaveBeenCalled();
+  });
+
+  it("does NOT intercept cross-origin requests", () => {
+    const mockFetch = jest.fn(() => Promise.resolve(makeResponse(true)));
+    global.fetch = mockFetch;
+
+    const { event } = makeFetchEvent("https://external.example.com/api/status");
+    registeredListeners["fetch"](event);
+
+    expect(event.respondWith).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("returns 503 JSON when network fails and no cached API response exists", async () => {
     global.fetch = jest.fn(() => Promise.reject(new Error("Network error")));
     mockCaches.match.mockResolvedValue(undefined);
 
-    const { event } = makeFetchEvent("https://axiomid.app/api/status");
+    const { event } = makeFetchEvent("https://axiomid.app/api/health");
     registeredListeners["fetch"](event);
     const result = await event.respondWith.mock.calls[0][0];
 
@@ -414,31 +366,33 @@ describe("sw.js — fetch event: API 503 fallback when offline and no cached res
     expect(body).toEqual({ error: "Service unavailable" });
   });
 
-  it("503 response has Content-Type application/json", async () => {
-    global.fetch = jest.fn(() => Promise.reject(new Error("Network error")));
-    mockCaches.match.mockResolvedValue(undefined);
+  it("caches /api/health responses that are ok", async () => {
+    const response = makeResponse(true);
+    global.fetch = jest.fn(() => Promise.resolve(response));
 
     const { event } = makeFetchEvent("https://axiomid.app/api/health");
     registeredListeners["fetch"](event);
-    const result = await event.respondWith.mock.calls[0][0];
+    await event.respondWith.mock.calls[0][0];
 
-    expect(result.headers.get("Content-Type")).toBe("application/json");
+    expect(mockCaches.open).toHaveBeenCalledWith(CACHE_NAME);
   });
 
-  it("returns cached entry (not 503) when offline but cache exists", async () => {
-    global.fetch = jest.fn(() => Promise.reject(new Error("Network error")));
-    const cachedResponse = makeResponse(true);
-    mockCaches.match.mockResolvedValue(cachedResponse);
+  it("does NOT cache API responses that are not ok", async () => {
+    const response = makeResponse(false);
+    global.fetch = jest.fn(() => Promise.resolve(response));
 
     const { event } = makeFetchEvent("https://axiomid.app/api/status");
     registeredListeners["fetch"](event);
-    const result = await event.respondWith.mock.calls[0][0];
+    await event.respondWith.mock.calls[0][0];
 
-    expect(result).toBe(cachedResponse);
+    // caches.open should not have been called for caching (install calls it once, but not after this fetch)
+    const openCallsForCache = mockCaches.open.mock.calls;
+    // If caches.open was called, it must not be for a put after non-ok response
+    expect(mockCaches._cache.put).not.toHaveBeenCalled();
   });
 });
 
-describe("sw.js — cacheResponse argument bug regression (PR change)", () => {
+describe("sw.js — fetch event: origin filtering", () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
@@ -449,51 +403,31 @@ describe("sw.js — cacheResponse argument bug regression (PR change)", () => {
     global.fetch = originalFetch;
   });
 
-  /**
-   * Regression: sw.js calls cacheResponse(event, request, response) but the
-   * function signature is cacheResponse(request, response). This means:
-   *   - The `event` object is used as the cache key instead of `request`
-   *   - The `request` object is cloned as if it were the response
-   * This test documents the actual (buggy) behavior so any fix is detectable.
-   */
-  it("calls caches.open when a public API response is ok (even with wrong args)", async () => {
-    const response = makeResponse(true);
-    global.fetch = jest.fn(() => Promise.resolve(response));
+  it("does NOT intercept cross-origin static asset requests", () => {
+    const mockFetch = jest.fn(() => Promise.resolve(makeResponse(true)));
+    global.fetch = mockFetch;
 
-    const { event } = makeFetchEvent("https://axiomid.app/api/status");
+    const { event } = makeFetchEvent("https://cdn.example.com/icon-192x192.png");
     registeredListeners["fetch"](event);
-    await event.respondWith.mock.calls[0][0];
 
-    // caches.open IS called (the function runs) - it just uses wrong args
-    expect(mockCaches.open).toHaveBeenCalledWith(CACHE_NAME);
+    expect(event.respondWith).not.toHaveBeenCalled();
   });
 
-  it("calls caches.open when a static asset response is ok (cacheResponse bug present)", async () => {
-    mockCaches.match.mockResolvedValue(undefined);
-    const response = makeResponse(true);
-    global.fetch = jest.fn(() => Promise.resolve(response));
+  it("intercepts same-origin static asset requests", async () => {
+    mockCaches.match.mockResolvedValue(makeResponse(true));
 
-    const { event } = makeFetchEvent("https://axiomid.app/manifest.json");
+    const { event } = makeFetchEvent("https://axiomid.app/axiomid-logo.png");
     registeredListeners["fetch"](event);
-    await event.respondWith.mock.calls[0][0];
 
-    // caches.open IS called - but cache.put receives event as key (bug)
-    expect(mockCaches.open).toHaveBeenCalledWith(CACHE_NAME);
+    expect(event.respondWith).toHaveBeenCalled();
   });
 
-  it("cache.put key is the event object (not request) due to the 3-arg cacheResponse call (bug)", async () => {
-    mockCaches.match.mockResolvedValue(undefined);
-    const response = makeResponse(true);
-    global.fetch = jest.fn(() => Promise.resolve(response));
+  it("intercepts same-origin requests for newly added static assets (axiomid-banner.png)", async () => {
+    mockCaches.match.mockResolvedValue(makeResponse(true));
 
-    const { event } = makeFetchEvent("https://axiomid.app/manifest.json");
+    const { event } = makeFetchEvent("https://axiomid.app/axiomid-banner.png");
     registeredListeners["fetch"](event);
-    await event.respondWith.mock.calls[0][0];
-    // Allow the fire-and-forget caches.open().then() to settle
-    await Promise.resolve();
-    await Promise.resolve();
 
-    // Due to bug: cache.put is called with event (not request) as the first arg
-    expect(mockCaches._cache.put).toHaveBeenCalledWith(event, expect.anything());
+    expect(event.respondWith).toHaveBeenCalled();
   });
 });

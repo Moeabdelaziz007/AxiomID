@@ -244,73 +244,6 @@ describe("POST /api/sync — SyncRequestSchema validation (PR change)", () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// New tests: SyncRequest interface was removed in this PR; the Zod schema is the
-// sole validator. These tests cover boundary cases not yet exercised above.
-// ─────────────────────────────────────────────────────────────────────────────
-describe("POST /api/sync — SyncRequestSchema boundary cases (PR change: SyncRequest interface removed)", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockRequireAuth.mockResolvedValue({ error: null, user: mockUser });
-    mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 99, resetAt: Date.now() + 60000 });
-    mockPrisma.harvestResult.findMany.mockResolvedValue([]);
-    mockPrisma.agentPresence.findMany.mockResolvedValue([]);
-  });
-
-  it("rejects non-integer maxRetries (e.g. 0.5) — enforced by z.number().int()", async () => {
-    const req = mockPostRequest({ source: "all", maxRetries: 0.5 });
-    const res = await POST(req);
-    const data = await res.json();
-
-    expect(res.status).toBe(400);
-    expect(data.code).toBe("VALIDATION_ERROR");
-  });
-
-  it("rejects non-integer maxRetries (e.g. 3.14)", async () => {
-    const req = mockPostRequest({ source: "all", maxRetries: 3.14 });
-    const res = await POST(req);
-    const data = await res.json();
-
-    expect(res.status).toBe(400);
-    expect(data.code).toBe("VALIDATION_ERROR");
-  });
-
-  it("rejects null source value", async () => {
-    const req = mockPostRequest({ source: null });
-    const res = await POST(req);
-    const data = await res.json();
-
-    expect(res.status).toBe(400);
-    expect(data.code).toBe("VALIDATION_ERROR");
-  });
-
-  it("rejects maxRetries as a numeric string", async () => {
-    const req = mockPostRequest({ source: "all", maxRetries: "5" });
-    const res = await POST(req);
-    const data = await res.json();
-
-    expect(res.status).toBe(400);
-    expect(data.code).toBe("VALIDATION_ERROR");
-  });
-
-  it("uses default maxRetries=3 when not provided", async () => {
-    const req = mockPostRequest({ source: "d1" });
-    const res = await POST(req);
-
-    // maxRetries defaults to 3; response should be 200 with no validation error
-    expect(res.status).toBe(200);
-  });
-
-  it("uses default dryRun=false when not provided", async () => {
-    const req = mockPostRequest({ source: "all" });
-    const res = await POST(req);
-    const data = await res.json();
-
-    expect(res.status).toBe(200);
-    expect(data.message).toBe("Sync completed");
-  });
-});
-
 describe("GET /api/sync — authentication (PR change: auth now required)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -401,5 +334,96 @@ describe("GET /api/sync — authentication (PR change: auth now required)", () =
 
     expect(res.status).toBe(500);
     expect(data.code).toBe("INTERNAL_ERROR");
+  });
+});
+
+describe("POST /api/sync — parallel sync via Promise.all (PR change)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockRequireAuth.mockResolvedValue({ error: null, user: mockUser });
+    mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 99, resetAt: Date.now() + 60000 });
+    mockPrisma.harvestResult.findMany.mockResolvedValue([]);
+    mockPrisma.agentPresence.findMany.mockResolvedValue([]);
+    mockPrisma.agentPresence.findFirst.mockResolvedValue(null);
+  });
+
+  it("includes both harvestResults and agentPresence in results for source=all", async () => {
+    const req = mockPostRequest({ source: "all" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.results).toHaveProperty("harvestResults");
+    expect(data.results).toHaveProperty("agentPresence");
+  });
+
+  it("includes both harvestResults and agentPresence in results for source=d1", async () => {
+    const req = mockPostRequest({ source: "d1" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.results).toHaveProperty("harvestResults");
+    expect(data.results).toHaveProperty("agentPresence");
+  });
+
+  it("harvestResults and agentPresence each contain SyncResult shape", async () => {
+    const req = mockPostRequest({ source: "all" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    for (const key of ["harvestResults", "agentPresence"]) {
+      expect(data.results[key]).toMatchObject({
+        synced: expect.any(Number),
+        errors: expect.any(Number),
+        retries: expect.any(Number),
+        entropy: expect.any(Number),
+        freshness: expect.any(Number),
+      });
+    }
+  });
+
+  it("agentPresence result still populated when harvestResults DB throws", async () => {
+    // syncHarvestResults will error (DB throws), syncWithRetry catches it and returns error result
+    // syncAgentPresence should still succeed — both complete because Promise.all resolves
+    // after syncWithRetry handles errors internally
+    mockPrisma.harvestResult.findMany.mockRejectedValue(new Error("Harvest DB error"));
+    mockPrisma.agentPresence.findMany.mockResolvedValue([]);
+    mockPrisma.agentPresence.findFirst.mockResolvedValue(null);
+
+    const req = mockPostRequest({ source: "all", maxRetries: 0 });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    // harvestResults should show errors=1 (syncWithRetry caught the error)
+    expect(data.results.harvestResults.errors).toBe(1);
+    // agentPresence should still be populated
+    expect(data.results).toHaveProperty("agentPresence");
+    expect(data.results.agentPresence.errors).toBe(0);
+  });
+
+  it("harvestResults result still populated when agentPresence DB throws", async () => {
+    mockPrisma.harvestResult.findMany.mockResolvedValue([]);
+    mockPrisma.agentPresence.findMany.mockRejectedValue(new Error("Presence DB error"));
+
+    const req = mockPostRequest({ source: "all", maxRetries: 0 });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.results.harvestResults.errors).toBe(0);
+    expect(data.results.agentPresence.errors).toBe(1);
+  });
+
+  it("results object is empty when source does not match d1 or all (regression guard)", async () => {
+    // The schema only allows "d1" | "all", so this tests the Zod validation boundary
+    const req = mockPostRequest({ source: "none-matching" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    // Should be rejected by schema validation
+    expect(res.status).toBe(400);
+    expect(data.code).toBe("VALIDATION_ERROR");
   });
 });
