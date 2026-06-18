@@ -58,7 +58,7 @@ self.addEventListener("fetch", (event) => {
       fetch(request)
         .then((response) => {
           if (response.ok) {
-            cacheResponse(request, response);
+            cacheResponse(event, request, response);
           }
           return response;
         })
