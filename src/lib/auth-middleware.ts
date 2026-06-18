@@ -110,11 +110,11 @@ export async function requireAuth(request: NextRequest): Promise<
       },
     });
 
-    if (!user || !user.piUid) {
+    if (!user) {
       return { error: apiError('UNAUTHORIZED', 'User not found. Please authenticate first via POST /api/auth/pi'), user: null };
     }
 
-    const authenticatedUser = user as AuthenticatedUser;
+
     setCachedUser(tokenHash, authenticatedUser);
 
     return { error: null, user: authenticatedUser };
