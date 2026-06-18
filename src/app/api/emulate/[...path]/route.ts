@@ -27,7 +27,9 @@ if (process.env.NEXT_PUBLIC_EMULATE_GITHUB === "true") {
 // dev/preview-only tool; in production every method returns 404.
 const notFound = () => apiError("NOT_FOUND", "Not found");
 
-const isProdDeployment = process.env.VERCEL_ENV === "production";
+const isProdDeployment =
+  process.env.VERCEL_ENV === "production" ||
+  (process.env.VERCEL_ENV == null && process.env.NODE_ENV === "production");
 
 const handler = isProdDeployment
   ? { GET: notFound, POST: notFound, PUT: notFound, PATCH: notFound, DELETE: notFound }
