@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { diagnostics } from '@/diagnostics/catalog';
 
 export type ErrorCode =
   | 'VALIDATION_ERROR'
@@ -29,8 +30,50 @@ const STATUS_MAP: Record<ErrorCode, number> = {
   INTERNAL_ERROR: 500,
 };
 
+/**
+ * Maps ErrorCode to the corresponding nostics diagnostic code.
+ * Used by apiError to report structured diagnostics alongside HTTP responses.
+ */
+const DIAGNOSTIC_MAP: Record<ErrorCode, string> = {
+  VALIDATION_ERROR: 'AXIOMID_E001',
+  UNAUTHORIZED: 'AXIOMID_E010',
+  FORBIDDEN: 'AXIOMID_E011',
+  NOT_FOUND: 'AXIOMID_E012',
+  RATE_LIMITED: 'AXIOMID_E013',
+  CONFLICT: 'AXIOMID_E030',
+  PI_AUTH_FAILED: 'AXIOMID_E020',
+  PI_PAYMENT_FAILED: 'AXIOMID_E021',
+  INTERNAL_ERROR: 'AXIOMID_E040',
+};
+
 export function apiError(code: ErrorCode, message: string, details?: unknown, headers?: Record<string, string>): NextResponse<ApiError> {
   const status = STATUS_MAP[code] ?? 500;
+
+  // Report structured diagnostic via nostics (non-blocking)
+  const diagCode = DIAGNOSTIC_MAP[code] as keyof typeof diagnostics;
+  if (diagCode) {
+    try {
+      const params =
+        code === 'VALIDATION_ERROR'
+          ? { field: 'request', message }
+          : code === 'NOT_FOUND'
+            ? { resource: message }
+            : code === 'RATE_LIMITED'
+              ? { retryAfter: 60 }
+              : code === 'PI_AUTH_FAILED'
+                ? { piError: message }
+                : code === 'PI_PAYMENT_FAILED'
+                  ? { paymentId: 'unknown', piError: message }
+                  : code === 'INTERNAL_ERROR'
+                    ? { operation: 'unknown', error: message }
+                    : { reason: message };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (diagnostics as any)[diagCode](params);
+    } catch {
+      // Diagnostics are best-effort; never break the response path
+    }
+  }
+
   return NextResponse.json({ error: message, code, details }, { status, headers });
 }
 

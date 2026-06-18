@@ -50,6 +50,9 @@
     "memory:build": "ts-node --compiler-options '{\\\"module\\\":\\\"commonjs\\\"}' scripts/build-memory.ts"
   },
   "dependencies": {
+    "@emulators/adapter-next": "^0.6.1",
+    "@emulators/github": "^0.6.1",
+    "@nostics/unplugin": "^1.1.0",
     "@prisma/client": "^6.0.0",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
@@ -57,6 +60,7 @@
     "framer-motion": "^12.40.0",
     "lucide-react": "^1.18.0",
     "next": "16.2.9",
+    "nostics": "^1.1.4",
     "qrcode.react": "^4.2.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",

@@ -37,6 +37,18 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
 
 process.env.PI_TOKEN_ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'; // 32-byte hex
 
+// Global Mock for nostics diagnostics (ESM-only package, not needed in tests)
+jest.mock("@/diagnostics/catalog", () => ({
+  diagnostics: new Proxy({}, {
+    get: () => jest.fn(), // any code access returns a no-op function
+  }),
+}));
+
+// Global Mock for @nostics/unplugin (ESM-only, only used in webpack config)
+jest.mock("@nostics/unplugin/strip-transform", () => ({
+  nosticsStrip: { webpack: jest.fn() },
+}));
+
 // Global Mock for framer-motion (simplify animations for tests)
 jest.mock("framer-motion", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports

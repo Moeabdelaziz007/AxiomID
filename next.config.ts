@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { nosticsStrip } from "@nostics/unplugin/strip-transform";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -24,6 +25,11 @@ const nextConfig: NextConfig = {
     ],
   },
   typedRoutes: true,
+  turbopack: {},
+  webpack: (config) => {
+    nosticsStrip.webpack(config);
+    return config;
+  },
 };
 
 export default nextConfig;

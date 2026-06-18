@@ -22,3 +22,44 @@ These defaults are optimized for AI coding agents (and humans) working on apps t
   needed. Always curl https://ai-gateway.vercel.sh/v1/models first; never trust model IDs from memory
 - For durable agent loops or untrusted code: use Workflow (pause/resume/state) + Sandbox; use Vercel MCP for secure infra access
 <!-- VERCEL BEST PRACTICES END -->
+
+## Dev Tools
+
+### Portless — Stable .localhost HTTPS URLs
+
+Use `portless` for stable HTTPS dev URLs (Pi Browser testing, multi-service dev, Tailscale sharing).
+
+```bash
+# Install globally (one-time)
+npm install -g portless
+
+# Start dev with stable HTTPS URL
+portless axomid next dev
+# → https://axomid.localhost (auto-trusted certs)
+
+# Share with team via Tailscale
+portless axomid --tailscale
+```
+
+### Emulate — Local API Emulators for CI
+
+Use `emulate` for deterministic CI tests (GitHub, Google, Slack, Apple, Microsoft, AWS).
+
+```bash
+# Start GitHub emulator locally
+npx emulate --service github
+# → http://localhost:4001
+
+# Set env var to enable in dev
+NEXT_PUBLIC_EMULATE_GITHUB=true
+```
+
+### Nostics — Structured Error Diagnostics
+
+Use nostics for stable error codes with actionable fixes.
+
+```bash
+# Codes are in src/diagnostics/catalog.ts
+# apiError() auto-reports diagnostics via nostics
+# Production builds strip diagnostic metadata via @nostics/unplugin
+```
