@@ -37,12 +37,37 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
 
 process.env.PI_TOKEN_ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'; // 32-byte hex
 
-// Global Mock for nostics diagnostics (ESM-only package, not needed in tests)
-jest.mock("@/diagnostics/catalog", () => ({
-  diagnostics: new Proxy({}, {
-    get: () => jest.fn(), // any code access returns a no-op function
-  }),
-}));
+// Global Mock for nostics diagnostics (ESM-only package, not needed in tests).
+// Only the codes that actually exist in src/diagnostics/catalog.ts are defined.
+// Accessing an unknown code throws so DIAGNOSTIC_MAP regressions fail fast.
+jest.mock("@/diagnostics/catalog", () => {
+  const diagnosticsMock = {
+    AXIOMID_E001: jest.fn(),
+    AXIOMID_E002: jest.fn(),
+    AXIOMID_E010: jest.fn(),
+    AXIOMID_E011: jest.fn(),
+    AXIOMID_E012: jest.fn(),
+    AXIOMID_E013: jest.fn(),
+    AXIOMID_E020: jest.fn(),
+    AXIOMID_E021: jest.fn(),
+    AXIOMID_E022: jest.fn(),
+    AXIOMID_E023: jest.fn(),
+    AXIOMID_E024: jest.fn(),
+    AXIOMID_E030: jest.fn(),
+    AXIOMID_E040: jest.fn(),
+  };
+  return {
+    diagnostics: new Proxy(diagnosticsMock, {
+      get: (target, prop) => {
+        if (typeof prop === "symbol") return undefined;
+        if (!(prop in target)) {
+          throw new Error(`Unknown diagnostics code accessed in test: ${String(prop)}`);
+        }
+        return target[prop];
+      },
+    }),
+  };
+});
 
 // Global Mock for @nostics/unplugin (ESM-only, only used in webpack config)
 jest.mock("@nostics/unplugin/strip-transform", () => ({

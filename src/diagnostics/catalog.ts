@@ -57,6 +57,21 @@ export const diagnostics = defineDiagnostics({
         `Pi payment ${p.paymentId} failed: ${p.piError}.`,
       fix: () => `Verify the payment exists in Pi Network and the user has approved it.`,
     },
+    AXIOMID_E022: {
+      why: (p: { paymentId: string; piError: string }) =>
+        `Payment ${p.paymentId} verification failed: ${p.piError}.`,
+      fix: () => `Confirm the payment was completed on Pi Network and retry verification.`,
+    },
+    AXIOMID_E023: {
+      why: (p: { paymentId: string; piError: string }) =>
+        `Payment ${p.paymentId} mismatch: ${p.piError}.`,
+      fix: () => `Ensure the payment amount and memo match the expected order details.`,
+    },
+    AXIOMID_E024: {
+      why: (p: { paymentId: string; piError: string }) =>
+        `Payment ${p.paymentId} is invalid: ${p.piError}.`,
+      fix: () => `Check that the payment is in a valid, completed state before processing.`,
+    },
 
     // ── Conflict Errors ────────────────────────────────────────
     AXIOMID_E030: {

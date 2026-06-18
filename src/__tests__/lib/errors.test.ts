@@ -2,6 +2,7 @@
  * @jest-environment node
  */
 import { apiError, apiSuccess, rateLimitHeaders } from '@/lib/errors';
+import { diagnostics } from '@/diagnostics/catalog';
 
 describe('apiError', () => {
   it('returns correct status for VALIDATION_ERROR', async () => {
@@ -197,6 +198,44 @@ describe('apiError — DIAGNOSTIC_MAP coverage (new in this PR)', () => {
       const body = await res.json();
       expect(body.code).toBe(code);
     }
+  });
+});
+
+describe('apiError — DIAGNOSTIC_MAP wiring verification', () => {
+  // Mirrors DIAGNOSTIC_MAP in src/lib/errors.ts — each ErrorCode must invoke
+  // its corresponding diagnostics function so mapping regressions fail fast.
+  const cases = [
+    ['VALIDATION_ERROR', 'AXIOMID_E001'],
+    ['UNAUTHORIZED', 'AXIOMID_E010'],
+    ['FORBIDDEN', 'AXIOMID_E011'],
+    ['NOT_FOUND', 'AXIOMID_E012'],
+    ['RATE_LIMITED', 'AXIOMID_E013'],
+    ['CONFLICT', 'AXIOMID_E030'],
+    ['PI_AUTH_FAILED', 'AXIOMID_E020'],
+    ['PI_PAYMENT_FAILED', 'AXIOMID_E021'],
+    ['PAYMENT_VERIFICATION_FAILED', 'AXIOMID_E022'],
+    ['PAYMENT_MISMATCH', 'AXIOMID_E023'],
+    ['PAYMENT_INVALID', 'AXIOMID_E024'],
+    ['INTERNAL_ERROR', 'AXIOMID_E040'],
+  ] as const;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each(cases)('maps %s to diagnostic %s', (code, diagCode) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const diagFn = (diagnostics as any)[diagCode] as jest.Mock;
+    apiError(code, 'test message');
+    expect(diagFn).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not invoke any other diagnostic for a given code', () => {
+    apiError('NOT_FOUND', 'missing');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((diagnostics as any).AXIOMID_E012).toHaveBeenCalledTimes(1);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((diagnostics as any).AXIOMID_E001).not.toHaveBeenCalled();
   });
 });
 
