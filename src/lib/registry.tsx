@@ -73,6 +73,7 @@ const components = {
   },
   LinkItem: ({ props }: { props: LinkItemProps }) => {
     const icon = LINK_ICONS[props.icon ?? "none"];
+    const colorClass = LINK_COLORS[props.color ?? "default"];
 
     return (
       // href is a runtime-generated string from the JSON spec, so it cannot be

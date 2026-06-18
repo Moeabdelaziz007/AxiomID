@@ -41,6 +41,14 @@ afterEach(() => {
   delete process.env.NEXT_PUBLIC_EMULATE_GITHUB;
 });
 
+/** Import route and invoke GET to trigger lazy handler build. */
+async function importAndTrigger() {
+  const route = await import("@/app/api/emulate/[...path]/route");
+  const req = new Request("http://localhost/api/emulate/test") as never;
+  await route.GET(req, { params: Promise.resolve({ path: ["test"] }) });
+  return route;
+}
+
 describe("emulate route — handler exports", () => {
   it("exports GET handler", async () => {
     const route = await import("@/app/api/emulate/[...path]/route");
@@ -67,13 +75,13 @@ describe("emulate route — handler exports", () => {
     expect(route.DELETE).toBeDefined();
   });
 
-  it("calls createEmulateHandler exactly once on module load", async () => {
-    await import("@/app/api/emulate/[...path]/route");
+  it("calls createEmulateHandler exactly once on first request", async () => {
+    await importAndTrigger();
     expect(mockCreateEmulateHandler).toHaveBeenCalledTimes(1);
   });
 
   it("calls createEmulateHandler with a services object", async () => {
-    await import("@/app/api/emulate/[...path]/route");
+    await importAndTrigger();
     expect(mockCreateEmulateHandler).toHaveBeenCalledWith(
       expect.objectContaining({ services: expect.any(Object) })
     );
@@ -82,13 +90,13 @@ describe("emulate route — handler exports", () => {
 
 describe("emulate route — NEXT_PUBLIC_EMULATE_GITHUB disabled (default)", () => {
   it("does NOT register github service when env var is not set", async () => {
-    await import("@/app/api/emulate/[...path]/route");
+    await importAndTrigger();
     const callArg = mockCreateEmulateHandler.mock.calls[0][0] as { services: Record<string, unknown> };
     expect(callArg.services).not.toHaveProperty("github");
   });
 
   it("registers no services by default", async () => {
-    await import("@/app/api/emulate/[...path]/route");
+    await importAndTrigger();
     const callArg = mockCreateEmulateHandler.mock.calls[0][0] as { services: Record<string, unknown> };
     expect(Object.keys(callArg.services)).toHaveLength(0);
   });
@@ -100,13 +108,13 @@ describe("emulate route — NEXT_PUBLIC_EMULATE_GITHUB enabled", () => {
   });
 
   it("registers github service when NEXT_PUBLIC_EMULATE_GITHUB=true", async () => {
-    await import("@/app/api/emulate/[...path]/route");
+    await importAndTrigger();
     const callArg = mockCreateEmulateHandler.mock.calls[0][0] as { services: Record<string, unknown> };
     expect(callArg.services).toHaveProperty("github");
   });
 
   it("github service has an emulator property", async () => {
-    await import("@/app/api/emulate/[...path]/route");
+    await importAndTrigger();
     const callArg = mockCreateEmulateHandler.mock.calls[0][0] as {
       services: Record<string, { emulator: unknown; seed?: Record<string, unknown> }>;
     };
@@ -114,7 +122,7 @@ describe("emulate route — NEXT_PUBLIC_EMULATE_GITHUB enabled", () => {
   });
 
   it("github service seed includes axiomid-dev user", async () => {
-    await import("@/app/api/emulate/[...path]/route");
+    await importAndTrigger();
     const callArg = mockCreateEmulateHandler.mock.calls[0][0] as {
       services: Record<string, { emulator: unknown; seed?: Record<string, unknown> }>;
     };
@@ -125,7 +133,7 @@ describe("emulate route — NEXT_PUBLIC_EMULATE_GITHUB enabled", () => {
   });
 
   it("github service seed includes hello-world repo", async () => {
-    await import("@/app/api/emulate/[...path]/route");
+    await importAndTrigger();
     const callArg = mockCreateEmulateHandler.mock.calls[0][0] as {
       services: Record<string, { emulator: unknown; seed?: Record<string, unknown> }>;
     };
@@ -137,7 +145,7 @@ describe("emulate route — NEXT_PUBLIC_EMULATE_GITHUB enabled", () => {
 
   it("does NOT register github service when env var is 'false'", async () => {
     process.env.NEXT_PUBLIC_EMULATE_GITHUB = "false";
-    await import("@/app/api/emulate/[...path]/route");
+    await importAndTrigger();
     const callArg = mockCreateEmulateHandler.mock.calls[0][0] as { services: Record<string, unknown> };
     expect(callArg.services).not.toHaveProperty("github");
   });
