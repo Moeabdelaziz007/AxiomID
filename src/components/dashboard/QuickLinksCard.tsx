@@ -1,11 +1,7 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-import { motion } from "framer-motion";
-import Link from "next/link";
-import { Fingerprint, ClipboardCopy, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/app/context/language-context";
+import { AxiomRenderer } from "../ui/AxiomRenderer";
 
 interface QuickLinksCardProps {
   passportSlug: string;
@@ -14,45 +10,25 @@ interface QuickLinksCardProps {
 
 export function QuickLinksCard({ passportSlug, did }: QuickLinksCardProps) {
   const { t } = useLanguage();
-  const links: { label: string; href: string; icon: React.ReactNode; color: string }[] = [
-    {
-      label: t('view_passport'),
-      href: `/passport/${passportSlug}`,
-      icon: <Fingerprint className="w-4 h-4" />,
-      color: "hover:text-neon-green hover:border-neon-green/30",
+  
+  const spec = {
+    root: "card",
+    elements: {
+      card: {
+        type: "Card",
+        props: { title: t("quick_links") },
+        children: ["link1", "link2"],
+      },
+      link1: {
+        type: "LinkItem",
+        props: { label: t("view_passport"), href: `/passport/${passportSlug}` },
+      },
+      link2: {
+        type: "LinkItem",
+        props: { label: t("did_document"), href: `/api/did-document${did ? `?did=${encodeURIComponent(did)}` : ""}` },
+      },
     },
-    {
-      label: t('did_document'),
-      href: `/api/did-document${did ? `?did=${encodeURIComponent(did)}` : ""}`,
-      icon: <ClipboardCopy className="w-4 h-4" />,
-      color: "hover:text-electric-blue hover:border-electric-blue/30",
-    },
-  ];
+  };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: 0.1 }}
-      className="bento-card p-5"
-    >
-      <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>{t('quick_links')}</h3>
-      <div className="space-y-2">
-        {links.map((link) => (
-          <Link
-            key={link.label}
-            href={link.href as any}
-            className={`flex items-center justify-between p-3 rounded-xl border transition-colors group ${link.color}`}
-            style={{ borderColor: 'var(--card-border)', background: 'rgba(255,255,255,0.02)' }}
-          >
-            <div className="flex items-center gap-3">
-              <span className="group-hover:scale-110 transition-transform" style={{ color: 'var(--text-muted)' }}>{link.icon}</span>
-              <span className="text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>{link.label}</span>
-            </div>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-all" style={{ color: 'var(--text-muted)' }} />
-          </Link>
-        ))}
-      </div>
-    </motion.div>
-  );
+  return <AxiomRenderer spec={spec} />;
 }
