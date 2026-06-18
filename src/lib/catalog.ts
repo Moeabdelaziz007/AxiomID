@@ -15,7 +15,9 @@ export const axiomCatalog = defineCatalog(schema, {
     LinkItem: {
       props: z.object({
         label: z.string(),
-        href: z.string(),
+        href: z
+          .string()
+          .regex(/^\/(?!\/).*/, "href must be an internal app route starting with '/'"),
         icon: z.enum(["fingerprint", "clipboard", "none"]).optional(),
         color: z.enum(["neon-green", "electric-blue", "default"]).optional(),
       }),
