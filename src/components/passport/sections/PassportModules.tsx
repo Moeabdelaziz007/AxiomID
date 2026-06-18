@@ -7,18 +7,15 @@ interface PassportModulesProps {
 }
 
 export function PassportModules({ activeModules }: PassportModulesProps) {
-  const activeKeys = new Set(activeModules.map((m) => m.key));
-  const totalSlots = MODULE_SLOTS.length;
-
   return (
     <div className="rounded-xl p-4 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
       <div className="flex items-center justify-between mb-3">
         <span className="text-[10px] tracking-wider font-mono text-neon-green"><Zap className="w-3 h-3 inline me-1" /> SYSTEM MODULES</span>
-        <span className="text-[9px] font-mono text-gray-500">ACTIVE: {activeKeys.size}/{totalSlots}</span>
+        <span className="text-[9px] font-mono text-gray-500">ACTIVE: {activeModules.length}/{MODULE_SLOTS.length}</span>
       </div>
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 text-center font-mono text-[9px]">
         {MODULE_SLOTS.map((slot) => {
-          const isActive = activeKeys.has(slot.key);
+          const isActive = activeModules.some((m) => m.key === slot.key);
           return isActive ? (
             <div key={slot.key} className="relative rounded-lg p-2 border border-neon-green/30 bg-neon-green/5 flex flex-col items-center justify-center gap-1">
               {slot.icon}

@@ -1,6 +1,7 @@
 import React from "react";
 import { TrustScoreGauge } from "@/components/TrustScoreGauge";
 import { useLanguage } from "@/app/context/language-context";
+import { formatDate } from "../utils";
 
 interface PassportStatsProps {
   trustScore: number;
@@ -10,10 +11,7 @@ interface PassportStatsProps {
 
 export function PassportStats({ trustScore, xp, issuedDate }: PassportStatsProps) {
   const { t } = useLanguage();
-  const parsedDate = new Date(issuedDate);
-  const formattedMonth = isNaN(parsedDate.getTime())
-    ? "N/A"
-    : parsedDate.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  const formattedMonth = formatDate(issuedDate, { month: "short", year: "numeric" });
 
   return (
     <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -31,4 +29,4 @@ export function PassportStats({ trustScore, xp, issuedDate }: PassportStatsProps
       </div>
     </div>
   );
-
+}
