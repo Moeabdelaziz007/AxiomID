@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { apiError, apiSuccess, rateLimitHeaders } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
-import { requireAuth, hashToken, clearAuthCache } from '@/lib/auth-middleware';
+import { requireAuth } from '@/lib/auth-middleware';
 import { KyaClaimSchema } from '@/lib/validators';
 
 /**
@@ -48,28 +48,10 @@ export async function POST(request: NextRequest) {
       data: {
         kycStatus: 'PENDING',
         kycProvider: 'pi_network',
-        // Only set did/piUsername when missing so cached auth state never
-        // overwrites newer persisted values. Falls back to canonical DID format.
-        ...(user.did ? {} : { did: `did:axiom:axiomid.app:pi:${encodeURIComponent(user.piUid)}` }),
-        ...(user.piUsername ? {} : { piUsername: username }),
+        did: user.did || `did:axiom:${user.piUid}`,
+        piUsername: user.piUsername || username,
       },
     });
-
-    const authHeader = request.headers.get('authorization');
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.slice(7);
-      if (token) {
-        const { hashToken, clearAuthCache } = require('@/lib/auth-middleware');
-        clearAuthCache(hashToken(token));
-      }
-    }
-
-    // Invalidate cached auth so subsequent requests see the updated user state.
-    const authHeader = request.headers.get('authorization');
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.slice(7);
-      if (token) clearAuthCache(hashToken(token));
-    }
 
     return apiSuccess({
       userId: updated.id,
