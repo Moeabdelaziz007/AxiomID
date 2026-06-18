@@ -26,8 +26,11 @@ const components = {
     const Tag = props.level || "h2";
     return <Tag className="text-xl font-bold">{props.text}</Tag>;
   },
-  Button: ({ props }: { props: { label: string } }) => (
-    <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+  Button: ({ props, actions }: { props: { label: string; action?: string }; actions?: Record<string, () => void> }) => (
+    <button 
+      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      onClick={props.action && actions?.[props.action] ? () => actions[props.action!]() : undefined}
+    >
       {props.label}
     </button>
   ),
