@@ -15,7 +15,7 @@
  * The tilt state is reflected in the `style.transform` of the inner passport card.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import React from "react";
 import { render, act } from "@testing-library/react";
 import Home from "@/app/page";

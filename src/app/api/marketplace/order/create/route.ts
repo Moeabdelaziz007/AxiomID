@@ -48,6 +48,16 @@ export async function POST(req: NextRequest) {
   if (!skill) return apiError("NOT_FOUND", "Skill not found");
   if (skill.status !== "PUBLISHED") return apiError("CONFLICT", "Skill is not available for purchase");
 
+  // Prevent Replay Attacks by ensuring the paymentId has not been used already
+  const lookupId = skill.pricePi === 0 ? `free-${paymentId}` : paymentId;
+  const existingPayment = await prisma.piPayment.findUnique({
+    where: { paymentId: lookupId },
+    select: { id: true },
+  });
+  if (existingPayment) {
+    return apiError("CONFLICT", "This payment ID has already been used");
+  }
+
   // 2. Free skills — skip Pi verification
   if (skill.pricePi === 0) {
     const payment = await prisma.piPayment.create({

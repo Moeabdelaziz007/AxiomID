@@ -20,17 +20,22 @@ let RatelimitClass: any = null;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lazy-loaded ESM modules, types inferred at runtime
 let RedisClass: any = null;
 
+let loadUpstashPromise: Promise<void> | null = null;
+let ensureUpstashPromise: Promise<boolean> | null = null;
+
 /**
  * Dynamically imports and caches the Upstash Ratelimit and Redis classes.
  */
-</budget:
 async function loadUpstash() {
-  if (!RatelimitClass) {
-    const ratelimit = await import("@upstash/ratelimit");
-    const redis = await import("@upstash/redis");
-    RatelimitClass = ratelimit.Ratelimit;
-    RedisClass = redis.Redis;
+  if (!loadUpstashPromise) {
+    loadUpstashPromise = (async () => {
+      const ratelimit = await import("@upstash/ratelimit");
+      const redis = await import("@upstash/redis");
+      RatelimitClass = ratelimit.Ratelimit;
+      RedisClass = redis.Redis;
+    })();
   }
+  return loadUpstashPromise;
 }
 
 // ---------------------------------------------------------------------------
@@ -88,15 +93,22 @@ let upstashLimiters: Map<string, any> | null = null;
 async function ensureUpstash() {
   if (!USE_UPSTASH) return false;
   if (redisInstance) return true;
-  try {
-    await loadUpstash();
-    if (!RedisClass || !RatelimitClass) return false;
-    redisInstance = new RedisClass({ url: UPSTASH_URL!, token: UPSTASH_TOKEN! });
-    upstashLimiters = new Map();
-    return true;
-  } catch {
-    return false;
+  if (!ensureUpstashPromise) {
+    ensureUpstashPromise = (async () => {
+      try {
+        await loadUpstash();
+        if (!RedisClass || !RatelimitClass) return false;
+        redisInstance = new RedisClass({ url: UPSTASH_URL!, token: UPSTASH_TOKEN! });
+        upstashLimiters = new Map();
+        return true;
+      } catch (err) {
+        logger.error("[RATE-LIMITER] Failed to initialize Upstash:", err);
+        ensureUpstashPromise = null; // Reset to allow retry on subsequent requests
+        return false;
+      }
+    })();
   }
+  return ensureUpstashPromise;
 }
 
 /**

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 /**
  * @jest-environment node
  */
@@ -59,6 +59,8 @@ describe('hashToken (PR change: exported)', () => {
 describe('clearAuthCache (PR change: selective invalidation)', () => {
   beforeEach(() => {
     // Start with a clean slate
+    jest.clearAllMocks();
+    mockFetch.mockClear();
     clearAuthCache();
   });
 

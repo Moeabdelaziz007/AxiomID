@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 /**
  * @jest-environment node
  *
@@ -14,7 +14,7 @@ jest.mock("@/lib/auth-middleware", () => ({
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     skill: { findUnique: jest.fn() },
-    piPayment: { create: jest.fn() },
+    piPayment: { create: jest.fn(), findUnique: jest.fn().mockResolvedValue(null) },
   },
 }));
 
@@ -332,5 +332,18 @@ describe("POST /api/marketplace/order/create — paid skills (Pi verification)",
 
     expect(res.status).toBe(409);
     expect(data.code).toBe("CONFLICT");
+  });
+
+  it("returns 409 when the paymentId has already been used (prevent replay attacks)", async () => {
+    mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Paid", pricePi: 5, status: "PUBLISHED" } as any);
+    mockPrisma.piPayment.findUnique.mockResolvedValue({ id: "existing-payment-id" } as any);
+
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", paymentId: "duplicate-pay-id" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(409);
+    expect(data.code).toBe("CONFLICT");
+    expect(data.error).toContain("payment ID has already been used");
   });
 });

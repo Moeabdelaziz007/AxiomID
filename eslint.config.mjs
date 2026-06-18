@@ -26,6 +26,17 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  {
+    files: ["src/__tests__/**/*.ts", "src/__tests__/**/*.tsx", "src/__tests__/**/*.js", "src/__tests__/**/*.jsx"],
+    linterOptions: {
+      reportUnusedDisableDirectives: "off",
+    },
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;
