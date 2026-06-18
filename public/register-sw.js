@@ -1,6 +1,6 @@
 if ('serviceWorker' in navigator) {
   const registerServiceWorker = () => {
-    navigator.serviceWorker.register('/service-worker.js').catch(err => {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
       console.error('Service worker registration failed:', err);
     });
   };
