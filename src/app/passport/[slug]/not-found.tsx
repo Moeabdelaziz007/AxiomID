@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useLanguage } from "@/app/context/language-context";
 
+/**
+ * Displays a page indicating that a passport was not found.
+ */
 export default function PassportNotFound() {
   const { t } = useLanguage();
 

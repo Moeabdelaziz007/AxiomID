@@ -39,10 +39,9 @@ interface SyncResult {
 }
 
 /**
- * Syncs data from D1 edge database to PostgreSQL.
- * Uses exponential backoff for retries and entropy for data quality scoring.
+ * Processes authenticated sync requests for D1 edge data.
  *
- * @returns Sync status with counts of synced records.
+ * @returns An API response containing sync results and metrics, or an appropriate error response.
  */
 export async function POST(req: NextRequest) {
   const auth = await requireAuth(req);
@@ -107,8 +106,9 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * Get sync status and last sync time.
- * Uses Shannon entropy to measure data diversity.
+ * Retrieves sync status and data quality metrics.
+ *
+ * @returns An object containing the last sync timestamps, data freshness scores, and query entropy.
  */
 export async function GET(req: NextRequest) {
   const auth = await requireAuth(req);

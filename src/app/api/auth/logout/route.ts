@@ -7,10 +7,10 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 
 /**
- * Logs out the authenticated user by clearing their stored PI access token and invalidating any in-process auth cache.
+ * Logs out the authenticated user.
  *
- * @param request - The incoming Next.js request; the handler requires authentication and will read the `Authorization` header if present.
- * @returns An HTTP response: on success a payload with `{ message: 'Logged out successfully' }`, on failure an error response with code `INTERNAL_ERROR`.
+ * @param request - The incoming HTTP request from an authenticated user.
+ * @returns An HTTP response with `{ message: 'Logged out successfully' }` on success, or an error response with code `INTERNAL_ERROR` on failure.
  */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);

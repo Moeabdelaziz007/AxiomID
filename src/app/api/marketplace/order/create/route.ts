@@ -10,13 +10,9 @@ import { getClientIp } from "@/lib/ip";
 /**
  * Creates an escrow payment for a marketplace order.
  *
- * Security flow:
- * 1. Authenticate user via Pi token
- * 2. Look up skill to get server-side price (never trust client amount)
- * 3. Verify payment exists on Pi Network API
- * 4. Assert payer UID matches authenticated user (IDOR prevention)
- * 5. Assert payment amount matches skill price
- * 6. Create escrow record only after all checks pass
+ * Verifies the payment with Pi Network and ensures the payer is the authenticated user
+ * and the payment amount matches the skill price. Free skills skip Pi Network verification.
+ * Enforces rate limiting per client IP.
  */
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);

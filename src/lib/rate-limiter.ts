@@ -20,6 +20,10 @@ let RatelimitClass: any = null;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lazy-loaded ESM modules, types inferred at runtime
 let RedisClass: any = null;
 
+/**
+ * Dynamically imports and caches the Upstash Ratelimit and Redis classes.
+ */
+</budget:
 async function loadUpstash() {
   if (!RatelimitClass) {
     const ratelimit = await import("@upstash/ratelimit");
@@ -76,6 +80,11 @@ let redisInstance: any = null;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lazy-loaded ESM modules, types inferred at runtime
 let upstashLimiters: Map<string, any> | null = null;
 
+/**
+ * Ensures the Upstash Redis client and limiter cache are initialized.
+ *
+ * @returns `true` if Upstash is ready for use, `false` if disabled or initialization failed.
+ */
 async function ensureUpstash() {
   if (!USE_UPSTASH) return false;
   if (redisInstance) return true;
@@ -90,6 +99,11 @@ async function ensureUpstash() {
   }
 }
 
+/**
+ * Retrieves or creates a cached Upstash rate limiter instance.
+ *
+ * @returns The Upstash `Ratelimit` instance configured for the given window and request limits
+ */
 async function getUpstashLimiter(config: RateLimitConfig) {
   const key = `${config.windowMs}:${config.maxRequests}`;
   if (!upstashLimiters!.has(key)) {
@@ -118,6 +132,9 @@ interface WindowEntry {
 
 const memStore = new Map<string, WindowEntry>();
 
+/**
+ * Removes expired entries from the in-memory rate-limit store.
+ */
 function memCleanupExpired(): void {
   const now = Date.now();
   for (const [key, entry] of memStore) {
@@ -128,6 +145,9 @@ function memCleanupExpired(): void {
 let writeCounter = 0;
 const CLEANUP_INTERVAL = 50;
 
+/**
+ * Throttles cleanup operations to run periodically rather than on every invocation.
+ */
 function memMaybeCleanup(): void {
   writeCounter++;
   if (writeCounter >= CLEANUP_INTERVAL) {
@@ -141,17 +161,13 @@ function memMaybeCleanup(): void {
 // ---------------------------------------------------------------------------
 
 /**
- * Check whether `key` has exceeded its rate limit.
+ * Determines whether a request identified by `key` is allowed under the configured rate limit.
  *
- * Uses a hybrid approach:
- * 1. Leaky Bucket (fluid dynamics) for smooth rate limiting
- * 2. Sliding window fallback for backward compatibility
+ * In production (when Upstash Redis is available), rate limits are tracked across all instances.
+ * In local development or if Upstash fails, rate limits are tracked per process instance.
  *
- * Physics analogy: Water flows into a bucket that drains at constant rate.
- * If water level exceeds capacity, requests are rejected.
- *
- * Production: Uses Upstash Redis (distributed across all Vercel instances).
- * Local dev: Falls back to in-memory Map (process-local, single instance only).
+ * @param key - The identifier for rate-limit tracking (e.g., user ID, IP address).
+ * @returns A RateLimitResult containing whether the request is allowed, remaining quota, and the window reset timestamp.
  */
 export async function checkRateLimit(
   key: string,

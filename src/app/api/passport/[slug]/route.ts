@@ -49,6 +49,12 @@ function getKyaStatus(stamps: PassportStamp[] | undefined): "verified" | "pendin
   return hasIdentityStamp ? "verified" : "pending";
 }
 
+/**
+ * Normalizes a KYC status value to a standard verification state.
+ *
+ * @param kycStatus - The KYC status string, which may be undefined or null
+ * @returns `"verified"` for `"VERIFIED"`, `"pending"` for missing or `"PENDING"`/`"NONE"`, `"denied"` for any other value
+ */
 function getKycStatus(kycStatus: string | undefined | null): "verified" | "pending" | "denied" {
   if (kycStatus === "VERIFIED") return "verified";
   if (!kycStatus || kycStatus === "PENDING" || kycStatus === "NONE") return "pending";
@@ -89,6 +95,14 @@ function buildPassportResponse(user: PassportUser) {
  */
 import { PassportSlugParamSchema } from "@/lib/validators";
 
+/**
+ * Retrieves a user passport based on a slug identifier.
+ *
+ * Applies rate limiting per IP and returns the formatted passport if found.
+ *
+ * @returns An HTTP response containing the formatted passport object, or an error
+ * response indicating validation failure, rate limiting, or no matching passport.
+ */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }

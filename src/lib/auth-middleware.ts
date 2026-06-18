@@ -21,6 +21,12 @@ const CACHE_TTL_MS = parseInt(process.env.PI_AUTH_CACHE_TTL || '300000', 10); //
 const MAX_CACHE_SIZE = parseInt(process.env.PI_AUTH_CACHE_MAX_SIZE || '1000', 10);
 const tokenCache = new Map<string, CacheEntry>();
 
+/**
+ * Hashes an access token using SHA-256.
+ *
+ * @param token - The access token to hash
+ * @returns The SHA-256 hex digest of the token
+ */
 export function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
@@ -54,13 +60,19 @@ function setCachedUser(tokenHash: string, user: AuthenticatedUser): void {
   });
 }
 
+/**
+ * Removes a cached authentication token entry.
+ *
+ * @param tokenHash - The hashed access token to invalidate from cache
+ */
 function invalidateCachedToken(tokenHash: string): void {
   tokenCache.delete(tokenHash);
 }
 
 /**
  * Invalidate a specific token from the auth cache, or clear all entries.
- * @param tokenHash - If provided, only this entry is removed. If omitted (testing), clears all.
+ *
+ * @param tokenHash - If provided, only this entry is removed. If omitted, clears all entries.
  */
 export function clearAuthCache(tokenHash?: string): void {
   if (tokenHash) {
@@ -70,6 +82,14 @@ export function clearAuthCache(tokenHash?: string): void {
   }
 }
 
+/**
+ * Authenticates a request using a Pi access token from the Authorization header.
+ *
+ * Extracts the token from the Authorization header, verifies it against the Pi API, and retrieves the corresponding user from the database. Successful authentications are cached to avoid repeated verification.
+ *
+ * @param request - The Next.js request containing the Authorization header
+ * @returns `{ error: null; user: AuthenticatedUser }` on successful authentication, `{ error: ...; user: null }` on failure
+ */
 export async function requireAuth(request: NextRequest): Promise<
   { error: ReturnType<typeof apiError>; user: null } | { error: null; user: AuthenticatedUser }
 > {

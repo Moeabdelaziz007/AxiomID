@@ -83,6 +83,11 @@ function createDemoWalletAddress(): string {
   throw new Error("Cryptographic random source not available");
 }
 
+/**
+ * Retrieves the stored wallet address, removing it if the address is a demo wallet and demo wallets are disallowed.
+ *
+ * @returns The stored wallet address, or `null` if no address is stored, the address is a demo wallet and demo wallets are disallowed, or `localStorage` is inaccessible.
+ */
 function getStoredWallet(): string | null {
   if (typeof window === "undefined") return null;
   try {
@@ -103,6 +108,11 @@ function getStoredDemoWalletOrNew(): string {
   return stored && isDemoWalletAddress(stored) ? stored : createDemoWalletAddress();
 }
 
+/**
+ * Safely retrieves a value from localStorage.
+ *
+ * @returns The stored value for the key, or `null` if the key does not exist, if localStorage is inaccessible, or if running server-side.
+ */
 function getLocalStorageItem(key: string): string | null {
   if (typeof window === "undefined") return null;
   try {
@@ -113,6 +123,9 @@ function getLocalStorageItem(key: string): string | null {
   }
 }
 
+/**
+ * Stores a value in localStorage.
+ */
 function setLocalStorageItem(key: string, value: string): void {
   if (typeof window === "undefined") return;
   try {
@@ -122,6 +135,9 @@ function setLocalStorageItem(key: string, value: string): void {
   }
 }
 
+/**
+ * Removes a value from localStorage.
+ */
 function removeLocalStorageItem(key: string): void {
   if (typeof window === "undefined") return;
   try {
