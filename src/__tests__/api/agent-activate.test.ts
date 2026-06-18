@@ -155,4 +155,152 @@ describe('POST /api/agent/activate', () => {
     expect(res.status).toBe(500);
     expect(data.code).toBe('INTERNAL_ERROR');
   });
+
+  it('includes publicId in success response', async () => {
+    mockPrisma.userAgent.updateManyAndReturn.mockResolvedValue([{
+      id: 'agent-1',
+      publicId: 'pub-agent-1',
+      status: 'ACTIVE',
+    }] as any);
+
+    const req = mockPostRequest({});
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.publicId).toBe('pub-agent-1');
+    expect(data.agentId).toBe('agent-1');
+    expect(data.status).toBe('ACTIVE');
+  });
+
+  it('calls updateManyAndReturn with correct where clause excluding ACTIVE status', async () => {
+    mockPrisma.userAgent.updateManyAndReturn.mockResolvedValue([{
+      id: 'agent-1',
+      publicId: 'pub-agent-1',
+      status: 'ACTIVE',
+    }] as any);
+
+    const req = mockPostRequest({});
+    await POST(req);
+
+    expect(mockPrisma.userAgent.updateManyAndReturn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          userId: 'mock-user-id',
+          status: { not: 'ACTIVE' },
+        },
+      })
+    );
+  });
+
+  it('sets status, lastActive, and lastHeartbeat in the update data', async () => {
+    mockPrisma.userAgent.updateManyAndReturn.mockResolvedValue([{
+      id: 'agent-1',
+      publicId: 'pub-agent-1',
+      status: 'ACTIVE',
+    }] as any);
+
+    const req = mockPostRequest({});
+    await POST(req);
+
+    const callArgs = (mockPrisma.userAgent.updateManyAndReturn as jest.Mock).mock.calls[0][0];
+    expect(callArgs.data.status).toBe('ACTIVE');
+    expect(callArgs.data.lastActive).toBeInstanceOf(Date);
+    expect(callArgs.data.lastHeartbeat).toBeInstanceOf(Date);
+  });
+
+  it('does not call findUnique when updateManyAndReturn returns results', async () => {
+    mockPrisma.userAgent.updateManyAndReturn.mockResolvedValue([{
+      id: 'agent-1',
+      publicId: 'pub-agent-1',
+      status: 'ACTIVE',
+    }] as any);
+
+    const req = mockPostRequest({});
+    await POST(req);
+
+    expect(mockPrisma.userAgent.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('calls findUnique as fallback when updateManyAndReturn returns empty array', async () => {
+    mockPrisma.userAgent.updateManyAndReturn.mockResolvedValue([] as any);
+    mockPrisma.userAgent.findUnique.mockResolvedValue(null);
+
+    const req = mockPostRequest({});
+    await POST(req);
+
+    expect(mockPrisma.userAgent.findUnique).toHaveBeenCalledWith({
+      where: { userId: 'mock-user-id' },
+    });
+  });
+
+  it('uses only the first agent when updateManyAndReturn returns multiple records', async () => {
+    mockPrisma.userAgent.updateManyAndReturn.mockResolvedValue([
+      { id: 'agent-first', publicId: 'pub-first', status: 'ACTIVE' },
+      { id: 'agent-second', publicId: 'pub-second', status: 'ACTIVE' },
+    ] as any);
+
+    const req = mockPostRequest({});
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.agentId).toBe('agent-first');
+    expect(data.publicId).toBe('pub-first');
+  });
+
+  it('returns 500 when fallback findUnique throws a database error', async () => {
+    mockPrisma.userAgent.updateManyAndReturn.mockResolvedValue([] as any);
+    mockPrisma.userAgent.findUnique.mockRejectedValue(new Error('DB timeout'));
+
+    const req = mockPostRequest({});
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(data.code).toBe('INTERNAL_ERROR');
+  });
+
+  it('returns 404 error message directing user to create an agent', async () => {
+    mockPrisma.userAgent.updateManyAndReturn.mockResolvedValue([] as any);
+    mockPrisma.userAgent.findUnique.mockResolvedValue(null);
+
+    const req = mockPostRequest({});
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(404);
+    expect(data.code).toBe('NOT_FOUND');
+    expect(data.error).toContain('POST /api/agent');
+  });
+
+  it('returns 409 error message indicating agent is already active', async () => {
+    mockPrisma.userAgent.updateManyAndReturn.mockResolvedValue([] as any);
+    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'agent-4', userId: 'mock-user-id', status: 'ACTIVE' } as any);
+
+    const req = mockPostRequest({});
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(409);
+    expect(data.code).toBe('CONFLICT');
+    expect(data.error).toContain('already active');
+  });
+
+  it('invokes updateManyAndReturn before the findUnique fallback (not in parallel)', async () => {
+    const callOrder: string[] = [];
+    mockPrisma.userAgent.updateManyAndReturn.mockImplementation(async () => {
+      callOrder.push('updateManyAndReturn');
+      return [];
+    });
+    mockPrisma.userAgent.findUnique.mockImplementation(async () => {
+      callOrder.push('findUnique');
+      return null;
+    });
+
+    const req = mockPostRequest({});
+    await POST(req);
+
+    expect(callOrder).toEqual(['updateManyAndReturn', 'findUnique']);
+  });
 });
