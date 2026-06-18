@@ -25,6 +25,29 @@ export async function POST(request: NextRequest) {
   const { user } = auth;
 
   try {
+    // Optimistically update the agent to ACTIVE in a single query
+    const results = await prisma.$queryRaw<
+      { id: string; publicId: string; status: string }[]
+    >`
+      UPDATE "UserAgent"
+      SET "status" = 'ACTIVE',
+          "lastActive" = NOW(),
+          "lastHeartbeat" = NOW(),
+          "updatedAt" = NOW()
+      WHERE "userId" = ${user.id} AND "status" != 'ACTIVE'
+      RETURNING id, "publicId", status;
+    `;
+
+    if (results && results.length > 0) {
+      const updated = results[0];
+      return apiSuccess({
+        agentId: updated.id,
+        publicId: updated.publicId,
+        status: updated.status,
+      });
+    }
+
+    // If no row was updated, determine if the agent doesn't exist or is already active
     const agent = await prisma.userAgent.findUnique({ where: { userId: user.id } });
     if (!agent) {
       return apiError('NOT_FOUND', 'No agent found for this user. Create one first via POST /api/agent');
@@ -34,20 +57,8 @@ export async function POST(request: NextRequest) {
       return apiError('CONFLICT', 'Agent is already active');
     }
 
-    const updated = await prisma.userAgent.update({
-      where: { id: agent.id },
-      data: {
-        status: 'ACTIVE',
-        lastActive: new Date(),
-        lastHeartbeat: new Date(),
-      },
-    });
-
-    return apiSuccess({
-      agentId: updated.id,
-      publicId: updated.publicId,
-      status: updated.status,
-    });
+    // Should not normally be reached
+    return apiError('INTERNAL_ERROR', 'Failed to activate agent');
   } catch (error) {
     logger.error('[AGENT-ACTIVATE] Database error:', error);
     return apiError('INTERNAL_ERROR', 'Failed to activate agent');

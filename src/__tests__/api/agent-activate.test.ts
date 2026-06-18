@@ -14,6 +14,7 @@ jest.mock('@/lib/prisma', () => ({
     user: {
       findUnique: jest.fn(),
     },
+    $queryRaw: jest.fn(),
     userAgent: {
       findUnique: jest.fn(),
       update: jest.fn(),
@@ -65,12 +66,11 @@ describe('POST /api/agent/activate', () => {
   });
 
   it('activates an INACTIVE agent successfully', async () => {
-    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'agent-1', userId: 'mock-user-id', status: 'INACTIVE' } as any);
-    mockPrisma.userAgent.update.mockResolvedValue({
+    mockPrisma.$queryRaw.mockResolvedValue([{
       id: 'agent-1',
       publicId: 'pub-agent-1',
       status: 'ACTIVE',
-    } as any);
+    }]);
 
     const req = mockPostRequest({});
     const res = await POST(req);
@@ -82,12 +82,11 @@ describe('POST /api/agent/activate', () => {
   });
 
   it('activates a PAUSED agent successfully', async () => {
-    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'agent-2', userId: 'mock-user-id', status: 'PAUSED' } as any);
-    mockPrisma.userAgent.update.mockResolvedValue({
+    mockPrisma.$queryRaw.mockResolvedValue([{
       id: 'agent-2',
       publicId: 'pub-agent-2',
       status: 'ACTIVE',
-    } as any);
+    }]);
 
     const req = mockPostRequest({});
     const res = await POST(req);
@@ -112,6 +111,7 @@ describe('POST /api/agent/activate', () => {
   });
 
   it('returns 404 when agent is not found', async () => {
+    mockPrisma.$queryRaw.mockResolvedValue([]);
     mockPrisma.userAgent.findUnique.mockResolvedValue(null);
 
     const req = mockPostRequest({});
@@ -123,6 +123,7 @@ describe('POST /api/agent/activate', () => {
   });
 
   it('returns 409 when agent is already active', async () => {
+    mockPrisma.$queryRaw.mockResolvedValue([]);
     mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'agent-4', userId: 'mock-user-id', status: 'ACTIVE' } as any);
 
     const req = mockPostRequest({});
@@ -145,8 +146,7 @@ describe('POST /api/agent/activate', () => {
   });
 
   it('returns 500 on database error', async () => {
-    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'agent-1', userId: 'mock-user-id', status: 'INACTIVE' } as any);
-    mockPrisma.userAgent.update.mockRejectedValue(new Error('DB connection failed'));
+    mockPrisma.$queryRaw.mockRejectedValue(new Error('DB connection failed'));
 
     const req = mockPostRequest({});
     const res = await POST(req);
