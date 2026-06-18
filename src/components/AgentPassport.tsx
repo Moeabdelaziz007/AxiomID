@@ -6,6 +6,11 @@ import { type Tier, getTierColor } from "@/lib/tiers";
 import { useLanguage } from "@/app/context/language-context";
 import { Copy, Eye, Zap } from "lucide-react";
 
+interface PassportStamp {
+  type: string;
+  provider: string;
+}
+
 interface AgentPassportProps {
   username: string;
   walletAddress?: string | null;
@@ -14,12 +19,29 @@ interface AgentPassportProps {
   trustScore: number;
   kyaStatus: "verified" | "pending" | "denied";
   kycStatus: "verified" | "pending" | "denied";
+  stamps?: PassportStamp[];
   issuedDate: string;
   did: string;
   agentName?: string;
   agentStatus?: string;
   xp: number;
 }
+
+interface ModuleSlot {
+  key: string;
+  icon: React.ReactNode;
+  label: string;
+  matchTypes: string[];
+}
+
+const MODULE_SLOTS: ModuleSlot[] = [
+  { key: "pi_net", icon: <span className="text-neon-green text-xs">π</span>, label: "PI NET", matchTypes: ["verify_identity"] },
+  { key: "twitter", icon: <span className="text-neon-green text-xs">𝕏</span>, label: "TWITTER", matchTypes: ["connect_twitter"] },
+  { key: "discord", icon: <span className="text-neon-green text-xs">♯</span>, label: "DISCORD", matchTypes: ["connect_discord"] },
+  { key: "google", icon: <span className="text-neon-green text-xs">G</span>, label: "GOOGLE", matchTypes: ["connect_google"] },
+  { key: "wallet", icon: <span className="text-neon-green text-xs">W</span>, label: "WALLET", matchTypes: ["wallet_age"] },
+  { key: "mining", icon: <span className="text-neon-green text-xs">⚡</span>, label: "MINING", matchTypes: ["daily_pow"] },
+];
 
 function getInitial(name: string): string {
   return name ? name.charAt(0).toUpperCase() : "?";
@@ -50,6 +72,7 @@ export function AgentPassport({
   trustScore,
   kyaStatus,
   kycStatus,
+  stamps,
   issuedDate,
   did,
   agentName,
@@ -62,6 +85,11 @@ export function AgentPassport({
   const shortAddress = displayAddress && displayAddress.length > 20
     ? `${displayAddress.slice(0, 10)}...${displayAddress.slice(-8)}`
     : displayAddress || t('no_address');
+
+  const activeStampTypes = new Set((stamps || []).map((s) => s.type));
+  const activeModules = MODULE_SLOTS.filter((m) => m.matchTypes.some((t) => activeStampTypes.has(t)));
+  const totalSlots = MODULE_SLOTS.length;
+  const activeCount = activeModules.length;
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -185,29 +213,25 @@ export function AgentPassport({
           <div className="rounded-xl p-4 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
             <div className="flex items-center justify-between mb-3">
               <span className="text-[10px] tracking-wider font-mono text-neon-green"><Zap className="w-3 h-3 inline me-1" /> SYSTEM MODULES</span>
-              <span className="text-[9px] font-mono text-gray-500">ACTIVE: 3/4</span>
+              <span className="text-[9px] font-mono text-gray-500">ACTIVE: {activeCount}/{totalSlots}</span>
             </div>
-            <div className="grid grid-cols-4 gap-2 text-center font-mono text-[9px]">
-              <div className="relative rounded-lg p-2 border border-neon-green/30 bg-neon-green/5 flex flex-col items-center justify-center gap-1">
-                <span className="text-neon-green text-xs">π</span>
-                <span className="text-[8px] text-white">PI NET</span>
-                <span className="text-[7px] text-neon-green bg-neon-green/10 px-1 rounded">ON</span>
-              </div>
-              <div className="relative rounded-lg p-2 border border-neon-green/30 bg-neon-green/5 flex flex-col items-center justify-center gap-1">
-                <span className="text-neon-green text-xs">𝕏</span>
-                <span className="text-[8px] text-white">TWITTER</span>
-                <span className="text-[7px] text-neon-green bg-neon-green/10 px-1 rounded">ON</span>
-              </div>
-              <div className="relative rounded-lg p-2 border border-neon-green/30 bg-neon-green/5 flex flex-col items-center justify-center gap-1">
-                <span className="text-neon-green text-xs">git</span>
-                <span className="text-[8px] text-white">GITHUB</span>
-                <span className="text-[7px] text-neon-green bg-neon-green/10 px-1 rounded">ON</span>
-              </div>
-              <div className="relative rounded-lg p-2 border border-dashed border-gray-600 bg-black/40 flex flex-col items-center justify-center gap-1 opacity-60">
-                <span className="text-gray-500 text-xs"><Eye className="w-3 h-3" /></span>
-                <span className="text-[8px] text-gray-400">WORLD ID</span>
-                <span className="text-[7px] text-gray-500 bg-gray-800 px-1 rounded">SLOT</span>
-              </div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 text-center font-mono text-[9px]">
+              {MODULE_SLOTS.map((slot) => {
+                const isActive = activeModules.some((m) => m.key === slot.key);
+                return isActive ? (
+                  <div key={slot.key} className="relative rounded-lg p-2 border border-neon-green/30 bg-neon-green/5 flex flex-col items-center justify-center gap-1">
+                    {slot.icon}
+                    <span className="text-[8px] text-white">{slot.label}</span>
+                    <span className="text-[7px] text-neon-green bg-neon-green/10 px-1 rounded">ON</span>
+                  </div>
+                ) : (
+                  <div key={slot.key} className="relative rounded-lg p-2 border border-dashed border-gray-600 bg-black/40 flex flex-col items-center justify-center gap-1 opacity-60">
+                    <span className="text-gray-500 text-xs"><Eye className="w-3 h-3" /></span>
+                    <span className="text-[8px] text-gray-400">{slot.label}</span>
+                    <span className="text-[7px] text-gray-500 bg-gray-800 px-1 rounded">SLOT</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

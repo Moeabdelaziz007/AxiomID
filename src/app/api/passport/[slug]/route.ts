@@ -7,6 +7,11 @@ import { getClientIp } from "@/lib/ip";
 import { createUserDid } from "@/lib/did";
 import { calculateTrustScore } from "@/lib/trust";
 
+interface PassportStamp {
+  type: string;
+  provider: string;
+}
+
 interface PassportUser {
   id: string;
   did?: string | null;
@@ -17,7 +22,7 @@ interface PassportUser {
   xp: number;
   kycStatus?: string | null;
   createdAt: Date;
-  stamps?: { type: string }[];
+  stamps?: PassportStamp[];
   agent?: { name: string; status: string } | null;
 }
 
@@ -26,7 +31,7 @@ const AGENT_SELECT = {
     select: { name: true, status: true },
   },
   stamps: {
-    select: { type: true },
+    select: { type: true, provider: true },
   },
 };
 
@@ -36,14 +41,24 @@ const AGENT_SELECT = {
  * @param user - A user record with expected properties: `id`, optional `did`, optional `piUsername`, `walletAddress`, optional `stellarAddress`, `tier`, `xp`, optional `stamps` (array), `kycStatus`, `createdAt` (Date), and optional `agent` with `name` and `status`.
  * @returns An object with the following fields: `username`, `walletAddress`, `stellarAddress`, `did`, `tier`, `xp`, `trustScore`, `kyaStatus`, `kycStatus`, `issuedDate`, `agentName`, and `agentStatus`.
  */
+function getKyaStatus(stamps: PassportStamp[] | undefined): "verified" | "pending" | "denied" {
+  if (!stamps || stamps.length === 0) return "pending";
+  const hasIdentityStamp = stamps.some(
+    (s) => s.type === "verify_identity" || s.provider === "pi"
+  );
+  return hasIdentityStamp ? "verified" : "pending";
+}
+
+function getKycStatus(kycStatus: string | undefined | null): "verified" | "pending" | "denied" {
+  if (kycStatus === "VERIFIED") return "verified";
+  if (kycStatus === "PENDING" || kycStatus === "NONE") return "pending";
+  return "denied";
+}
+
 function buildPassportResponse(user: PassportUser) {
   const did = user.did || createUserDid(user.id);
-  const trustScore = calculateTrustScore(user.xp || 0, (user.stamps || []).length);
-  const kyaStatus = user.kycStatus === "VERIFIED"
-    ? "verified"
-    : user.kycStatus === "PENDING"
-      ? "pending"
-      : "denied";
+  const stamps = user.stamps || [];
+  const trustScore = calculateTrustScore(user.xp || 0, stamps.length);
 
   return {
     username: user.piUsername || "AxiomID Agent",
@@ -53,8 +68,9 @@ function buildPassportResponse(user: PassportUser) {
     tier: user.tier,
     xp: user.xp,
     trustScore,
-    kyaStatus,
-    kycStatus: kyaStatus,
+    kyaStatus: getKyaStatus(stamps),
+    kycStatus: getKycStatus(user.kycStatus),
+    stamps: stamps.map((s) => ({ type: s.type, provider: s.provider })),
     issuedDate: user.createdAt.toISOString(),
     agentName: user.agent?.name || null,
     agentStatus: user.agent?.status || null,
@@ -93,12 +109,16 @@ export async function GET(
 
   try {
     // Try agent publicId first (indexed, unique)
+    const cacheHeaders: Record<string, string> = {
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+    };
+
     const agentByPublicId = await prisma.userAgent.findUnique({
       where: { publicId: decodedSlug },
       include: { user: { include: AGENT_SELECT } },
     });
     if (agentByPublicId) {
-      return apiSuccess(buildPassportResponse(agentByPublicId.user));
+      return apiSuccess(buildPassportResponse(agentByPublicId.user), 200, cacheHeaders);
     }
 
     // Single OR query for wallet, username, and DID (all indexed)
@@ -113,7 +133,7 @@ export async function GET(
       include: AGENT_SELECT,
     });
     if (user) {
-      return apiSuccess(buildPassportResponse(user));
+      return apiSuccess(buildPassportResponse(user), 200, cacheHeaders);
     }
 
     return apiError("NOT_FOUND", "No passport found for this slug");

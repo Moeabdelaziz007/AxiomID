@@ -2,17 +2,24 @@ import { PassportView } from "./PassportView";
 import { PassportHeader } from "./PassportHeader";
 import { Metadata } from "next";
 
-/**
- * Generate page metadata for a passport identified by `slug`.
- *
- * @param params - A promise resolving to an object with `slug`, the passport identifier used to populate the metadata.
- * @returns A `Metadata` object whose `title` is `Passport: {slug}` and `description` is `AxiomID Passport for {slug}`.
- */
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
+  const title = `Passport: ${slug} | AxiomID`;
+  const description = `AxiomID sovereign identity passport for ${slug}. Verified agent identity, trust score, and decentralized identifier (DID).`;
   return {
-    title: `Passport: ${slug}`,
-    description: `AxiomID Passport for ${slug}`,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "profile",
+      siteName: "AxiomID",
+    } as Metadata["openGraph"],
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
   };
 }
 

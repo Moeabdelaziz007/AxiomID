@@ -7,6 +7,11 @@ import { AgentQR } from "@/components/AgentQR";
 import Link from "next/link";
 import { useLanguage } from "../../context/language-context";
 
+interface PassportStamp {
+  type: string;
+  provider: string;
+}
+
 interface PassportData {
   username: string;
   walletAddress: string | null;
@@ -17,6 +22,7 @@ interface PassportData {
   trustScore: number;
   kyaStatus: "verified" | "pending" | "denied";
   kycStatus: "verified" | "pending" | "denied";
+  stamps?: PassportStamp[];
   issuedDate: string;
   agentName: string | null;
   agentStatus: string | null;
@@ -111,6 +117,7 @@ export function PassportView() {
             trustScore={passport.trustScore}
             kyaStatus={passport.kyaStatus}
             kycStatus={passport.kycStatus}
+            stamps={passport.stamps}
             issuedDate={passport.issuedDate}
             did={passport.did}
             xp={passport.xp}

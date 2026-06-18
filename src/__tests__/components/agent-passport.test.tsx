@@ -139,24 +139,41 @@ describe("AgentPassport — SYSTEM MODULES Zap icon (PR change: emoji → Lucide
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WORLD ID slot — PR change: "👁️" emoji → <Eye /> Lucide SVG icon
+// Dynamic System Modules — stamps-driven active/inactive slots
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe("AgentPassport — WORLD ID Eye icon (PR change: emoji → Lucide SVG)", () => {
-  it("renders 'WORLD ID' text in the system modules grid", () => {
+describe("AgentPassport — Dynamic System Modules", () => {
+  it("renders all module slots (active and inactive)", () => {
     render(<AgentPassport {...defaultProps} />);
-    expect(screen.getByText("WORLD ID")).toBeInTheDocument();
+    expect(screen.getByText("PI NET")).toBeInTheDocument();
+    expect(screen.getByText("TWITTER")).toBeInTheDocument();
+    expect(screen.getByText("DISCORD")).toBeInTheDocument();
+    expect(screen.getByText("GOOGLE")).toBeInTheDocument();
   });
 
-  it("renders an SVG element in the WORLD ID slot (Eye icon)", () => {
+  it("renders inactive slot with Eye icon for unconnected modules", () => {
     render(<AgentPassport {...defaultProps} />);
-    const worldIdText = screen.getByText("WORLD ID");
-    const parentDiv = worldIdText.closest("div");
-    expect(parentDiv).not.toBeNull();
-    expect(parentDiv?.querySelector("svg")).toBeInTheDocument();
+    const inactiveLabels = screen.getAllByText("SLOT");
+    expect(inactiveLabels.length).toBeGreaterThan(0);
   });
 
-  it("does not render '👁️' emoji text for the WORLD ID slot icon", () => {
+  it("renders active modules when stamps are provided", () => {
+    const stamps = [
+      { type: "verify_identity", provider: "pi" },
+      { type: "connect_twitter", provider: "twitter" },
+    ];
+    render(<AgentPassport {...defaultProps} stamps={stamps} />);
+    const onLabels = screen.getAllByText("ON");
+    expect(onLabels.length).toBe(2);
+  });
+
+  it("shows correct active/total count", () => {
+    const stamps = [{ type: "verify_identity", provider: "pi" }];
+    render(<AgentPassport {...defaultProps} stamps={stamps} />);
+    expect(screen.getByText("ACTIVE: 1/6")).toBeInTheDocument();
+  });
+
+  it("does not render '👁️' emoji text in module slots", () => {
     const { container } = render(<AgentPassport {...defaultProps} />);
     expect(container.textContent).not.toContain("👁️");
   });

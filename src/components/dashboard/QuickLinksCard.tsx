@@ -14,16 +14,16 @@ interface QuickLinksCardProps {
 
 export function QuickLinksCard({ passportSlug, did }: QuickLinksCardProps) {
   const { t } = useLanguage();
-  const links = [
+  const links: { label: string; href: string; icon: React.ReactNode; color: string }[] = [
     {
       label: t('view_passport'),
-      href: `/passport/${passportSlug}` as const,
+      href: `/passport/${passportSlug}`,
       icon: <Fingerprint className="w-4 h-4" />,
       color: "hover:text-neon-green hover:border-neon-green/30",
     },
     {
       label: t('did_document'),
-      href: did ? `/api/did-document?did=${encodeURIComponent(did)}` : "/api/did-document",
+      href: `/api/did-document${did ? `?did=${encodeURIComponent(did)}` : ""}`,
       icon: <ClipboardCopy className="w-4 h-4" />,
       color: "hover:text-electric-blue hover:border-electric-blue/30",
     },
