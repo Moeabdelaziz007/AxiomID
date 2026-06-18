@@ -13,8 +13,7 @@ import { OptimizedImage, Avatar } from "@/components/OptimizedImage";
 
 // Mock next/image to render a plain <img> so tests can inspect src/alt attributes
 jest.mock("next/image", () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const MockImage = ({ src, alt, ...props }: any) => (
+  const MockImage = ({ src, alt, ...props }: { src: string; alt: string; [key: string]: unknown }) => (
     // eslint-disable-next-line @next/next/no-img-element
     <img src={src} alt={alt} {...props} />
   );

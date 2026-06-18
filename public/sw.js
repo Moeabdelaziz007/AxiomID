@@ -14,12 +14,17 @@ const PUBLIC_API_ROUTES = ["/api/status", "/api/health"];
 
 /**
  * Stores a response in the cache for a given request.
+ * Uses event.waitUntil so the browser keeps the service worker alive
+ * until the cache write completes (per MDN ExtendableEvent.waitUntil).
+ * @param {FetchEvent} event - The fetch event driving this request.
  * @param {Request} request - The request to use as the cache key.
  * @param {Response} response - The response to cache.
  */
-function cacheResponse(request, response) {
+function cacheResponse(event, request, response) {
   const clone = response.clone();
-  caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+  );
 }
 
 self.addEventListener("install", (event) => {
@@ -58,7 +63,7 @@ self.addEventListener("fetch", (event) => {
       fetch(request)
         .then((response) => {
           if (response.ok) {
-            cacheResponse(request, response);
+            cacheResponse(event, request, response);
           }
           return response;
         })
@@ -80,7 +85,7 @@ self.addEventListener("fetch", (event) => {
       if (cached) return cached;
       return fetch(request).then((response) => {
         if (response.ok) {
-          cacheResponse(request, response);
+          cacheResponse(event, request, response);
         }
         return response;
       });
