@@ -12,6 +12,10 @@ interface PassportStatsProps {
 
 export function PassportStats({ trustScore, xp, issuedDate }: PassportStatsProps) {
   const { t } = useLanguage();
+  const parsedDate = new Date(issuedDate);
+  const formattedDate = isNaN(parsedDate.getTime())
+    ? "N/A"
+    : parsedDate.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
   return (
     <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -25,7 +29,7 @@ export function PassportStats({ trustScore, xp, issuedDate }: PassportStatsProps
       </div>
       <div className="rounded-xl p-2 sm:p-3 border flex flex-col items-center justify-center text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
         <span className="text-[9px] font-mono block" style={{ color: 'var(--text-muted)' }}>{t('label_issued')}</span>
-        <span className="text-[11px] font-mono" style={{ color: 'var(--text-primary)' }}>{new Date(issuedDate).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</span>
+        <span className="text-[11px] font-mono" style={{ color: 'var(--text-primary)' }}>{formattedDate}</span>
       </div>
     </div>
   );

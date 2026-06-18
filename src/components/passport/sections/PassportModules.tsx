@@ -4,11 +4,12 @@ import { MODULE_SLOTS, ModuleSlot } from "../constants";
 
 interface PassportModulesProps {
   activeModules: ModuleSlot[];
-  activeCount: number;
-  totalSlots: number;
 }
 
-export function PassportModules({ activeModules, activeCount, totalSlots }: PassportModulesProps) {
+export function PassportModules({ activeModules }: PassportModulesProps) {
+  const totalSlots = MODULE_SLOTS.length;
+  const activeCount = activeModules.length;
+
   return (
     <div className="rounded-xl p-4 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
       <div className="flex items-center justify-between mb-3">

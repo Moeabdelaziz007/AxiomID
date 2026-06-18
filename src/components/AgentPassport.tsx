@@ -58,8 +58,6 @@ export function AgentPassport({
 
   const activeStampTypes = new Set((stamps || []).map((s) => s.type));
   const activeModules = MODULE_SLOTS.filter((m) => m.matchTypes.some((type) => activeStampTypes.has(type)));
-  const totalSlots = MODULE_SLOTS.length;
-  const activeCount = activeModules.length;
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -102,8 +100,6 @@ export function AgentPassport({
 
           <PassportModules
             activeModules={activeModules}
-            activeCount={activeCount}
-            totalSlots={totalSlots}
           />
 
           <PassportManifest
