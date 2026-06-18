@@ -25,7 +25,11 @@ if (process.env.NEXT_PUBLIC_EMULATE_GITHUB === "true") {
 
 // Never expose the emulator surface in production. The emulator route is a
 // dev/preview-only tool; in production every method returns 404.
-const notFound = () => NextResponse.json({ error: "Not found" }, { status: 404 });
+import { NextResponse } from "next/server";
+import { apiError } from "`@/lib/errors`";
+
+const notFound = () =>
+  apiError("NOT_FOUND", "Not found");
 
 const handler =
   process.env.NODE_ENV === "production"
