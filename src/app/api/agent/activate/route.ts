@@ -38,11 +38,11 @@ export async function POST(request: NextRequest) {
       RETURNING id, "publicId", status;
     `;
 
-    if (results && results.length > 0) {
+    if (results.length > 0) {
       const updated = results[0];
       return apiSuccess({
         agentId: updated.id,
-        publicId: updated.publicId,
+
         status: updated.status,
       });
     }

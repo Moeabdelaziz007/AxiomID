@@ -17,7 +17,6 @@ jest.mock('@/lib/prisma', () => ({
     $queryRaw: jest.fn(),
     userAgent: {
       findUnique: jest.fn(),
-      update: jest.fn(),
     },
   },
 }));
