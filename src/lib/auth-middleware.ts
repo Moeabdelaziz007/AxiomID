@@ -18,6 +18,7 @@ interface CacheEntry {
 }
 
 const CACHE_TTL_MS = parseInt(process.env.PI_AUTH_CACHE_TTL || '300000', 10); // 5 minutes default
+const MAX_CACHE_SIZE = parseInt(process.env.PI_AUTH_CACHE_MAX_SIZE || '1000', 10);
 const tokenCache = new Map<string, CacheEntry>();
 
 function hashToken(token: string): string {
@@ -44,7 +45,7 @@ function getCachedUser(tokenHash: string): AuthenticatedUser | null {
 }
 
 function setCachedUser(tokenHash: string, user: AuthenticatedUser): void {
-  if (tokenCache.size > 1000) {
+  if (tokenCache.size > MAX_CACHE_SIZE) {
     cleanupExpiredEntries();
   }
   tokenCache.set(tokenHash, {
