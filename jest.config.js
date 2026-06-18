@@ -20,6 +20,14 @@ const customJestConfig = {
     '<rootDir>/src/app/api/__tests__/test-harness.ts',
     '<rootDir>/src/__tests__/app/wallet-test-helpers.ts',
   ],
+  coverageThreshold: {
+    global: {
+      branches: 50,
+      functions: 50,
+      lines: 50,
+      statements: 50,
+    },
+  },
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

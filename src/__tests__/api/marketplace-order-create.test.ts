@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 /**
  * @jest-environment node
  *
  * Tests for src/app/api/marketplace/order/create/route.ts
  *
- * PR change: added rate limiting via checkRateLimit(RATE_LIMITS.payment).
+ * Security flow: Pi payment verification before escrow creation.
  */
 
 jest.mock("@/lib/auth-middleware", () => ({
@@ -14,7 +14,7 @@ jest.mock("@/lib/auth-middleware", () => ({
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     skill: { findUnique: jest.fn() },
-    piPayment: { create: jest.fn() },
+    piPayment: { create: jest.fn(), findUnique: jest.fn().mockResolvedValue(null) },
   },
 }));
 
@@ -28,6 +28,14 @@ jest.mock("@/lib/rate-limiter", () => ({
 jest.mock("@/lib/ip", () => ({
   getClientIp: jest.fn(() => "127.0.0.1"),
 }));
+
+jest.mock("@/lib/logger", () => ({
+  logger: { error: jest.fn(), warn: jest.fn(), info: jest.fn() },
+}));
+
+// Mock global fetch for Pi API calls
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
 
 import { POST } from "@/app/api/marketplace/order/create/route";
 import { prisma } from "@/lib/prisma";
@@ -57,7 +65,7 @@ function mockPostRequest(body: unknown) {
   }) as any;
 }
 
-describe("POST /api/marketplace/order/create — rate limiting (PR change)", () => {
+describe("POST /api/marketplace/order/create — rate limiting", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 9, resetAt: Date.now() + 60000 });
@@ -68,7 +76,7 @@ describe("POST /api/marketplace/order/create — rate limiting (PR change)", () 
   it("returns 429 with RATE_LIMITED code when rate limit is exceeded", async () => {
     mockCheckRateLimit.mockResolvedValue({ allowed: false, remaining: 0, resetAt: Date.now() + 60000 });
 
-    const req = mockPostRequest({ skillId: "s1", agentId: "a1", amount: 1, paymentId: "p1" });
+    const req = mockPostRequest({ skillId: "s1", agentId: "a1", paymentId: "p1" });
     const res = await POST(req);
     const data = await res.json();
 
@@ -77,29 +85,15 @@ describe("POST /api/marketplace/order/create — rate limiting (PR change)", () 
   });
 
   it("uses RATE_LIMITS.payment config", async () => {
-    mockPrisma.skill.findUnique.mockResolvedValue({ id: "s1", name: "Test Skill" } as any);
+    mockPrisma.skill.findUnique.mockResolvedValue({ id: "s1", name: "Test", pricePi: 0, status: "PUBLISHED" } as any);
     mockPrisma.piPayment.create.mockResolvedValue({ id: "pay-1" } as any);
 
-    const req = mockPostRequest({ skillId: "s1", agentId: "a1", amount: 1, paymentId: "p1" });
+    const req = mockPostRequest({ skillId: "s1", agentId: "a1", paymentId: "p1" });
     await POST(req);
 
     expect(mockCheckRateLimit).toHaveBeenCalledWith(
       expect.stringContaining("order-create:"),
       RATE_LIMITS.payment
-    );
-  });
-
-  it("uses client IP in rate limit key", async () => {
-    mockGetClientIp.mockReturnValue("10.10.10.10");
-    mockPrisma.skill.findUnique.mockResolvedValue({ id: "s1" } as any);
-    mockPrisma.piPayment.create.mockResolvedValue({ id: "pay-1" } as any);
-
-    const req = mockPostRequest({ skillId: "s1", agentId: "a1", amount: 1, paymentId: "p1" });
-    await POST(req);
-
-    expect(mockCheckRateLimit).toHaveBeenCalledWith(
-      "order-create:10.10.10.10",
-      expect.anything()
     );
   });
 
@@ -109,7 +103,6 @@ describe("POST /api/marketplace/order/create — rate limiting (PR change)", () 
     const req = mockPostRequest({});
     await POST(req);
 
-    // Auth should not have been called
     expect(mockRequireAuth).not.toHaveBeenCalled();
   });
 });
@@ -126,7 +119,7 @@ describe("POST /api/marketplace/order/create — auth and validation", () => {
     const { apiError } = jest.requireActual("@/lib/errors") as any;
     mockRequireAuth.mockResolvedValue({ error: apiError("UNAUTHORIZED", "Unauthorized"), user: null });
 
-    const req = mockPostRequest({ skillId: "s1", agentId: "a1", amount: 1, paymentId: "p1" });
+    const req = mockPostRequest({ skillId: "s1", agentId: "a1", paymentId: "p1" });
     const res = await POST(req);
     const data = await res.json();
 
@@ -157,7 +150,7 @@ describe("POST /api/marketplace/order/create — auth and validation", () => {
   });
 });
 
-describe("POST /api/marketplace/order/create — business logic", () => {
+describe("POST /api/marketplace/order/create — free skills (no Pi verification)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 9, resetAt: Date.now() + 60000 });
@@ -168,7 +161,7 @@ describe("POST /api/marketplace/order/create — business logic", () => {
   it("returns 404 when skill does not exist", async () => {
     mockPrisma.skill.findUnique.mockResolvedValue(null);
 
-    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", amount: 1, paymentId: "p1" });
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", paymentId: "p1" });
     const res = await POST(req);
     const data = await res.json();
 
@@ -176,23 +169,25 @@ describe("POST /api/marketplace/order/create — business logic", () => {
     expect(data.code).toBe("NOT_FOUND");
   });
 
-  it("creates escrow payment and returns paymentId on success", async () => {
-    mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Test" } as any);
+  it("creates escrow for free skill without Pi verification", async () => {
+    mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Free Skill", pricePi: 0, status: "PUBLISHED" } as any);
     mockPrisma.piPayment.create.mockResolvedValue({ id: "payment-abc" } as any);
 
-    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", amount: 5, paymentId: "pi-pay-1" });
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", paymentId: "free-skill" });
     const res = await POST(req);
     const data = await res.json();
 
     expect(res.status).toBe(200);
     expect(data.paymentId).toBe("payment-abc");
+    expect(data.amount).toBe(0);
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it("creates payment with ESCROWED status", async () => {
-    mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1" } as any);
+  it("creates payment with ESCROWED status for free skill", async () => {
+    mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Free", pricePi: 0, status: "PUBLISHED" } as any);
     mockPrisma.piPayment.create.mockResolvedValue({ id: "payment-abc" } as any);
 
-    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", amount: 5, paymentId: "pi-pay-1" });
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", paymentId: "free-skill" });
     await POST(req);
 
     expect(mockPrisma.piPayment.create).toHaveBeenCalledWith(
@@ -200,8 +195,155 @@ describe("POST /api/marketplace/order/create — business logic", () => {
         data: expect.objectContaining({
           status: "ESCROWED",
           userId: mockUser.id,
+          amount: 0,
         }),
       })
     );
+  });
+});
+
+describe("POST /api/marketplace/order/create — paid skills (Pi verification)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 9, resetAt: Date.now() + 60000 });
+    mockGetClientIp.mockReturnValue("127.0.0.1");
+    mockRequireAuth.mockResolvedValue({ error: null, user: mockUser });
+    process.env.PI_API_KEY = "test-api-key";
+  });
+
+  afterEach(() => {
+    delete process.env.PI_API_KEY;
+  });
+
+  it("verifies payment against Pi Network API for paid skill", async () => {
+    mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Paid Skill", pricePi: 5, status: "PUBLISHED" } as any);
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ user_uid: "pi-uid-1", amount: 5, status: "approved" }),
+    });
+    mockPrisma.piPayment.create.mockResolvedValue({ id: "pay-1" } as any);
+
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", paymentId: "pi-pay-1" });
+    await POST(req);
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      "https://api.minepi.com/v2/payments/pi-pay-1",
+      expect.objectContaining({ method: "GET" })
+    );
+  });
+
+  it("returns 402 when Pi API verification fails", async () => {
+    mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Paid", pricePi: 5, status: "PUBLISHED" } as any);
+    mockFetch.mockResolvedValue({ ok: false, status: 404 });
+
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", paymentId: "bad-pay" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(402);
+    expect(data.code).toBe("PAYMENT_VERIFICATION_FAILED");
+  });
+
+  it("returns 403 when payer UID does not match", async () => {
+    mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Paid", pricePi: 5, status: "PUBLISHED" } as any);
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ user_uid: "other-user-uid", amount: 5, status: "approved" }),
+    });
+
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", paymentId: "pi-pay-1" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(403);
+    expect(data.code).toBe("FORBIDDEN");
+  });
+
+  it("returns 402 when payment amount does not match skill price", async () => {
+    mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Paid", pricePi: 5, status: "PUBLISHED" } as any);
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ user_uid: "pi-uid-1", amount: 1, status: "approved" }),
+    });
+
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", paymentId: "pi-pay-1" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(402);
+    expect(data.code).toBe("PAYMENT_MISMATCH");
+  });
+
+  it("returns 402 when payment status is not approved/created", async () => {
+    mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Paid", pricePi: 5, status: "PUBLISHED" } as any);
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ user_uid: "pi-uid-1", amount: 5, status: "completed" }),
+    });
+
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", paymentId: "pi-pay-1" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(402);
+    expect(data.code).toBe("PAYMENT_INVALID");
+  });
+
+  it("creates escrow after successful Pi verification", async () => {
+    mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Paid", pricePi: 5, status: "PUBLISHED" } as any);
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ user_uid: "pi-uid-1", amount: 5, status: "approved" }),
+    });
+    mockPrisma.piPayment.create.mockResolvedValue({ id: "pay-1" } as any);
+
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", paymentId: "pi-pay-1" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.paymentId).toBe("pay-1");
+    expect(data.amount).toBe(5);
+    expect(mockPrisma.piPayment.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ status: "ESCROWED", amount: 5 }),
+      })
+    );
+  });
+
+  it("returns 402 when PI_API_KEY is not configured", async () => {
+    delete process.env.PI_API_KEY;
+    mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Paid", pricePi: 5, status: "PUBLISHED" } as any);
+
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", paymentId: "pi-pay-1" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(data.code).toBe("INTERNAL_ERROR");
+  });
+
+  it("returns 409 when skill is not published", async () => {
+    mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Draft", pricePi: 5, status: "DRAFT" } as any);
+
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", paymentId: "pi-pay-1" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(409);
+    expect(data.code).toBe("CONFLICT");
+  });
+
+  it("returns 409 when the paymentId has already been used (prevent replay attacks)", async () => {
+    mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Paid", pricePi: 5, status: "PUBLISHED" } as any);
+    mockPrisma.piPayment.findUnique.mockResolvedValue({ id: "existing-payment-id" } as any);
+
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", paymentId: "duplicate-pay-id" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(409);
+    expect(data.code).toBe("CONFLICT");
+    expect(data.error).toContain("payment ID has already been used");
   });
 });

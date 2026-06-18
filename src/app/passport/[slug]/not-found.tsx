@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useLanguage } from "@/app/context/language-context";
 
+/**
+ * Renders a 404 page for a missing passport with a call-to-action to create a new one.
+ */
 export default function PassportNotFound() {
   const { t } = useLanguage();
 

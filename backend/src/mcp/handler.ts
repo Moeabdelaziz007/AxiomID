@@ -195,7 +195,7 @@ function jsonResponse(data: unknown, status: number = 200): Response {
     status,
     headers: {
       "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": "https://axiomid.app",
       "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, X-Shared-Secret",
     },

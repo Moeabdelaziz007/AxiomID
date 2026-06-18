@@ -9,6 +9,8 @@ import { getClientIp } from '@/lib/ip';
 import { calculateTier } from '@/lib/tiers';
 import { requireAuth } from '@/lib/auth-middleware';
 
+export const maxDuration = 30;
+
 /**
  * Handle Pi payment completion callbacks and finalize payments for an authenticated user.
  *

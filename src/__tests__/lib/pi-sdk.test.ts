@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 /**
  * @jest-environment node
  */
@@ -21,7 +21,7 @@ describe('pi-sdk', () => {
 
   describe('connectPi', () => {
     it('throws when Pi SDK is not available (node environment)', async () => {
-      await expect(connectPi()).rejects.toThrow('Pi SDK is not available');
+      await expect(connectPi()).rejects.toThrow('Pi Browser required');
     });
 
     it('returns PiAuthResult on successful auth via window.Pi', async () => {

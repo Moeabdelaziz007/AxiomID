@@ -119,3 +119,46 @@ describe('checkRateLimit (in-memory)', () => {
     expect(result.remaining).toBe(0);
   });
 });
+
+describe('checkRateLimit — Upstash env vars (PR change)', () => {
+  const UPSTASH_URL = 'UPSTASH_REDIS_REST_URL';
+  const UPSTASH_TOKEN = 'UPSTASH_REDIS_REST_TOKEN';
+
+  afterEach(() => {
+    // Restore env vars after each test
+    delete process.env[UPSTASH_URL];
+    delete process.env[UPSTASH_TOKEN];
+    jest.useRealTimers();
+  });
+
+  it('falls back to in-memory when UPSTASH_REDIS_REST_URL is not set', async () => {
+    // Neither env var is set — should use in-memory path without error
+    const result = await checkRateLimit('upstash-test-no-env', { windowMs: 60_000, maxRequests: 5 });
+    expect(result.allowed).toBe(true);
+    expect(typeof result.remaining).toBe('number');
+    expect(typeof result.resetAt).toBe('number');
+  });
+
+  it('falls back to in-memory when only UPSTASH_REDIS_REST_URL is set (no token)', async () => {
+    process.env[UPSTASH_URL] = 'https://fake-upstash-url.upstash.io';
+    // Token not set — USE_UPSTASH should be false (both required)
+    const result = await checkRateLimit('upstash-test-url-only', { windowMs: 60_000, maxRequests: 5 });
+    expect(result.allowed).toBe(true);
+    expect(result.remaining).toBe(4);
+  });
+
+  it('falls back to in-memory when only UPSTASH_REDIS_REST_TOKEN is set (no url)', async () => {
+    process.env[UPSTASH_TOKEN] = 'fake-token-abc';
+    // URL not set — USE_UPSTASH should be false
+    const result = await checkRateLimit('upstash-test-token-only', { windowMs: 60_000, maxRequests: 5 });
+    expect(result.allowed).toBe(true);
+    expect(result.remaining).toBe(4);
+  });
+
+  it('RateLimitResult always has required fields regardless of backend', async () => {
+    const result = await checkRateLimit('upstash-fields-test', { windowMs: 60_000, maxRequests: 3 });
+    expect(result).toHaveProperty('allowed');
+    expect(result).toHaveProperty('remaining');
+    expect(result).toHaveProperty('resetAt');
+  });
+});

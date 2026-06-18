@@ -36,10 +36,10 @@ const AGENT_SELECT = {
 };
 
 /**
- * Builds a passport object containing public identity, verification status, and trust metadata for a user.
+ * Determines the Know Your Account (KYA) status based on available verification stamps.
  *
- * @param user - A user record with expected properties: `id`, optional `did`, optional `piUsername`, `walletAddress`, optional `stellarAddress`, `tier`, `xp`, optional `stamps` (array), `kycStatus`, `createdAt` (Date), and optional `agent` with `name` and `status`.
- * @returns An object with the following fields: `username`, `walletAddress`, `stellarAddress`, `did`, `tier`, `xp`, `trustScore`, `kyaStatus`, `kycStatus`, `issuedDate`, `agentName`, and `agentStatus`.
+ * @param stamps - Optional array of passport stamps.
+ * @returns `"verified"` if an identity verification or Pi stamp is present, `"pending"` otherwise.
  */
 function getKyaStatus(stamps: PassportStamp[] | undefined): "verified" | "pending" | "denied" {
   if (!stamps || stamps.length === 0) return "pending";
@@ -49,6 +49,12 @@ function getKyaStatus(stamps: PassportStamp[] | undefined): "verified" | "pendin
   return hasIdentityStamp ? "verified" : "pending";
 }
 
+/**
+ * Normalizes a KYC status value to a standard verification state.
+ *
+ * @param kycStatus - The KYC status string, which may be undefined or null
+ * @returns `"verified"` for `"VERIFIED"`, `"pending"` for missing or `"PENDING"`/`"NONE"`, `"denied"` for any other value
+ */
 function getKycStatus(kycStatus: string | undefined | null): "verified" | "pending" | "denied" {
   if (kycStatus === "VERIFIED") return "verified";
   if (!kycStatus || kycStatus === "PENDING" || kycStatus === "NONE") return "pending";
@@ -89,6 +95,13 @@ function buildPassportResponse(user: PassportUser) {
  */
 import { PassportSlugParamSchema } from "@/lib/validators";
 
+/**
+ * Retrieves a user passport by identifier, with rate limiting per client IP.
+ *
+ * Searches by agent public ID, wallet address, username, or DID.
+ *
+ * @returns An HTTP response containing the formatted passport, or an error response.
+ */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }

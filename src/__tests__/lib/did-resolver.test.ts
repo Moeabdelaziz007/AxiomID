@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { resolveDid } from '@/lib/did-resolver';
 import { prisma } from '@/lib/prisma';
 

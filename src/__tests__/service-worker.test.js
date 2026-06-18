@@ -57,7 +57,7 @@ function setupServiceWorkerGlobals() {
 function loadServiceWorker() {
   jest.resetModules();
   setupServiceWorkerGlobals();
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+   
   require("../../public/service-worker.js");
 }
 

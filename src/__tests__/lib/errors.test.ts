@@ -55,6 +55,36 @@ describe('apiError', () => {
   });
 });
 
+describe('apiError — new payment error codes (PR change)', () => {
+  it('returns 402 for PAYMENT_VERIFICATION_FAILED', async () => {
+    const res = apiError('PAYMENT_VERIFICATION_FAILED', 'Could not verify payment');
+    expect(res.status).toBe(402);
+    const body = await res.json();
+    expect(body.code).toBe('PAYMENT_VERIFICATION_FAILED');
+    expect(body.error).toBe('Could not verify payment');
+  });
+
+  it('returns 402 for PAYMENT_MISMATCH', async () => {
+    const res = apiError('PAYMENT_MISMATCH', 'Amount does not match');
+    expect(res.status).toBe(402);
+    const body = await res.json();
+    expect(body.code).toBe('PAYMENT_MISMATCH');
+  });
+
+  it('returns 402 for PAYMENT_INVALID', async () => {
+    const res = apiError('PAYMENT_INVALID', 'Payment status invalid');
+    expect(res.status).toBe(402);
+    const body = await res.json();
+    expect(body.code).toBe('PAYMENT_INVALID');
+  });
+
+  it('all three new payment codes share the 402 status', () => {
+    expect(apiError('PAYMENT_VERIFICATION_FAILED', '').status).toBe(402);
+    expect(apiError('PAYMENT_MISMATCH', '').status).toBe(402);
+    expect(apiError('PAYMENT_INVALID', '').status).toBe(402);
+  });
+});
+
 describe('apiSuccess', () => {
   it('returns 200 by default', async () => {
     const res = apiSuccess({ id: 1, name: 'test' });

@@ -2,15 +2,14 @@ import { logger } from '@/lib/logger';
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { apiError, apiSuccess, rateLimitHeaders } from '@/lib/errors';
-import { requireAuth, clearAuthCache } from '@/lib/auth-middleware';
+import { requireAuth, clearAuthCache, hashToken } from '@/lib/auth-middleware';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 
 /**
- * Logs out the authenticated user by clearing their stored PI access token and invalidating any in-process auth cache.
+ * Logs out the authenticated user and invalidates their cached access token.
  *
- * @param request - The incoming Next.js request; the handler requires authentication and will read the `Authorization` header if present.
- * @returns An HTTP response: on success a payload with `{ message: 'Logged out successfully' }`, on failure an error response with code `INTERNAL_ERROR`.
+ * @returns An HTTP response with the logout result.
  */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -32,9 +31,9 @@ export async function POST(request: NextRequest) {
       data: { piAccessToken: null },
     });
 
-    // Invalidate cached token in auth-middleware (same process)
+    // Invalidate only this user's cached token (not all users)
     if (accessToken) {
-      clearAuthCache();
+      clearAuthCache(hashToken(accessToken));
     }
 
     return apiSuccess({ message: 'Logged out successfully' });

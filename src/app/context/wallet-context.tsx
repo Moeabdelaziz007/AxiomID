@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo, u
 import { Tier, getLevelProgress, getNextLevelXP } from "@/lib/tiers";
 import { calculateTrustScore } from "@/lib/trust";
 import { connectPi, runWalletTest, checkPiBrowser, PiSdkError, PiSdkErrorCode } from "@/lib/pi-sdk";
+import { logger } from "@/lib/logger";
 
 export interface User {
   id: string;
@@ -63,10 +64,21 @@ function isDemoWalletAllowed(): boolean {
   return false;
 }
 
+/**
+ * Determines if a wallet address is a demo wallet.
+ *
+ * @returns `true` if the wallet address starts with `"demo:"`, `false` otherwise.
+ */
 function isDemoWalletAddress(walletAddress?: string | null): boolean {
   return walletAddress?.startsWith("demo:") ?? false;
 }
 
+/**
+ * Generates a random demo wallet address.
+ *
+ * @returns A demo wallet address prefixed with `demo:` followed by random characters.
+ * @throws If no cryptographic random source is available.
+ */
 function createDemoWalletAddress(): string {
   if (typeof crypto !== "undefined") {
     if (typeof crypto.randomUUID === "function") {
@@ -82,6 +94,11 @@ function createDemoWalletAddress(): string {
   throw new Error("Cryptographic random source not available");
 }
 
+/**
+ * Retrieves the stored wallet address, removing it if the address is a demo wallet and demo wallets are disallowed.
+ *
+ * @returns The stored wallet address, or `null` if no address is stored, the address is a demo wallet and demo wallets are disallowed, or `localStorage` is inaccessible.
+ */
 function getStoredWallet(): string | null {
   if (typeof window === "undefined") return null;
   try {
@@ -92,41 +109,59 @@ function getStoredWallet(): string | null {
     }
     return walletAddress;
   } catch (e) {
-    console.warn("localStorage is inaccessible:", e);
+    logger.warn("localStorage is inaccessible:", e);
     return null;
   }
 }
 
+/**
+ * Retrieves a stored demo wallet address or generates a new one.
+ *
+ * @returns A demo wallet address string.
+ */
 function getStoredDemoWalletOrNew(): string {
   const stored = getStoredWallet();
   return stored && isDemoWalletAddress(stored) ? stored : createDemoWalletAddress();
 }
 
+/**
+ * Safely retrieves a value from localStorage.
+ *
+ * @returns The stored value for the key, or `null` if the key does not exist, if localStorage is inaccessible, or if running server-side.
+ */
 function getLocalStorageItem(key: string): string | null {
   if (typeof window === "undefined") return null;
   try {
     return localStorage.getItem(key);
   } catch (e) {
-    console.warn(`localStorage read failed for key ${key}:`, e);
+    logger.warn(`localStorage read failed for key ${key}:`, e);
     return null;
   }
 }
 
+/**
+ * Safely stores a value in localStorage.
+ */
 function setLocalStorageItem(key: string, value: string): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(key, value);
   } catch (e) {
-    console.warn(`localStorage write failed for key ${key}:`, e);
+    logger.warn(`localStorage write failed for key ${key}:`, e);
   }
 }
 
+/**
+ * Removes an item from localStorage.
+ *
+ * This function is a no-op on the server.
+ */
 function removeLocalStorageItem(key: string): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem(key);
   } catch (e) {
-    console.warn(`localStorage remove failed for key ${key}:`, e);
+    logger.warn(`localStorage remove failed for key ${key}:`, e);
   }
 }
 
@@ -173,9 +208,13 @@ function mapApiUser(data: ApiResponse, fallback?: { stellarAddress?: string | nu
 }
 
 /**
- * Exposes wallet authentication state, connection actions, user-refresh and agent operations, progression helpers, and wallet logs to descendant components via WalletContext.
+ * Manages wallet authentication and user state for the application.
  *
- * @returns A React context provider element that supplies wallet state, status flags, and wallet-related actions to its children.
+ * Initializes Pi SDK connection with demo wallet fallback, restores user sessions, and provides wallet operations
+ * (authentication, action claiming, KYA verification, agent management), user state, and progression metrics to child
+ * components via context.
+ *
+ * @returns A context provider that exposes wallet state, authentication operations, user progression, and agent controls to descendants
  */
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -221,12 +260,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
       if (isConnectionClosed) {
         event.preventDefault();
-        console.warn("Connection lost. Gracefully suppressing...");
       }
     };
 
     window.addEventListener("unhandledrejection", handleUnhandledRejection);
-    
+
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       const registerSW = async () => {
         try {
@@ -235,20 +273,16 @@ export function WalletProvider({ children }: { children: ReactNode }) {
             await navigator.serviceWorker.register("/sw.js");
           }
         } catch (err) {
-          console.error("Service worker registration failed:", err);
+          logger.error("Service worker registration failed:", err);
         }
       };
       if (document.readyState === "complete") {
         registerSW();
       } else {
         window.addEventListener("load", registerSW);
-        return () => {
-          window.removeEventListener("load", registerSW);
-          window.removeEventListener("unhandledrejection", handleUnhandledRejection);
-        };
       }
     }
-    
+
     return () => window.removeEventListener("unhandledrejection", handleUnhandledRejection);
   }, []);
 
@@ -297,7 +331,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         }));
       }
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
   }, []);
 
@@ -463,7 +497,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       throw new Error("Pi Browser required. Open this app inside Pi Browser to authenticate.");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Connection failed";
-      console.error("Auth error:", message);
+      logger.error("Auth error:", message);
       pushLog(`❌ Error: ${message}`);
       setError(message);
       setTimeout(() => setError(null), 8000);
@@ -512,7 +546,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       } : prev);
       return true;
     } catch (err) {
-      console.error("Claim error:", err);
+      logger.error("Claim error:", err);
       return false;
     }
   }, [piAccessToken]);
@@ -554,52 +588,21 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       await refreshUser();
       return true;
     } catch (err) {
-      console.error("KYA claim error:", err);
+      logger.error("KYA claim error:", err);
       return false;
     }
   }, [refreshUser, piAccessToken]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-        if (!event.reason) return;
-
-        let reasonStr = "";
-        if (typeof event.reason === "string") {
-          reasonStr = event.reason;
-        } else if (event.reason instanceof Error) {
-          reasonStr = event.reason.message || event.reason.toString();
-        } else if (typeof event.reason === "object" && event.reason !== null) {
-          reasonStr = (event.reason as Record<string, unknown>).message as string || (event.reason as Record<string, unknown>).error as string || String(event.reason);
-        } else {
-          reasonStr = String(event.reason);
-        }
-
-        const isConnectionClosed =
-          reasonStr.toLowerCase().includes("connection closed") ||
-          reasonStr.toLowerCase().includes("connection_closed");
-
-        if (isConnectionClosed) {
-          event.preventDefault();
-          console.warn("[Pi SDK] Suppressed expected connection closure rejection:", event.reason);
-        }
-      };
-      window.addEventListener("unhandledrejection", handleUnhandledRejection);
-
-      if (window.Pi) {
-        try {
-          window.Pi.init({
-            version: "2.0",
-            sandbox: process.env.NEXT_PUBLIC_PI_SANDBOX === "true",
-          });
-        } catch (err) {
-          console.error("Failed to initialize Pi SDK:", err);
-        }
+    if (typeof window !== "undefined" && window.Pi) {
+      try {
+        window.Pi.init({
+          version: "2.0",
+          sandbox: process.env.NEXT_PUBLIC_PI_SANDBOX === "true",
+        });
+      } catch (err) {
+        logger.error("Failed to initialize Pi SDK:", err);
       }
-
-      return () => {
-        window.removeEventListener("unhandledrejection", handleUnhandledRejection);
-      };
     }
   }, []);
 

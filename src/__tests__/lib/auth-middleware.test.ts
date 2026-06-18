@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 /**
  * @jest-environment node
  */
@@ -23,7 +23,7 @@ jest.mock('@/lib/errors', () => ({
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
-import { requireAuth, clearAuthCache } from '@/lib/auth-middleware';
+import { requireAuth, clearAuthCache, hashToken } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
@@ -35,6 +35,128 @@ function mockRequestWithHeader(headers: Record<string, string> = {}) {
     },
   } as any;
 }
+
+describe('hashToken (PR change: exported)', () => {
+  it('returns a 64-character hex string (SHA-256)', () => {
+    const result = hashToken('any-token');
+    expect(result).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it('returns different hashes for different tokens', () => {
+    expect(hashToken('token-a')).not.toBe(hashToken('token-b'));
+  });
+
+  it('is deterministic — same token always produces same hash', () => {
+    expect(hashToken('stable-token')).toBe(hashToken('stable-token'));
+  });
+
+  it('produces known SHA-256 digest for empty string', () => {
+    // SHA-256('') = e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    expect(hashToken('')).toBe('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+  });
+});
+
+describe('clearAuthCache (PR change: selective invalidation)', () => {
+  beforeEach(() => {
+    // Start with a clean slate
+    jest.clearAllMocks();
+    mockFetch.mockClear();
+    clearAuthCache();
+  });
+
+  it('clearAuthCache() with no argument clears all cache entries', () => {
+    // Calling with no arg should not throw
+    expect(() => clearAuthCache()).not.toThrow();
+  });
+
+  it('clearAuthCache(tokenHash) with a hash removes only that entry', () => {
+    const hash = hashToken('test-token-xyz');
+    // Calling with a specific hash should not throw
+    expect(() => clearAuthCache(hash)).not.toThrow();
+  });
+
+  it('clearAuthCache(unknownHash) does not throw for unknown hash', () => {
+    expect(() => clearAuthCache('nonexistent-hash-abc123')).not.toThrow();
+  });
+
+  it('cached user is removed after clearAuthCache(tokenHash)', async () => {
+    const token = 'selective-clear-token-unique';
+    const mockUser = {
+      id: 'user-selective',
+      walletAddress: '0xdef',
+      piUid: 'pi-selective',
+      piUsername: 'selectiveuser',
+      xp: 0,
+      tier: 'Beginner',
+    };
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid: 'pi-selective', username: 'selectiveuser' }),
+    });
+    mockPrisma.user.findUnique.mockResolvedValue(mockUser as any);
+
+    const req = mockRequestWithHeader({ authorization: `Bearer ${token}` });
+
+    // Populate cache
+    const result1 = await requireAuth(req);
+    expect(result1.user).toEqual(mockUser);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+
+    // Remove specific token from cache
+    clearAuthCache(hashToken(token));
+
+    // Next request must re-verify (cache miss)
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid: 'pi-selective', username: 'selectiveuser' }),
+    });
+    const result2 = await requireAuth(req);
+    expect(result2.user).toEqual(mockUser);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('clearAuthCache(hashToken) does not affect other cached tokens', async () => {
+    const tokenA = 'token-keep-me-unique';
+    const tokenB = 'token-evict-me-unique';
+    const mockUser = {
+      id: 'user-multi',
+      walletAddress: '0x999',
+      piUid: 'pi-multi',
+      piUsername: 'multiuser',
+      xp: 0,
+      tier: 'Beginner',
+    };
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid: 'pi-multi', username: 'multiuser' }),
+    });
+    mockPrisma.user.findUnique.mockResolvedValue(mockUser as any);
+
+    const reqA = mockRequestWithHeader({ authorization: `Bearer ${tokenA}` });
+    const reqB = mockRequestWithHeader({ authorization: `Bearer ${tokenB}` });
+
+    await requireAuth(reqA);
+    await requireAuth(reqB);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+
+    // Evict only token B
+    clearAuthCache(hashToken(tokenB));
+
+    // Token A should still be cached (no extra fetch)
+    await requireAuth(reqA);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+
+    // Token B needs re-verify
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid: 'pi-multi', username: 'multiuser' }),
+    });
+    await requireAuth(reqB);
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+});
 
 describe('requireAuth', () => {
   beforeEach(() => {

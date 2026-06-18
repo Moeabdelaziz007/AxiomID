@@ -8,7 +8,7 @@
  */
 
 import React from "react";
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { render, screen, act } from "@testing-library/react";
 import { StampBoard } from "@/components/StampBoard";
 import type { Tier } from "@/lib/tiers";

@@ -8,6 +8,7 @@
  * - Leaky bucket for sync rate limiting
  */
 
+import { z } from "zod";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { apiError, apiSuccess } from "@/lib/errors";
@@ -22,6 +23,14 @@ import {
 } from "@/lib/rate-limiter";
 import { requireAuth } from "@/lib/auth-middleware";
 import { logger } from "@/lib/logger";
+
+export const maxDuration = 60;
+
+const SyncRequestSchema = z.object({
+  source: z.enum(["d1", "all"]).default("all"),
+  dryRun: z.boolean().default(false),
+  maxRetries: z.number().int().min(0).max(10).default(3),
+});
 
 interface SyncRequest {
   source: "d1" | "all";
@@ -38,10 +47,9 @@ interface SyncResult {
 }
 
 /**
- * Syncs data from D1 edge database to PostgreSQL.
- * Uses exponential backoff for retries and entropy for data quality scoring.
+ * Executes authenticated data synchronization with request validation and retry logic.
  *
- * @returns Sync status with counts of synced records.
+ * @returns An API response containing sync results with metrics on success, or an error response if validation, rate limiting, or execution fails.
  */
 export async function POST(req: NextRequest) {
   const auth = await requireAuth(req);
@@ -65,7 +73,12 @@ export async function POST(req: NextRequest) {
       return apiError("VALIDATION_ERROR", "Invalid JSON body");
     }
 
-    const { source = "all", dryRun = false, maxRetries = 3 } = body as SyncRequest;
+    const parsed = SyncRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      return apiError("VALIDATION_ERROR", parsed.error.issues[0].message, parsed.error.issues);
+    }
+
+    const { source, dryRun, maxRetries } = parsed.data;
 
     const results: Record<string, SyncResult> = {};
 
@@ -101,10 +114,24 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * Get sync status and last sync time.
+ * Retrieves the current sync status and data quality metrics.
  * Uses Shannon entropy to measure data diversity.
+ *
+ * Vercel cron triggers GET /api/sync?trigger=cron without auth headers.
+ * Bypass auth when trigger=cron query param is present.
+ *
+ * @returns An object with `lastSync` (most recent harvest and agent presence timestamps)
+ * and `metrics` (freshness scores and query entropy).
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url);
+  const isCron = url.searchParams.get("trigger") === "cron";
+
+  if (!isCron) {
+    const auth = await requireAuth(req);
+    if (auth.error) return auth.error;
+  }
+
   try {
     const lastHarvest = await prisma.harvestResult.findFirst({
       orderBy: { createdAt: "desc" },

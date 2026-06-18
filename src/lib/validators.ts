@@ -92,7 +92,6 @@ export const PresenceHeartbeatSchema = z.object({
 export const OrderCreateSchema = z.object({
   skillId: z.string().uuid('skillId must be a valid UUID'),
   agentId: z.string().uuid('agentId must be a valid UUID'),
-  amount: z.number().positive('amount must be positive'),
   paymentId: z.string().min(1, 'paymentId is required'),
 });
 
