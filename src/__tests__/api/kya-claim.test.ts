@@ -184,6 +184,33 @@ describe('POST /api/pi/kya/claim', () => {
     );
   });
 
+  it('replaces old DID format (did:axiom:<uid>) with new format when existing did lacks axiomid.app:pi:', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'legacy-did-user',
+      walletAddress: 'pi:legacyuser',
+      piUid: 'mock-pi-uid',
+      did: 'did:axiom:mock-pi-uid', // old format — missing axiomid.app:pi:
+    } as any);
+    mockPrisma.user.update.mockResolvedValue({
+      id: 'legacy-did-user',
+      walletAddress: 'pi:legacyuser',
+      kycStatus: 'PENDING',
+      did: 'did:axiom:axiomid.app:pi:mock-pi-uid',
+    } as any);
+
+    const req = mockPostRequest({ username: 'legacyuser' });
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    expect(mockPrisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          did: 'did:axiom:axiomid.app:pi:mock-pi-uid',
+        }),
+      })
+    );
+  });
+
   it('creates the correct DID format using createPiDid when existing user lacks a did', async () => {
     mockPrisma.user.findUnique.mockResolvedValue({
       id: 'existing-user-no-did',
