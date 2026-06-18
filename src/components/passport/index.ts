@@ -1,6 +1,5 @@
 export * from "./types";
 export * from "./constants";
-export * from "./utils";
 export * from "./sections/PassportHeader";
 export * from "./sections/PassportAvatar";
 export * from "./sections/PassportIdentity";

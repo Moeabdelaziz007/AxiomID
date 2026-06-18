@@ -22,8 +22,6 @@ export function PassportIdentity({
   copyToClipboard,
 }: PassportIdentityProps) {
   const { t } = useLanguage();
-  const statusUpper = agentStatus?.toUpperCase();
-  const isAgentActive = statusUpper === "ACTIVE";
 
   return (
     <>
@@ -51,11 +49,12 @@ export function PassportIdentity({
           <span className="text-[9px] font-mono block" style={{ color: 'var(--text-muted)' }}>{t('label_agent')}</span>
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono" style={{ color: 'var(--text-primary)' }}>{agentName}</span>
-            <span
-              className={`text-[8px] font-mono px-1.5 py-0.5 rounded ${isAgentActive ? "bg-neon-green/10 text-neon-green border border-neon-green/20" : "border"}`}
-              style={isAgentActive ? undefined : { background: 'var(--bg-card)', color: 'var(--text-muted)', borderColor: 'var(--card-border)' }}
-            >
-              {statusUpper || t('status_none')}
+            <span className={`text-[8px] font-mono px-1.5 py-0.5 rounded ${
+              agentStatus?.toUpperCase() === "ACTIVE"
+                ? "bg-neon-green/10 text-neon-green border border-neon-green/20"
+                : "border"
+            }`} style={agentStatus?.toUpperCase() !== "ACTIVE" ? { background: 'var(--bg-card)', color: 'var(--text-muted)', borderColor: 'var(--card-border)' } : undefined}>
+              {agentStatus?.toUpperCase() || t('status_none')}
             </span>
           </div>
         </div>

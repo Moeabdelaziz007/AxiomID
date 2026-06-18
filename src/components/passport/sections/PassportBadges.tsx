@@ -1,12 +1,11 @@
 import React from "react";
 import { VerificationBadge } from "@/components/VerificationBadge";
 import { useLanguage } from "@/app/context/language-context";
-import { Tier } from "@/lib/tiers";
 
 interface PassportBadgesProps {
   kyaStatus: "verified" | "pending" | "denied";
   kycStatus: "verified" | "pending" | "denied";
-  tier: Tier;
+  tier: string;
   tierColor: string;
 }
 

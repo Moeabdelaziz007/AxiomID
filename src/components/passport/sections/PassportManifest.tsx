@@ -28,7 +28,7 @@ export function PassportManifest({ username, kycStatus }: PassportManifestProps)
         </div>
         <div>
           <span style={{ color: 'var(--text-muted)' }}>{t('manifest_kyc_bound')} </span>
-          <span style={{ color: kycStatus === "verified" ? 'var(--neon-green)' : 'var(--text-muted)' }}>
+          <span className={kycStatus === "verified" ? "text-neon-green" : ""} style={kycStatus !== "verified" ? { color: 'var(--text-muted)' } : undefined}>
             {kycStatus === "verified" ? t('yes') : t('no')}
           </span>
         </div>

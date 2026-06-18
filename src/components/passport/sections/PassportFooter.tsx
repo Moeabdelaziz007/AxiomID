@@ -1,6 +1,5 @@
 import React from "react";
 import { useLanguage } from "@/app/context/language-context";
-import { formatDate } from "../utils";
 
 interface PassportFooterProps {
   issuedDate: string;
@@ -8,7 +7,6 @@ interface PassportFooterProps {
 
 export function PassportFooter({ issuedDate }: PassportFooterProps) {
   const { t } = useLanguage();
-  const formattedDate = formatDate(issuedDate, { year: "numeric", month: "long", day: "numeric" });
 
   return (
     <div className="flex items-center justify-between px-6 py-3 border-t" style={{ borderColor: 'var(--card-border)', background: 'var(--bg-card)' }}>
@@ -16,7 +14,7 @@ export function PassportFooter({ issuedDate }: PassportFooterProps) {
         {t('passport_footer_verified')}
       </span>
       <span className="text-[9px] font-mono" style={{ color: 'var(--text-muted)' }}>
-        {formattedDate}
+        {new Date(issuedDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
       </span>
     </div>
   );
