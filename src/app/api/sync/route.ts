@@ -32,16 +32,10 @@ const SyncRequestSchema = z.object({
   maxRetries: z.number().int().min(0).max(10).default(3),
 });
 
-interface _SyncRequest {
-  source: "d1" | "all";
-  dryRun?: boolean;
-  maxRetries?: number;
-}
-
 interface SyncResult {
   synced: number;
   errors: number;
-  retries: number;
+
   entropy: number;
   freshness: number;
 }

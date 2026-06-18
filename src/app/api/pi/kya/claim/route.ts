@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       data: {
         kycStatus: 'PENDING',
         kycProvider: 'pi_network',
-        did: (existing.did && existing.did.includes(':axiomid.app:pi:')) ? existing.did : createPiDid(user.piUid),
+        did: createPiDid(user.piUid),
         piUsername: existing.piUsername || username,
       },
     });
