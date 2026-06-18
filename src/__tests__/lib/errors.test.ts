@@ -47,6 +47,36 @@ describe('apiError', () => {
     expect(res.status).toBe(500);
   });
 
+  // New payment error codes added in this PR
+  it('returns 402 for PAYMENT_VERIFICATION_FAILED', async () => {
+    const res = apiError('PAYMENT_VERIFICATION_FAILED', 'Payment could not be verified with Pi Network');
+    expect(res.status).toBe(402);
+    const body = await res.json();
+    expect(body.code).toBe('PAYMENT_VERIFICATION_FAILED');
+    expect(body.error).toBe('Payment could not be verified with Pi Network');
+  });
+
+  it('returns 402 for PAYMENT_MISMATCH', async () => {
+    const res = apiError('PAYMENT_MISMATCH', 'Payment amount 1 does not match skill price 5');
+    expect(res.status).toBe(402);
+    const body = await res.json();
+    expect(body.code).toBe('PAYMENT_MISMATCH');
+  });
+
+  it('returns 402 for PAYMENT_INVALID', async () => {
+    const res = apiError('PAYMENT_INVALID', 'Payment status "completed" is not valid for purchase');
+    expect(res.status).toBe(402);
+    const body = await res.json();
+    expect(body.code).toBe('PAYMENT_INVALID');
+  });
+
+  it('all three new payment error codes share the 402 status (regression: same as PI_PAYMENT_FAILED)', () => {
+    expect(apiError('PAYMENT_VERIFICATION_FAILED', '').status).toBe(402);
+    expect(apiError('PAYMENT_MISMATCH', '').status).toBe(402);
+    expect(apiError('PAYMENT_INVALID', '').status).toBe(402);
+    expect(apiError('PI_PAYMENT_FAILED', '').status).toBe(402);
+  });
+
   it('includes details when provided', async () => {
     const details = [{ field: 'email', message: 'required' }];
     const res = apiError('VALIDATION_ERROR', 'Invalid', details);
