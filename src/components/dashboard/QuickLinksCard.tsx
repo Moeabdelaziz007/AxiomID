@@ -11,7 +11,7 @@ interface QuickLinksCardProps {
 export function QuickLinksCard({ passportSlug, did }: QuickLinksCardProps) {
   const { t } = useLanguage();
   
-  const spec = {
+  const spec = useMemo(() => ({
     root: "card",
     elements: {
       card: {
@@ -28,7 +28,7 @@ export function QuickLinksCard({ passportSlug, did }: QuickLinksCardProps) {
         props: { label: t("did_document"), href: `/api/did-document${did ? `?did=${encodeURIComponent(did)}` : ""}` },
       },
     },
-  };
+  }), [t, passportSlug, did]);
 
   return <AxiomRenderer spec={spec} />;
 }
