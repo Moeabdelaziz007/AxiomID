@@ -7,7 +7,7 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 
 /**
- * Logs out the authenticated user.
+ * Logs out the authenticated user and invalidates their cached access token.
  *
  * @returns An HTTP response with the logout result.
  */

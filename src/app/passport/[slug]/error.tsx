@@ -6,8 +6,6 @@ import { useLanguage } from "@/app/context/language-context";
 
 /**
  * Displays an error page for passport loading failures with localized text and recovery options.
- *
- * @returns A React component rendering the error page.
  */
 export default function PassportError({
   error,

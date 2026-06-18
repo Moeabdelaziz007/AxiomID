@@ -96,11 +96,11 @@ function buildPassportResponse(user: PassportUser) {
 import { PassportSlugParamSchema } from "@/lib/validators";
 
 /**
- * Retrieves a user passport for the given slug identifier.
+ * Retrieves a user passport by identifier, with rate limiting per client IP.
  *
- * Enforces rate limiting and searches by wallet address, username, or DID.
+ * Searches by agent public ID, wallet address, username, or DID.
  *
- * @returns An HTTP response with the formatted passport object, or an error response if validation fails, the rate limit is exceeded, or no matching passport is found.
+ * @returns An HTTP response containing the formatted passport, or an error response.
  */
 export async function GET(
   _request: NextRequest,

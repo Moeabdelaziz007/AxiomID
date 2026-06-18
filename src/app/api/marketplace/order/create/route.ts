@@ -8,11 +8,13 @@ import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 
 /**
- * Creates an escrow payment for a marketplace order.
+ * Creates an escrow payment record for a marketplace order.
  *
  * Verifies the payment with Pi Network and ensures the payer is the authenticated user
  * and the payment amount matches the skill price. Free skills skip Pi Network verification.
  * Enforces rate limiting per client IP.
+ *
+ * @returns A response with the created payment ID and verified amount on success, or an error response on failure.
  */
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);

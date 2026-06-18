@@ -64,6 +64,11 @@ function isDemoWalletAllowed(): boolean {
   return false;
 }
 
+/**
+ * Determines if a wallet address is a demo wallet.
+ *
+ * @returns `true` if the wallet address starts with `"demo:"`, `false` otherwise.
+ */
 function isDemoWalletAddress(walletAddress?: string | null): boolean {
   return walletAddress?.startsWith("demo:") ?? false;
 }
@@ -110,7 +115,7 @@ function getStoredWallet(): string | null {
 }
 
 /**
- * Returns a demo wallet address from storage if available, otherwise creates a new one.
+ * Retrieves a stored demo wallet address or generates a new one.
  *
  * @returns A demo wallet address string.
  */
@@ -147,7 +152,7 @@ function setLocalStorageItem(key: string, value: string): void {
 }
 
 /**
- * Safely removes a value from localStorage, silently handling errors.
+ * Removes an item from localStorage.
  *
  * This function is a no-op on the server.
  */
@@ -203,9 +208,13 @@ function mapApiUser(data: ApiResponse, fallback?: { stellarAddress?: string | nu
 }
 
 /**
- * Provides wallet authentication and management to child components via context.
+ * Manages wallet authentication and user state for the application.
  *
- * @returns A context provider that supplies wallet state, operations, and progression tracking to its children.
+ * Initializes Pi SDK connection with demo wallet fallback, restores user sessions, and provides wallet operations
+ * (authentication, action claiming, KYA verification, agent management), user state, and progression metrics to child
+ * components via context.
+ *
+ * @returns A context provider that exposes wallet state, authentication operations, user progression, and agent controls to descendants
  */
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);

@@ -40,6 +40,11 @@ function cleanupExpiredEntries(): void {
   }
 }
 
+/**
+ * Retrieves the cached user for a token hash.
+ *
+ * @returns The cached user if found and not expired, `null` otherwise.
+ */
 function getCachedUser(tokenHash: string): AuthenticatedUser | null {
   const entry = tokenCache.get(tokenHash);
   if (!entry) return null;
@@ -89,10 +94,10 @@ export function clearAuthCache(tokenHash?: string): void {
 }
 
 /**
- * Authenticates a request by validating a Pi access token from the Authorization header.
+ * Verifies a request's Pi access token and retrieves the authenticated user.
  *
- * @param request - The Next.js request object
- * @returns `{ error: null; user: AuthenticatedUser }` if the token is valid and user exists, `{ error: apiError; user: null }` on any failure
+ * @param request - The incoming request containing the Authorization header
+ * @returns An object with the authenticated user and no error on success, or an error and no user on failure
  */
 export async function requireAuth(request: NextRequest): Promise<
   { error: ReturnType<typeof apiError>; user: null } | { error: null; user: AuthenticatedUser }
