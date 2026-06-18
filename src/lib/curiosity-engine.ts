@@ -12,12 +12,14 @@ export function checkBreaker(context: any) {
 }
 
 export function scoreTask(result: TaskResult): number {
-  let score = 0;
+  if (!result.success) {
+    return 0;
+  }
 
-  if (result.success) score += 50;
+  let score = 50;
 
   // Faster execution gets slightly higher score
-  if (result.durationMs && result.durationMs < 1000) {
+  if (result.durationMs !== undefined && result.durationMs < 1000) {
     score += 10;
   }
 
