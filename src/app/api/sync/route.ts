@@ -32,9 +32,16 @@ const SyncRequestSchema = z.object({
   maxRetries: z.number().int().min(0).max(10).default(3),
 });
 
+interface _SyncRequest {
+  source: "d1" | "all";
+  dryRun?: boolean;
+  maxRetries?: number;
+}
+
 interface SyncResult {
   synced: number;
   errors: number;
+  maxRetries: number;
   entropy: number;
   freshness: number;
 }
@@ -204,6 +211,7 @@ async function syncWithRetry(
   return {
     synced: 0,
     errors: 1,
+    maxRetries: maxRetries,
     entropy: 0,
     freshness: 0,
   };
@@ -242,11 +250,11 @@ async function syncHarvestResults(_dryRun: boolean): Promise<SyncResult> {
 
     logger.info(`[Sync] Harvest results: entropy=${entropy.toFixed(3)}, freshness=${freshness.toFixed(3)}`);
 
-    return { synced, errors, entropy, freshness };
+    return { synced, errors, maxRetries: 0, entropy, freshness };
   } catch (error) {
     logger.error("[Sync] Harvest sync error:", error);
     errors++;
-    return { synced, errors, entropy: 0, freshness: 0 };
+    return { synced, errors, maxRetries: 0, entropy: 0, freshness: 0 };
   }
 }
 
@@ -284,10 +292,10 @@ async function syncAgentPresence(_dryRun: boolean): Promise<SyncResult> {
 
     logger.info(`[Sync] Agent presence: entropy=${entropy.toFixed(3)}, freshness=${freshness.toFixed(3)}`);
 
-    return { synced, errors, entropy, freshness };
+    return { synced, errors, maxRetries: 0, entropy, freshness };
   } catch (error) {
     logger.error("[Sync] Presence sync error:", error);
     errors++;
-    return { synced, errors, entropy: 0, freshness: 0 };
+    return { synced, errors, maxRetries: 0, entropy: 0, freshness: 0 };
   }
 }

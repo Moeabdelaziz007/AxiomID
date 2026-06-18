@@ -14,10 +14,5 @@ export function createIssuerDid(): string {
 }
 
 export function createPiDid(uid: string): string {
-  UserIdSchema.parse(uid);
   return `${DID_METHOD}:axiomid.app:pi:${encodeURIComponent(uid)}`;
-}
-
-export function isValidPiDid(did: string | null | undefined): boolean {
-  return !!did && did.startsWith(`${DID_METHOD}:axiomid.app:pi:`);
 }

@@ -6,7 +6,7 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { requireAuth } from '@/lib/auth-middleware';
 import { KyaClaimSchema } from '@/lib/validators';
-import { createPiDid, isValidPiDid } from '@/lib/did';
+import { createPiDid } from '@/lib/did';
 
 /**
  * Process a KYA claim request for an authenticated Pi Network user.
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       data: {
         kycStatus: 'PENDING',
         kycProvider: 'pi_network',
-        did: isValidPiDid(existing.did) ? existing.did : createPiDid(user.piUid),
+        did: existing.did || createPiDid(existing.piUid || user.piUid),
         piUsername: existing.piUsername || username,
       },
     });
