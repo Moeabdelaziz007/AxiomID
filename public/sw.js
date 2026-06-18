@@ -10,7 +10,7 @@ const STATIC_ASSETS = [
 ];
 
 // Only cache truly public API routes (no auth headers)
-const PUBLIC_API_ROUTES = ["/api/status", "/api/health"];
+const PUBLIC_API_ROUTES = ["/api/status"];
 
 /**
  * Stores a response in the cache for a given request.

@@ -72,16 +72,17 @@ function makeEvent(overrides = {}) {
   };
 }
 
-function makeRequest(url, method = "GET") {
+function makeRequest(url, method = "GET", mode = "cors") {
   return {
     url,
     method,
+    mode,
     clone: jest.fn(function () { return this; }),
   };
 }
 
-function makeFetchEvent(url, method = "GET") {
-  const request = makeRequest(url, method);
+function makeFetchEvent(url, method = "GET", mode = "cors") {
+  const request = makeRequest(url, method, mode);
   const event = makeEvent({ request });
   return { event, request };
 }
@@ -299,6 +300,80 @@ describe("sw.js — fetch event: static assets (cache-first)", () => {
   });
 });
 
+describe("sw.js — fetch event: navigation requests (network-first)", () => {
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    loadServiceWorker();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it("calls fetch() for navigation requests (network-first)", () => {
+    const mockFetch = jest.fn(() => Promise.resolve(makeResponse(true)));
+    global.fetch = mockFetch;
+
+    const { event, request } = makeFetchEvent("https://axiomid.app/dashboard", "GET", "navigate");
+    registeredListeners["fetch"](event);
+
+    expect(event.respondWith).toHaveBeenCalled();
+    expect(mockFetch).toHaveBeenCalledWith(request);
+  });
+
+  it("caches successful navigation responses", async () => {
+    const response = makeResponse(true);
+    global.fetch = jest.fn(() => Promise.resolve(response));
+
+    const { event } = makeFetchEvent("https://axiomid.app/dashboard", "GET", "navigate");
+    registeredListeners["fetch"](event);
+    await event.respondWith.mock.calls[0][0];
+
+    expect(mockCaches.open).toHaveBeenCalledWith(CACHE_NAME);
+  });
+
+  it("falls back to cached page when navigation network request fails", async () => {
+    const cachedPage = makeResponse(true);
+    global.fetch = jest.fn(() => Promise.reject(new Error("Network error")));
+    mockCaches.match.mockResolvedValue(cachedPage);
+
+    const { event, request } = makeFetchEvent("https://axiomid.app/dashboard", "GET", "navigate");
+    registeredListeners["fetch"](event);
+    const result = await event.respondWith.mock.calls[0][0];
+
+    expect(mockCaches.match).toHaveBeenCalledWith(request);
+    expect(result).toBe(cachedPage);
+  });
+
+  it("falls back to the root shell when no cached page exists offline", async () => {
+    const shell = makeResponse(true);
+    global.fetch = jest.fn(() => Promise.reject(new Error("Network error")));
+    // First match (the request) misses, second match ("/") hits the shell.
+    mockCaches.match
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(shell);
+
+    const { event } = makeFetchEvent("https://axiomid.app/dashboard", "GET", "navigate");
+    registeredListeners["fetch"](event);
+    const result = await event.respondWith.mock.calls[0][0];
+
+    expect(mockCaches.match).toHaveBeenCalledWith("/");
+    expect(result).toBe(shell);
+  });
+
+  it("returns a 503 Offline response when nothing is cached offline", async () => {
+    global.fetch = jest.fn(() => Promise.reject(new Error("Network error")));
+    mockCaches.match.mockResolvedValue(undefined);
+
+    const { event } = makeFetchEvent("https://axiomid.app/dashboard", "GET", "navigate");
+    registeredListeners["fetch"](event);
+    const result = await event.respondWith.mock.calls[0][0];
+
+    expect(result.status).toBe(503);
+  });
+});
+
 describe("sw.js — fetch event: PUBLIC_API_ROUTES coverage", () => {
   const originalFetch = global.fetch;
 
@@ -310,15 +385,15 @@ describe("sw.js — fetch event: PUBLIC_API_ROUTES coverage", () => {
     global.fetch = originalFetch;
   });
 
-  it("intercepts /api/health (second public route)", () => {
+  it("does NOT intercept /api/health (no longer a public route)", () => {
     const mockFetch = jest.fn(() => Promise.resolve(makeResponse(true)));
     global.fetch = mockFetch;
 
-    const { event, request } = makeFetchEvent("https://axiomid.app/api/health");
+    const { event } = makeFetchEvent("https://axiomid.app/api/health");
     registeredListeners["fetch"](event);
 
-    expect(event.respondWith).toHaveBeenCalled();
-    expect(mockFetch).toHaveBeenCalledWith(request);
+    expect(event.respondWith).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it("does NOT intercept non-public API routes (/api/users)", () => {
@@ -357,7 +432,7 @@ describe("sw.js — fetch event: PUBLIC_API_ROUTES coverage", () => {
     global.fetch = jest.fn(() => Promise.reject(new Error("Network error")));
     mockCaches.match.mockResolvedValue(undefined);
 
-    const { event } = makeFetchEvent("https://axiomid.app/api/health");
+    const { event } = makeFetchEvent("https://axiomid.app/api/status");
     registeredListeners["fetch"](event);
     const result = await event.respondWith.mock.calls[0][0];
 
@@ -366,11 +441,11 @@ describe("sw.js — fetch event: PUBLIC_API_ROUTES coverage", () => {
     expect(body).toEqual({ error: "Service unavailable" });
   });
 
-  it("caches /api/health responses that are ok", async () => {
+  it("caches /api/status responses that are ok", async () => {
     const response = makeResponse(true);
     global.fetch = jest.fn(() => Promise.resolve(response));
 
-    const { event } = makeFetchEvent("https://axiomid.app/api/health");
+    const { event } = makeFetchEvent("https://axiomid.app/api/status");
     registeredListeners["fetch"](event);
     await event.respondWith.mock.calls[0][0];
 
