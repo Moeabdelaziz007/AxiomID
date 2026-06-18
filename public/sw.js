@@ -56,7 +56,7 @@ self.addEventListener("fetch", (event) => {
 
   // API routes: network-first, only cache public routes
   if (url.pathname.startsWith("/api/")) {
-    const isPublicApi = PUBLIC_API_ROUTES.some((route) => url.pathname.startsWith(route));
+    const isPublicApi = PUBLIC_API_ROUTES.includes(url.pathname);
     if (!isPublicApi) return; // Don't intercept authenticated API calls
 
     event.respondWith(

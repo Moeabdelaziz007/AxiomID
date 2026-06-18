@@ -384,9 +384,9 @@ describe("POST /api/sync — parallel sync via Promise.all (PR change)", () => {
   });
 
   it("agentPresence result still populated when harvestResults DB throws", async () => {
-    // syncHarvestResults will error (DB throws), syncWithRetry catches it and returns error result
-    // syncAgentPresence should still succeed — both complete because Promise.all resolves
-    // after syncWithRetry handles errors internally
+    // syncHarvestResults catches the DB error in its own try/catch and returns an
+    // error result (errors=1) without throwing, so syncWithRetry never retries.
+    // syncAgentPresence still succeeds because Promise.all does not short-circuit.
     mockPrisma.harvestResult.findMany.mockRejectedValue(new Error("Harvest DB error"));
     mockPrisma.agentPresence.findMany.mockResolvedValue([]);
     mockPrisma.agentPresence.findFirst.mockResolvedValue(null);
@@ -396,7 +396,7 @@ describe("POST /api/sync — parallel sync via Promise.all (PR change)", () => {
     const data = await res.json();
 
     expect(res.status).toBe(200);
-    // harvestResults should show errors=1 (syncWithRetry caught the error)
+    // harvestResults should show errors=1 (caught by syncHarvestResults' own try/catch)
     expect(data.results.harvestResults.errors).toBe(1);
     // agentPresence should still be populated
     expect(data.results).toHaveProperty("agentPresence");
