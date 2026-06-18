@@ -11,7 +11,7 @@ jest.mock('@/lib/auth-middleware', () => ({
       walletAddress: 'pi:mockuser',
       piUid: 'mock-pi-uid',
       piUsername: 'mockuser',
-      did: 'did:axiom:mock-pi-uid',
+      did: 'did:axiom:axiomid.app:pi:mock-pi-uid',
       xp: 0,
       tier: 'Beginner',
     },

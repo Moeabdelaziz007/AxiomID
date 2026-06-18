@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       return apiError("VALIDATION_ERROR", parsed.error.issues[0].message, parsed.error.issues);
     }
 
-    const { source, dryRun, maxRetries } = parsed.data as SyncRequest;
+    const { source, dryRun, maxRetries } = parsed.data;
 
     const results: Record<string, SyncResult> = {};
 
