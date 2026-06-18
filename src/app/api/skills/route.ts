@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { apiError, apiSuccess, rateLimitHeaders } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
+import { requireAuth } from '@/lib/auth-middleware';
 import { SkillTier } from '@prisma/client';
 import { SkillsListQuerySchema, SkillPublishSchema } from '@/lib/validators';
 
@@ -100,6 +101,10 @@ export async function POST(request: NextRequest) {
     return apiError('RATE_LIMITED', 'Too many requests. Try again later.', undefined, rateLimitHeaders(rateLimit));
   }
 
+  const auth = await requireAuth(request);
+  if (auth.error) return auth.error;
+  const { user } = auth;
+
   let body: unknown;
   try {
     body = await request.json();
@@ -144,6 +149,7 @@ export async function POST(request: NextRequest) {
         version: (version as string) || '1.0.0',
         status: 'PUBLISHED',
         isPublished: true,
+        authorId: user.id,
       },
     });
 
