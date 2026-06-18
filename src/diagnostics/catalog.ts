@@ -32,7 +32,8 @@ export const diagnostics = defineDiagnostics({
       fix: () => `Verify the Bearer token is valid and not expired. Re-authenticate via Pi Network.`,
     },
     AXIOMID_E011: {
-      why: () => `Authorization denied: insufficient permissions for this resource.`,
+      why: (p: { reason: string }) =>
+        `Authorization denied: ${p.reason}.`,
       fix: () => `Ensure your account has the required role or scope for this action.`,
     },
     AXIOMID_E012: {

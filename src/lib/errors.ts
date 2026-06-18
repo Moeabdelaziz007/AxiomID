@@ -77,7 +77,11 @@ export function apiError(code: ErrorCode, message: string, details?: unknown, he
   const diagCode = DIAGNOSTIC_MAP[code] as keyof typeof diagnostics;
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (diagnostics as any)[diagCode](DIAGNOSTIC_PARAMS[code](message));
+    const result = (diagnostics as any)[diagCode](DIAGNOSTIC_PARAMS[code](message));
+    // The diagnostic fn may be sync or async; swallow any async rejection so it
+    // never surfaces as an unhandled promise rejection. Diagnostics are
+    // best-effort and must never break the response path.
+    Promise.resolve(result).catch(() => {});
   } catch {
     // Diagnostics are best-effort; never break the response path
   }
