@@ -4,12 +4,19 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Bot, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/app/context/language-context";
+import { PiPaymentButton } from "@/components/PiPaymentButton";
 
 interface CreateAgentCardProps {
   onCreate: (name?: string) => Promise<void>;
+  requiresPayment?: boolean;
+  paymentAmount?: number;
 }
 
-export function CreateAgentCard({ onCreate }: CreateAgentCardProps) {
+export function CreateAgentCard({ 
+  onCreate, 
+  requiresPayment = false,
+  paymentAmount = 1 
+}: CreateAgentCardProps) {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const { t } = useLanguage();
@@ -40,7 +47,8 @@ export function CreateAgentCard({ onCreate }: CreateAgentCardProps) {
       <p className="text-xs mb-5" style={{ color: 'var(--text-secondary)' }}>
         {t('create_agent_tier_info')}
       </p>
-      <div className="flex gap-3">
+      
+      <div className="flex gap-3 mb-3">
         <input
           type="text"
           value={name}
@@ -49,17 +57,31 @@ export function CreateAgentCard({ onCreate }: CreateAgentCardProps) {
           className="flex-1 rounded-lg px-4 py-2.5 text-sm font-mono transition-colors focus:outline-none focus:border-neon-green/40"
           style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--card-border)', color: 'var(--text-primary)' }}
         />
+      </div>
+
+      {requiresPayment ? (
+        <PiPaymentButton
+          amount={paymentAmount}
+          memo={`Create Agent: ${name || "My Agent"}`}
+          metadata={{ purpose: "agent_creation", agentName: name }}
+          onSuccess={() => handleCreate()}
+          disabled={!name.trim()}
+        >
+          <span>Create Agent</span>
+          <ArrowRight className="w-4 h-4" />
+        </PiPaymentButton>
+      ) : (
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleCreate}
-          disabled={loading}
-          className="btn-primary text-sm px-5 py-2.5 flex items-center gap-2 group"
+          disabled={loading || !name.trim()}
+          className="btn-primary text-sm px-5 py-2.5 flex items-center gap-2 group w-full"
         >
           {loading ? t('create_agent_creating') : t('create_agent_create')}
           {!loading && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
         </motion.button>
-      </div>
+      )}
     </motion.div>
   );
 }

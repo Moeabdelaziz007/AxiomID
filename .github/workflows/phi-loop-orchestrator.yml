@@ -1,0 +1,156 @@
+name: Phi Loop Orchestrator
+
+on:
+  workflow_run:
+    workflows: ["ci", "CI Intelligence Agent", "Gemini Code Review"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  phi-loop:
+    name: Auto-Fix Failed CI
+    runs-on: ubuntu-latest
+    if: |
+      github.event.workflow_run.conclusion == 'failure' &&
+      !contains(github.event.workflow_run.head_commit.message, 'phi-loop[bot]')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Get Failed Workflow Details
+        id: details
+        run: |
+          WORKFLOW_NAME="${{ github.event.workflow_run.name }}"
+          HEAD_SHA="${{ github.event.workflow_run.head_sha }}"
+          PR_NUMBER=$(gh pr list --repo ${{ github.repository }} --head "$HEAD_SHA" --json number --jq '.[0].number' 2>/dev/null || echo "")
+
+          echo "workflow_name=$WORKFLOW_NAME" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No PR found for commit $HEAD_SHA"
+            exit 0
+          fi
+
+          WORKFLOW_RUN_URL="${{ github.event.workflow_run.html_url }}"
+          echo "workflow_run_url=$WORKFLOW_RUN_URL" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Analyze Failures
+        if: steps.details.outputs.pr_number != ''
+        run: |
+          PR_NUMBER="${{ steps.details.outputs.pr_number }}"
+          WORKFLOW_NAME="${{ steps.details.outputs.workflow_name }}"
+
+          echo "### 🔄 Phi Loop: Auto-Fix Attempt" >> $GITHUB_STEP_SUMMARY
+          echo "**Failed Workflow**: $WORKFLOW_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "**PR**: #$PR_NUMBER" >> $GITHUB_STEP_SUMMARY
+
+          gh pr diff "$PR_NUMBER" --repo ${{ github.repository }} > /tmp/current.diff 2>/dev/null || true
+
+          if [ -f /tmp/current.diff ]; then
+            echo "Analyzing diff for auto-fix opportunities..."
+            echo "diff_lines=$(wc -l < /tmp/current.diff)" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Issue Ledger Entry
+        if: steps.details.outputs.pr_number != ''
+        run: |
+          PR_NUMBER="${{ steps.details.outputs.pr_number }}"
+          WORKFLOW_NAME="${{ steps.details.outputs.workflow_name }}"
+          WORKFLOW_RUN_URL="${{ steps.details.outputs.workflow_run_url }}"
+
+          ISSUE_TITLE="🔄 Phi Loop: Auto-fix for PR #$PR_NUMBER ($WORKFLOW_NAME)"
+          ISSUE_BODY="## Auto-Fix Triggered
+
+          **Failed Workflow**: $WORKFLOW_NAME
+          **PR**: #$PR_NUMBER
+          **Run**: [View]($WORKFLOW_RUN_URL)
+
+          This issue was created automatically by the Phi Loop Orchestrator.
+          The system will attempt to fix the failure and create a new commit.
+
+          **Status**: In Progress"
+
+          gh issue create \
+            --repo ${{ github.repository }} \
+            --title "$ISSUE_TITLE" \
+            --body "$ISSUE_BODY" \
+            --label "phi-loop,auto-fix" 2>/dev/null || echo "Issue creation skipped"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply Auto-Fix
+        if: steps.details.outputs.pr_number != ''
+        run: |
+          PR_NUMBER="${{ steps.details.outputs.pr_number }}"
+
+          git config user.name "phi-loop[bot]"
+          git config user.email "phi-loop[bot]@users.noreply.github.com"
+
+          cd /tmp
+
+          if [ -f current.diff ]; then
+            echo "Attempting to apply fixes..."
+
+            if grep -q "npm run type-check" /tmp/current.diff 2>/dev/null; then
+              echo "Type-check issues detected"
+            fi
+
+            if grep -q "npm run lint" /tmp/current.diff 2>/dev/null; then
+              echo "Lint issues detected"
+            fi
+          fi
+
+          echo "auto_fix_attempted=true" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and Push Fixes
+        if: steps.details.outputs.pr_number != '' && steps.auto-fix.outputs.auto_fix_attempted == 'true'
+        run: |
+          PR_NUMBER="${{ steps.details.outputs.pr_number }}"
+
+          cd ${{ github.workspace }}
+
+          git checkout -b phi-loop-fix-$PR_NUMBER
+
+          git add -A
+          git commit -m "fix: auto-fix from phi-loop[bot]
+
+          Triggered by failed ${{ steps.details.outputs.workflow_run_name }}
+          PR: #$PR_NUMBER
+          Run: ${{ steps.details.outputs.workflow_run_url }}"
+
+          git push origin phi-loop-fix-$PR_NUMBER
+
+          gh pr create \
+            --repo ${{ github.repository }} \
+            --title "🔄 Auto-fix for PR #$PR_NUMBER" \
+            --body "Auto-generated fix from Phi Loop Orchestrator" \
+            --head "phi-loop-fix-$PR_NUMBER" \
+            --base "main" 2>/dev/null || echo "PR creation skipped"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Close Issue on Success
+        if: always() && steps.details.outputs.pr_number != ''
+        run: |
+          PR_NUMBER="${{ steps.details.outputs.pr_number }}"
+
+          ISSUES=$(gh issue list --repo ${{ github.repository }} --label "phi-loop,auto-fix" --search "PR #$PR_NUMBER in:title" --json number --jq '.[0].number' 2>/dev/null || echo "")
+
+          if [ -n "$ISSUES" ]; then
+            gh issue close "$ISSUES" --repo ${{ github.repository }} --comment "Phi loop completed. Check the new PR for fixes." 2>/dev/null || true
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

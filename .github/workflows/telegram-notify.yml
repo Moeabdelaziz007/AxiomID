@@ -1,0 +1,95 @@
+name: Telegram Notifications
+
+on:
+  pull_request:
+    types: [opened, closed, reopened]
+  workflow_run:
+    workflows: ["ci", "CI Intelligence Agent", "Gemini Code Review"]
+    types: [completed]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  notify-pr:
+    name: Notify PR Events
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Send Telegram Notification
+        run: |
+          STATUS="unknown"
+          EMOJI="❓"
+          if [ "${{ github.event.action }}" = "opened" ]; then
+            STATUS="opened"
+            EMOJI="🆕"
+          elif [ "${{ github.event.action }}" = "closed" ]; then
+            if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+              STATUS="merged"
+              EMOJI="✅"
+            else
+              STATUS="closed"
+              EMOJI="❌"
+            fi
+          elif [ "${{ github.event.action }}" = "reopened" ]; then
+            STATUS="reopened"
+            EMOJI="🔄"
+          fi
+
+          TITLE="${{ github.event.pull_request.title }}"
+          URL="${{ github.event.pull_request.html_url }}"
+          AUTHOR="${{ github.event.pull_request.user.login }}"
+          CHANGES="${{ github.event.pull_request.changed_files }} files"
+
+          MESSAGE="$EMOJI *PR $STATUS*
+
+          *$TITLE*
+          by @$AUTHOR
+          $CHANGES
+          [View PR]($URL)"
+
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"chat_id\": \"${{ secrets.TELEGRAM_CHAT_ID }}\",
+              \"text\": \"$MESSAGE\",
+              \"parse_mode\": \"Markdown\"
+            }"
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+  notify-workflow:
+    name: Notify Workflow Status
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_run'
+    steps:
+      - name: Send Workflow Status
+        run: |
+          STATUS="${{ github.event.workflow_run.conclusion }}"
+          WORKFLOW="${{ github.event.workflow_run.name }}"
+          URL="${{ github.event.workflow_run.html_url }}"
+
+          if [ "$STATUS" = "success" ]; then
+            EMOJI="✅"
+          elif [ "$STATUS" = "failure" ]; then
+            EMOJI="❌"
+          else
+            EMOJI="⚠️"
+          fi
+
+          MESSAGE="$EMOJI *Workflow: $WORKFLOW*
+          Status: $STATUS
+          [View Run]($URL)"
+
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"chat_id\": \"${{ secrets.TELEGRAM_CHAT_ID }}\",
+              \"text\": \"$MESSAGE\",
+              \"parse_mode\": \"Markdown\"
+            }"
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

@@ -46,7 +46,9 @@ export function getLevelProgress(xp: number, tier: Tier): number {
 }
 
 export function getNextLevelXP(tier: Tier): number | null {
-  const nextTier = TIER_ORDER[TIER_ORDER.indexOf(tier) + 1];
+  const idx = TIER_ORDER.indexOf(tier);
+  if (idx === -1) return null; // Unknown tier
+  const nextTier = TIER_ORDER[idx + 1];
   return nextTier ? TIERS[nextTier] : null;
 }
 

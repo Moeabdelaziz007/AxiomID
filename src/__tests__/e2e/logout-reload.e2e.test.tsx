@@ -10,14 +10,6 @@ jest.mock("@/lib/pi-sdk", () => {
   };
 });
 
-// Mock the Pi SDK base module (virtual — no actual package)
-jest.mock('@pinetwork/pi-sdk-js', () => ({
-  PiSdkBase: jest.fn().mockImplementation(() => ({
-    connect: jest.fn(),
-    createPayment: jest.fn(),
-  })),
-}), { virtual: true });
-
 function LogoutFlowHarness({ onUpdate }: { onUpdate: (value: ReturnType<typeof useWallet>) => void }) {
   const wallet = useWallet();
 

@@ -1,0 +1,150 @@
+name: Gemini Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  gemini-review:
+    name: Gemini AI Review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR diff
+        id: diff
+        run: |
+          DIFF=$(gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }} 2>/dev/null || echo "")
+          if [ -z "$DIFF" ]; then
+            echo "diff=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "$DIFF" > /tmp/pr.diff
+          FILE_COUNT=$(grep -c "^diff --git" /tmp/pr.diff || echo "0")
+          echo "file_count=$FILE_COUNT" >> "$GITHUB_OUTPUT"
+          echo "diff_lines=$(wc -l < /tmp/pr.diff)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Gemini Review
+        if: steps.diff.outputs.file_count != '0'
+        run: |
+          python3 << 'PYEOF'
+          import json, urllib.request, urllib.error, os, sys
+
+          GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+          AI_GATEWAY_URL = os.environ.get("AI_GATEWAY_URL", "")
+
+          if not GEMINI_API_KEY:
+              print("⚠️  Skipping Gemini review: GEMINI_API_KEY not set")
+              sys.exit(0)
+
+          with open("/tmp/pr.diff") as f:
+              diff_content = f.read()
+
+          prompt = f"""Review this code diff and provide findings in JSON format.
+          Focus on: security issues, performance problems, code quality, and best practices.
+
+          Return JSON with this structure:
+          {{
+            "findings": [
+              {{
+                "severity": "critical|high|medium|low",
+                "file": "path/to/file",
+                "line": 123,
+                "issue": "Description of the issue",
+                "suggestion": "How to fix it"
+              }}
+            ],
+            "summary": "Brief overall assessment"
+          }}
+
+          Diff:
+          {diff_content[:8000]}
+          """
+
+          url = AI_GATEWAY_URL + "/v1/chat/completions" if AI_GATEWAY_URL else "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+          headers = {"Content-Type": "application/json"}
+
+          if AI_GATEWAY_URL:
+              payload = json.dumps({
+                  "model": "google/gemini-2.0-flash",
+                  "messages": [{"role": "user", "content": prompt}],
+                  "max_tokens": 2000
+              }).encode()
+          else:
+              url += f"?key={GEMINI_API_KEY}"
+              payload = json.dumps({
+                  "contents": [{"parts": [{"text": prompt}]}]
+              }).encode()
+
+          try:
+              req = urllib.request.Request(url, data=payload, headers=headers)
+              resp = urllib.request.urlopen(req, timeout=30)
+              result = json.loads(resp.read())
+
+              if AI_GATEWAY_URL:
+                  text = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+              else:
+                  text = result.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+
+              json_match = text[text.find("{"):text.rfind("}") + 1] if "{" in text else "{}"
+              findings = json.loads(json_match)
+
+              with open("/tmp/gemini-findings.json", "w") as f:
+                  json.dump(findings, f, indent=2)
+
+              print(f"Found {len(findings.get('findings', []))} issues")
+
+          except Exception as e:
+              print(f"❌ Gemini review failed: {e}")
+              sys.exit(0)
+          PYEOF
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          AI_GATEWAY_URL: ${{ secrets.AI_GATEWAY_URL }}
+
+      - name: Post PR Comment
+        if: steps.diff.outputs.file_count != '0'
+        run: |
+          if [ ! -f /tmp/gemini-findings.json ]; then
+            echo "No findings to report"
+            exit 0
+          fi
+
+          FINDINGS=$(cat /tmp/gemini-findings.json)
+          CRITICAL=$(echo "$FINDINGS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len([f for f in d.get('findings',[]) if f.get('severity')=='critical']))" 2>/dev/null || echo 0)
+          HIGH=$(echo "$FINDINGS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len([f for f in d.get('findings',[]) if f.get('severity')=='high']))" 2>/dev/null || echo 0)
+          MEDIUM=$(echo "$FINDINGS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len([f for f in d.get('findings',[]) if f.get('severity')=='medium']))" 2>/dev/null || echo 0)
+          LOW=$(echo "$FINDINGS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len([f for f in d.get('findings',[]) if f.get('severity')=='low']))" 2>/dev/null || echo 0)
+          SUMMARY=$(echo "$FINDINGS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('summary', 'No summary'))" 2>/dev/null || echo "")
+
+          BODY="## 🤖 Gemini AI Code Review
+
+          **Summary**: $SUMMARY
+
+          | Severity | Count |
+          |----------|-------|
+          | 🔴 Critical | $CRITICAL |
+          | 🟠 High | $HIGH |
+          | 🟡 Medium | $MEDIUM |
+          | 🟢 Low | $LOW |
+
+          <details>
+          <summary>Detailed Findings</summary>
+
+          \`\`\`json
+          $(cat /tmp/gemini-findings.json | head -100)
+          \`\`\`
+
+          </details>"
+
+          gh pr comment ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --body "$BODY"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

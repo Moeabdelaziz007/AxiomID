@@ -3,14 +3,6 @@ import { render, waitFor, act } from "@testing-library/react";
 import { WalletProvider, useWallet } from "@/app/context/wallet-context";
 import { connectPi, PiSdkError, PiSdkErrorCode } from "@/lib/pi-sdk";
 
-// Mock the Pi SDK base module (virtual — no actual package)
-jest.mock('@pinetwork/pi-sdk-js', () => ({
-  PiSdkBase: jest.fn().mockImplementation(() => ({
-    connect: jest.fn(),
-    createPayment: jest.fn(),
-  })),
-}), { virtual: true });
-
 // Mock the pi-sdk connectPi function
 jest.mock("@/lib/pi-sdk", () => {
   const actual = jest.requireActual("@/lib/pi-sdk");

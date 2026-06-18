@@ -4,14 +4,6 @@ import { render, waitFor, act, screen } from "@testing-library/react";
 import { SandboxProvider } from "@/app/context/sandbox-provider";
 import { WalletProvider, useWallet } from "@/app/context/wallet-context";
 
-// Mock virtual Pi SDK
-jest.mock("@pinetwork/pi-sdk-js", () => ({
-  PiSdkBase: jest.fn().mockImplementation(() => ({
-    connect: jest.fn(),
-    createPayment: jest.fn(),
-  })),
-}), { virtual: true });
-
 jest.mock("@/lib/pi-sdk", () => {
   const actual = jest.requireActual("@/lib/pi-sdk");
   return {
