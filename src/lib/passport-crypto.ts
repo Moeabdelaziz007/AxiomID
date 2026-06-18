@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { sign, verify, createPrivateKey, createPublicKey } from 'crypto';
+import crypto, { sign, verify, createPrivateKey, createPublicKey } from 'crypto';
 
 /**
  * Gets the Issuer's Private Key for VC signing.
