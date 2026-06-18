@@ -80,7 +80,7 @@ self.addEventListener("fetch", (event) => {
       if (cached) return cached;
       return fetch(request).then((response) => {
         if (response.ok) {
-          cacheResponse(request, response);
+          cacheResponse(event, request, response);
         }
         return response;
       });
