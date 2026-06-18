@@ -32,7 +32,11 @@ const notFound = () =>
   apiError("NOT_FOUND", "Not found");
 
 const handler =
-  process.env.NODE_ENV === "production"
+const isProdDeployment =
+  process.env.VERCEL_ENV === "production";
+
+const handler =
+  isProdDeployment
     ? { GET: notFound, POST: notFound, PUT: notFound, PATCH: notFound, DELETE: notFound }
     : createEmulateHandler({ services });
 
