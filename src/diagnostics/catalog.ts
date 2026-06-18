@@ -73,5 +73,3 @@ export const diagnostics = defineDiagnostics({
     },
   },
 });
-
-export type DiagnosticCode = string;

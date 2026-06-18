@@ -34,7 +34,6 @@ const components = {
 
 const actions = {
   refresh_data: async () => {
-    console.log("Refreshing data...");
     window.location.reload();
   },
 };

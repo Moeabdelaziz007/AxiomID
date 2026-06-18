@@ -46,32 +46,28 @@ const DIAGNOSTIC_MAP: Record<ErrorCode, string> = {
   INTERNAL_ERROR: 'AXIOMID_E040',
 };
 
+const DIAGNOSTIC_PARAMS: Record<ErrorCode, (message: string) => Record<string, unknown>> = {
+  VALIDATION_ERROR: (message) => ({ field: 'request', message }),
+  NOT_FOUND: (message) => ({ resource: message }),
+  RATE_LIMITED: () => ({ retryAfter: 60 }),
+  PI_AUTH_FAILED: (message) => ({ piError: message }),
+  PI_PAYMENT_FAILED: (message) => ({ paymentId: 'unknown', piError: message }),
+  INTERNAL_ERROR: (message) => ({ operation: 'unknown', error: message }),
+  UNAUTHORIZED: (message) => ({ reason: message }),
+  FORBIDDEN: (message) => ({ reason: message }),
+  CONFLICT: (message) => ({ resource: message }),
+};
+
 export function apiError(code: ErrorCode, message: string, details?: unknown, headers?: Record<string, string>): NextResponse<ApiError> {
   const status = STATUS_MAP[code] ?? 500;
 
   // Report structured diagnostic via nostics (non-blocking)
   const diagCode = DIAGNOSTIC_MAP[code] as keyof typeof diagnostics;
-  if (diagCode) {
-    try {
-      const params =
-        code === 'VALIDATION_ERROR'
-          ? { field: 'request', message }
-          : code === 'NOT_FOUND'
-            ? { resource: message }
-            : code === 'RATE_LIMITED'
-              ? { retryAfter: 60 }
-              : code === 'PI_AUTH_FAILED'
-                ? { piError: message }
-                : code === 'PI_PAYMENT_FAILED'
-                  ? { paymentId: 'unknown', piError: message }
-                  : code === 'INTERNAL_ERROR'
-                    ? { operation: 'unknown', error: message }
-                    : { reason: message };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (diagnostics as any)[diagCode](params);
-    } catch {
-      // Diagnostics are best-effort; never break the response path
-    }
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (diagnostics as any)[diagCode](DIAGNOSTIC_PARAMS[code](message));
+  } catch {
+    // Diagnostics are best-effort; never break the response path
   }
 
   return NextResponse.json({ error: message, code, details }, { status, headers });
