@@ -7,9 +7,10 @@ import { useLanguage } from "@/app/context/language-context";
 
 interface QuickLinksCardProps {
   passportSlug: string;
+  did?: string;
 }
 
-export function QuickLinksCard({ passportSlug }: QuickLinksCardProps) {
+export function QuickLinksCard({ passportSlug, did }: QuickLinksCardProps) {
   const { t } = useLanguage();
   const links = [
     {
@@ -20,7 +21,7 @@ export function QuickLinksCard({ passportSlug }: QuickLinksCardProps) {
     },
     {
       label: t('did_document'),
-      href: `/passport/${passportSlug}` as const,
+      href: did ? `/api/did-document?did=${encodeURIComponent(did)}` : "/api/did-document",
       icon: <ClipboardCopy className="w-4 h-4" />,
       color: "hover:text-electric-blue hover:border-electric-blue/30",
     },

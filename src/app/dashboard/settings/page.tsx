@@ -65,8 +65,8 @@ export default function SettingsPage() {
           stats: data.stats || { totalActions: 0, totalXP: 0 },
         });
       }
-    } catch (err) {
-      console.error("Failed to fetch ledger logs:", err);
+    } catch {
+      // silent
     } finally {
       setDetailsLoading(false);
     }
@@ -192,7 +192,7 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-mono">
             <div className="space-y-1">
               <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('settings_pi_network_id')}</span>
-              <p className="text-base" style={{ color: 'var(--text-primary)' }}>{user.piUsername || "Authenticated Pioneer"}</p>
+              <p className="text-base" style={{ color: 'var(--text-primary)' }}>{user.piUsername || t('authenticated_pioneer')}</p>
             </div>
             <div className="space-y-1">
               <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('settings_stellar_wallet')}</span>
