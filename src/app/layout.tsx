@@ -7,6 +7,7 @@ import { SandboxProvider } from "./context/sandbox-provider";
 import { LanguageProvider } from "./context/language-context";
 import { ThemeProvider } from "./context/theme-context";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // Preload fonts for better performance
 const geistSans = Geist({
@@ -165,6 +166,7 @@ export default function RootLayout({
           </LanguageProvider>
         </ThemeProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

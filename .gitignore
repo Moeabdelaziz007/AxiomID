@@ -3,7 +3,7 @@
 # dependencies
 /node_modules
 backend/node_modules/
-backend/package*.json
+backend/package-lock.json
 
 # next.js
 /.next/

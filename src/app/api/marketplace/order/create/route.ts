@@ -6,6 +6,8 @@ import { OrderCreateSchema } from "@/lib/validators";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 
+export const maxDuration = 30;
+
 /**
  * Creates an escrow payment for a marketplace order.
  *
