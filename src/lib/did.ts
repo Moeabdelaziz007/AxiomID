@@ -14,5 +14,6 @@ export function createIssuerDid(): string {
 }
 
 export function createPiDid(uid: string): string {
+  UserIdSchema.parse(uid);
   return `${DID_METHOD}:axiomid.app:pi:${encodeURIComponent(uid)}`;
 }
