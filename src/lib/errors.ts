@@ -56,7 +56,7 @@ const DIAGNOSTIC_MAP: Record<ErrorCode, string> = {
 };
 
 const DIAGNOSTIC_PARAMS: Record<ErrorCode, (message: string) => Record<string, unknown>> = {
-  VALIDATION_ERROR: (message) => ({ field: 'request', message }),
+  VALIDATION_ERROR: (message) => ({ field: 'request', message, example: 'N/A' }),
   NOT_FOUND: (message) => ({ resource: message }),
   RATE_LIMITED: () => ({ retryAfter: 60 }),
   PI_AUTH_FAILED: (message) => ({ piError: message }),
