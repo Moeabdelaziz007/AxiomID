@@ -38,11 +38,11 @@ export async function POST(request: NextRequest) {
     });
 
     if (updatedAgents.length > 0) {
-      const [updated] = updatedAgents;
+      const updated = updatedAgents[0];
       return apiSuccess({
         agentId: updated.id,
         publicId: updated.publicId,
-
+        status: updated.status,
       });
     }
 
