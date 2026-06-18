@@ -82,7 +82,7 @@ afterEach(() => {
 describe("Dashboard page — loading state", () => {
   it("renders skeleton placeholder UI when isLoading is true", () => {
     mockUseWallet.mockReturnValue(defaultWalletCtx({ isLoading: true }));
-    const { container } = render(<Dashboard />);
+    const { container } = renderWithProvider(<Dashboard />);
     // animate-pulse elements signal the loading skeleton
     const pulseElements = container.querySelectorAll(".animate-pulse");
     expect(pulseElements.length).toBeGreaterThan(0);

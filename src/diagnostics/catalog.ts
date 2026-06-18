@@ -42,8 +42,8 @@ export const diagnostics = defineDiagnostics({
     },
     AXIOMID_E013: {
       why: () => `Too many requests. Rate limit exceeded.`,
-      fix: (p: { retryAfter: number }) =>
-        `Wait ${p.retryAfter} seconds before retrying. Reduce request frequency.`,
+      fix: () =>
+        `Wait for the duration in the Retry-After / X-RateLimit-Reset header before retrying. Reduce request frequency.`,
     },
 
     // ── Pi Network Errors ──────────────────────────────────────

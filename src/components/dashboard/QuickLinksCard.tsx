@@ -22,11 +22,21 @@ export function QuickLinksCard({ passportSlug, did }: QuickLinksCardProps) {
       },
       link1: {
         type: "LinkItem",
-        props: { label: t("view_passport"), href: `/passport/${passportSlug}` },
+        props: {
+          label: t("view_passport"),
+          href: `/passport/${passportSlug}`,
+          icon: "fingerprint",
+          color: "neon-green",
+        },
       },
       link2: {
         type: "LinkItem",
-        props: { label: t("did_document"), href: `/api/did-document${did ? `?did=${encodeURIComponent(did)}` : ""}` },
+        props: {
+          label: t("did_document"),
+          href: `/api/did-document${did ? `?did=${encodeURIComponent(did)}` : ""}`,
+          icon: "clipboard",
+          color: "electric-blue",
+        },
       },
     },
   }), [t, passportSlug, did]);

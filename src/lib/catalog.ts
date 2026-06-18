@@ -9,8 +9,13 @@ export const axiomCatalog = defineCatalog(schema, {
       description: "A card container for grouped information",
     },
     LinkItem: {
-      props: z.object({ label: z.string(), href: z.string() }),
-      description: "A clickable link item",
+      props: z.object({
+        label: z.string(),
+        href: z.string(),
+        icon: z.enum(["fingerprint", "clipboard", "none"]).optional(),
+        color: z.enum(["neon-green", "electric-blue", "default"]).optional(),
+      }),
+      description: "A clickable link item with an optional leading icon and themed hover color",
     },
     Heading: {
       props: z.object({ text: z.string(), level: z.enum(["h1", "h2", "h3"]).optional() }),
