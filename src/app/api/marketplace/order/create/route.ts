@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const piResponse = await fetch(`https://api.minepi.com/v2/payments/${paymentId}`, {
+    const piResponse = await fetch("https://api.minepi.com/v2/payments/" + encodeURIComponent(paymentId), {
       method: "GET",
       headers: { Authorization: `Key ${PI_API_KEY}` },
       signal: AbortSignal.timeout(10000),
