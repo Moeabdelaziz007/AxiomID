@@ -78,16 +78,43 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Navigation requests (HTML pages): network-first so users get fresh
+  // content, falling back to cache (then the root shell) when offline.
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            cacheResponse(event, request, response);
+          }
+          return response;
+        })
+        .catch(async () => {
+          const cached = await caches.match(request);
+          if (cached) return cached;
+          const shell = await caches.match("/");
+          if (shell) return shell;
+          return new Response("Offline", {
+            status: 503,
+            headers: { "Content-Type": "text/plain" },
+          });
+        })
+    );
+    return;
+  }
+
   // Static assets: cache-first
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
-      return fetch(request).then((response) => {
-        if (response.ok) {
-          cacheResponse(event, request, response);
-        }
-        return response;
-      });
+      return fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            cacheResponse(event, request, response);
+          }
+          return response;
+        })
+        .catch(() => Response.error());
     })
   );
 });
