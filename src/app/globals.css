@@ -13,8 +13,8 @@
   --card-border: rgba(255, 255, 255, 0.06);
   --card-border-hover: rgba(255, 255, 255, 0.12);
   --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
+  --text-secondary: #c4c4cc;
+  --text-muted: #8e8e99;
   --font-mono: var(--font-geist-mono), 'SF Mono', monospace;
 }
 

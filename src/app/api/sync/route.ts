@@ -78,12 +78,27 @@ export async function POST(req: NextRequest) {
 
     // Sync D1 data with exponential backoff
     if (source === "all" || source === "d1") {
-      const [harvestResult, presenceResult] = await Promise.all([
+      const [harvestSettled, presenceSettled] = await Promise.allSettled([
         syncWithRetry(syncHarvestResults, dryRun, maxRetries),
         syncWithRetry(syncAgentPresence, dryRun, maxRetries),
       ]);
-      results.harvestResults = harvestResult;
-      results.agentPresence = presenceResult;
+
+      const failedResult: SyncResult = {
+        synced: 0,
+        errors: 1,
+        retries: maxRetries,
+        entropy: 0,
+        freshness: 0,
+      };
+
+      results.harvestResults =
+        harvestSettled.status === "fulfilled"
+          ? harvestSettled.value
+          : failedResult;
+      results.agentPresence =
+        presenceSettled.status === "fulfilled"
+          ? presenceSettled.value
+          : failedResult;
     }
 
     return apiSuccess({
