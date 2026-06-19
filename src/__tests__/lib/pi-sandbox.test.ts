@@ -155,6 +155,7 @@ describe("pi-sandbox", () => {
     });
 
     it("should skip response for null origin (sandboxed unique origin — security)", () => {
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
       const requestMsg = {
         type: "@pi:app:sdk:communication_information_request",
         id: "request-id-456",
@@ -169,6 +170,10 @@ describe("pi-sandbox", () => {
       window.dispatchEvent(event);
 
       expect(mockSource.postMessage).not.toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("null origin")
+      );
+      warnSpy.mockRestore();
     });
 
     it("should ignore messages with incorrect origins", () => {
