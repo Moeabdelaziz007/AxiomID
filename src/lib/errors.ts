@@ -46,30 +46,18 @@ const STATUS_MAP: Record<ErrorCode, number> = {
 // cast each call since the params match the catalog definitions.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const REPORT_DIAGNOSTIC: Record<ErrorCode, (message: string) => any> = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  VALIDATION_ERROR:            (m) => diagnostics.AXIOMID_E001({ field: 'request', message: m } as any),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  UNAUTHORIZED:                (m) => diagnostics.AXIOMID_E010({ reason: m } as any),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  FORBIDDEN:                   (m) => diagnostics.AXIOMID_E011({ reason: m } as any),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  NOT_FOUND:                   (m) => diagnostics.AXIOMID_E012({ resource: m } as any),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  RATE_LIMITED:                ()  => diagnostics.AXIOMID_E013({} as any),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  CONFLICT:                    (m) => diagnostics.AXIOMID_E030({ resource: m } as any),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  PI_AUTH_FAILED:              (m) => diagnostics.AXIOMID_E020({ piError: m } as any),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  PI_PAYMENT_FAILED:           (m) => diagnostics.AXIOMID_E021({ paymentId: 'unknown', piError: m } as any),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  PAYMENT_VERIFICATION_FAILED: (m) => diagnostics.AXIOMID_E022({ paymentId: 'unknown', piError: m } as any),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  PAYMENT_MISMATCH:            (m) => diagnostics.AXIOMID_E023({ paymentId: 'unknown', piError: m } as any),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  PAYMENT_INVALID:             (m) => diagnostics.AXIOMID_E024({ paymentId: 'unknown', piError: m } as any),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  INTERNAL_ERROR:              (m) => diagnostics.AXIOMID_E040({ operation: 'unknown', error: m } as any),
+  VALIDATION_ERROR:            (m) => diagnostics.AXIOMID_E001({ field: 'request', message: m }),
+  UNAUTHORIZED:                (m) => diagnostics.AXIOMID_E010({ reason: m }),
+  FORBIDDEN:                   (m) => diagnostics.AXIOMID_E011({ reason: m }),
+  NOT_FOUND:                   (m) => diagnostics.AXIOMID_E012({ resource: m }),
+  RATE_LIMITED:                ()  => diagnostics.AXIOMID_E013({}),
+  CONFLICT:                    (m) => diagnostics.AXIOMID_E030({ resource: m }),
+  PI_AUTH_FAILED:              (m) => diagnostics.AXIOMID_E020({ piError: m }),
+  PI_PAYMENT_FAILED:           (m) => diagnostics.AXIOMID_E021({ paymentId: 'unknown', piError: m }),
+  PAYMENT_VERIFICATION_FAILED: (m) => diagnostics.AXIOMID_E022({ paymentId: 'unknown', piError: m }),
+  PAYMENT_MISMATCH:            (m) => diagnostics.AXIOMID_E023({ paymentId: 'unknown', piError: m }),
+  PAYMENT_INVALID:             (m) => diagnostics.AXIOMID_E024({ paymentId: 'unknown', piError: m }),
+  INTERNAL_ERROR:              (m) => diagnostics.AXIOMID_E040({ operation: 'unknown', error: m }),
 };
 
 /**

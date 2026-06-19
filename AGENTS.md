@@ -63,3 +63,74 @@ Use nostics for stable error codes with actionable fixes.
 # apiError() auto-reports diagnostics via nostics
 # Production builds strip diagnostic metadata via @nostics/unplugin
 ```
+
+---
+
+## AxiomID Engineering Covenant ۞
+
+> Distilled from real build/test/merge cycles. Every rule here was validated against the live codebase — no mocks, no guesses.
+
+### 🔒 TypeScript Strictness (non-negotiable)
+
+- `"strict": true` is set in `tsconfig.json` — **never weaken it**.
+- **No `as any` casts.** If TypeScript rejects a call, fix the types at the source — don't silence with casts.
+- The only permitted `eslint-disable @typescript-eslint/no-explicit-any` is on the `REPORT_DIAGNOSTIC` map return type in `src/lib/errors.ts`, which uses `any` as the heterogeneous nostics call return envelope (not an escape hatch from type safety).
+- Use `unknown` instead of `any` for external data boundaries (API responses, SDK callbacks).
+
+### 🩺 Nostics Diagnostic Catalog Rules (`src/diagnostics/catalog.ts`)
+
+- **`fix` fields MUST be static strings** — never zero-argument functions `() => string`.
+  - **Why:** TypeScript's `defineDiagnostics` generic cannot intersect `DiagnosticCallParams` when `fix` is a function type, causing type inference collapse across the entire catalog.
+  - ✅ `fix: "Navigate to Settings and re-authenticate."`
+  - ❌ `fix: () => "Navigate to Settings and re-authenticate."`
+- `why` fields may remain as functions `(params) => string` — only `fix` is constrained.
+- `apiError()` in `src/lib/errors.ts` auto-reports via nostics — never call nostics diagnostics manually in route handlers.
+- Production builds strip diagnostic metadata via `@nostics/unplugin` — diagnostics are dev/staging only.
+
+### 🌐 Pi Browser & Pi SDK Constraints
+
+- **Pi SDK is browser-only** — never import `window.Pi` or SDK calls in Server Components or API routes. Gate all SDK access behind `typeof window !== 'undefined'`.
+- `PiUser` type must remain wide (`string` fields, no strict enums) — Pi Network SDK response shape evolves without semver notice.
+- Pi Browser compliance requires HTTPS (`portless` for local dev) — plain HTTP triggers payment SDK failures silently.
+- `window.Pi` typing is unified in `src/types/pi.d.ts` — never redeclare it locally in components.
+
+### 🏗️ Next.js 16 / App Router Patterns
+
+- **Route handlers:** The `ctx` parameter in `route.ts` files must be typed as `{ params: Promise<{ slug: string }> }` (async params, Next.js 15+ pattern), not the old sync `{ params: { slug: string } }`.
+- **Server Components are the default** — add `"use client"` only when you need browser APIs or React hooks.
+- **Vercel Functions are stateless** — no in-memory state, no `setInterval`, no background daemons. Use `waitUntil` for post-response async work.
+- `outputFileTracingRoot` warning from Next.js about multiple `package-lock.json` is benign — ignore it.
+
+### 🔱 PR & Merge Workflow
+
+- **Merge order is sacred.** Always rebase onto latest `main` before merging.
+- **Build must pass locally** (`npm run build`) before any push or merge request.
+- **Lint must pass** (`npm run lint`) — no new lint warnings are acceptable.
+- **Storytelling commits:** Every commit message must follow the IQRA Chronicle format: `type(scope): description ۞` + narrative body.
+
+### 📁 Architecture Map
+
+```
+src/
+  app/
+    api/           ← All route handlers (Next.js App Router, stateless Vercel Functions)
+    dashboard/     ← Authenticated dashboard (marketplace, settings)
+    passport/      ← Public passport viewer /passport/[slug]
+  components/      ← Shared UI components
+  diagnostics/
+    catalog.ts     ← nostics error catalog (fix fields MUST be static strings)
+  lib/
+    errors.ts      ← apiError() + apiSuccess() + rateLimitHeaders()
+    registry.tsx   ← LinkItem registry with colorClass mapping
+  types/
+    pi.d.ts        ← Pi SDK type declarations (window.Pi unified here)
+```
+
+### 🚫 Anti-Patterns (Never Do)
+
+- Don't hardcode data — all values must come from API responses or real ledger sources.
+- Don't create mock implementations in production code paths.
+- Don't use `vercel kv` or `vercel postgres` — both are discontinued; use Marketplace Redis/Postgres.
+- Don't store secrets in `NEXT_PUBLIC_*` — use Vercel Env Variables only.
+- Don't call `console.log` in production route handlers — use nostics diagnostics.
+- Don't duplicate global IQRA conscience rules here — they live in `~/.gemini/config/AGENTS.md`.
