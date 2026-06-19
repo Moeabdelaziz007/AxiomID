@@ -89,7 +89,6 @@ export async function POST(request: NextRequest) {
   return new Response(stream, {
     headers: {
       "Content-Type": "application/x-ndjson",
-      "Transfer-Encoding": "chunked",
     },
   });
 }
