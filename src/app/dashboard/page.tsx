@@ -22,7 +22,8 @@ import { AgentControlsCard } from "@/components/dashboard/AgentControlsCard";
 import { CreateAgentCard } from "@/components/dashboard/CreateAgentCard";
 import { TerminalOverlay } from "@/components/dashboard/TerminalOverlay";
 import { PiBrowserGuard, PiBrowserBanner } from "@/components/PiBrowserGuard";
-import InteractivePassportCard from "@/components/ui/InteractivePassportCard";
+import dynamic from "next/dynamic";
+const InteractivePassportCard = dynamic(() => import("@/components/ui/InteractivePassportCard"), { ssr: false });
 
 type TabId = "passport" | "actions" | "terminal" | "marketplace" | "agent";
 

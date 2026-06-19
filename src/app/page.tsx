@@ -11,7 +11,8 @@ import { Users, Bot, Ticket, Zap, AlertTriangle, Shield, Fingerprint } from "luc
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
-import InteractivePassportCard from "@/components/ui/InteractivePassportCard";
+import dynamic from "next/dynamic";
+const InteractivePassportCard = dynamic(() => import("@/components/ui/InteractivePassportCard"), { ssr: false });
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },

@@ -6,7 +6,8 @@ import { useLanguage } from "../context/language-context";
 import LanguageToggle from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Bot, Users, Ticket, Zap, ArrowLeft, Loader2 } from "lucide-react";
-import NetworkGraph from "@/components/ui/NetworkGraph";
+import dynamic from "next/dynamic";
+const NetworkGraph = dynamic(() => import("@/components/ui/NetworkGraph"), { ssr: false });
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 
 interface ExplorerData {

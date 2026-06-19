@@ -6,6 +6,7 @@ import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { createUserDid } from "@/lib/did";
 import { calculateTrustScore } from "@/lib/trust";
+import { deriveSovereignAgentKeypair } from "@/lib/pi-sdk";
 
 interface PassportStamp {
   type: string;
@@ -23,12 +24,12 @@ interface PassportUser {
   kycStatus?: string | null;
   createdAt: Date;
   stamps?: PassportStamp[];
-  agent?: { name: string; status: string } | null;
+  agent?: { id: string; name: string; status: string } | null;
 }
 
 const AGENT_SELECT = {
   agent: {
-    select: { name: true, status: true },
+    select: { id: true, name: true, status: true },
   },
   stamps: {
     select: { type: true, provider: true },
@@ -66,6 +67,16 @@ function buildPassportResponse(user: PassportUser) {
   const stamps = user.stamps || [];
   const trustScore = calculateTrustScore(user.xp || 0, stamps.length);
 
+  let agentPublicKey: string | null = null;
+  if (user.agent && (user.stellarAddress || user.walletAddress)) {
+    try {
+      const keys = deriveSovereignAgentKeypair(user.stellarAddress || user.walletAddress, user.agent.id);
+      agentPublicKey = keys.publicKey;
+    } catch (e) {
+      logger.error('[PASSPORT-API] Key derivation failed:', e);
+    }
+  }
+
   return {
     username: user.piUsername || "AxiomID Agent",
     walletAddress: user.walletAddress,
@@ -80,6 +91,7 @@ function buildPassportResponse(user: PassportUser) {
     issuedDate: user.createdAt.toISOString(),
     agentName: user.agent?.name || null,
     agentStatus: user.agent?.status || null,
+    agentPublicKey,
   };
 }
 

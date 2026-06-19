@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
+import crypto from "crypto";
 import { logger } from "@/lib/logger";
 
 declare global {
@@ -415,3 +414,44 @@ export async function createPiPayment(amount: number, memo: string, metadata?: R
     });
   });
 }
+
+export function deriveSovereignAgentKeypair(stellarAddress: string, agentId: string): { publicKey: string; privateKey: string } {
+  const hmac = crypto.createHmac("sha256", stellarAddress);
+  hmac.update(agentId);
+  const seed = hmac.digest();
+
+  const privateKeyPrefix = Buffer.from("302e020100300506032b657004220420", "hex");
+  const pkcs8Key = Buffer.concat([privateKeyPrefix, seed]);
+
+  const privateKeyObj = crypto.createPrivateKey({
+    key: pkcs8Key,
+    format: "der",
+    type: "pkcs8"
+  });
+
+  const publicKeyObj = crypto.createPublicKey(privateKeyObj);
+
+  return {
+    privateKey: privateKeyObj.export({ format: "pem", type: "pkcs8" }) as string,
+    publicKey: publicKeyObj.export({ format: "pem", type: "spki" }) as string
+  };
+}
+
+export function signPayloadWithAgentKey(payload: string, privateKeyPem: string): string {
+  const privateKeyObj = crypto.createPrivateKey({
+    key: privateKeyPem,
+    format: "pem",
+    type: "pkcs8"
+  });
+  return crypto.sign(null, Buffer.from(payload, "utf8"), privateKeyObj).toString("hex");
+}
+
+export function verifyAgentSignature(payload: string, signatureHex: string, publicKeyPem: string): boolean {
+  const publicKeyObj = crypto.createPublicKey({
+    key: publicKeyPem,
+    format: "pem",
+    type: "spki"
+  });
+  return crypto.verify(null, Buffer.from(payload, "utf8"), publicKeyObj, Buffer.from(signatureHex, "hex"));
+}
+

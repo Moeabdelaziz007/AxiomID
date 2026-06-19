@@ -3,6 +3,7 @@ import { apiError } from "@/lib/errors";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { requireAuth } from "@/lib/auth-middleware";
+import { scanScript, validatePayloadSize } from "@/lib/sandbox/ast-scanner";
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -16,7 +17,11 @@ export async function POST(request: NextRequest) {
 
   let body: { manifestMd?: string; inputData?: string };
   try {
-    body = await request.json();
+    const rawBody = await request.text();
+    if (!validatePayloadSize(rawBody)) {
+      return apiError("VALIDATION_ERROR", "Payload size exceeds maximum allowed boundary of 8KB");
+    }
+    body = JSON.parse(rawBody);
   } catch {
     return apiError("VALIDATION_ERROR", "Invalid JSON body");
   }
@@ -25,6 +30,11 @@ export async function POST(request: NextRequest) {
 
   if (!manifestMd.trim()) {
     return apiError("VALIDATION_ERROR", "manifestMd is required");
+  }
+
+  const codeScan = scanScript(manifestMd + "\n" + inputData);
+  if (!codeScan.allowed) {
+    return apiError("FORBIDDEN", `Sandbox execution blocked: ${codeScan.reason}`);
   }
 
   // Parse name from manifest frontmatter if available
