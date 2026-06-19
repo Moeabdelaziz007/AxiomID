@@ -17,16 +17,16 @@ export default function GlobalError({
       <body style={{
         padding: "2rem",
         fontFamily: "monospace",
-        background: "var(--bg-deep)",
+        background: "var(--bg-deep, #09090b)",
         color: "#ff4444",
         minHeight: "100vh",
         margin: 0,
       }}>
-        <style>{`.retry-btn:focus-visible { outline: 2px solid var(--neon-green); outline-offset: 2px; }`}</style>
+        <style>{`.retry-btn:focus-visible { outline: 2px solid var(--neon-green, #22c55e); outline-offset: 2px; }`}</style>
         <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
           [ROOT ERROR] AxiomID failed to initialize
         </h1>
-        <pre style={{ whiteSpace: "pre-wrap", color: "var(--text-secondary)", fontSize: "0.8rem" }}>
+        <pre style={{ whiteSpace: "pre-wrap", color: "var(--text-secondary, #a1a1aa)", fontSize: "0.8rem" }}>
           {process.env.NODE_ENV === "development" ? error.stack : `Something went wrong. Contact support with code: ${error.digest ?? "unknown"}`}
         </pre>
         <button
@@ -35,7 +35,7 @@ export default function GlobalError({
           style={{
             marginTop: "1rem",
             padding: "0.5rem 1rem",
-            background: "var(--neon-green)",
+            background: "var(--neon-green, #22c55e)",
             color: "#fff",
             border: "none",
             borderRadius: "8px",
