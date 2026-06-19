@@ -172,6 +172,15 @@ body {
 /* ============================================
    BUTTONS
    ============================================ */
+.btn-primary,
+.btn-secondary,
+.btn-ghost,
+.btn-danger,
+.btn-toggle {
+  min-height: 44px;
+  min-width: 44px;
+}
+
 .btn-primary {
   background: var(--neon-green);
   border: 1px solid transparent;
@@ -194,6 +203,18 @@ body {
   transform: translateY(-1px);
 }
 
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.btn-primary:disabled,
+.btn-primary[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 [data-theme="light"] .btn-primary {
   color: #fff;
 }
@@ -203,14 +224,60 @@ body {
   box-shadow: 0 2px 12px rgba(5, 150, 105, 0.25);
 }
 
+.btn-secondary {
+  background: var(--bg-card);
+  border: 1px solid var(--card-border);
+  color: var(--text-secondary);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--card-border-hover);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-secondary:disabled,
+.btn-secondary[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+[data-theme="light"] .btn-secondary {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .btn-secondary:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
 .btn-ghost {
   background: transparent;
   border: 1px solid var(--card-border);
   color: var(--text-secondary);
   padding: 8px 16px;
   border-radius: 10px;
+  font-family: var(--font-mono);
+  font-weight: 500;
   font-size: 0.75rem;
+  letter-spacing: 0.02em;
   transition: all 0.15s ease;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
@@ -220,12 +287,79 @@ body {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.btn-ghost:active:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.btn-ghost:disabled,
+.btn-ghost[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 [data-theme="light"] .btn-ghost {
   background: transparent;
 }
 
 [data-theme="light"] .btn-ghost:hover {
   background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .btn-ghost:active:not(:disabled) {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: var(--badge-red);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-danger:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.btn-danger:disabled,
+.btn-danger[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.7rem;
+  min-height: 36px;
+}
+
+.btn-lg {
+  padding: 12px 24px;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 639px) {
+  .btn-lg {
+    padding: 10px 20px;
+    font-size: 0.75rem;
+  }
 }
 
 /* ============================================
@@ -423,16 +557,26 @@ body {
 }
 
 .animate-holographic {
+  position: relative;
+}
+
+.animate-holographic::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(16, 185, 129, 0.02) 25%,
-    rgba(59, 130, 246, 0.02) 50%,
-    rgba(139, 92, 246, 0.02) 75%,
+    rgba(16, 185, 129, 0.03) 25%,
+    rgba(59, 130, 246, 0.03) 50%,
+    rgba(139, 92, 246, 0.03) 75%,
     transparent 100%
   );
   background-size: 200% 100%;
   animation: holographic 10s linear infinite;
+  pointer-events: none;
+  z-index: 1;
 }
 
 @keyframes glow-pulse {
