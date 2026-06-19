@@ -30,7 +30,7 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
       exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.3 }}
       className="fixed bottom-[72px] left-0 right-0 z-40 backdrop-blur-md max-h-[50vh] sm:max-h-[40vh] overflow-hidden flex flex-col border-t"
-      style={{ background: "color-mix(in srgb, var(--bg-card) 95%, transparent)", borderColor: "var(--card-border)" }}
+      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)", background: "color-mix(in srgb, var(--bg-card) 95%, transparent)", borderColor: "var(--card-border)" }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ borderColor: "var(--card-border)" }}>
