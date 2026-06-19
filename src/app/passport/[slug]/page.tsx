@@ -42,7 +42,7 @@ export default function PassportPage() {
         <PassportView />
       </div>
 
-      <footer className="w-full border-t border-white/5 py-4 px-6 text-[9px] font-mono text-gray-600 text-center">
+      <footer className="w-full border-t py-4 px-6 text-[9px] font-mono text-center" style={{ borderColor: 'var(--card-border)', color: 'var(--text-muted)' }}>
         &copy; 2026 AxiomID. Agent Identity Protocol.
       </footer>
     </main>

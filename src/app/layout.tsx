@@ -146,7 +146,6 @@ export default function RootLayout({
                 var normalized = reasonStr.toLowerCase();
                 if (normalized.indexOf('connection closed') !== -1 || normalized.indexOf('connection_closed') !== -1) {
                   event.preventDefault();
-                  console.warn('[System] Suppressed early connection closure:', event.reason);
                 }
               });
             `

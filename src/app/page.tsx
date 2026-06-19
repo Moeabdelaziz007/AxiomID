@@ -61,26 +61,25 @@ function PassportHero({ user }: { user: { piUsername?: string | null; walletAddr
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-neon-green/20 flex items-center justify-center border border-neon-green/50">
-              <span className="text-neon-green font-bold text-[9px]">A</span>
+            <div className="w-6 h-6 rounded bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+              <span className="text-blue-500 font-bold text-[9px]">A</span>
             </div>
-            <span className="font-mono text-[11px] tracking-wider text-white">AXIOMID</span>
+            <span className="font-mono text-[11px] tracking-wider" style={{ color: 'var(--text-primary)' }}>AXIOMID</span>
           </div>
-          <span className="font-mono text-[9px] text-gray-500 tracking-widest">AGENT PASSPORT</span>
+          <span className="font-mono text-[9px] tracking-widest" style={{ color: 'var(--text-muted)' }}>AGENT PASSPORT</span>
         </div>
 
         {/* Middle: Avatar + Info */}
         <div className="flex items-center gap-4 my-4">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-gradient-to-br from-neon-green/20 to-electric-blue/20 border border-neon-green/30 flex items-center justify-center text-2xl sm:text-3xl font-bold font-mono text-neon-green">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-2xl sm:text-3xl font-bold font-mono" style={{ color: 'var(--text-primary)' }}>
             {avatarText}
           </div>
           <div className="flex-1">
-            <h3 className="text-sm sm:text-base font-bold text-white font-mono">{username}</h3>
-            <p className="text-[9px] sm:text-[10px] text-gray-500 font-mono mt-1 break-all">{displayAddress}</p>
+            <h3 className="text-sm sm:text-base font-bold font-mono" style={{ color: 'var(--text-primary)' }}>{username}</h3>
+            <p className="text-[9px] sm:text-[10px] font-mono mt-1 break-all" style={{ color: 'var(--text-muted)' }}>{displayAddress}</p>
             <div className="mt-2 flex gap-1.5">
               {["KYA", "KYC"].map((label) => (
-                <span key={label} className={`badge ${hasUser ? "badge-verified" : "badge-pending"}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${hasUser ? "bg-neon-green" : "bg-yellow-500 animate-pulse"}`} />
+                <span key={label} className="px-2 py-0.5 rounded text-[9px] font-mono" style={{ background: hasUser ? 'rgba(34, 197, 94, 0.1)' : 'rgba(245, 158, 11, 0.1)', color: hasUser ? '#22c55e' : '#f59e0b', border: `1px solid ${hasUser ? 'rgba(34, 197, 94, 0.2)' : 'rgba(245, 158, 11, 0.2)'}` }}>
                   {label}
                 </span>
               ))}
@@ -89,15 +88,15 @@ function PassportHero({ user }: { user: { piUsername?: string | null; walletAddr
         </div>
 
         {/* Bottom bar */}
-        <div className="flex items-center justify-between border-t border-white/5 pt-3">
+        <div className="flex items-center justify-between border-t pt-3" style={{ borderColor: 'var(--card-border)' }}>
           <div className="flex items-center gap-1.5">
-            <svg viewBox="0 0 100 100" className="w-3 h-3 text-[#8B5CF6]" fill="currentColor">
+            <svg viewBox="0 0 100 100" className="w-3 h-3" fill="currentColor">
               <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="5"/>
               <text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text>
             </svg>
-            <span className="text-[8px] text-gray-600 font-mono">AxiomID • Pi Network</span>
+            <span className="text-[8px] font-mono" style={{ color: 'var(--text-muted)' }}>AxiomID • Pi Network</span>
           </div>
-          <span className="text-[8px] text-gray-600 font-mono">{user?.tier ? user.tier.toUpperCase() : "1.0.0"}</span>
+          <span className="text-[8px] font-mono" style={{ color: 'var(--text-muted)' }}>{user?.tier ? user.tier.toUpperCase() : "1.0.0"}</span>
         </div>
       </div>
     </div>
@@ -163,18 +162,18 @@ export default function Home() {
       >
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-neon-green/20 flex items-center justify-center border border-neon-green/50">
-              <span className="text-neon-green font-bold">A</span>
+            <div className="w-8 h-8 rounded bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+              <span className="text-blue-500 font-bold">A</span>
             </div>
-            <span className="font-mono text-lg sm:text-xl tracking-tighter">AXIOM<span className="text-gray-600">ID</span></span>
+            <span className="font-mono text-lg sm:text-xl tracking-tighter" style={{ color: 'var(--text-primary)' }}>AXIOM<span style={{ color: 'var(--text-muted)' }}>ID</span></span>
           </div>
           <div className="w-px h-6 bg-white/10 hidden sm:block" />
-          <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded bg-[#8B5CF6]/10 border border-[#8B5CF6]/30">
-            <svg viewBox="0 0 100 100" className="w-4 h-4 text-[#8B5CF6]" fill="currentColor">
+          <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded bg-white/5 border border-white/10">
+            <svg viewBox="0 0 100 100" className="w-4 h-4" fill="currentColor">
               <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.3"/>
               <text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text>
             </svg>
-            <span className="text-[9px] font-mono text-[#8B5CF6] tracking-wider">PI NETWORK</span>
+            <span className="text-[9px] font-mono tracking-wider" style={{ color: 'var(--text-secondary)' }}>PI NETWORK</span>
           </div>
         </div>
 
@@ -182,7 +181,7 @@ export default function Home() {
           <LanguageToggle />
           <ThemeToggle />
           {isPiBrowser && !user && (
-            <span className="hidden sm:inline text-[10px] font-mono text-electric-blue px-2 py-1 rounded-full border border-electric-blue/30 bg-electric-blue/5">
+            <span className="hidden sm:inline text-[10px] font-mono px-2 py-1 rounded border" style={{ background: 'rgba(59, 130, 246, 0.1)', borderColor: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6' }}>
               Pi Browser
             </span>
           )}
@@ -216,8 +215,8 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="flex items-center gap-2"
           >
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-neon-green/10 text-neon-green border border-neon-green/20">v1.0.0</span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-electric-blue/10 text-electric-blue border border-electric-blue/20">PI COMPATIBLE</span>
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.2)' }}>v1.0.0</span>
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono" style={{ background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-secondary)', border: '1px solid var(--card-border)' }}>PI COMPATIBLE</span>
           </motion.div>
 
           <motion.h1
@@ -225,12 +224,13 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight leading-[1.1]"
+            style={{ color: 'var(--text-primary)' }}
           >
             {language === "en" ? (
               <>
                 Agent Identity
                 <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-electric-blue">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-blue-400">
                   for the AI Era.
                 </span>
               </>
@@ -238,7 +238,7 @@ export default function Home() {
               <>
                 هوية العملاء
                 <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-electric-blue">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-blue-400">
                   لعصر الذكاء الاصطناعي.
                 </span>
               </>
@@ -251,14 +251,14 @@ export default function Home() {
             transition={{ delay: 0.5, duration: 0.5 }}
             className="flex items-center gap-2 text-[10px] font-mono flex-wrap"
           >
-            <span className="px-2 py-0.5 rounded bg-[#8B5CF6]/10 text-[#8B5CF6] border border-[#8B5CF6]/20 flex items-center gap-1">
+            <span className="px-2 py-0.5 rounded bg-white/5 text-white/60 border border-white/10 flex items-center gap-1">
               <svg viewBox="0 0 100 100" className="w-3 h-3" fill="currentColor">
                 <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="5"/>
                 <text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text>
               </svg>
               {language === "en" ? "Built on Pi Network" : "مبني على شبكة Pi"}
             </span>
-            <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <span className="px-2 py-0.5 rounded bg-white/5 text-white/60 border border-white/10">
               {language === "en" ? "Pi Token Payments Only" : "مدفوعات Pi فقط"}
             </span>
           </motion.div>
@@ -267,7 +267,8 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.5 }}
-            className="text-gray-400 max-w-md leading-relaxed text-sm md:text-base"
+            className="max-w-md leading-relaxed text-sm md:text-base"
+            style={{ color: 'var(--text-secondary)' }}
           >
             {t("hero_desc")}
           </motion.p>
@@ -307,12 +308,13 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.9, duration: 0.5 }}
-            className="flex flex-wrap gap-4 mt-2 text-[10px] font-mono text-gray-500"
+            className="flex flex-wrap gap-4 mt-2 text-[10px] font-mono"
+            style={{ color: 'var(--text-muted)' }}
           >
             {[
-              { icon: <Fingerprint className="w-3 h-3 text-neon-green" />, text: language === "en" ? "W3C DID Compliant" : "متوافق مع W3C DID" },
-              { icon: <Globe className="w-3 h-3 text-neon-green" />, text: language === "en" ? "Stellar On-Chain" : "على الشبكة Stellar" },
-              { icon: <svg viewBox="0 0 100 100" className="w-3 h-3 text-[#8B5CF6]" fill="currentColor"><circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="5"/><text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text></svg>, text: language === "en" ? "Pi Network — Pi Only" : "شبكة Pi — Pi فقط" },
+              { icon: <Fingerprint className="w-3 h-3" />, text: language === "en" ? "W3C DID Compliant" : "متوافق مع W3C DID" },
+              { icon: <Globe className="w-3 h-3" />, text: language === "en" ? "Stellar On-Chain" : "على الشبكة Stellar" },
+              { icon: <svg viewBox="0 0 100 100" className="w-3 h-3" fill="currentColor"><circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="5"/><text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text></svg>, text: language === "en" ? "Pi Network — Pi Only" : "شبكة Pi — Pi فقط" },
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-1.5">
                 {item.icon}
@@ -345,22 +347,23 @@ export default function Home() {
           className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 sm:p-6 bento-card border border-white/5 bg-white/[0.01]"
         >
           {[
-            { label: t("stat_users"), value: networkStats?.users ?? 0, icon: <Users className="w-5 h-5" />, color: "text-neon-green" },
-            { label: t("stat_agents"), value: networkStats?.agents ?? 0, icon: <Bot className="w-5 h-5" />, color: "text-electric-blue" },
-            { label: t("total_xp"), value: networkStats?.xp ?? 0, icon: <Ticket className="w-5 h-5" />, color: "text-axiom-purple" },
-            { label: t("stat_tx"), value: networkStats?.payments ?? 0, icon: <Zap className="w-5 h-5" />, color: "text-axiom-gold" },
+            { label: t("stat_users"), value: networkStats?.users ?? 0, icon: <Users className="w-5 h-5" /> },
+            { label: t("stat_agents"), value: networkStats?.agents ?? 0, icon: <Bot className="w-5 h-5" /> },
+            { label: t("total_xp"), value: networkStats?.xp ?? 0, icon: <Ticket className="w-5 h-5" /> },
+            { label: t("stat_tx"), value: networkStats?.payments ?? 0, icon: <Zap className="w-5 h-5" /> },
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, y: 15 }}
               animate={statsInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.1 + i * 0.08, duration: 0.5 }}
-              className="text-center md:text-left md:border-r border-white/5 last:border-0 md:px-4 flex flex-col md:flex-row md:items-center gap-3"
+              className="text-center md:text-left md:border-r last:border-0 md:px-4 flex flex-col md:flex-row md:items-center gap-3"
+              style={{ borderColor: 'var(--card-border)' }}
             >
-              <span className="hidden md:inline">{stat.icon}</span>
+              <span className="hidden md:inline" style={{ color: 'var(--text-muted)' }}>{stat.icon}</span>
               <div>
-                <p className="text-[10px] font-mono text-gray-500 uppercase tracking-wider">{stat.label}</p>
-                <h4 className={`text-lg md:text-xl font-bold font-mono mt-0.5 ${stat.color}`}>
+                <p className="text-[10px] font-mono uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{stat.label}</p>
+                <h4 className="text-lg md:text-xl font-bold font-mono mt-0.5" style={{ color: 'var(--text-primary)' }}>
                   {statsInView ? <AnimatedCounter target={stat.value} duration={1200} /> : "—"}
                 </h4>
               </div>
@@ -374,7 +377,7 @@ export default function Home() {
         <SectionHeader
           label={language === "en" ? "How It Works" : "كيف يعمل النظام؟"}
           title={language === "en" ? "Three Steps to Agent Identity" : "ثلاث خطوات لبناء هوية العميل"}
-          labelColor="text-neon-green"
+          labelColor="text-blue-500"
         />
         <motion.div
           variants={staggerContainer}
@@ -389,21 +392,18 @@ export default function Home() {
               title: language === "en" ? "Connect" : "الاتصال",
               desc: language === "en" ? "Link your Pi wallet or any Stellar address. Your identity starts here." : "اربط محفظتك للبدء فورا في تأسيس هويتك الرقمية.",
               icon: <Fingerprint className="w-6 h-6" />,
-              color: "text-neon-green",
             },
             {
               step: "02",
               title: language === "en" ? "Verify" : "التحقق",
               desc: language === "en" ? "Complete KYA + KYC. Build trust through social actions and on-chain activity." : "أكمل خطوات التوثيق (KYA) واربح طوابع الهوية الرقمية.",
               icon: <Shield className="w-6 h-6" />,
-              color: "text-electric-blue",
             },
             {
               step: "03",
               title: language === "en" ? "Deploy" : "التشغيل",
               desc: language === "en" ? "Your Agent Passport is ready. Use it across the Pi ecosystem with Pi token payments only." : "جواز سفر العميل الخاص بك جاهز للاستخدام في نظام Pi البيئي مع مدفوعات Pi فقط.",
               icon: <Zap className="w-6 h-6" />,
-              color: "text-axiom-purple",
             },
           ].map((item) => (
             <motion.div
@@ -414,12 +414,12 @@ export default function Home() {
               className="bento-card p-6 flex flex-col gap-4 cursor-default group"
             >
               <div className="flex items-center gap-3">
-                <span className={`font-mono text-2xl font-bold ${item.color}`}>{item.step}</span>
+                <span className="font-mono text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{item.step}</span>
                 <div className="w-px h-6 bg-white/10" />
-                <div className={`${item.color} opacity-60 group-hover:opacity-100 transition-opacity`}>{item.icon}</div>
+                <div style={{ color: 'var(--text-muted)' }}>{item.icon}</div>
               </div>
-              <h3 className="text-lg font-bold text-white">{item.title}</h3>
-              <p className="text-sm text-gray-400 leading-relaxed">{item.desc}</p>
+              <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{item.title}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{item.desc}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -430,7 +430,7 @@ export default function Home() {
         <SectionHeader
           label={language === "en" ? "The Sovereign Advantage" : "الميزة السيادية"}
           title={language === "en" ? "Why Choose AxiomID?" : "لماذا تختار AxiomID؟"}
-          labelColor="text-axiom-purple"
+          labelColor="text-white/60"
         />
         <motion.div
           variants={staggerContainer}
@@ -466,13 +466,13 @@ export default function Home() {
           </motion.div>
 
           {/* AxiomID */}
-          <motion.div variants={fadeUp} custom={1} className="bento-card p-6 border border-neon-green/20 bg-neon-green/[0.01] flex flex-col justify-between">
+          <motion.div variants={fadeUp} custom={1} className="bento-card p-6 flex flex-col justify-between" style={{ borderColor: 'rgba(59, 130, 246, 0.2)', background: 'rgba(59, 130, 246, 0.02)' }}>
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-neon-green text-lg">✓</span>
-                <h3 className="text-base font-bold text-neon-green font-mono">{language === "en" ? "AxiomID Stamps Passport" : "جواز سفر طوابع AxiomID"}</h3>
+                <span className="text-lg" style={{ color: '#22c55e' }}>✓</span>
+                <h3 className="text-base font-bold font-mono" style={{ color: '#22c55e' }}>{language === "en" ? "AxiomID Stamps Passport" : "جواز سفر طوابع AxiomID"}</h3>
               </div>
-              <ul className="space-y-3.5 text-xs text-gray-300 font-mono">
+              <ul className="space-y-3.5 text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
                 {[
                   language === "en" ? "Decentralized: You own your credentials via W3C DIDs." : "لامركزي: أنت تمتلك بياناتك عبر W3C DIDs.",
                   language === "en" ? "Verify once, prove everywhere: Single dashboard for all stamps." : "تحقق مرة، أثبت في كل مكان: لوحة تحكم واحدة لجميع طوابعك.",
@@ -480,13 +480,13 @@ export default function Home() {
                   language === "en" ? "Agent-native: Built for AI agents to represent you securely." : "مصمم للذكاء الاصطناعي: يمثلك عميلك الآلي بأمان.",
                 ].map((text, i) => (
                   <li key={i} className="flex items-start gap-2.5">
-                    <span className="text-neon-green">✓</span>
+                    <span style={{ color: '#22c55e' }}>✓</span>
                     <span>{text}</span>
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="border-t border-white/5 pt-4 mt-6 text-[10px] text-gray-500 font-mono">
+            <div className="border-t pt-4 mt-6 text-[10px] font-mono" style={{ borderColor: 'var(--card-border)', color: 'var(--text-muted)' }}>
               {language === "en" ? "Result: Frictionless auth, resilient trust, delegation-ready." : "النتيجة: مصادقة خالية من الاحتكاك، ثقة مرنة، تفويض آمن."}
             </div>
           </motion.div>
@@ -498,7 +498,7 @@ export default function Home() {
         <SectionHeader
           label={t("tier")}
           title={language === "en" ? "Level Up Your Identity" : "ارفع مستوى هويتك الرقمية"}
-          labelColor="text-electric-blue"
+          labelColor="text-white/60"
         />
         <motion.div
           variants={staggerContainer}
@@ -508,10 +508,10 @@ export default function Home() {
           className="grid grid-cols-2 md:grid-cols-4 gap-4"
         >
           {[
-            { name: t("visitor"), xp: "0", color: "#64748b", desc: language === "en" ? "Connect wallet" : "اربط محفظتك" },
-            { name: t("citizen"), xp: "100", color: "#00ff41", desc: language === "en" ? "Social + actions" : "تأكيدات وحسابات اجتماعية" },
-            { name: t("validator"), xp: "500", color: "#00d4ff", desc: language === "en" ? "KYC verified" : "توثيق الهوية KYC" },
-            { name: t("sovereign"), xp: "1000", color: "#a855f7", desc: language === "en" ? "Full delegation" : "تفويض كامل للذكاء الاصطناعي" },
+            { name: t("visitor"), xp: "0", desc: language === "en" ? "Connect wallet" : "اربط محفظتك" },
+            { name: t("citizen"), xp: "100", desc: language === "en" ? "Social + actions" : "تأكيدات وحسابات اجتماعية" },
+            { name: t("validator"), xp: "500", desc: language === "en" ? "KYC verified" : "توثيق الهوية KYC" },
+            { name: t("sovereign"), xp: "1000", desc: language === "en" ? "Full delegation" : "تفويض كامل للذكاء الاصطناعي" },
           ].map((tier) => (
             <motion.div
               key={tier.name}
@@ -520,17 +520,14 @@ export default function Home() {
               whileHover="hover"
               className="bento-card p-5 text-center cursor-default"
             >
-              <div
-                className="w-10 h-10 rounded-xl mx-auto mb-3 flex items-center justify-center border"
-                style={{ borderColor: `${tier.color}40`, background: `${tier.color}10` }}
-              >
-                <span className="font-mono font-bold text-sm animate-pulse-slow" style={{ color: tier.color }}>
+              <div className="w-10 h-10 rounded-xl mx-auto mb-3 flex items-center justify-center border" style={{ borderColor: 'var(--card-border)', background: 'rgba(255,255,255,0.05)' }}>
+                <span className="font-mono font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
                   {tier.name[0]}
                 </span>
               </div>
-              <h4 className="text-sm font-bold text-white">{tier.name}</h4>
-              <p className="text-[10px] text-gray-500 mt-1">{tier.desc}</p>
-              <span className="text-[10px] font-mono mt-2 block" style={{ color: tier.color }}>{tier.xp} XP</span>
+              <h4 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{tier.name}</h4>
+              <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>{tier.desc}</p>
+              <span className="text-[10px] font-mono mt-2 block" style={{ color: 'var(--text-secondary)' }}>{tier.xp} XP</span>
             </motion.div>
           ))}
         </motion.div>
@@ -542,7 +539,8 @@ export default function Home() {
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-6xl flex flex-col md:flex-row justify-between items-center mt-16 sm:mt-24 py-8 border-t border-white/5 text-[10px] font-mono text-gray-500 z-10 gap-4"
+        className="w-full max-w-6xl flex flex-col md:flex-row justify-between items-center mt-16 sm:mt-24 py-8 border-t text-[10px] font-mono z-10 gap-4"
+        style={{ borderColor: 'var(--card-border)', color: 'var(--text-muted)' }}
       >
         <div>&copy; 2026 AxiomID. All rights reserved.</div>
         <div className="flex gap-4">

@@ -25,8 +25,8 @@ const LINK_ICONS: Record<LinkIcon, React.ReactNode> = {
 };
 
 const LINK_COLORS: Record<LinkColor, string> = {
-  "neon-green": "hover:text-neon-green hover:border-neon-green/30",
-  "electric-blue": "hover:text-electric-blue hover:border-electric-blue/30",
+  "neon-green": "hover:text-blue-500 hover:border-blue-500/30",
+  "electric-blue": "hover:text-blue-500 hover:border-blue-500/30",
   default: "",
 };
 

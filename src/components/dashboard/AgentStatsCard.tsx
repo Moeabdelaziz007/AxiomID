@@ -1,7 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Eye, Zap, Shield, User } from "lucide-react";
 import { useLanguage } from "@/app/context/language-context";
 
 interface AgentStatsCardProps {
@@ -14,42 +12,37 @@ interface AgentStatsCardProps {
 
 export function AgentStatsCard({ tier, xp, agentName, agentStatus, trustScore }: AgentStatsCardProps) {
   const { t } = useLanguage();
-  const stats = [
-    { label: t('stat_level'), value: tier, color: "text-neon-green", icon: <Shield className="w-3.5 h-3.5" /> },
-    { label: t('stat_xp'), value: xp.toLocaleString(), color: "text-electric-blue", icon: <Zap className="w-3.5 h-3.5" /> },
-    { label: t('stat_agent'), value: agentName || t('status_none'), color: "text-axiom-purple", icon: <User className="w-3.5 h-3.5" /> },
-    { label: t('agent_trust_label'), value: `${trustScore}%`, color: "text-neon-green", icon: <Eye className="w-3.5 h-3.5" /> },
-  ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="bento-card p-5"
-    >
-      <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-        <Shield className="w-4 h-4 text-neon-green" />
+    <div className="bento-card p-5">
+      <h3 className="text-xs uppercase tracking-wider font-semibold mb-4" style={{ color: 'var(--text-muted)' }}>
         {t('agent_stats')}
       </h3>
-      <div className="space-y-3">
-        {stats.map((stat) => (
-          <div key={stat.label} className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-gray-500">{stat.icon}</span>
-              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{stat.label}</span>
-            </div>
-            <span className={`${stat.color} font-mono text-sm`}>{stat.value}</span>
-          </div>
-        ))}
-        <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'var(--card-border)' }}>
-          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('stat_status')}</span>
-          <span className={`font-mono text-sm flex items-center gap-1.5 ${agentStatus === "ACTIVE" ? "text-neon-green" : agentStatus === "PAUSED" ? "text-yellow-400" : "text-gray-500"}`}>
-            {agentStatus === "ACTIVE" && <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />}
-            {agentStatus}
-          </span>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{t('stat_level')}</p>
+          <p className="text-sm font-mono mt-0.5" style={{ color: 'var(--text-primary)' }}>{tier}</p>
+        </div>
+        <div>
+          <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{t('stat_xp')}</p>
+          <p className="text-sm font-mono mt-0.5" style={{ color: 'var(--text-primary)' }}>{xp.toLocaleString()}</p>
+        </div>
+        <div>
+          <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{t('stat_agent')}</p>
+          <p className="text-sm font-mono mt-0.5" style={{ color: 'var(--text-primary)' }}>{agentName || t('status_none')}</p>
+        </div>
+        <div>
+          <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{t('agent_trust_label')}</p>
+          <p className="text-sm font-mono mt-0.5" style={{ color: 'var(--text-primary)' }}>{trustScore}%</p>
         </div>
       </div>
-    </motion.div>
+      <div className="flex items-center justify-between pt-4 mt-4 border-t" style={{ borderColor: 'var(--card-border)' }}>
+        <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{t('stat_status')}</span>
+        <span className="text-xs font-mono flex items-center gap-1.5" style={{ color: agentStatus === "ACTIVE" ? "var(--color-success)" : agentStatus === "PAUSED" ? "var(--color-warning)" : "var(--text-muted)" }}>
+          <span className={`w-1.5 h-1.5 rounded-full ${agentStatus === "ACTIVE" ? "bg-green-500" : agentStatus === "PAUSED" ? "bg-amber-500" : "bg-gray-500"}`} />
+          {agentStatus}
+        </span>
+      </div>
+    </div>
   );
 }

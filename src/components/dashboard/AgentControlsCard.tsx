@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Play, Pause, Bot, Zap, Eye } from "lucide-react";
+import { Play, Pause, Bot, Eye } from "lucide-react";
 import { useLanguage } from "@/app/context/language-context";
 
 interface AgentControlsCardProps {
@@ -42,96 +41,73 @@ export function AgentControlsCard({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="bento-card p-5 sm:p-6"
-    >
+    <div className="bento-card p-5 sm:p-6">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-axiom-purple/10 border border-axiom-purple/30 flex items-center justify-center">
-            <Bot className="w-5 h-5 text-axiom-purple" />
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
+            <Bot className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
           </div>
           <div>
-            <h3 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>{agentName}</h3>
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{agentName}</h3>
             <p className="text-[10px] font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>{t('agent_id_label')} {agentId.slice(0, 8)}...</p>
           </div>
         </div>
         <span
-          className={`px-3 py-1 rounded-full text-xs font-mono flex items-center gap-1.5 ${
+          className={`px-2.5 py-1 rounded-md text-[11px] font-mono flex items-center gap-1.5 ${
             status === "ACTIVE"
-              ? "bg-neon-green/10 text-neon-green border border-neon-green/20"
+              ? "bg-green-500/10 text-green-500 border border-green-500/20"
               : status === "PAUSED"
-                ? "bg-yellow-400/10 text-yellow-400 border border-yellow-400/20"
-                : "text-gray-500"
+                ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                : ""
           }`}
-          style={status === "INACTIVE" ? { background: 'rgba(255,255,255,0.05)', border: '1px solid var(--card-border)' } : undefined}
+          style={status === "INACTIVE" ? { background: 'rgba(255,255,255,0.05)', border: '1px solid var(--card-border)', color: 'var(--text-muted)' } : undefined}
         >
-          {status === "ACTIVE" && <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />}
+          <span className={`w-1.5 h-1.5 rounded-full ${status === "ACTIVE" ? "bg-green-500" : status === "PAUSED" ? "bg-amber-500" : "bg-gray-500"}`} />
           {status}
         </span>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-3 mb-5">
-        <div className="rounded-lg p-3 border text-center" style={{ borderColor: 'var(--card-border)', background: 'rgba(255,255,255,0.02)' }}>
-          <Eye className="w-3.5 h-3.5 mx-auto mb-1 text-gray-500" />
+        <div className="rounded-lg p-3 border" style={{ borderColor: 'var(--card-border)', background: 'rgba(255,255,255,0.02)' }}>
+          <Eye className="w-3.5 h-3.5 mb-1" style={{ color: 'var(--text-muted)' }} />
           <span className="text-[9px] font-mono block" style={{ color: 'var(--text-muted)' }}>{t('agent_trust_label')}</span>
-          <span className="text-sm font-bold font-mono text-neon-green">{trustScore}%</span>
+          <span className="text-sm font-mono mt-0.5 block" style={{ color: 'var(--text-primary)' }}>{trustScore}%</span>
         </div>
-        <div className="rounded-lg p-3 border text-center" style={{ borderColor: 'var(--card-border)', background: 'rgba(255,255,255,0.02)' }}>
-          <Zap className="w-3.5 h-3.5 mx-auto mb-1 text-electric-blue" />
-          <span className="text-[9px] font-mono block" style={{ color: 'var(--text-muted)' }}>{t('agent_xp_label')}</span>
-          <span className="text-sm font-bold font-mono text-electric-blue">{xp.toLocaleString()}</span>
+        <div className="rounded-lg p-3 border" style={{ borderColor: 'var(--card-border)', background: 'rgba(255,255,255,0.02)' }}>
+          <span className="text-[9px] font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>{t('agent_xp_label')}</span>
+          <span className="text-sm font-mono" style={{ color: 'var(--text-primary)' }}>{xp.toLocaleString()}</span>
         </div>
-        <div className="rounded-lg p-3 border text-center" style={{ borderColor: 'var(--card-border)', background: 'rgba(255,255,255,0.02)' }}>
-          <span className="text-[9px] font-mono block" style={{ color: 'var(--text-muted)' }}>{t('agent_last_active')}</span>
+        <div className="rounded-lg p-3 border" style={{ borderColor: 'var(--card-border)', background: 'rgba(255,255,255,0.02)' }}>
+          <span className="text-[9px] font-mono block mb-1" style={{ color: 'var(--text-muted)' }}>{t('agent_last_active')}</span>
           <span className="text-[11px] font-mono" style={{ color: 'var(--text-primary)' }}>
             {lastActive ? new Date(lastActive).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : t('agent_never_active')}
           </span>
         </div>
       </div>
 
-      {/* Controls */}
       <div className="flex gap-3">
-        {status === "INACTIVE" && (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+        {(status === "INACTIVE" || status === "PAUSED") && (
+          <button
             onClick={handleActivate}
             disabled={loading}
             className="btn-primary text-sm px-5 py-2.5 flex items-center gap-2 flex-1 justify-center"
           >
             <Play className="w-4 h-4" />
-            {loading ? t('agent_activating') : t('agent_activate')}
-          </motion.button>
+            {loading ? (status === "PAUSED" ? t('agent_resuming') : t('agent_activating')) : (status === "PAUSED" ? t('agent_resume') : t('agent_activate'))}
+          </button>
         )}
         {status === "ACTIVE" && (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          <button
             onClick={handlePause}
             disabled={loading}
-            className="text-sm px-5 py-2.5 flex items-center gap-2 rounded-lg border border-yellow-400/20 text-yellow-400 hover:bg-yellow-400/10 transition-colors flex-1 justify-center"
+            className="text-sm px-5 py-2.5 flex items-center gap-2 rounded-lg border flex-1 justify-center"
+            style={{ borderColor: 'var(--card-border)', color: 'var(--text-secondary)' }}
           >
             <Pause className="w-4 h-4" />
             {loading ? t('agent_pausing') : t('agent_pause')}
-          </motion.button>
-        )}
-        {status === "PAUSED" && (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleActivate}
-            disabled={loading}
-            className="btn-primary text-sm px-5 py-2.5 flex items-center gap-2 flex-1 justify-center"
-          >
-            <Play className="w-4 h-4" />
-            {loading ? t('agent_resuming') : t('agent_resume')}
-          </motion.button>
+          </button>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

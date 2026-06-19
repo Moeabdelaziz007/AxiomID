@@ -47,7 +47,10 @@
   "crons": [
     {
       "path": "/api/sync",
-      "schedule": "0 0 * * *"
+      "schedule": "0 0 * * *",
+      "headers": {
+        "Authorization": "Bearer ${CRON_SECRET}"
+      }
     }
   ]
 }

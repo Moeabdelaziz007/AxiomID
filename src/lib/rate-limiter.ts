@@ -80,6 +80,15 @@ const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 const USE_UPSTASH = Boolean(UPSTASH_URL && UPSTASH_TOKEN);
 
+// Warn once on startup if Upstash is missing in production
+if (!USE_UPSTASH && process.env.NODE_ENV === "production") {
+  logger.warn(
+    "[RATE-LIMITER] UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN not set. " +
+    "Rate limits falling back to process-local Map (broken across Vercel instances). " +
+    "Set these in Vercel dashboard → Settings → Environment Variables."
+  );
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lazy-loaded ESM modules, types inferred at runtime
 let redisInstance: any = null;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- lazy-loaded ESM modules, types inferred at runtime

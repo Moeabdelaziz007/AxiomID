@@ -1,27 +1,36 @@
 @import "tailwindcss";
 
 :root {
-  --neon-green: #10b981;
-  --neon-green-glow: rgba(16, 185, 129, 0.12);
-  --electric-blue: #3b82f6;
-  --axiom-purple: #8b5cf6;
-  --axiom-gold: #f59e0b;
-  --badge-red: #ef4444;
+  /* ── Enterprise Palette ──────────────────────────────── */
+  --color-primary: #3b82f6;        /* Blue-500 — professional, trusted */
+  --color-primary-hover: #2563eb;  /* Blue-600 */
+  --color-success: #22c55e;        /* Green-500 — subtle, not neon */
+  --color-warning: #f59e0b;        /* Amber-500 */
+  --color-danger: #ef4444;         /* Red-500 */
+  --color-info: #06b6d4;           /* Cyan-500 */
+
+  /* ── Legacy aliases (backward compat) ────────────────── */
+  --neon-green: var(--color-success);
+  --neon-green-glow: rgba(34, 197, 94, 0.08);
+  --electric-blue: var(--color-primary);
+  --axiom-purple: #6366f1;         /* Indigo-500 — less garish than purple */
+  --axiom-gold: var(--color-warning);
+  --badge-red: var(--color-danger);
+
+  /* ── Surfaces ────────────────────────────────────────── */
   --bg-deep: #09090b;
   --bg-card: #18181b;
   --bg-card-hover: #27272a;
   --card-border: rgba(255, 255, 255, 0.06);
   --card-border-hover: rgba(255, 255, 255, 0.12);
+
+  /* ── Typography ──────────────────────────────────────── */
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
-  --text-muted: #8e8e8e;
+  --text-muted: #71717a;
   --font-mono: var(--font-geist-mono), 'SF Mono', monospace;
 
-  /* ── Semantic design-token aliases ──────────────────────────
-     These map clean, intent-based names onto the existing palette.
-     They reference the raw tokens above (via var()), so they stay
-     theme-correct automatically across :root and [data-theme="light"].
-     New components should prefer these over the raw color names. */
+  /* ── Semantic Tokens ─────────────────────────────────── */
   --surface: var(--bg-card);
   --surface-hover: var(--bg-card-hover);
   --surface-deep: var(--bg-deep);
@@ -30,21 +39,29 @@
   --text: var(--text-primary);
   --text-subtle: var(--text-secondary);
   --text-faint: var(--text-muted);
-  --primary: var(--neon-green);
-  --primary-glow: var(--neon-green-glow);
-  --accent: var(--electric-blue);
+  --primary: var(--color-primary);
+  --primary-glow: rgba(59, 130, 246, 0.08);
+  --accent: var(--axiom-purple);
   --highlight: var(--axiom-purple);
-  --warning: var(--axiom-gold);
-  --danger: var(--badge-red);
+  --warning: var(--color-warning);
+  --danger: var(--color-danger);
 }
 
 [data-theme="light"] {
-  --neon-green: #059669;
-  --neon-green-glow: rgba(5, 150, 105, 0.08);
-  --electric-blue: #2563eb;
-  --axiom-purple: #7c3aed;
-  --axiom-gold: #d97706;
-  --badge-red: #dc2626;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --color-info: #0891b2;
+
+  --neon-green: var(--color-success);
+  --neon-green-glow: rgba(22, 163, 74, 0.06);
+  --electric-blue: var(--color-primary);
+  --axiom-purple: #4f46e5;
+  --axiom-gold: var(--color-warning);
+  --badge-red: var(--color-danger);
+
   --bg-deep: #fafafa;
   --bg-card: #ffffff;
   --bg-card-hover: #f4f4f5;
@@ -52,7 +69,7 @@
   --card-border-hover: rgba(0, 0, 0, 0.12);
   --text-primary: #18181b;
   --text-secondary: #52525b;
-  --text-muted: #6b6b6b;
+  --text-muted: #71717a;
 }
 
 @theme inline {
@@ -182,30 +199,28 @@ body {
 }
 
 .btn-primary {
-  background: var(--neon-green);
+  background: var(--color-primary);
   border: 1px solid transparent;
   color: #fff;
   padding: 10px 20px;
-  border-radius: 10px;
+  border-radius: 8px;
   font-family: var(--font-mono);
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.75rem;
-  letter-spacing: 0.04em;
-  transition: all 0.2s ease;
+  letter-spacing: 0.02em;
+  transition: all 0.15s ease;
   text-transform: uppercase;
   position: relative;
   cursor: pointer;
 }
 
 .btn-primary:hover {
-  background: color-mix(in srgb, var(--neon-green) 85%, black);
-  box-shadow: 0 2px 12px rgba(16, 185, 129, 0.3);
-  transform: translateY(-1px);
+  background: var(--color-primary-hover);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .btn-primary:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: none;
+  transform: scale(0.98);
 }
 
 .btn-primary:disabled,
