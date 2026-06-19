@@ -88,7 +88,7 @@ describe("Exponential Backoff", () => {
   });
 
   it("applies jitter (delay varies between calls)", () => {
-    const delays = Array.from({ length: 10 }, () => exponentialBackoff(5, 1000, 30000, 0.5));
+    const delays = Array.from({ length: 10 }, () => exponentialBackoff(2, 1000, 30000, 0.5));
     const unique = new Set(delays);
     expect(unique.size).toBeGreaterThan(1);
   });

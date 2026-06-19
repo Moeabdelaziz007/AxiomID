@@ -106,6 +106,10 @@ jest.mock("@/app/context/language-context", () => {
       setLanguage: jest.fn(),
       t: (key) => {
         const mockDict = {
+          visitor: "Visitor",
+          citizen: "Citizen",
+          validator: "Validator",
+          sovereign: "Sovereign",
           nav_dashboard: "AxiomID Dashboard",
           dashboard_title: "AxiomID Dashboard",
           enter_dashboard: "ENTER DASHBOARD",
