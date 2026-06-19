@@ -80,7 +80,7 @@ const components = {
       // statically verified against typedRoutes — cast to Route at this boundary.
       <Link
         href={props.href as Route}
-        className={`flex items-center justify-between p-3 rounded-xl border transition-colors group hover:bg-gray-100 dark:hover:bg-gray-700 ${LINK_COLORS[props.color ?? "default"]}`}
+        className={`flex items-center justify-between p-3 rounded-xl border transition-colors group hover:bg-gray-100 dark:hover:bg-gray-700 ${colorClass}`}
       >
         <div className="flex items-center gap-3">
           {icon && (
