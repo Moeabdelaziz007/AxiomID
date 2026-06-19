@@ -1,27 +1,18 @@
 /**
- * Tests for the PassportHero sub-component inside src/app/page.tsx.
+ * Tests for the landing page (src/app/page.tsx) after Stitch UI rewrite.
  *
- * PassportHero is not exported, so we render the Home page with a mocked
- * useWallet hook and assert on the rendered output that corresponds to the
- * changes introduced in this PR:
- *
- * - avatarText  : "?" when no user, first letter of piUsername, or "👤"
- * - username    : "Connect Wallet" when no user, piUsername or derived from walletAddress
- * - displayAddress: "did:axiom:..." when no user, or truncated walletAddress
- * - badge class : badge-pending when no user, badge-verified when user exists
- * - bottom-bar tier: "1.0.0" when no user, or user.tier.toUpperCase()
+ * PassportHero was removed in the Stitch hero rewrite. These tests verify
+ * the new Stitch hero layout: centered heading, CTAs, features, tiers.
  */
 
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import Home from "@/app/page";
-import { defaultWalletCtx } from "./wallet-test-helpers";
 
 jest.mock("@/components/ThemeToggle", () => ({
   ThemeToggle: () => <button />,
 }));
 
-// Stub next/link so it renders as a plain anchor in jsdom
 jest.mock("next/link", () => {
   const Link = ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) => (
     <a href={href} className={className}>
@@ -32,7 +23,6 @@ jest.mock("next/link", () => {
   return Link;
 });
 
-// Mock useWallet so we control which user data the component receives
 jest.mock("@/app/context/wallet-context", () => ({
   useWallet: jest.fn(),
 }));
@@ -66,40 +56,38 @@ function defaultWalletCtx(overrides: Partial<ReturnType<typeof useWallet>> = {})
   } as ReturnType<typeof useWallet>;
 }
 
-describe("PassportHero — no user (unauthenticated)", () => {
+describe("Landing page — Stitch hero", () => {
   beforeEach(() => {
     mockUseWallet.mockReturnValue(defaultWalletCtx());
   });
 
-  it("shows '?' as the avatar when there is no user", () => {
+  it("renders the main heading", () => {
     render(<Home />);
-    expect(screen.getByText("?")).toBeInTheDocument();
+    expect(screen.getByText(/Your Identity/)).toBeInTheDocument();
   });
 
-  it("shows 'Connect Wallet' as the username when there is no user", () => {
+  it("renders the Live on Pi Network badge", () => {
     render(<Home />);
-    expect(screen.getByText("Connect Wallet")).toBeInTheDocument();
+    expect(screen.getByText("Live on Pi Network Mainnet")).toBeInTheDocument();
   });
 
-  it("shows 'did:axiom:...' as the display address when there is no user", () => {
+  it("renders features section", () => {
     render(<Home />);
-    expect(screen.getByText("did:axiom:...")).toBeInTheDocument();
+    expect(screen.getByText("Connect")).toBeInTheDocument();
+    expect(screen.getByText("Verify")).toBeInTheDocument();
+    expect(screen.getByText("Deploy")).toBeInTheDocument();
   });
 
-  it("shows '1.0.0' in the bottom bar when there is no user (no tier)", () => {
+  it("renders tier cards", () => {
     render(<Home />);
-    const matches = screen.getAllByText("1.0.0");
-    expect(matches.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("renders both KYA and KYC badges", () => {
-    render(<Home />);
-    expect(screen.getByText("KYA")).toBeInTheDocument();
-    expect(screen.getByText("KYC")).toBeInTheDocument();
+    expect(screen.getByText("Visitor")).toBeInTheDocument();
+    expect(screen.getByText("Citizen")).toBeInTheDocument();
+    expect(screen.getByText("Validator")).toBeInTheDocument();
+    expect(screen.getByText("Sovereign")).toBeInTheDocument();
   });
 });
 
-describe("PassportHero — user with piUsername", () => {
+describe("Landing page — authenticated user", () => {
   const user = {
     id: "user-1",
     walletAddress: "pi:piuser123",
@@ -116,173 +104,40 @@ describe("PassportHero — user with piUsername", () => {
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
   });
 
-  it("shows the first letter of piUsername (uppercased) as avatar text", () => {
-    render(<Home />);
-    const matches = screen.getAllByText("A");
-    expect(matches.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("shows piUsername as the heading", () => {
-    render(<Home />);
-    expect(screen.getByText("alice")).toBeInTheDocument();
-  });
-
-  it("shows the walletAddress as the display address (short enough, not truncated)", () => {
-    render(<Home />);
-    // "pi:piuser123" is 12 chars — under 20 — should appear as-is
-    expect(screen.getByText("pi:piuser123")).toBeInTheDocument();
-  });
-
-  it("shows the tier uppercased in the bottom bar", () => {
-    render(<Home />);
-    expect(screen.getByText("CITIZEN")).toBeInTheDocument();
-  });
-});
-
-describe("PassportHero — user without piUsername (walletAddress only)", () => {
-  const user = {
-    id: "user-2",
-    walletAddress: "pi:abc123def456",
-    piUsername: null,
-    xp: 0,
-    tier: "Visitor" as Tier,
-    trustScore: 0,
-    createdAt: new Date().toISOString(),
-    actions: [],
-    agent: null,
-  };
-
-  beforeEach(() => {
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
-  });
-
-  it("shows '👤' as avatar when user has no piUsername", () => {
-    render(<Home />);
-    expect(screen.getByText("👤")).toBeInTheDocument();
-  });
-
-  it("derives username from walletAddress (strips 'pi:' prefix)", () => {
-    render(<Home />);
-    // walletAddress is "pi:abc123def456" → slice(3) = "abc123def456"
-    expect(screen.getByText("abc123def456")).toBeInTheDocument();
-  });
-});
-
-describe("PassportHero — long wallet address gets truncated", () => {
-  const user = {
-    id: "user-3",
-    walletAddress: "demo:verylongwalletaddressthatexceedstwentycharacters",
-    piUsername: null,
-    xp: 0,
-    tier: "Visitor" as Tier,
-    trustScore: 0,
-    createdAt: new Date().toISOString(),
-    actions: [],
-    agent: null,
-  };
-
-  beforeEach(() => {
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
-  });
-
-  it("truncates display address to first 8 + ... + last 6 chars", () => {
-    render(<Home />);
-    const addr = user.walletAddress;
-    const expected = `${addr.slice(0, 8)}...${addr.slice(-6)}`;
-    expect(screen.getByText(expected)).toBeInTheDocument();
-  });
-});
-
-describe("PassportHero — demo wallet address (starts with 'demo:')", () => {
-  const user = {
-    id: "user-4",
-    walletAddress: "demo:abc12345",
-    piUsername: null,
-    xp: 0,
-    tier: "Visitor" as Tier,
-    trustScore: 0,
-    createdAt: new Date().toISOString(),
-    actions: [],
-    agent: null,
-  };
-
-  beforeEach(() => {
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
-  });
-
-  it("shows walletAddress as-is in username when it does not start with 'pi:'", () => {
-    render(<Home />);
-    const matches = screen.getAllByText("demo:abc12345");
-    expect(matches.length).toBeGreaterThanOrEqual(1);
-  });
-});
-
-describe("Home page — logout buttons (PR change: logout added to Home)", () => {
-  const user = {
-    id: "user-5",
-    walletAddress: "pi:logouttest",
-    piUsername: "logoutuser",
-    xp: 50,
-    tier: "Citizen" as Tier,
-    trustScore: 5,
-    createdAt: new Date().toISOString(),
-    actions: [],
-    agent: null,
-  };
-
-  it("renders LOGOUT button in the header when user is authenticated", () => {
-    const logoutFn = jest.fn();
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user, logout: logoutFn }));
+  it("renders LOGOUT button when authenticated", () => {
     render(<Home />);
     const logoutButtons = screen.getAllByRole("button", { name: /logout/i });
     expect(logoutButtons.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("does NOT render a LOGOUT button when there is no user", () => {
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null }));
-    render(<Home />);
-    expect(screen.queryByRole("button", { name: /logout/i })).toBeNull();
-  });
-
-  it("renders DASHBOARD link in header when user is authenticated", () => {
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
+  it("renders DASHBOARD link when authenticated", () => {
     render(<Home />);
     const dashboardLinks = screen.getAllByRole("link", { name: /dashboard/i });
     expect(dashboardLinks.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("calls the logout function when the header LOGOUT button is clicked", () => {
+  it("calls logout when LOGOUT button is clicked", () => {
     const logoutFn = jest.fn();
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user, logout: logoutFn }));
     render(<Home />);
-    // header logout button is the first one
     const logoutButtons = screen.getAllByRole("button", { name: /logout/i });
     logoutButtons[0].click();
     expect(logoutFn).toHaveBeenCalledTimes(1);
   });
+});
 
-  it("calls the logout function when the body section LOGOUT button is clicked", () => {
-    const logoutFn = jest.fn();
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user, logout: logoutFn }));
-    render(<Home />);
-    // body logout is the second button (PR adds two logout buttons when user is signed in)
-    const logoutButtons = screen.getAllByRole("button", { name: /logout/i });
-    expect(logoutButtons.length).toBeGreaterThanOrEqual(2);
-    logoutButtons[1].click();
-    expect(logoutFn).toHaveBeenCalledTimes(1);
+describe("Landing page — unauthenticated user", () => {
+  beforeEach(() => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null }));
   });
 
-  it("shows CONNECT button (not LOGOUT) when there is no user", () => {
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null }));
+  it("does NOT render a LOGOUT button when there is no user", () => {
     render(<Home />);
-    expect(screen.getAllByRole("button", { name: /connect/i }).length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByRole("button", { name: /logout/i })).toBeNull();
   });
 
-  it("renders ENTER DASHBOARD link in the body section when user is authenticated", () => {
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
+  it("renders CONNECT button when there is no user", () => {
     render(<Home />);
-    const enterDashboardLinks = screen.getAllByRole("link", { name: /enter dashboard/i });
-    expect(enterDashboardLinks.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByRole("button", { name: /connect/i }).length).toBeGreaterThanOrEqual(1);
   });
 });

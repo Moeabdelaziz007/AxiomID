@@ -11,9 +11,6 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://axiomid.app';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     { url: BASE_URL, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
-    { url: `${BASE_URL}/dashboard`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
-    { url: `${BASE_URL}/dashboard/marketplace`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${BASE_URL}/dashboard/settings`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.5 },
   ];
 
   try {

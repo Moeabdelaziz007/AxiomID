@@ -98,7 +98,7 @@ const components = {
   },
   Button: ({ props, actions }: { props: { label: string; action?: string }; actions?: Record<string, () => void> }) => (
     <button 
-      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      className="px-4 py-2 rounded btn-primary text-sm"
       onClick={props.action && actions?.[props.action] ? () => actions[props.action!]() : undefined}
     >
       {props.label}

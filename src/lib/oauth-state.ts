@@ -45,7 +45,7 @@ export function verifyState(stateToken: string): string | null {
 
     const { walletAddress, expiresAt } = JSON.parse(payload);
     if (Date.now() > expiresAt) {
-      logger.warn('[OAUTH-STATE] State token expired for wallet:', walletAddress);
+      logger.warn('[OAUTH-STATE] State token expired for wallet:', walletAddress ? walletAddress.slice(0, 6) + '...' : 'unknown');
       return null;
     }
 

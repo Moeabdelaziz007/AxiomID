@@ -146,7 +146,7 @@ export default function Dashboard() {
                   Open in Pi Browser
                 </div>
               ) : (
-                <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} aria-label={isConnecting ? "Connecting" : "Connect Wallet"} className="btn-primary text-xs px-4 py-2">
+                <button type="button" onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} aria-label={isConnecting ? "Connecting" : "Connect Wallet"} className="btn-primary text-xs px-4 py-2">
                   {isConnecting ? "CONNECTING..." : "CONNECT WALLET"}
                 </button>
               )}

@@ -42,6 +42,28 @@ jest.mock("lucide-react", () => ({
   Package: () => <svg data-testid="icon-package" />,
 }));
 
+// jsdom does not implement HTMLDialogElement.showModal / .close
+beforeAll(() => {
+  if (!HTMLDialogElement.prototype.showModal) {
+    HTMLDialogElement.prototype.showModal = function () {
+      this.setAttribute("open", "");
+    };
+  }
+  if (!HTMLDialogElement.prototype.close) {
+    HTMLDialogElement.prototype.close = function () {
+      this.removeAttribute("open");
+    };
+  }
+});
+
+// Mock AbortController if not available in jsdom
+if (typeof globalThis.AbortController === "undefined") {
+  (globalThis as any).AbortController = class {
+    signal = { aborted: false };
+    abort() { this.signal.aborted = true; }
+  };
+}
+
 const mockSkill = {
   id: "skill-1",
   slug: "test-skill",

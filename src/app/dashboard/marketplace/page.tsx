@@ -46,11 +46,6 @@ const TIER_LABELS: Record<string, string> = {
   SOVEREIGN: "Sovereign",
 };
 
-/**
- * Renders the AI skill marketplace with browsing, filtering, detail viewing, and installation features.
- *
- * Users can search and filter published skills by tier, click to view details in a modal, and install selected skills. The component also provides a publish mode to add new skills to the marketplace.
- */
 export default function MarketplacePage() {
   const { user, connectWallet, isConnecting } = useWallet();
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -112,28 +107,23 @@ export default function MarketplacePage() {
 
   const dialogRef = useRef<HTMLDialogElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
-  const detailAbortRef = useRef<AbortController | null>(null);
+  const fetchAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
-    const shouldBeOpen = !!selectedSkill || detailLoading;
-    if (shouldBeOpen) {
-      if (!dialog.open) {
-        dialog.showModal();
-      }
-    } else {
-      if (dialog.open) {
-        dialog.close();
-      }
+    if (selectedSkill && !dialog.open) {
+      dialog.showModal();
+    } else if (!selectedSkill && dialog.open) {
+      dialog.close();
     }
-  }, [selectedSkill, detailLoading]);
+  }, [selectedSkill]);
 
   const openDetail = async (slug: string) => {
     previousFocusRef.current = document.activeElement as HTMLElement;
-    detailAbortRef.current?.abort();
+    fetchAbortRef.current?.abort();
     const controller = new AbortController();
-    detailAbortRef.current = controller;
+    fetchAbortRef.current = controller;
     setDetailLoading(true);
     try {
       const res = await fetch(`/api/skills/${slug}`, { signal: controller.signal });
@@ -144,20 +134,15 @@ export default function MarketplacePage() {
       const data = await res.json();
       setSelectedSkill(data);
     } catch (err) {
-      if ((err as Error).name === "AbortError") return;
+      if (err instanceof DOMException && err.name === "AbortError") return;
       setError("Failed to load skill details");
     } finally {
-      if (detailAbortRef.current === controller) {
-        setDetailLoading(false);
-        detailAbortRef.current = null;
-      }
+      setDetailLoading(false);
     }
   };
 
   const closeModal = useCallback(() => {
-    detailAbortRef.current?.abort();
-    detailAbortRef.current = null;
-    setDetailLoading(false);
+    fetchAbortRef.current?.abort();
     setSelectedSkill(null);
     previousFocusRef.current?.focus();
   }, []);

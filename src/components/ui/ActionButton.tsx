@@ -43,13 +43,14 @@ export function ActionButton({
       type={type}
       disabled={disabled || isLoading}
       aria-busy={isLoading}
+      aria-label={(isLoading && loadingText) ? loadingText : (props["aria-label"] as string) || undefined}
       className={`${variantClasses[variant]} ${sizeClasses[size]} flex items-center justify-center gap-2 ${className}`}
       {...props}
     >
       {isLoading ? (
         <>
           <LoadingSpinner size="sm" />
-          <span>{loadingText ?? children}</span>
+          {loadingText ? <span>{loadingText}</span> : children ? <span>{children}</span> : null}
         </>
       ) : (
         children
