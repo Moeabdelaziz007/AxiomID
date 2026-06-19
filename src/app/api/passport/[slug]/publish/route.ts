@@ -19,7 +19,7 @@ const AGENT_SELECT = {
   },
 };
 
-function getKyaStatus(stamps: any[] | undefined): string {
+function getKyaStatus(stamps: { type: string; provider: string }[] | undefined): string {
   if (!stamps || stamps.length === 0) return "pending";
   const hasIdentityStamp = stamps.some(
     (s) => s.type === "verify_identity" || s.provider === "pi"
