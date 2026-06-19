@@ -112,3 +112,96 @@ describe('translations — new keys added in this PR', () => {
     });
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PR change: Added "marketplace" and "sandbox" keys to both EN and AR
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('translations — marketplace and sandbox keys (PR change)', () => {
+  describe('English (en)', () => {
+    it('has marketplace key', () => {
+      expect((translations.en as Record<string, string>)['marketplace']).toBeDefined();
+      expect(typeof (translations.en as Record<string, string>)['marketplace']).toBe('string');
+    });
+
+    it('marketplace key has correct English value', () => {
+      expect((translations.en as Record<string, string>)['marketplace']).toBe('Marketplace');
+    });
+
+    it('has sandbox key', () => {
+      expect((translations.en as Record<string, string>)['sandbox']).toBeDefined();
+      expect(typeof (translations.en as Record<string, string>)['sandbox']).toBe('string');
+    });
+
+    it('sandbox key has correct English value', () => {
+      expect((translations.en as Record<string, string>)['sandbox']).toBe('Sandbox');
+    });
+
+    it('marketplace key is a non-empty string', () => {
+      const val = (translations.en as Record<string, string>)['marketplace'];
+      expect(val.length).toBeGreaterThan(0);
+    });
+
+    it('sandbox key is a non-empty string', () => {
+      const val = (translations.en as Record<string, string>)['sandbox'];
+      expect(val.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Arabic (ar)', () => {
+    it('has marketplace key', () => {
+      expect((translations.ar as Record<string, string>)['marketplace']).toBeDefined();
+      expect(typeof (translations.ar as Record<string, string>)['marketplace']).toBe('string');
+    });
+
+    it('marketplace key has correct Arabic value', () => {
+      expect((translations.ar as Record<string, string>)['marketplace']).toBe('سوق المهارات');
+    });
+
+    it('has sandbox key', () => {
+      expect((translations.ar as Record<string, string>)['sandbox']).toBeDefined();
+      expect(typeof (translations.ar as Record<string, string>)['sandbox']).toBe('string');
+    });
+
+    it('sandbox key has correct Arabic value', () => {
+      expect((translations.ar as Record<string, string>)['sandbox']).toBe('بيئة الاختبار');
+    });
+
+    it('marketplace key is a non-empty string', () => {
+      const val = (translations.ar as Record<string, string>)['marketplace'];
+      expect(val.length).toBeGreaterThan(0);
+    });
+
+    it('sandbox key is a non-empty string', () => {
+      const val = (translations.ar as Record<string, string>)['sandbox'];
+      expect(val.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('key parity — EN and AR have both new keys (PR change)', () => {
+    const newNavKeys = ['marketplace', 'sandbox'];
+
+    newNavKeys.forEach((key) => {
+      it(`both EN and AR have "${key}"`, () => {
+        expect((translations.en as Record<string, string>)[key]).toBeDefined();
+        expect((translations.ar as Record<string, string>)[key]).toBeDefined();
+      });
+
+      it(`EN and AR "${key}" values are different (actually translated)`, () => {
+        const en = (translations.en as Record<string, string>)[key];
+        const ar = (translations.ar as Record<string, string>)[key];
+        expect(en).not.toBe(ar);
+      });
+    });
+  });
+
+  describe('regression — sandbox and marketplace do not overwrite skills_marketplace (PR change)', () => {
+    it('skills_marketplace EN key is unchanged', () => {
+      expect((translations.en as Record<string, string>)['skills_marketplace']).toBe('Skills Marketplace');
+    });
+
+    it('skills_marketplace AR key is unchanged', () => {
+      expect((translations.ar as Record<string, string>)['skills_marketplace']).toBe('سوق المهارات');
+    });
+  });
+});
