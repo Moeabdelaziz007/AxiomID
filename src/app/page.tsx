@@ -81,9 +81,9 @@ export default function Home() {
                 <path d="M40 64 H60 L58 68 H42 Z" fill="#39FF14" />
                 <defs>
                   <linearGradient id="logoGrad" x1="0" y1="0" x2="100" y2="100">
-                    <stop offset="0%" stop-color="#39FF14"/>
-                    <stop offset="50%" stop-color="#00d4ff"/>
-                    <stop offset="100%" stop-color="#a855f7"/>
+                    <stop offset="0%" stopColor="#39FF14"/>
+                    <stop offset="50%" stopColor="#00d4ff"/>
+                    <stop offset="100%" stopColor="#a855f7"/>
                   </linearGradient>
                 </defs>
               </svg>
