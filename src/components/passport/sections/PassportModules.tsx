@@ -14,7 +14,7 @@ export function PassportModules({ activeModules }: PassportModulesProps) {
     <div className="rounded-xl p-4 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--card-border)' }}>
       <div className="flex items-center justify-between mb-3">
         <span className="text-[10px] tracking-wider font-mono text-neon-green"><Zap className="w-3 h-3 inline me-1" /> SYSTEM MODULES</span>
-        <span className="text-[9px] font-mono text-gray-500">ACTIVE: {activeCount}/{totalSlots}</span>
+        <span className="text-[9px] font-mono text-faint">ACTIVE: {activeCount}/{totalSlots}</span>
       </div>
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 text-center font-mono text-[9px]">
         {MODULE_SLOTS.map((slot) => {
@@ -22,14 +22,14 @@ export function PassportModules({ activeModules }: PassportModulesProps) {
           return isActive ? (
             <div key={slot.key} className="relative rounded-lg p-2 border border-neon-green/30 bg-neon-green/5 flex flex-col items-center justify-center gap-1">
               {slot.icon}
-              <span className="text-[8px] text-white">{slot.label}</span>
+              <span className="text-[8px] text-surface">{slot.label}</span>
               <span className="text-[7px] text-neon-green bg-neon-green/10 px-1 rounded">ON</span>
             </div>
           ) : (
             <div key={slot.key} className="relative rounded-lg p-2 border border-dashed border-gray-600 bg-black/40 flex flex-col items-center justify-center gap-1 opacity-60">
-              <span className="text-gray-500 text-xs"><Eye className="w-3 h-3" /></span>
-              <span className="text-[8px] text-gray-400">{slot.label}</span>
-              <span className="text-[7px] text-gray-500 bg-gray-800 px-1 rounded">SLOT</span>
+              <span className="text-faint text-xs"><Eye className="w-3 h-3" /></span>
+              <span className="text-[8px] text-subtle">{slot.label}</span>
+              <span className="text-[7px] text-faint bg-gray-800 px-1 rounded">SLOT</span>
             </div>
           );
         })}

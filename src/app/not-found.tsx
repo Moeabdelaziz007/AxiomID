@@ -16,15 +16,15 @@ export default function NotFound() {
 
         {/* Message */}
         <div className="flex flex-col gap-2">
-          <h1 className="text-xl font-bold text-white">Page Not Found</h1>
-          <p className="text-sm text-gray-400 max-w-md">
+          <h1 className="text-xl font-bold text-surface">Page Not Found</h1>
+          <p className="text-sm text-subtle max-w-md">
             This route does not exist in the AxiomID namespace. 
             The identity layer you&apos;re looking for has not been provisioned.
           </p>
         </div>
 
         {/* DID-style error */}
-        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 font-mono text-[10px] text-gray-500">
+        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 font-mono text-[10px] text-faint">
           <span className="text-neon-green">ERROR</span>: did:axiom:not-found:404
         </div>
 
@@ -40,7 +40,7 @@ export default function NotFound() {
       </div>
 
       {/* Footer */}
-      <footer className="absolute bottom-6 text-[9px] font-mono text-gray-600">
+      <footer className="absolute bottom-6 text-[9px] font-mono text-faint">
         &copy; 2026 AxiomID
       </footer>
     </main>

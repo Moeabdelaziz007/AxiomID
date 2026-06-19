@@ -74,22 +74,24 @@ export function StampCard({
 
   return (
     <div className={`bento-card p-5 relative flex flex-col justify-between min-h-[160px] border transition-all duration-300 ${
-      isConnected ? "border-neon-green/30 bg-neon-green/[0.02] animate-stamp-unlock" : "border-white/5"
+      isConnected
+        ? "border-neon-green/30 bg-neon-green/[0.02] animate-stamp-unlock stamp-earned"
+        : "border-white/5 stamp-pending"
     }`}>
       <XPBurst xp={xp} trigger={triggerXP} />
 
       <div className="flex justify-between items-start">
         <div className="flex gap-3">
-          <span className="text-3xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">{icon}</span>
+          <span className={`text-3xl ${isConnected ? "stamp-icon" : "opacity-70"}`}>{icon}</span>
           <div>
-            <h4 className="text-sm font-bold text-white font-mono">{label}</h4>
+            <h4 className="text-sm font-bold text-surface font-mono">{label}</h4>
             {isConnected ? (
               <p className="text-[10px] text-neon-green font-mono mt-1 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />
                 {displayHandle}
               </p>
             ) : (
-              <p className="text-[10px] text-gray-500 font-mono mt-1">
+              <p className="text-[10px] text-faint font-mono mt-1">
                 {t('reward_label')} <span className="text-neon-green">+{xp} XP</span>
               </p>
             )}
@@ -99,7 +101,7 @@ export function StampCard({
         <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full ${
           isConnected
             ? "bg-neon-green/10 text-neon-green border border-neon-green/20"
-            : "bg-white/5 text-gray-400 border border-white/5"
+            : "bg-white/5 text-subtle border border-white/5"
         }`}>
           {isConnected ? t('claimed') : `+${xp} XP`}
         </span>
@@ -124,12 +126,13 @@ export function StampCard({
               value={handle}
               onChange={(e) => setHandle(e.target.value)}
               placeholder={type === "connect_google" ? t('placeholder_email') : t('placeholder_username')}
-              className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
+              className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-surface placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
             />
             <div className="flex gap-1.5">
               <button
                 type="submit"
                 disabled={submitting}
+                aria-busy={submitting}
                 className="flex-1 btn-primary py-1.5 text-[9px]"
               >
                 {submitting ? t('claiming') : t('submit')}
@@ -153,6 +156,8 @@ export function StampCard({
               }
             }}
             disabled={submitting}
+            aria-busy={submitting}
+            aria-label={submitting ? t('claiming') : isAutomatic ? t('claim_stamp') : t('connect_profile')}
             className="w-full btn-primary text-[10px] min-h-[44px] py-2"
           >
             {submitting ? t('claiming') : isAutomatic ? t('claim_stamp') : t('connect_profile')}

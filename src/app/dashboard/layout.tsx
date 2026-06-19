@@ -29,7 +29,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
               <Link href="/" className="flex items-center gap-2 shrink-0">
                 <span className="text-lg sm:text-xl font-bold text-neon-green font-mono">AXIOM</span>
-                <span className="text-lg sm:text-xl font-bold text-white font-mono">ID</span>
+                <span className="text-lg sm:text-xl font-bold text-surface font-mono">ID</span>
               </Link>
               <div className="w-px h-6 bg-white/10 hidden sm:block" />
               <div className="min-w-0">
@@ -49,7 +49,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-mono transition-all ${
                     pathname === href
                       ? "text-neon-green bg-neon-green/10"
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                      : "text-subtle hover:text-surface hover:bg-white/5"
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -79,7 +79,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[10px] font-mono transition-all ${
                 pathname === href
                   ? "text-neon-green"
-                  : "text-gray-500 hover:text-gray-300"
+                  : "text-faint hover:text-subtle"
               }`}
             >
               <Icon className="w-4 h-4" />

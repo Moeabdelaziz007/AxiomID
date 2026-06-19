@@ -12,7 +12,7 @@ export default function Terms() {
             <span className="text-neon-green font-bold text-sm">A</span>
           </div>
           <span className="font-mono text-lg tracking-tighter">
-            AXIOM<span className="text-gray-600">ID</span>
+            AXIOM<span className="text-faint">ID</span>
           </span>
         </Link>
         <Link
@@ -30,19 +30,19 @@ export default function Terms() {
             <span className="px-3 py-1 rounded-full text-[10px] font-mono bg-neon-green/10 text-neon-green border border-neon-green/20">
               LEGAL
             </span>
-            <span className="text-xs font-mono text-gray-500">Last updated: May 17, 2026</span>
+            <span className="text-xs font-mono text-faint">Last updated: May 17, 2026</span>
           </div>
 
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
             Terms of <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-electric-blue">Service</span>
           </h1>
-          <p className="text-gray-400 text-sm mb-8 font-mono">
+          <p className="text-subtle text-sm mb-8 font-mono">
             By using AxiomID, you agree to these terms.
           </p>
 
-          <div className="space-y-6 text-gray-300 text-sm leading-relaxed">
+          <div className="space-y-6 text-subtle text-sm leading-relaxed">
             <section>
-              <h2 className="text-white text-lg font-semibold mb-2 flex items-center gap-2">
+              <h2 className="text-surface text-lg font-semibold mb-2 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
                 Use of Service
               </h2>
@@ -52,7 +52,7 @@ export default function Terms() {
             </section>
 
             <section>
-              <h2 className="text-white text-lg font-semibold mb-2 flex items-center gap-2">
+              <h2 className="text-surface text-lg font-semibold mb-2 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-electric-blue" />
                 Wallet Connection
               </h2>
@@ -62,7 +62,7 @@ export default function Terms() {
             </section>
 
             <section>
-              <h2 className="text-white text-lg font-semibold mb-2 flex items-center gap-2">
+              <h2 className="text-surface text-lg font-semibold mb-2 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-axiom-purple" />
                 AI Agent Verification
               </h2>
@@ -72,17 +72,17 @@ export default function Terms() {
             </section>
 
             <section>
-              <h2 className="text-white text-lg font-semibold mb-2 flex items-center gap-2">
+              <h2 className="text-surface text-lg font-semibold mb-2 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
                 Limitation of Liability
               </h2>
               <p>
-                The App is provided <strong className="text-gray-400">&quot;as is&quot;</strong> without warranties of any kind, either express or implied. We are not liable for any damages arising from the use or inability to use the service, including but not limited to loss of reputation score, agent data, or Pi transactions.
+                The App is provided <strong className="text-subtle">&quot;as is&quot;</strong> without warranties of any kind, either express or implied. We are not liable for any damages arising from the use or inability to use the service, including but not limited to loss of reputation score, agent data, or Pi transactions.
               </p>
             </section>
 
             <section>
-              <h2 className="text-white text-lg font-semibold mb-2 flex items-center gap-2">
+              <h2 className="text-surface text-lg font-semibold mb-2 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
                 Changes to Terms
               </h2>
@@ -95,7 +95,7 @@ export default function Terms() {
 
         {/* Footer */}
         <div className="mt-8 text-center">
-          <p className="text-xs font-mono text-gray-600">
+          <p className="text-xs font-mono text-faint">
             &copy; 2026 AxiomID — Built on Pi Network
           </p>
         </div>

@@ -101,6 +101,7 @@ export function PiPaymentButton({
         whileTap={{ scale: disabled || isLoading ? 1 : 0.98 }}
         onClick={handlePayment}
         disabled={disabled || isLoading}
+        aria-busy={isLoading}
         className="btn-primary w-full flex items-center justify-center gap-2"
       >
         {isLoading ? (

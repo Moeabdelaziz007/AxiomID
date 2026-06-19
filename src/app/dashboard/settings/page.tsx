@@ -357,19 +357,19 @@ export default function SettingsPage() {
         closedby="any"
         onClick={handleDialogBackdropClick}
         aria-labelledby="connect-dialog-title"
-        className="bento-card max-w-md w-full bg-black/90 border border-white/15 backdrop-blur-xl text-white rounded-2xl p-0"
+        className="bento-card max-w-md w-full bg-black/90 border border-white/15 backdrop-blur-xl text-surface rounded-2xl p-0"
       >
         <div className="p-6">
           <h3 id="connect-dialog-title" className="text-lg font-bold mb-2 flex items-center gap-2">
             {t('settings_link_profile').replace('{platform}', (activePlatform || "Account").toUpperCase())}
           </h3>
-          <p className="text-xs text-gray-400 font-mono mb-4">
+          <p className="text-xs text-subtle font-mono mb-4">
             {t('settings_link_desc')}
           </p>
 
           <form onSubmit={handleConnectSubmit} className="space-y-4">
             <div className="space-y-1">
-              <label htmlFor="handle-input" className="text-xs text-gray-400 font-mono">
+              <label htmlFor="handle-input" className="text-xs text-subtle font-mono">
                 {activePlatform === "google" ? t('settings_link_email_label') : t('settings_link_handle_label')}
               </label>
               <input
@@ -379,7 +379,7 @@ export default function SettingsPage() {
                 placeholder={activePlatform === "google" ? t('settings_link_email_placeholder') : t('settings_link_placeholder')}
                 value={handleInput}
                 onChange={(e) => setHandleInput(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-neon-green outline-none font-mono"
+                className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-surface focus:border-neon-green outline-none font-mono"
               />
             </div>
 
@@ -409,13 +409,13 @@ export default function SettingsPage() {
         closedby="any"
         onClick={handleDialogBackdropClick}
         aria-labelledby="vc-dialog-title"
-        className="bento-card max-w-xl w-full bg-black/95 border border-white/15 backdrop-blur-2xl text-white rounded-2xl p-0"
+        className="bento-card max-w-xl w-full bg-black/95 border border-white/15 backdrop-blur-2xl text-surface rounded-2xl p-0"
       >
         <div className="p-6">
           <h3 id="vc-dialog-title" className="text-lg font-bold mb-1 flex items-center gap-2">
             {t('settings_vc_title')}
           </h3>
-          <p className="text-xs text-gray-400 font-mono mb-4">
+          <p className="text-xs text-subtle font-mono mb-4">
             {t('settings_vc_desc')}
           </p>
 

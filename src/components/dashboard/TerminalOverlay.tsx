@@ -73,7 +73,7 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
       <div ref={scrollRef} className="overflow-y-auto flex-1 p-4 font-mono text-[11px] leading-relaxed">
         {logs.map((line, i) => (
           <div key={`init-${i}`} className="flex items-start gap-2">
-            <span className="text-gray-600 select-none shrink-0">{'>'}</span>
+            <span className="text-faint select-none shrink-0">{'>'}</span>
             <span style={{ color: "var(--text-muted)" }}>{line}</span>
           </div>
         ))}

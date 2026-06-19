@@ -98,7 +98,7 @@ const components = {
   },
   Button: ({ props, actions }: { props: { label: string; action?: string }; actions?: Record<string, () => void> }) => (
     <button 
-      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      className="px-4 py-2 bg-blue-500 text-surface rounded hover:bg-blue-600"
       onClick={props.action && actions?.[props.action] ? () => actions[props.action!]() : undefined}
     >
       {props.label}
@@ -106,7 +106,7 @@ const components = {
   ),
   Metric: ({ props }: { props: { label: string; value: string } }) => (
     <div className="p-2">
-      <div className="text-sm text-gray-500">{props.label}</div>
+      <div className="text-sm text-faint">{props.label}</div>
       <div className="text-lg font-bold">{props.value}</div>
     </div>
   ),

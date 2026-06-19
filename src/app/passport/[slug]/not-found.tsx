@@ -19,8 +19,8 @@ export default function PassportNotFound() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-4">{t('passport_not_found')}</h1>
-          <p className="text-gray-400 mb-8">
+          <h1 className="text-3xl font-bold text-surface mb-4">{t('passport_not_found')}</h1>
+          <p className="text-subtle mb-8">
             {t('passport_not_found_description')}
           </p>
           <Link href="/" className="btn-primary text-xs">

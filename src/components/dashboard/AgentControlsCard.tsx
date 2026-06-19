@@ -90,6 +90,8 @@ export function AgentControlsCard({
           <button
             onClick={handleActivate}
             disabled={loading}
+            aria-busy={loading}
+            aria-label={loading ? t('agent_activating') : t('agent_activate')}
             className="btn-primary text-sm px-5 py-2.5 flex items-center gap-2 flex-1 justify-center"
           >
             <Play className="w-4 h-4" />
@@ -100,6 +102,8 @@ export function AgentControlsCard({
           <button
             onClick={handlePause}
             disabled={loading}
+            aria-busy={loading}
+            aria-label={loading ? t('agent_pausing') : t('agent_pause')}
             className="text-sm px-5 py-2.5 flex items-center gap-2 rounded-lg border flex-1 justify-center"
             style={{ borderColor: 'var(--card-border)', color: 'var(--text-secondary)' }}
           >

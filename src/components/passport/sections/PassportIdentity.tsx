@@ -32,7 +32,7 @@ export function PassportIdentity({
         <h3 className="text-lg font-bold font-mono" style={{ color: 'var(--text-primary)' }}>{username}</h3>
         <div className="flex items-center justify-center gap-2 mt-1">
           <p className="text-[10px] font-mono break-all" style={{ color: 'var(--text-muted)' }}>{did}</p>
-          <button type="button" onClick={() => copyToClipboard(did)} className="hover:text-white" style={{ color: 'var(--text-muted)' }} aria-label="Copy DID"><Copy className="w-3.5 h-3.5" /></button>
+          <button type="button" onClick={() => copyToClipboard(did)} className="hover:text-surface" style={{ color: 'var(--text-muted)' }} aria-label="Copy DID"><Copy className="w-3.5 h-3.5" /></button>
         </div>
       </div>
 
@@ -41,7 +41,7 @@ export function PassportIdentity({
         <span className="text-[9px] font-mono block" style={{ color: 'var(--text-muted)' }}>{t('label_wallet')}</span>
         <div className="flex items-center justify-between">
           <span className="text-[11px] text-neon-green font-mono">{shortAddress}</span>
-          {displayAddress && <button type="button" onClick={() => copyToClipboard(displayAddress)} className="hover:text-white" style={{ color: 'var(--text-muted)' }} aria-label="Copy Wallet Address"><Copy className="w-3.5 h-3.5" /></button>}
+          {displayAddress && <button type="button" onClick={() => copyToClipboard(displayAddress)} className="hover:text-surface" style={{ color: 'var(--text-muted)' }} aria-label="Copy Wallet Address"><Copy className="w-3.5 h-3.5" /></button>}
         </div>
       </div>
 

@@ -215,7 +215,7 @@ export default function MarketplacePage() {
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder="Search skills... (agent-memory, voice-wizard, sovereign-constitution)"
-                className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
+                className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-surface placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
               />
               <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by tier">
                 {["", "BASIC_TOOL", "ADVANCED_TOOL", "ADVANCED_INFRASTRUCTURE", "PRO", "SOVEREIGN"].map((tier) => (
@@ -225,7 +225,7 @@ export default function MarketplacePage() {
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-mono border transition-colors ${
                       filterTier === tier
                         ? "bg-neon-green/10 text-neon-green border-neon-green/30"
-                        : "bg-white/5 text-gray-500 border-white/10 hover:border-white/20"
+                        : "bg-white/5 text-faint border-white/10 hover:border-white/20"
                     }`}
                   >
                     {tier ? TIER_LABELS[tier] || tier : "ALL"}
@@ -274,8 +274,8 @@ export default function MarketplacePage() {
             ) : skills.length === 0 ? (
               <div className="bento-card p-12 text-center">
                 <span className="mb-4 block"><Dna className="w-12 h-12 text-emerald-400/40 mx-auto" /></span>
-                <h3 className="text-lg font-bold text-white mb-2">No Skills Available</h3>
-                <p className="text-sm text-gray-400 mb-6">
+                <h3 className="text-lg font-bold text-surface mb-2">No Skills Available</h3>
+                <p className="text-sm text-subtle mb-6">
                   Publish the first skill to the marketplace.
                 </p>
                 <button onClick={() => setShowPublish(true)} className="btn-primary">
@@ -294,7 +294,7 @@ export default function MarketplacePage() {
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-bold text-white font-mono truncate group-hover:text-neon-green transition-colors">
+                          <h4 className="text-sm font-bold text-surface font-mono truncate group-hover:text-neon-green transition-colors">
                             {skill.name}
                           </h4>
                           <p className="text-[10px] font-mono mt-0.5" style={{ color: tierColor }}>
@@ -313,7 +313,7 @@ export default function MarketplacePage() {
                         </span>
                       </div>
 
-                      <p className="text-xs text-gray-400 line-clamp-2 mb-4 min-h-[32px]">
+                      <p className="text-xs text-subtle line-clamp-2 mb-4 min-h-[32px]">
                         {skill.description || "No description"}
                       </p>
 
@@ -374,20 +374,20 @@ export default function MarketplacePage() {
               <>
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h2 className="text-xl font-bold text-white font-mono">{selectedSkill.name}</h2>
+                    <h2 className="text-xl font-bold text-surface font-mono">{selectedSkill.name}</h2>
                     <p className="text-xs font-mono mt-1" style={{ color: TIER_COLORS[selectedSkill.tier] }}>
                       {selectedSkill.slug} v{selectedSkill.version} — {TIER_LABELS[selectedSkill.tier] || selectedSkill.tier}
                     </p>
                   </div>
                   <button
                     onClick={closeModal}
-                    className="text-gray-500 hover:text-white text-xs font-mono px-2 py-0.5 border border-white/5 rounded"
+                    className="text-faint hover:text-surface text-xs font-mono px-2 py-0.5 border border-white/5 rounded"
                   >
                     CLOSE
                   </button>
                 </div>
 
-                <p className="text-sm text-gray-300 mb-4">{selectedSkill.description}</p>
+                <p className="text-sm text-subtle mb-4">{selectedSkill.description}</p>
 
                 <div className="flex items-center gap-4 text-[10px] font-mono mb-6">
                   <span className="text-neon-green"><Download className="w-3 h-3 inline me-1" />{selectedSkill.installCount} installs</span>
@@ -433,6 +433,8 @@ export default function MarketplacePage() {
                   <button
                     onClick={() => handleInstall(selectedSkill.slug)}
                     disabled={installing || isConnecting}
+                    aria-busy={installing}
+                    aria-label={installing ? "Installing" : isConnecting ? "Connecting" : "Install Skill"}
                     className="flex-1 btn-primary py-2.5 text-xs font-mono"
                   >
                     {installing ? "INSTALLING..." : isConnecting ? "CONNECTING..." : !user ? "CONNECT WALLET TO INSTALL" : "INSTALL SKILL → AGENT"}

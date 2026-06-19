@@ -198,7 +198,7 @@ export default function Home() {
               </button>
             </div>
           ) : (
-            <button onClick={connectWallet} disabled={isConnecting} className="btn-primary text-xs px-3 sm:px-4 py-2">
+            <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} aria-label={isConnecting ? t("connecting") : t("connect")} className="btn-primary text-xs px-3 sm:px-4 py-2">
               {isConnecting ? t("connecting") : t("connect")}
             </button>
           )}
@@ -208,7 +208,8 @@ export default function Home() {
       {/* Hero Section */}
       <div className="w-full max-w-6xl px-4 sm:px-6 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center mt-4 md:mt-12 z-10">
         {/* Left: Text */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 relative">
+          <div className="absolute -top-20 -left-20 w-[500px] h-[500px] spotlight-primary rounded-full pointer-events-none" />
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -280,7 +281,7 @@ export default function Home() {
           >
             {!user ? (
               <div className="flex flex-col sm:flex-row gap-3 mt-1">
-                <button onClick={connectWallet} disabled={isConnecting} className="btn-primary flex items-center gap-3 w-fit group">
+                <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} aria-label={isConnecting ? t("connecting") : t("connect_wallet")} className="btn-primary flex items-center gap-3 w-fit group">
                   {isConnecting ? (
                     <><span className="animate-spin">⟳</span> {t("connecting")}</>
                   ) : (
@@ -334,7 +335,8 @@ export default function Home() {
           <div className="animate-float">
             <PassportHero user={user} />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-tr from-neon-green/5 to-electric-blue/5 blur-3xl rounded-full scale-150 pointer-events-none animate-pulse-slow" />
+          <div className="absolute inset-0 spotlight-card rounded-full scale-[1.8] pointer-events-none" />
+          <div className="absolute -inset-4 bg-gradient-to-tr from-neon-green/[0.03] to-electric-blue/[0.03] blur-2xl rounded-full scale-[2.2] pointer-events-none animate-pulse-slow" />
         </motion.div>
       </div>
 
@@ -446,7 +448,7 @@ export default function Home() {
                 <AlertTriangle className="w-4 h-4 text-red-400" />
                 <h3 className="text-base font-bold text-red-400 font-mono">{language === "en" ? "Traditional Identity (Web2)" : "الهوية التقليدية (Web2)"}</h3>
               </div>
-              <ul className="space-y-3.5 text-xs text-gray-400 font-mono">
+              <ul className="space-y-3.5 text-xs text-subtle font-mono">
                 {[
                   language === "en" ? "Siloed data: Your profiles are owned by third-party platforms." : "بيانات معزولة: ملفاتك الشخصية مملوكة لمنصات خارجية.",
                   language === "en" ? "High friction: Repeated manual KYC checks for every app." : "خطوات معقدة: فحوصات KYC متكررة لكل تطبيق.",
@@ -460,7 +462,7 @@ export default function Home() {
                 ))}
               </ul>
             </div>
-            <div className="border-t border-white/5 pt-4 mt-6 text-[10px] text-gray-500 font-mono">
+            <div className="border-t border-white/5 pt-4 mt-6 text-[10px] text-faint font-mono">
               {language === "en" ? "Result: Fragile security, high friction, no agent trust." : "النتيجة: أمان هش، خطوات معقدة، غياب للثقة."}
             </div>
           </motion.div>
@@ -544,10 +546,10 @@ export default function Home() {
       >
         <div>&copy; 2026 AxiomID. All rights reserved.</div>
         <div className="flex gap-4">
-          <Link href="/status" className="hover:text-white transition-colors">{t("nav_status")}</Link>
-          <Link href="/privacy" className="hover:text-white transition-colors">{t("nav_privacy")}</Link>
-          <Link href="/terms" className="hover:text-white transition-colors">{t("nav_terms")}</Link>
-          <span className="text-gray-600">1.0.0</span>
+          <Link href="/status" className="hover:text-surface transition-colors">{t("nav_status")}</Link>
+          <Link href="/privacy" className="hover:text-surface transition-colors">{t("nav_privacy")}</Link>
+          <Link href="/terms" className="hover:text-surface transition-colors">{t("nav_terms")}</Link>
+          <span className="text-faint">1.0.0</span>
         </div>
       </motion.footer>
     </main>
@@ -564,7 +566,7 @@ function SectionHeader({ label, title, labelColor }: { label: string; title: str
       className="text-center mb-10 sm:mb-12"
     >
       <span className={`text-[10px] font-mono ${labelColor} tracking-widest uppercase`}>{label}</span>
-      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mt-2">{title}</h2>
+      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-surface mt-2">{title}</h2>
     </motion.div>
   );
 }

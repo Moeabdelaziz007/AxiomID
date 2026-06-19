@@ -80,10 +80,10 @@ export function OnboardingModal({
       >
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h3 id="onboarding-title" className="text-xl font-bold text-white font-mono">AGENT ONBOARDING</h3>
-            <p className="text-xs text-gray-400 font-mono mt-1">Step {step} of 3</p>
+            <h3 id="onboarding-title" className="text-xl font-bold text-surface font-mono">AGENT ONBOARDING</h3>
+            <p className="text-xs text-subtle font-mono mt-1">Step {step} of 3</p>
           </div>
-          <button onClick={onSkip} className="text-gray-500 hover:text-white text-xs font-mono border border-white/5 hover:border-white/10 px-2.5 py-1 rounded">
+          <button onClick={onSkip} className="text-faint hover:text-surface text-xs font-mono border border-white/5 hover:border-white/10 px-2.5 py-1 rounded">
             SKIP
           </button>
         </div>
@@ -98,8 +98,8 @@ export function OnboardingModal({
           {step === 1 && (
             <div className="space-y-4">
               <div className="text-center py-4 text-4xl animate-float"><Fingerprint className="w-10 h-10 mx-auto text-neon-green" /></div>
-              <h4 className="text-base font-semibold text-white text-center">Connect Your Pi Wallet</h4>
-              <p className="text-xs text-gray-400 text-center leading-relaxed">
+              <h4 className="text-base font-semibold text-surface text-center">Connect Your Pi Wallet</h4>
+              <p className="text-xs text-subtle text-center leading-relaxed">
                 Link your secure Pi cryptographic identity to anchor your autonomous agent.
               </p>
               {shouldShowPiBrowserPrompt && (
@@ -118,8 +118,8 @@ export function OnboardingModal({
           {step === 2 && (
             <div className="space-y-4">
               <div className="text-center py-4 text-4xl animate-float"><Bot className="w-10 h-10 mx-auto text-axiom-purple" /></div>
-              <h4 className="text-base font-semibold text-white text-center">Create Autonomous Agent</h4>
-              <p className="text-xs text-gray-400 text-center leading-relaxed font-mono">
+              <h4 className="text-base font-semibold text-surface text-center">Create Autonomous Agent</h4>
+              <p className="text-xs text-subtle text-center leading-relaxed font-mono">
                 Define the name for your autonomous gRPC agent.
               </p>
               <div className="space-y-3 pt-2">
@@ -130,7 +130,7 @@ export function OnboardingModal({
                   value={agentName}
                   onChange={(e) => setAgentName(e.target.value)}
                   placeholder="Agent name (optional)"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-surface placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
                 />
                 <button onClick={() => onCreateAgent(agentName)} disabled={agentLoading} className="btn-primary w-full py-3 text-xs tracking-wider">
                   {agentLoading ? "CREATING AGENT..." : "CREATE AGENT"}
@@ -142,18 +142,18 @@ export function OnboardingModal({
           {step === 3 && (
             <div className="space-y-4">
               <div className="text-center py-4 text-4xl animate-float"><Zap className="w-10 h-10 mx-auto text-electric-blue" /></div>
-              <h4 className="text-base font-semibold text-white text-center">Your Passport is Ready!</h4>
-              <p className="text-xs text-gray-400 text-center leading-relaxed">
+              <h4 className="text-base font-semibold text-surface text-center">Your Passport is Ready!</h4>
+              <p className="text-xs text-subtle text-center leading-relaxed">
                 Your agent identity passport has been successfully anchored.
               </p>
               {user && (
                 <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl text-xs space-y-2 font-mono">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Agent:</span>
+                    <span className="text-faint">Agent:</span>
                     <span className="text-neon-green">{user.agent?.name || "AxiomBot"}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">DID:</span>
+                    <span className="text-faint">DID:</span>
                     <span className="text-electric-blue">{createUserDid(user.id).slice(0, 32)}...</span>
                   </div>
                 </div>

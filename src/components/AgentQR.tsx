@@ -30,7 +30,7 @@ export function AgentQR({ did, size = 160 }: AgentQRProps) {
           includeMargin={false}
         />
       </div>
-      <span className="text-[8px] font-mono text-gray-500 text-center max-w-[180px] break-all">
+      <span className="text-[8px] font-mono text-faint text-center max-w-[180px] break-all">
         {did}
       </span>
     </div>

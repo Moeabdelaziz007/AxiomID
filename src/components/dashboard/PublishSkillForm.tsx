@@ -59,8 +59,8 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="bento-card p-6">
-        <h2 className="text-lg font-bold text-white font-mono mb-2 flex items-center"><Package className="w-5 h-5 text-emerald-400 inline me-2" />Publish Skill</h2>
-        <p className="text-xs text-gray-400 mb-6">
+        <h2 className="text-lg font-bold text-surface font-mono mb-2 flex items-center"><Package className="w-5 h-5 text-emerald-400 inline me-2" />Publish Skill</h2>
+        <p className="text-xs text-subtle mb-6">
           Skills are executable modules that agents can install and run.
         </p>
 
@@ -73,7 +73,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
                 value={form.slug}
                 onChange={(e) => setForm({ ...form, slug: e.target.value })}
                 placeholder="my-skill-name"
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-neon-green/40"
+                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none focus:border-neon-green/40"
               />
             </div>
             <div>
@@ -83,7 +83,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="My Skill Name"
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-neon-green/40"
+                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none focus:border-neon-green/40"
               />
             </div>
           </div>
@@ -95,7 +95,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Short description of what this skill does"
-              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-neon-green/40"
+              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none focus:border-neon-green/40"
             />
           </div>
 
@@ -148,7 +148,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
                 id="skill-tier"
                 value={form.tier}
                 onChange={(e) => setForm({ ...form, tier: e.target.value })}
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none"
+                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none"
               >
                 {Object.entries(TIER_LABELS).map(([k, v]) => (
                   <option key={k} value={k}>{v}</option>
@@ -164,7 +164,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
                 onChange={(e) => setForm({ ...form, pricePi: parseFloat(e.target.value) || 0 })}
                 min="0"
                 step="0.01"
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none"
+                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none"
               />
             </div>
             <div>
@@ -173,7 +173,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
                 id="skill-version"
                 value={form.version}
                 onChange={(e) => setForm({ ...form, version: e.target.value })}
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none"
+                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none"
               />
             </div>
           </div>

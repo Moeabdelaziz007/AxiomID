@@ -147,11 +147,11 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
         {/* Trust Gauge card */}
         <div className="bento-card p-6 flex items-center justify-between border border-white/5 bg-white/[0.01]">
           <div className="space-y-2">
-            <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">{t('trust_score')}</h3>
-            <p className="text-xs text-gray-400 max-w-[160px] leading-relaxed">
+            <h3 className="text-sm font-bold text-surface font-mono uppercase tracking-wider">{t('trust_score')}</h3>
+            <p className="text-xs text-subtle max-w-[160px] leading-relaxed">
               {t('trust_score_desc')}
             </p>
-            <div className="pt-2 font-mono text-[10px] text-gray-500">
+            <div className="pt-2 font-mono text-[10px] text-faint">
               {t('stamps_label')} <span className="text-neon-green font-bold">{claimedCount}</span> / {totalStamps}
             </div>
           </div>
@@ -164,12 +164,12 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
         <div className="bento-card p-6 flex flex-col justify-between border border-white/5 bg-white/[0.01] md:col-span-2 col-span-1">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">{t('level_progress')}</h3>
-              <p className="text-xs text-gray-400 mt-1 font-mono">
+              <h3 className="text-sm font-bold text-surface font-mono uppercase tracking-wider">{t('level_progress')}</h3>
+              <p className="text-xs text-subtle mt-1 font-mono">
                 {t('current_tier')} <span className="text-neon-green font-bold">{user?.tier || "VISITOR"}</span>
               </p>
             </div>
-            <span className="text-[10px] font-mono text-gray-500">
+            <span className="text-[10px] font-mono text-faint">
               {currentXp.toLocaleString()} / {nextTierXp.toLocaleString()} XP
             </span>
           </div>
@@ -181,7 +181,7 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <div className="flex justify-between text-[9px] font-mono text-gray-500">
+            <div className="flex justify-between text-[9px] font-mono text-faint">
               <span>{progressPercent}{t('percent_complete')}</span>
               {user?.tier !== "Sovereign" && (
                 <span>{t('next_tier')} {nextTierName} ({(nextTierXp - currentXp).toLocaleString()} {t('xp_needed')})</span>
@@ -194,8 +194,8 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
       {/* Stamps Grid */}
       <div>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">{t('live_stamps_collection')}</h3>
-          <span className="text-[10px] font-mono text-gray-500">{t('stamps_collection_desc')}</span>
+          <h3 className="text-sm font-bold text-surface font-mono uppercase tracking-wider">{t('live_stamps_collection')}</h3>
+          <span className="text-[10px] font-mono text-faint">{t('stamps_collection_desc')}</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -225,16 +225,16 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
         <div className="bento-card max-w-lg w-full p-6 border border-white/10 shadow-2xl bg-black">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h3 className="text-base font-bold text-white font-mono">
+              <h3 className="text-base font-bold text-surface font-mono">
                 {t('w3c_vc_title')}
               </h3>
-              <p className="text-[9px] text-gray-500 font-mono mt-0.5">
+              <p className="text-[9px] text-faint font-mono mt-0.5">
                 {t('w3c_vc_subtitle')}
               </p>
             </div>
             <button
               onClick={() => vcDialogRef.current?.close()}
-              className="text-gray-500 hover:text-white text-xs font-mono border border-white/5 hover:border-white/10 px-3 py-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded cursor-pointer"
+              className="text-faint hover:text-surface text-xs font-mono border border-white/5 hover:border-white/10 px-3 py-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded cursor-pointer"
             >
               {t('close')}
             </button>

@@ -129,8 +129,8 @@ export default function Dashboard() {
                   <Zap className="w-5 h-5 text-electric-blue" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Connect Your Pi Wallet</h3>
-                  <p className="text-xs text-gray-400">Open Pi Browser to authenticate and manage your agent.</p>
+                  <h3 className="text-sm font-bold text-surface">Connect Your Pi Wallet</h3>
+                  <p className="text-xs text-subtle">Open Pi Browser to authenticate and manage your agent.</p>
                 </div>
               </div>
               {shouldShowPiBrowserPrompt ? (
@@ -138,7 +138,7 @@ export default function Dashboard() {
                   Open in Pi Browser
                 </div>
               ) : (
-                <button onClick={connectWallet} disabled={isConnecting} className="btn-primary text-xs px-4 py-2">
+                <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} aria-label={isConnecting ? "Connecting" : "Connect Wallet"} className="btn-primary text-xs px-4 py-2">
                   {isConnecting ? "CONNECTING..." : "CONNECT WALLET"}
                 </button>
               )}
@@ -185,7 +185,7 @@ export default function Dashboard() {
               {/* Skills marketplace preview */}
               <div className="bento-card p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-surface flex items-center gap-2">
                     <Store className="w-4 h-4 text-axiom-purple" />
                     Skills Marketplace
                   </h3>
@@ -200,14 +200,14 @@ export default function Dashboard() {
                       className="p-3 rounded-xl border border-white/5 bg-white/[0.02] hover:border-axiom-purple/30 transition-colors cursor-default"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-white font-mono">{skill.name}</span>
+                        <span className="text-sm text-surface font-mono">{skill.name}</span>
                         {skill.tier && (
                           <span className="text-[9px] font-mono text-axiom-purple bg-axiom-purple/10 px-1.5 py-0.5 rounded">
                             {skill.tier}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 line-clamp-2">{skill.description}</p>
+                      <p className="text-xs text-faint line-clamp-2">{skill.description}</p>
                     </div>
                   ))}
                 </div>
@@ -268,7 +268,7 @@ export default function Dashboard() {
                 className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 min-h-[40px] rounded-lg text-xs font-mono transition-all flex-shrink-0 ${
                   isActive
                     ? "bg-neon-green/20 text-neon-green shadow-[0_0_12px_rgba(16,185,129,0.1)]"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                    : "text-subtle hover:text-surface hover:bg-white/5"
                 }`}
               >
                 {tab.icon}

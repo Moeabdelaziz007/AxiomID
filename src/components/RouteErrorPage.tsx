@@ -34,8 +34,8 @@ export function RouteErrorPage({ title, fallbackMessage, error, reset }: RouteEr
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
         </div>
-        <h2 className="text-lg font-bold text-white font-mono mb-2">{title}</h2>
-        <p className="text-sm text-gray-400 mb-6">
+        <h2 className="text-lg font-bold text-surface font-mono mb-2">{title}</h2>
+        <p className="text-sm text-subtle mb-6">
           {process.env.NODE_ENV === "development" ? error.message : fallbackMessage}
         </p>
         <div className="flex gap-3 justify-center">
