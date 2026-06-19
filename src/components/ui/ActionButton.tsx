@@ -47,7 +47,7 @@ export function ActionButton({
       {isLoading ? (
         <>
           <LoadingSpinner size="sm" />
-          {loadingText && <span>{loadingText}</span>}
+          <span>{loadingText ?? children}</span>
         </>
       ) : (
         children
