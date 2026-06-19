@@ -12,6 +12,9 @@ const customJestConfig = {
   testEnvironment: 'jest-environment-jsdom',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@json-render/react$': '<rootDir>/node_modules/@json-render/react/dist/index.js',
+    '^@json-render/react/(.*)$': '<rootDir>/node_modules/@json-render/react/dist/$1.js',
+    '^@json-render/core$': '<rootDir>/node_modules/@json-render/core/dist/index.js',
     '^@emulators/github$': '<rootDir>/node_modules/@emulators/github/dist/index.js',
     '^@emulators/adapter-next$': '<rootDir>/node_modules/@emulators/adapter-next/dist/index.js',
     '^@emulators/core$': '<rootDir>/node_modules/@emulators/core/dist/index.js',
