@@ -13,6 +13,11 @@ export const translations = {
     nav_status: "Network Status",
     nav_privacy: "Privacy Policy",
     nav_terms: "Terms of Service",
+    nav_explorer: "Protocol Explorer",
+    nav_docs: "Documentation",
+    nav_about: "Roadmap & About",
+    nav_leaderboard: "Leaderboard",
+    nav_onboarding: "Onboarding",
     connect_wallet: "Connect Pi Wallet",
     disconnect_wallet: "Disconnect",
     // Landing
@@ -242,6 +247,11 @@ export const translations = {
     nav_status: "حالة الشبكة",
     nav_privacy: "سياسة الخصوصية",
     nav_terms: "شروط الخدمة",
+    nav_explorer: "مستكشف البروتوكول",
+    nav_docs: "الوثائق التقنية",
+    nav_about: "خريطة الطريق والتعريف",
+    nav_leaderboard: "لوحة الترتيب العامة",
+    nav_onboarding: "التسجيل التوجيهي",
     connect_wallet: "ربط محفظة Pi",
     disconnect_wallet: "قطع الاتصال",
     // Landing

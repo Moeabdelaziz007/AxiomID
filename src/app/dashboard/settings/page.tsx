@@ -241,72 +241,123 @@ export default function SettingsPage() {
 
         {/* Section 2: XP & Tiers */}
         <section className="bento-card p-6 backdrop-blur-md" style={{ border: '1px solid var(--card-border)', background: 'var(--bg-card)' }}>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
               <span className="text-electric-blue"><Zap className="w-5 h-5" /></span> {t('settings_progression_title')}
             </h2>
             <span className="text-electric-blue font-mono text-sm">{xp} {t('total_xp')}</span>
           </div>
-          <div className="space-y-4">
-            <div className="flex justify-between items-end">
-              <div>
-                <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{t('current_tier').toUpperCase()}</span>
-                <p className="text-2xl font-black tracking-wider" style={{ color: 'var(--text-primary)' }}>{tier.toUpperCase()}</p>
-              </div>
-              <div className="text-end text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
-                {progressPercent.toFixed(0)}% to level {xp >= 1000 ? "Max" : "Up"}
+          
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            {/* Circular SVG progress gauge */}
+            <div className="relative w-28 h-28 flex items-center justify-center flex-shrink-0">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="rgba(255,255,255,0.03)"
+                  strokeWidth="8"
+                  fill="none"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="url(#progress-grad)"
+                  strokeWidth="8"
+                  fill="none"
+                  strokeDasharray={`${2 * Math.PI * 40}`}
+                  strokeDashoffset={`${2 * Math.PI * 40 * (1 - progressPercent / 100)}`}
+                  strokeLinecap="round"
+                  className="transition-all duration-700 ease-out"
+                />
+                <defs>
+                  <linearGradient id="progress-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#00ff41" />
+                    <stop offset="100%" stopColor="#00d4ff" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div className="absolute flex flex-col items-center justify-center">
+                <span className="text-xl font-bold font-mono text-white">{progressPercent.toFixed(0)}%</span>
+                <span className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest">Progress</span>
               </div>
             </div>
-            <div className="h-3 rounded-full overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--card-border)' }}>
-              <div
-                className="h-full bg-gradient-to-r from-neon-green to-electric-blue transition-all duration-500"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>
-              <span>{range.min.toLocaleString()} XP</span>
-              <span>{range.max.toLocaleString()} XP</span>
+
+            <div className="flex-1 space-y-3 w-full">
+              <div className="flex justify-between items-end">
+                <div>
+                  <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider block">{t('current_tier')}</span>
+                  <p className="text-xl font-black tracking-wider text-white">{tier.toUpperCase()}</p>
+                </div>
+                <div className="text-end text-[10px] font-mono text-zinc-400">
+                  {xp >= 1000 ? "MAX LEVEL ACHIEVED" : `${(range.max - xp).toLocaleString()} XP NEEDED`}
+                </div>
+              </div>
+              <div className="flex justify-between text-[10px] font-mono text-zinc-600 border-t border-white/5 pt-2">
+                <span>{range.min.toLocaleString()} XP</span>
+                <span>{range.max.toLocaleString()} XP</span>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Section 3: Social Binding & Credentials */}
         <section className="bento-card p-6 backdrop-blur-md" style={{ border: '1px solid var(--card-border)', background: 'var(--bg-card)' }}>
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+          <h2 className="text-lg font-bold mb-2 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
             <span className="text-axiom-purple">🔗</span> {t('settings_social_title')}
           </h2>
-          <p className="text-xs mb-6 font-mono" style={{ color: 'var(--text-secondary)' }}>
+          <p className="text-xs mb-6 font-mono text-zinc-400">
             {t('settings_social_desc')}
           </p>
 
-          <div className="space-y-4">
-            {PLATFORMS.map(({ id, icon, label, xp }) => (
-              <div key={id} className="flex items-center justify-between p-4 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--card-border)' }}>
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{icon}</span>
-                  <div>
-                    <h4 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{label}</h4>
-                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{t('settings_xp_reward')} +{xp} XP</p>
-                  </div>
-                </div>
-                <div>
-                  {isPlatformConnected(id) ? (
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] bg-neon-green/10 text-neon-green border border-neon-green/20">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {PLATFORMS.map(({ id, icon, label, xp }) => {
+              const connected = isPlatformConnected(id);
+              const hoverStyle = 
+                id === "twitter" 
+                  ? "hover:border-sky-500/30 hover:bg-sky-500/[0.01]" 
+                  : id === "discord"
+                    ? "hover:border-indigo-500/30 hover:bg-indigo-500/[0.01]"
+                    : "hover:border-red-500/30 hover:bg-red-500/[0.01]";
+              return (
+                <div 
+                  key={id} 
+                  className={`flex flex-col justify-between p-4 rounded-2xl border border-white/5 bg-[#14161d] transition-all duration-300 ${hoverStyle} min-h-[140px]`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-zinc-300">
+                      {icon}
+                    </div>
+                    {connected ? (
+                      <span className="px-2 py-0.5 rounded text-[8px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
                         {t('connected')}
                       </span>
-                      <button onClick={() => openVcModal(`connect_${id}`)} className="btn-ghost text-xs px-2.5 py-1">
+                    ) : (
+                      <span className="text-[9px] font-mono text-zinc-500">+{xp} XP</span>
+                    )}
+                  </div>
+
+                  <div className="mt-4">
+                    <h4 className="text-xs font-bold text-white font-mono">{label}</h4>
+                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">{t('settings_xp_reward')} +{xp} XP</p>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-end">
+                    {connected ? (
+                      <button onClick={() => openVcModal(`connect_${id}`)} className="btn-ghost text-[10px] font-mono w-full text-center py-1">
                         {t('inspect_vc')}
                       </button>
-                    </div>
-                  ) : (
-                    <button onClick={() => openConnectModal(id)} className="btn-primary text-xs px-4 py-1.5">
-                      {t('settings_connect_btn')}
-                    </button>
-                  )}
+                    ) : (
+                      <button onClick={() => openConnectModal(id)} className="btn-primary text-[10px] font-mono w-full text-center py-1">
+                        {t('settings_connect_btn')}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 

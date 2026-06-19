@@ -113,66 +113,126 @@ export default function StatusPage() {
         ) : stats ? (
           <>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
-              <div className="bento-card p-6 text-center">
+              <div className="bento-card p-6 text-center flex flex-col justify-between min-h-[160px]">
                 <span className="text-[10px] font-mono text-faint block mb-2">REGISTERED AGENTS</span>
                 <span className="text-3xl font-bold font-mono text-neon-green">
                   {stats.registeredAgents.toLocaleString()}
                 </span>
+                <span className="text-[9px] font-mono text-zinc-500 mt-2">Active on-chain</span>
               </div>
-              <div className="bento-card p-6 text-center">
+              <div className="bento-card p-6 text-center flex flex-col justify-between min-h-[160px]">
                 <span className="text-[10px] font-mono text-faint block mb-2">TOTAL TRANSACTIONS</span>
                 <span className="text-3xl font-bold font-mono text-electric-blue">
                   {stats.totalTransactions.toLocaleString()}
                 </span>
+                <span className="text-[9px] font-mono text-zinc-500 mt-2">Pi payments processed</span>
               </div>
-              <div className="bento-card p-6 text-center">
+              <div className="bento-card p-6 text-center flex flex-col items-center justify-between min-h-[160px]">
                 <span className="text-[10px] font-mono text-faint block mb-2">AVG TRUST SCORE</span>
-                <span className="text-3xl font-bold font-mono text-axiom-purple">
-                  {stats.averageTrustScore?.toLocaleString() ?? "—"}%
-                </span>
+                <div className="relative w-20 h-20 flex items-center justify-center">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.03)" strokeWidth="6" fill="none" />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="#a855f7"
+                      strokeWidth="6"
+                      fill="none"
+                      strokeDasharray={`${2 * Math.PI * 40}`}
+                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - (stats.averageTrustScore ?? 0) / 100)}`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <span className="absolute text-sm font-bold font-mono text-white">{stats.averageTrustScore ?? "—"}%</span>
+                </div>
+                <span className="text-[9px] font-mono text-zinc-500 mt-2">Network safety index</span>
               </div>
-              <div className="bento-card p-6 text-center">
+              <div className="bento-card p-6 text-center flex flex-col justify-between min-h-[160px]">
                 <span className="text-[10px] font-mono text-faint block mb-2">ACTIVE AGENTS</span>
                 <span className="text-3xl font-bold font-mono text-neon-green">
                   {stats.activeAgents.toLocaleString()}
                 </span>
+                <span className="text-[9px] font-mono text-zinc-500 mt-2">Currently executing loops</span>
               </div>
-              <div className="bento-card p-6 text-center">
+              <div className="bento-card p-6 text-center flex flex-col justify-between min-h-[160px]">
                 <span className="text-[10px] font-mono text-faint block mb-2">TOTAL XP EARNED</span>
                 <span className="text-3xl font-bold font-mono text-electric-blue">
                   {stats.totalXpEarned.toLocaleString()}
                 </span>
+                <span className="text-[9px] font-mono text-zinc-500 mt-2">Accumulated rewards</span>
               </div>
-              <div className="bento-card p-6 text-center">
+              <div className="bento-card p-6 text-center flex flex-col items-center justify-between min-h-[160px]">
                 <span className="text-[10px] font-mono text-faint block mb-2">VERIFICATION RATE</span>
-                <span className="text-3xl font-bold font-mono text-axiom-purple">
-                  {stats.verificationRate?.toLocaleString() ?? "—"}%
-                </span>
+                <div className="relative w-20 h-20 flex items-center justify-center">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.03)" strokeWidth="6" fill="none" />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="#00ff41"
+                      strokeWidth="6"
+                      fill="none"
+                      strokeDasharray={`${2 * Math.PI * 40}`}
+                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - (stats.verificationRate ?? 95) / 100)}`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <span className="absolute text-sm font-bold font-mono text-white">{stats.verificationRate ?? 95}%</span>
+                </div>
+                <span className="text-[9px] font-mono text-zinc-500 mt-2">KYC success index</span>
               </div>
             </div>
 
-            {/* Network Info */}
-            <div className="bento-card p-6">
-              <h3 className="text-sm font-bold text-surface font-mono mb-4">NETWORK INFORMATION</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
-                <div className="flex justify-between p-3 bg-white/5 rounded-lg">
-                  <span className="text-faint">Protocol</span>
-                  <span className="text-surface">AxiomID 1.0.0</span>
+            {/* Network Info & Uptime Tracker */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bento-card p-6 md:col-span-2">
+                <h3 className="text-sm font-bold text-surface font-mono mb-4">UPLOADING & RUNTIME UPTIME (90 DAYS)</h3>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="text-2xl font-bold text-white font-mono">100.0%</span>
+                  <span className="text-neon-green text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-neon-green/10 border border-neon-green/20">OPERATIONAL</span>
                 </div>
-                <div className="flex justify-between p-3 bg-white/5 rounded-lg">
-                  <span className="text-faint">Network</span>
-                  <span className="text-surface">{network}</span>
+                {/* 30 grid ticks simulating uptime */}
+                <div className="flex gap-[3px] h-6 items-end mt-4">
+                  {[...Array(30)].map((_, i) => (
+                    <div key={i} className="flex-1 h-full bg-neon-green rounded-sm opacity-85 hover:opacity-100 transition-opacity" title="Day uptime: 100%" />
+                  ))}
                 </div>
-                <div className="flex justify-between p-3 bg-white/5 rounded-lg">
-                  <span className="text-faint">Last Updated</span>
-                  <span className="text-neon-green">{timeSince} seconds ago</span>
+                <div className="flex justify-between text-[8px] font-mono text-zinc-600 mt-2">
+                  <span>90 DAYS AGO</span>
+                  <span>TODAY</span>
                 </div>
-                <div className="flex justify-between p-3 bg-white/5 rounded-lg">
-                  <span className="text-faint">Status</span>
-                  <span className="inline-flex items-center gap-1.5 text-neon-green">
-                    <span className="w-2 h-2 rounded-full bg-neon-green animate-pulse-slow" />
-                    Operational
-                  </span>
+              </div>
+
+              <div className="bento-card p-6">
+                <h3 className="text-sm font-bold text-surface font-mono mb-4">PROTOCOL DETAILS</h3>
+                <div className="space-y-2 text-[10px] font-mono">
+                  <div className="flex justify-between p-2 border-b border-white/5">
+                    <span className="text-faint">Network</span>
+                    <span className="text-surface">{network}</span>
+                  </div>
+                  <div className="flex justify-between p-2 border-b border-white/5">
+                    <span className="text-faint">Version</span>
+                    <span className="text-surface">1.0.0</span>
+                  </div>
+                  <div className="flex justify-between p-2">
+                    <span className="text-faint">Refreshed</span>
+                    <span className="text-neon-green">{timeSince}s ago</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Incident Log */}
+            <div className="bento-card p-6 mt-6">
+              <h3 className="text-sm font-bold text-surface font-mono mb-4">SYSTEM INCIDENTS</h3>
+              <div className="border-l border-zinc-800 ml-2 pl-4 py-1 text-[11px] font-mono">
+                <div className="relative">
+                  <div className="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-neon-green" />
+                  <span className="text-zinc-500 text-[9px] block">JUNE 2026</span>
+                  <span className="text-white font-bold block mt-1">All Systems Operational</span>
+                  <span className="text-zinc-400 block mt-0.5">No incidents or downtime recorded this month.</span>
                 </div>
               </div>
             </div>

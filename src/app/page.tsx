@@ -11,6 +11,7 @@ import { Users, Bot, Ticket, Zap, AlertTriangle, Shield, Fingerprint } from "luc
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
+import InteractivePassportCard from "@/components/ui/InteractivePassportCard";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -128,80 +129,139 @@ export default function Home() {
       </motion.header>
 
       {/* Hero Section */}
-      <div className="relative w-full max-w-6xl px-4 sm:px-6 mt-4 md:mt-12 z-10 min-h-[70vh] flex flex-col justify-center items-center text-center">
+      <div className="relative w-full max-w-6xl px-4 sm:px-6 mt-6 md:mt-16 z-10 min-h-[70vh] flex items-center">
         {/* Dot grid background */}
         <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: "radial-gradient(#424754 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
 
-        <div className="max-w-4xl mx-auto space-y-4 relative z-10 py-8">
-          {/* Live badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.4 }}
-          >
-            <span className="stitch-badge">
-              <svg viewBox="0 0 100 100" className="w-4 h-4" fill="currentColor">
-                <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.3"/>
-                <text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text>
-              </svg>
-              {language === "en" ? "Live on Pi Network Mainnet" : "مباشر على شبكة Pi الرئيسية"}
-            </span>
-          </motion.div>
+        <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center py-8 relative z-10">
+          
+          {/* Left Column: Headline, Description, CTAs, Trust indicators */}
+          <div className="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left space-y-5">
+            {/* Live badge */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.4 }}
+            >
+              <span className="stitch-badge">
+                <svg viewBox="0 0 100 100" className="w-4 h-4 animate-spin" style={{ animationDuration: '6s' }} fill="currentColor">
+                  <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.3"/>
+                  <text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text>
+                </svg>
+                {language === "en" ? "Live on Pi Network Mainnet" : "مباشر على شبكة Pi الرئيسية"}
+              </span>
+            </motion.div>
 
-          {/* Headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            {language === "en" ? (
-              <>Your Identity, <span className="text-blue-500">Sovereign.</span></>
-            ) : (
-              <>هويتك، <span className="text-blue-500">سيادية.</span></>
-            )}
-          </motion.h1>
+            {/* Headline */}
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="text-3.5xl sm:text-4.5xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] text-white"
+            >
+              {language === "en" ? (
+                <>Your Identity, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-electric-blue to-axiom-purple">Sovereign.</span></>
+              ) : (
+                <>هويتك، <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-electric-blue to-axiom-purple">سيادية.</span></>
+              )}
+            </motion.h1>
 
-          {/* Description */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-            className="max-w-2xl mx-auto text-base md:text-lg leading-relaxed"
-            style={{ color: 'var(--text-secondary)' }}
-          >
-            {t("hero_desc")}
-          </motion.p>
+            {/* Description */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="max-w-xl text-sm sm:text-base md:text-lg leading-relaxed text-zinc-400"
+            >
+              {t("hero_desc")}
+            </motion.p>
 
-          {/* CTAs */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
-          >
-            {!user ? (
-              <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} className="btn-primary flex items-center justify-center gap-2 text-sm px-6 py-3 min-h-[48px]">
-                {isConnecting ? (
-                  <><span className="animate-spin">⟳</span> {t("connecting")}</>
-                ) : (
-                  <>
-                    {t("connect_wallet")}
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                  </>
-                )}
-              </button>
-            ) : (
-              <Link href="/dashboard" prefetch={false} className="btn-primary flex items-center justify-center gap-2 text-sm px-6 py-3 min-h-[48px]">
-                {t("enter_dashboard")}
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+            {/* CTAs */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto pt-2"
+            >
+              {!user ? (
+                <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} className="btn-primary flex items-center justify-center gap-2 text-xs sm:text-sm px-6 py-3 min-h-[48px]">
+                  {isConnecting ? (
+                    <><span className="animate-spin">⟳</span> {t("connecting")}</>
+                  ) : (
+                    <>
+                      {t("connect_wallet")}
+                      <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <Link href="/dashboard" prefetch={false} className="btn-primary flex items-center justify-center gap-2 text-xs sm:text-sm px-6 py-3 min-h-[48px]">
+                  {t("enter_dashboard")}
+                  <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </Link>
+              )}
+              <Link href={"/docs" as any} className="btn-ghost flex items-center justify-center text-xs sm:text-sm px-6 py-3 min-h-[48px]">
+                {language === "en" ? "Documentation" : "الوثائق التقنية"}
               </Link>
-            )}
-            <Link href="/status" className="btn-ghost flex items-center justify-center text-sm px-6 py-3 min-h-[48px]">
-              {language === "en" ? "View Docs" : "عرض التوثيق"}
-            </Link>
-          </motion.div>
+            </motion.div>
+
+            {/* Trust Badges */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.6 }}
+              className="flex flex-wrap gap-4 items-center justify-center md:justify-start pt-4 text-[10px] font-mono text-zinc-500"
+            >
+              <div className="flex items-center gap-1">
+                <span className="text-emerald-400">✓</span>
+                <span>W3C DID COMPLIANT</span>
+              </div>
+              <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
+              <div className="flex items-center gap-1">
+                <span className="text-emerald-400">✓</span>
+                <span>STELLAR SECURED</span>
+              </div>
+              <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
+              <div className="flex items-center gap-1">
+                <span className="text-emerald-400">✓</span>
+                <span>PI NET INTEGRATION</span>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Right Column: Interactive Passport Card Showcase */}
+          <div className="md:col-span-5 flex items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full relative"
+            >
+              {/* Outer halo background decoration */}
+              <div className="absolute -inset-4 bg-gradient-to-tr from-emerald-500/10 via-electric-blue/10 to-axiom-purple/10 rounded-[36px] filter blur-xl opacity-70 animate-pulse pointer-events-none" style={{ animationDuration: '6s' }} />
+              
+              <InteractivePassportCard 
+                user={user ? {
+                  piUsername: user.piUsername,
+                  walletAddress: user.walletAddress,
+                  tier: user.tier,
+                  xp: user.xp,
+                  trustScore: user.trustScore,
+                  kyaStatus: user.kycStatus ? "verified" : "pending",
+                  kycStatus: user.kycStatus ? "verified" : "pending"
+                } : {
+                  piUsername: "Pioneer.Axiom",
+                  walletAddress: "pi:GD5T...A77X",
+                  tier: "Sovereign",
+                  xp: 1250,
+                  trustScore: 98,
+                  kyaStatus: "verified",
+                  kycStatus: "verified"
+                }}
+              />
+            </motion.div>
+          </div>
+
         </div>
       </div>
 
@@ -424,7 +484,11 @@ export default function Home() {
         style={{ borderColor: 'var(--card-border)', color: 'var(--text-muted)' }}
       >
         <div>&copy; 2026 AxiomID. All rights reserved.</div>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4 justify-center">
+          <Link href={"/explorer" as any} className="hover:text-surface transition-colors">{t("nav_explorer")}</Link>
+          <Link href={"/docs" as any} className="hover:text-surface transition-colors">{t("nav_docs")}</Link>
+          <Link href={"/about" as any} className="hover:text-surface transition-colors">{t("nav_about")}</Link>
+          <Link href={"/leaderboard" as any} className="hover:text-surface transition-colors">{t("nav_leaderboard")}</Link>
           <Link href="/status" className="hover:text-surface transition-colors">{t("nav_status")}</Link>
           <Link href="/privacy" className="hover:text-surface transition-colors">{t("nav_privacy")}</Link>
           <Link href="/terms" className="hover:text-surface transition-colors">{t("nav_terms")}</Link>
