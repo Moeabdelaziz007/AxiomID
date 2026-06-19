@@ -208,7 +208,7 @@ export default function ExplorerPage() {
                             <span className="text-[10px] font-mono text-emerald-400 font-bold block">
                               +{pay.amount} PI
                             </span>
-                            <span className="text-[8px] font-mono text-zinc-500">
+                            <span className="text-[8px] font-mono text-zinc-500" suppressHydrationWarning>
                               {new Date(pay.createdAt).toLocaleTimeString()}
                             </span>
                           </div>
