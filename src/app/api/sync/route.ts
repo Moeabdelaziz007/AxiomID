@@ -114,17 +114,19 @@ export async function POST(req: NextRequest) {
  * Retrieves the current sync status and data quality metrics.
  * Uses Shannon entropy to measure data diversity.
  *
- * Vercel cron triggers GET /api/sync?trigger=cron without auth headers.
- * Bypass auth when trigger=cron query param is present.
+ * Vercel cron sends Authorization: Bearer {CRON_SECRET} header.
+ * Validate this bearer token to authenticate cron requests.
  *
  * @returns An object with `lastSync` (most recent harvest and agent presence timestamps)
  * and `metrics` (freshness scores and query entropy).
  */
 export async function GET(req: NextRequest) {
-  const url = new URL(req.url);
-  const isCron = url.searchParams.get("trigger") === "cron";
+  const authHeader = req.headers.get("authorization");
+  const cronSecret = process.env.CRON_SECRET;
+  const isCronAuthorized =
+    cronSecret && authHeader === `Bearer ${cronSecret}`;
 
-  if (!isCron) {
+  if (!isCronAuthorized) {
     const auth = await requireAuth(req);
     if (auth.error) return auth.error;
   }

@@ -5,6 +5,7 @@ const REQUIRED_ENV_VARS = [
   'OAUTH_STATE_SECRET',
   'ISSUER_PRIVATE_KEY',
   'ISSUER_PUBLIC_KEY',
+  'CRON_SECRET',
 ] as const;
 
 let validated = false;

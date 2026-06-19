@@ -46,7 +46,7 @@
   ],
   "crons": [
     {
-      "path": "/api/sync?trigger=cron",
+      "path": "/api/sync",
       "schedule": "0 0 * * *"
     }
   ]

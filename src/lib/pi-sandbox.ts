@@ -34,6 +34,11 @@ export function listenForPiSDKMessages(): () => void {
       const msg = JSON.parse(event.data);
 
       if (msg.type === "@pi:app:sdk:communication_information_request") {
+        if (!event.origin || event.origin === "null") {
+          console.warn("[Pi Sandbox] Refusing to respond to communication_information_request from null origin — possible sandbox context leak");
+          return;
+        }
+
         const response = {
           type: "@pi:app:sdk:communication_information_response",
           id: msg.id,
@@ -45,9 +50,8 @@ export function listenForPiSDKMessages(): () => void {
             name: msg.payload?.name || "AxiomID",
           },
         };
-        const targetOrigin = !event.origin || event.origin === "null" ? "*" : event.origin;
         event.source?.postMessage(JSON.stringify(response), {
-          targetOrigin,
+          targetOrigin: event.origin,
         });
       }
     } catch {

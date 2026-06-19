@@ -16,7 +16,7 @@ interface PiPaymentButtonProps {
   disabled?: boolean;
 }
 
-type PaymentState = "idle" | "creating" | "approving" | "completing" | "success" | "error";
+type PaymentState = "idle" | "creating" | "success" | "error";
 
 export function PiPaymentButton({
   amount,
@@ -38,34 +38,10 @@ export function PiPaymentButton({
     setError(null);
 
     try {
-      // Step 1: Create payment with Pi SDK (client-side)
+      // createPiPayment() handles the full lifecycle internally:
+      // 1. Pi SDK createPayment() → onReadyForServerApproval → approve
+      // 2. onReadyForServerCompletion → complete → resolve(txid)
       const txid = await createPiPayment(amount, memo, metadata);
-
-      // Step 2: Approve payment on server
-      setState("approving");
-      const approveRes = await fetch("/api/pi/payment/approve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentId: txid }),
-      });
-
-      if (!approveRes.ok) {
-        const errorData = await approveRes.json();
-        throw new Error(errorData.message || "Payment approval failed");
-      }
-
-      // Step 3: Complete payment on server
-      setState("completing");
-      const completeRes = await fetch("/api/pi/payment/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentId: txid, txid }),
-      });
-
-      if (!completeRes.ok) {
-        const errorData = await completeRes.json();
-        throw new Error(errorData.message || "Payment completion failed");
-      }
 
       setState("success");
       onSuccess?.(txid);
@@ -114,9 +90,7 @@ export function PiPaymentButton({
 
   const isLoading = state !== "idle";
   const loadingTextMap: Record<string, string> = {
-    creating: "Creating payment...",
-    approving: "Approving...",
-    completing: "Completing...",
+    creating: "Processing payment...",
   };
   const currentLoadingText = loadingTextMap[state] || "";
 

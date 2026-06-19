@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { logger } from "@/lib/logger";
+
 declare global {
   interface Window {
     Pi?: {
@@ -315,7 +317,7 @@ export async function createPiPayment(amount: number, memo: string, metadata?: R
       metadata: metadata || {},
     }, {
       onReadyForServerApproval: async (paymentId: string) => {
-        console.log("[Pi Payment] Ready for server approval:", paymentId);
+        logger.info("[Pi Payment] Ready for server approval:", paymentId);
         try {
           const response = await fetch("/api/pi/payment/approve", {
             method: "POST",
@@ -324,14 +326,14 @@ export async function createPiPayment(amount: number, memo: string, metadata?: R
           });
           if (!response.ok) {
             const error = await response.json();
-            console.error("[Pi Payment] Server approval failed:", error);
+            logger.error("[Pi Payment] Server approval failed:", error);
           }
         } catch (err) {
-          console.error("[Pi Payment] Server approval error:", err);
+          logger.error("[Pi Payment] Server approval error:", err);
         }
       },
       onReadyForServerCompletion: async (paymentId: string, txid: string) => {
-        console.log("[Pi Payment] Completed:", paymentId, txid);
+        logger.info("[Pi Payment] Completed:", paymentId, txid);
         try {
           const response = await fetch("/api/pi/payment/complete", {
             method: "POST",
@@ -340,15 +342,15 @@ export async function createPiPayment(amount: number, memo: string, metadata?: R
           });
           if (!response.ok) {
             const error = await response.json();
-            console.error("[Pi Payment] Server completion failed:", error);
+            logger.error("[Pi Payment] Server completion failed:", error);
           }
         } catch (err) {
-          console.error("[Pi Payment] Server completion error:", err);
+          logger.error("[Pi Payment] Server completion error:", err);
         }
         resolve(txid);
       },
       onError: (error: Error) => {
-        console.error("[Pi Payment] Error:", error);
+        logger.error("[Pi Payment] Error:", error);
         reject(new PiSdkError(
           PiSdkErrorCode.GENERIC_ERROR,
           `Payment failed: ${error.message}`,
@@ -356,7 +358,7 @@ export async function createPiPayment(amount: number, memo: string, metadata?: R
         ));
       },
       onCancel: () => {
-        console.log("[Pi Payment] Payment cancelled by user");
+        logger.info("[Pi Payment] Payment cancelled by user");
         reject(new PiSdkError(
           PiSdkErrorCode.GENERIC_ERROR,
           "Payment cancelled by user"
