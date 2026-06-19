@@ -17,7 +17,7 @@ export function QuickLinksCard({ passportSlug, did }: QuickLinksCardProps) {
     elements: {
       card: {
         type: "Card",
-        props: { title: t("quick_links"), variant: "bento" },
+        props: { title: t("quick_links"), variant: "bento", animate: true },
         children: ["link1", "link2"],
       },
       link1: {

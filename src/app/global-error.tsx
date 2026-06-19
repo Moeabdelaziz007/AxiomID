@@ -17,7 +17,7 @@ export default function GlobalError({
         minHeight: "100vh",
         margin: 0,
       }}>
-        <style>{`.retry-btn:focus-visible { outline: 2px solid #00ff41; outline-offset: 2px; }`}</style>
+        <style>{`.retry-btn:focus-visible { outline: 2px solid var(--neon-green); outline-offset: 2px; }`}</style>
         <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
           [ROOT ERROR] AxiomID failed to initialize
         </h1>

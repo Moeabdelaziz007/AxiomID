@@ -128,7 +128,7 @@ body {
   left: 0;
   width: 100%;
   height: 2px;
-  background: linear-gradient(to bottom, rgba(16, 185, 129, 0.06), transparent);
+  background: linear-gradient(to bottom, rgba(34, 197, 94, 0.06), transparent);
   opacity: 0.3;
   animation: scanline 12s linear infinite;
   pointer-events: none;
@@ -382,7 +382,7 @@ body {
    ============================================ */
 .passport-card {
   background: linear-gradient(145deg, #111118 0%, #0a0a0a 50%, #111118 100%);
-  border: 1px solid rgba(0, 255, 65, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.12);
   border-radius: 20px;
   position: relative;
   overflow: hidden;
@@ -395,9 +395,9 @@ body {
 }
 
 .passport-card:hover {
-  border-color: rgba(16, 185, 129, 0.25);
+  border-color: rgba(34, 197, 94, 0.25);
   box-shadow: 
-    0 0 30px rgba(16, 185, 129, 0.06),
+    0 0 30px rgba(34, 197, 94, 0.06),
     0 15px 40px -10px rgba(0, 0, 0, 0.4);
   transform: perspective(800px) rotateY(1deg) translateY(-2px);
 }
@@ -417,7 +417,7 @@ body {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(16, 185, 129, 0.02),
+    rgba(34, 197, 94, 0.02),
     rgba(59, 130, 246, 0.02),
     transparent
   );
@@ -447,9 +447,9 @@ body {
 }
 
 .badge-verified {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(34, 197, 94, 0.1);
   color: var(--neon-green);
-  border-color: rgba(16, 185, 129, 0.25);
+  border-color: rgba(34, 197, 94, 0.25);
 }
 
 [data-theme="light"] .badge-verified {
@@ -583,7 +583,7 @@ body {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(16, 185, 129, 0.03) 25%,
+    rgba(34, 197, 94, 0.03) 25%,
     rgba(59, 130, 246, 0.03) 50%,
     rgba(139, 92, 246, 0.03) 75%,
     transparent 100%
@@ -595,8 +595,8 @@ body {
 }
 
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.15); }
-  50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.25); }
+  0%, 100% { box-shadow: 0 0 12px rgba(34, 197, 94, 0.15); }
+  50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.25); }
 }
 
 /* ============================================
@@ -673,7 +673,7 @@ a:focus-visible {
 @keyframes stamp-unlock {
   0% { transform: scale(0.95); border-color: var(--card-border); }
   50% { transform: scale(1.01); border-color: var(--neon-green); }
-  100% { transform: scale(1); border-color: rgba(16, 185, 129, 0.25); }
+  100% { transform: scale(1); border-color: rgba(34, 197, 94, 0.25); }
 }
 
 .animate-stamp-unlock {

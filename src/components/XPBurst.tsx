@@ -32,7 +32,7 @@ export function XPBurst({ xp, trigger }: XPBurstProps) {
   return (
     <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-30 overflow-hidden">
       {/* Floating XP Text */}
-      <span className="text-sm font-mono font-bold text-neon-green animate-xp-text-float drop-shadow-[0_0_8px_rgba(0,255,65,0.8)]">
+      <span className="text-sm font-mono font-bold text-neon-green animate-xp-text-float drop-shadow-[0_0_8px_var(--neon-green)]">
         +{xp} XP
       </span>
 

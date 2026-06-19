@@ -32,10 +32,10 @@ interface SkillDetail extends Skill {
 
 const TIER_COLORS: Record<string, string> = {
   BASIC_TOOL: "#64748b",
-  ADVANCED_TOOL: "#00d4ff",
-  ADVANCED_INFRASTRUCTURE: "#f59e0b",
-  PRO: "#a855f7",
-  SOVEREIGN: "#00ff41",
+  ADVANCED_TOOL: "var(--color-primary)",
+  ADVANCED_INFRASTRUCTURE: "var(--color-warning)",
+  PRO: "var(--axiom-purple)",
+  SOVEREIGN: "var(--color-success)",
 };
 
 const TIER_LABELS: Record<string, string> = {
