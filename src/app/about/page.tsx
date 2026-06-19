@@ -12,7 +12,7 @@ export default function AboutPage() {
   const { language } = useLanguage();
 
   return (
-    <main className="min-h-screen bg-grid relative pb-20">
+    <main id="main-content" className="min-h-screen bg-grid relative pb-20">
       <div className="scanline" />
 
       {/* Header */}
