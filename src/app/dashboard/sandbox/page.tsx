@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import { Play, ShieldAlert, Cpu, Dna, Terminal, Copy, Check, ShieldCheck, Loader2 } from "lucide-react";
 
 interface SkillListItem {
@@ -17,7 +17,9 @@ interface AuditItem {
   desc: string;
 }
 
-const INITIAL_AUDIT_STATES: Record<string, "pending" | "scanning" | "passed" | "failed"> = {
+type AuditState = "pending" | "scanning" | "passed" | "failed";
+
+const INITIAL_AUDIT_STATES: Record<string, AuditState> = {
   sandbox: "pending",
   ast: "pending",
   injection: "pending",
@@ -26,6 +28,13 @@ const INITIAL_AUDIT_STATES: Record<string, "pending" | "scanning" | "passed" | "
   dangerous: "pending",
   privilege: "pending",
   provenance: "pending",
+};
+
+const AUDIT_STATE_CONFIG: Record<AuditState, { text: string; cls: string; icon: ReactNode }> = {
+  pending:  { text: "Pending",  cls: "text-faint border-white/5 bg-white/5",              icon: null },
+  scanning: { text: "Scanning", cls: "text-amber-400 border-amber-400/20 bg-amber-400/5", icon: <Loader2 className="w-3 h-3 animate-spin inline me-1" /> },
+  passed:   { text: "PASSED",   cls: "text-emerald-400 border-emerald-400/20 bg-emerald-400/5", icon: <Check className="w-3 h-3 inline me-1" /> },
+  failed:   { text: "FAILED",   cls: "text-red-400 border-red-400/20 bg-red-400/5",       icon: <ShieldAlert className="w-3 h-3 inline me-1" /> },
 };
 
 const LOG_COLORS: Record<string, string> = {
@@ -78,7 +87,7 @@ export default function SandboxPage() {
   const [skills, setSkills] = useState<SkillListItem[]>([]);
   const [loadingSkills, setLoadingSkills] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [auditStates, setAuditStates] = useState<Record<string, "pending" | "scanning" | "passed" | "failed">>(INITIAL_AUDIT_STATES);
+  const [auditStates, setAuditStates] = useState<Record<string, AuditState>>(INITIAL_AUDIT_STATES);
 
   useEffect(() => {
     // Load skills from the marketplace list API to allow quick-loading manifests
@@ -293,7 +302,7 @@ export default function SandboxPage() {
               )}
             </div>
           </div>
-
+        </div>
 
         {/* Sidebar Security & Templates (Right) */}
         <div className="lg:col-span-1 space-y-6">
@@ -305,34 +314,16 @@ export default function SandboxPage() {
             </h3>
             <div className="space-y-2.5">
               {AUDIT_ITEMS.map((item) => {
-                const state = auditStates[item.id];
-                let stateText = "Pending";
-                let stateClass = "text-faint border-white/5 bg-white/5";
-                let icon = null;
-
-                if (state === "scanning") {
-                  stateText = "Scanning";
-                  stateClass = "text-amber-400 border-amber-400/20 bg-amber-400/5";
-                  icon = <Loader2 className="w-3 h-3 animate-spin inline me-1" />;
-                } else if (state === "passed") {
-                  stateText = "PASSED";
-                  stateClass = "text-emerald-400 border-emerald-400/20 bg-emerald-400/5";
-                  icon = <Check className="w-3 h-3 inline me-1" />;
-                } else if (state === "failed") {
-                  stateText = "FAILED";
-                  stateClass = "text-red-400 border-red-400/20 bg-red-400/5";
-                  icon = <ShieldAlert className="w-3 h-3 inline me-1" />;
-                }
-
+                const { text, cls, icon } = AUDIT_STATE_CONFIG[auditStates[item.id]];
                 return (
                   <div key={item.id} className="border border-white/5 rounded-lg p-2 bg-white/5">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-mono font-bold text-surface">
                         {item.label}
                       </span>
-                      <span className={`text-[8px] font-mono px-1.5 py-0.5 rounded border ${stateClass}`}>
+                      <span className={`text-[8px] font-mono px-1.5 py-0.5 rounded border ${cls}`}>
                         {icon}
-                        {stateText}
+                        {text}
                       </span>
                     </div>
                     <p className="text-[9px] text-faint mt-1 leading-normal">

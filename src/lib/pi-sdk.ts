@@ -144,11 +144,11 @@ export function determineSandboxMode(): boolean {
   return false;
 }
 
-
+export async function ensurePiInitialized(pushLog?: (msg: string) => void): Promise<unknown> {
   if (typeof window === "undefined") return null;
   const win = window as unknown as { Pi?: { init: (args: { version: string; sandbox: boolean }) => void } };
   
-  if (process.env.NODE_ENV === "test" && win.Pi) {
+
     return win.Pi;
   }
   
