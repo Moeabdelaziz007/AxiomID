@@ -429,10 +429,9 @@ export default function MarketplacePage() {
                     onClick={() => handleInstall(selectedSkill.slug)}
                     disabled={installing || isConnecting}
                     aria-busy={installing}
-                    aria-label={installing ? "Installing" : isConnecting ? "Connecting" : !user ? "Connect Wallet to Install" : "Install Skill"}
-                    className="flex-1 btn-primary py-2.5 text-xs font-mono"
+                    className="flex-1 btn-primary py-2.5 text-xs font-mono uppercase"
                   >
-                    {installing ? "INSTALLING..." : isConnecting ? "CONNECTING..." : !user ? "CONNECT WALLET TO INSTALL" : "INSTALL SKILL → AGENT"}
+                    {installing ? "Installing..." : isConnecting ? "Connecting..." : !user ? "Connect Wallet to Install" : "Install Skill → Agent"}
                   </button>
                   <button
                     onClick={() => {
