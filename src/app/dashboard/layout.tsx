@@ -70,7 +70,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* Mobile bottom navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 backdrop-blur-md border-t" style={{ background: 'color-mix(in srgb, var(--bg-card) 95%, transparent)', borderColor: 'var(--card-border)' }}>
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 backdrop-blur-md border-t" style={{ background: 'color-mix(in srgb, var(--bg-card) 95%, transparent)', borderColor: 'var(--card-border)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="flex items-center justify-around py-2 px-2">
           {NAV_ITEMS.map(({ href, labelKey, icon: Icon }) => (
             <Link

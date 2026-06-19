@@ -14,7 +14,7 @@
   --card-border-hover: rgba(255, 255, 255, 0.12);
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
+  --text-muted: #8e8e8e;
   --font-mono: var(--font-geist-mono), 'SF Mono', monospace;
 
   /* ── Semantic design-token aliases ──────────────────────────
@@ -52,7 +52,7 @@
   --card-border-hover: rgba(0, 0, 0, 0.12);
   --text-primary: #18181b;
   --text-secondary: #52525b;
-  --text-muted: #a1a1aa;
+  --text-muted: #6b6b6b;
 }
 
 @theme inline {
