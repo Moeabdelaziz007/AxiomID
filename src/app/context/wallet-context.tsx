@@ -175,6 +175,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const levelProgress = useMemo(() => user ? getLevelProgress(user.xp, user.tier) : 0, [user]);
   const nextXP = useMemo(() => user ? getNextLevelXP(user.tier) : null, [user]);
   const [walletLogs, setWalletLogs] = useState<string[]>([]);
+  const connectingRef = useRef(false);
 
   useEffect(() => {
     userRef.current = user;
@@ -330,6 +331,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, [refreshUser, piAccessToken]);
 
   const connectWallet = useCallback(async () => {
+    if (connectingRef.current) return;
+    connectingRef.current = true;
     setIsConnecting(true);
     setError(null);
     pushLog("Initializing wallet connection...");
@@ -360,6 +363,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
               uid: piUser.uid,
               username: piUser.username,
             }),
+            signal: AbortSignal.timeout(10000),
           });
 
           if (!res.ok) {
@@ -401,6 +405,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setTimeout(() => setError(null), 8000);
     } finally {
       setIsConnecting(false);
+      connectingRef.current = false;
     }
   }, [pushLog]);
 

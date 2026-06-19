@@ -243,9 +243,15 @@ export async function connectPi(pushLog?: (msg: string) => void): Promise<PiAuth
         );
       }
       pushLog?.(`Authenticated: ${result.user.name || result.user.uid}`);
+      if (!result.user.uid) {
+        throw new PiSdkError(
+          PiSdkErrorCode.AUTHENTICATION_FAILED,
+          "Authentication failed - no UID received from Pi SDK"
+        );
+      }
       return {
         user: {
-          uid: result.user.uid ?? result.user.name,
+          uid: result.user.uid,
           username: result.user.username ?? result.user.name,
           name: result.user.name,
           stellarAddress: result.user.stellarAddress,
