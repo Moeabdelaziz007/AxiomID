@@ -42,8 +42,6 @@ const STATUS_MAP: Record<ErrorCode, number> = {
  * pair into a single map eliminates the double-lookup and the `any` cast on
  * the diagnostics object.
  */
-// nostics TS 5.9+ doesn't infer per-code params from defineDiagnostics generic;
-// cast each call since the params match the catalog definitions.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const REPORT_DIAGNOSTIC: Record<ErrorCode, (message: string) => any> = {
   /* eslint-disable @typescript-eslint/no-explicit-any */
