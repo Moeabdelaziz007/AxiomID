@@ -141,7 +141,7 @@ export default function SandboxPage() {
           if (line.trim()) {
             try {
               const parsed = JSON.parse(line);
-              setLogs((prev) => [...prev, parsed.text]);
+              setLogs((prev) => [...prev, parsed.text].slice(-200));
             } catch {
               // Ignore invalid lines
             }
