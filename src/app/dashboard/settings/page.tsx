@@ -357,7 +357,7 @@ export default function SettingsPage() {
         closedby="any"
         onClick={handleDialogBackdropClick}
         aria-labelledby="connect-dialog-title"
-        className="bento-card max-w-md w-full p-6 bg-black/90 border border-white/15 backdrop-blur-xl text-white rounded-2xl p-0"
+        className="bento-card max-w-md w-full bg-black/90 border border-white/15 backdrop-blur-xl text-white rounded-2xl p-0"
       >
         <div className="p-6">
           <h3 id="connect-dialog-title" className="text-lg font-bold mb-2 flex items-center gap-2">

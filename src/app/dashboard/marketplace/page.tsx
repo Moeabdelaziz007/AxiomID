@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useWallet } from "../../context/wallet-context";
 import { Dna, Download, Star, Coins } from "lucide-react";
 import { PublishSkillForm } from "@/components/dashboard/PublishSkillForm";
@@ -110,7 +110,11 @@ export default function MarketplacePage() {
     setOffset(0);
   };
 
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
   const openDetail = async (slug: string) => {
+    previousFocusRef.current = document.activeElement as HTMLElement;
     setDetailLoading(true);
     try {
       const res = await fetch(`/api/skills/${slug}`);
@@ -126,6 +130,11 @@ export default function MarketplacePage() {
       setDetailLoading(false);
     }
   };
+
+  const closeModal = useCallback(() => {
+    setSelectedSkill(null);
+    previousFocusRef.current?.focus();
+  }, []);
 
   const handleInstall = async (slug: string) => {
     if (!user) {
@@ -184,14 +193,16 @@ export default function MarketplacePage() {
           <>
             {/* Search + Filters */}
             <div className="flex flex-col sm:flex-row gap-3 mb-8">
+              <label htmlFor="marketplace-search" className="sr-only">Search skills</label>
               <input
+                id="marketplace-search"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder="Search skills... (agent-memory, voice-wizard, sovereign-constitution)"
                 className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
               />
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by tier">
                 {["", "BASIC_TOOL", "ADVANCED_TOOL", "ADVANCED_INFRASTRUCTURE", "PRO", "SOVEREIGN"].map((tier) => (
                   <button
                     key={tier}
@@ -324,11 +335,17 @@ export default function MarketplacePage() {
         )}
 
       {/* Skill Detail Modal */}
-      {(selectedSkill || detailLoading) && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-          onClick={() => setSelectedSkill(null)}
-        >
+      <dialog
+        ref={dialogRef}
+        open={!!selectedSkill || detailLoading}
+        onClose={closeModal}
+        className="bg-transparent p-0 rounded-xl backdrop:bg-black/80 backdrop:backdrop-blur-sm"
+        role="dialog"
+        aria-modal="true"
+        aria-label={selectedSkill ? `${selectedSkill.name} skill details` : "Loading skill details"}
+        onClick={(e) => { if (e.target === dialogRef.current) closeModal(); }}
+        onKeyDown={(e) => { if (e.key === "Escape") closeModal(); }}
+      >
           <div
             className="bento-card max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 border border-white/10"
             onClick={(e) => e.stopPropagation()}
@@ -349,7 +366,7 @@ export default function MarketplacePage() {
                     </p>
                   </div>
                   <button
-                    onClick={() => setSelectedSkill(null)}
+                    onClick={closeModal}
                     className="text-gray-500 hover:text-white text-xs font-mono px-2 py-0.5 border border-white/5 rounded"
                   >
                     CLOSE
@@ -422,8 +439,7 @@ export default function MarketplacePage() {
               </>
             )}
           </div>
-        </div>
-      )}
+      </dialog>
     </>
   );
 }

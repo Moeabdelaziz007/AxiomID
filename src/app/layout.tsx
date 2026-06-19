@@ -6,6 +6,7 @@ import { WalletProvider } from "./context/wallet-context";
 import { SandboxProvider } from "./context/sandbox-provider";
 import { LanguageProvider } from "./context/language-context";
 import { ThemeProvider } from "./context/theme-context";
+import { MotionConfig } from "framer-motion";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -160,7 +161,9 @@ export default function RootLayout({
           <LanguageProvider>
             <SandboxProvider>
               <WalletProvider>
-                {children}
+                <MotionConfig reducedMotion="user">
+                  {children}
+                </MotionConfig>
               </WalletProvider>
             </SandboxProvider>
           </LanguageProvider>
