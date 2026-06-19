@@ -47,8 +47,6 @@ export const translations = {
     create_your_agent: "Create Your Agent",
     agent_quick_actions: "Agent Quick Actions",
     replay_onboarding: "REPLAY ONBOARDING",
-    demo_mode: "Demo Mode",
-    demo_mode_desc: "Connect your wallet to claim actions and manage your agent.",
     // Settings
     settings_title: "Protocol Settings",
     settings_desc: "Manage your cryptographic credentials, linked accounts, and passport details.",
@@ -86,15 +84,12 @@ export const translations = {
     citizen: "Citizen",
     validator: "Validator",
     sovereign: "Sovereign",
-    view_demo: "VIEW DEMO",
     enter_dashboard: "ENTER DASHBOARD",
     logout: "LOGOUT",
     connecting: "CONNECTING...",
     connect: "CONNECT",
     // Pi Browser prompts
     pi_browser_required: "Open this app from Pi Browser",
-    pi_browser_demo_disabled: "Open this app from Pi Browser (Demo Disabled)",
-    demo_disabled_desc: "Demo wallets are disabled for this deployment.",
     // Passport & Components
     agent_passport: "AGENT PASSPORT",
     no_address: "No address",
@@ -198,8 +193,6 @@ export const translations = {
     // Dashboard Components
     welcome_back_name: "Welcome back, {username}",
     agent_identity_ready: "Your agent identity is ready. Level",
-    demo_account: "Demo Account",
-    demo_not_valid: "Not valid for production use",
     stat_level: "Level",
     stat_xp: "XP",
     stat_agent: "Agent",
@@ -280,8 +273,6 @@ export const translations = {
     create_your_agent: "أنشئ عميلك الآلي",
     agent_quick_actions: "إجراءات العميل السريعة",
     replay_onboarding: "إعادة عرض الترحيب",
-    demo_mode: "وضع العرض التجريبي",
-    demo_mode_desc: "قم بربط محفظتك للمطالبة بالعمليات وإدارة عميلك الآلي.",
     // Settings
     settings_title: "إعدادات البروتوكول",
     settings_desc: "إدارة المؤهلات التشفيرية، الحسابات المرتبطة، وتفاصيل الجواز الخاص بك.",
@@ -319,15 +310,12 @@ export const translations = {
     citizen: "مواطن",
     validator: "مدقق",
     sovereign: "سيادي",
-    view_demo: "عرض العرض التجريبي",
     enter_dashboard: "دخول لوحة التحكم",
     logout: "تسجيل الخروج",
     connecting: "جاري الاتصال...",
     connect: "اتصال",
     // Pi Browser prompts
     pi_browser_required: "افتح التطبيق من Pi Browser",
-    pi_browser_demo_disabled: "افتح التطبيق من Pi Browser (التجربة معطلة)",
-    demo_disabled_desc: "المحافظ التجريبية معطلة في هذا الإصدار.",
     // Passport & Components
     agent_passport: "جواز العميل",
     no_address: "لا يوجد عنوان",
@@ -431,8 +419,6 @@ export const translations = {
     // Dashboard Components
     welcome_back_name: "مرحباً بك مجدداً، {username}",
     agent_identity_ready: "هوية عميلك جاهزة. المستوى",
-    demo_account: "حساب تجريبي",
-    demo_not_valid: "غير صالح للاستخدام في الإنتاج",
     stat_level: "المستوى",
     stat_xp: "نقاط XP",
     stat_agent: "العميل",

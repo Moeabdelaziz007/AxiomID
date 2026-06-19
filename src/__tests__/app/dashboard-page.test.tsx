@@ -97,19 +97,19 @@ describe("Dashboard page — loading state", () => {
 
 describe("Dashboard page — no user (unauthenticated)", () => {
   it("renders a 'CONNECT WALLET' button when user is null and not loading", () => {
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null, isLoading: false }));
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null, isLoading: false, isPiBrowser: true }));
     renderWithProvider(<Dashboard />);
     expect(screen.getByRole("button", { name: /connect wallet/i })).toBeInTheDocument();
   });
 
   it("renders 'CONNECTING...' text on the button when isConnecting is true", () => {
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null, isLoading: false, isConnecting: true }));
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null, isLoading: false, isConnecting: true, isPiBrowser: true }));
     renderWithProvider(<Dashboard />);
     expect(screen.getByRole("button", { name: /connecting/i })).toBeInTheDocument();
   });
 
   it("the connect button is disabled when isConnecting is true", () => {
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null, isLoading: false, isConnecting: true }));
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null, isLoading: false, isConnecting: true, isPiBrowser: true }));
     renderWithProvider(<Dashboard />);
     expect(screen.getByRole("button", { name: /connecting/i })).toBeDisabled();
   });

@@ -79,7 +79,7 @@ describe("E2E Pi Sandbox WebView Flow", () => {
     localStorage.clear();
   });
 
-  it("should handle sandbox postMessage communications and allow connecting demo wallet in sandbox mode", async () => {
+  it("should handle sandbox postMessage communications and reject connection without Pi Browser", async () => {
     const mockParent = {
       postMessage: jest.fn(),
     };
@@ -127,48 +127,19 @@ describe("E2E Pi Sandbox WebView Flow", () => {
     expect(response.payload.slug).toBe("axiom-test");
     expect(options.targetOrigin).toBe("https://app.minepi.com");
 
-    // 2. Perform connection flow in sandbox mode
-    // Mock the specific endpoints needed for connectDemoWallet
-    mockFetch.mockImplementation((url: string) => {
-      if (url.includes("/api/auth/state")) {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({ state: "mock-state-token-123" }),
-        });
-      }
-      if (url.includes("/api/auth/connect")) {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({
-            userId: "sandbox-user-999",
-            walletAddress: "demo:sandbox-1234",
-            xp: 150,
-            tier: "Citizen",
-            createdAt: new Date().toISOString(),
-            piUsername: "sandboxguy",
-          }),
-        });
-      }
-      return Promise.resolve({
-        ok: false,
-        json: async () => ({ error: "Not found" }),
-      });
-    });
-
-    // Click connect wallet button
+    // 2. Click connect wallet — should fail with "Pi Browser required" since demo is removed
     const connectButton = screen.getByTestId("connect-btn");
     await act(async () => {
       connectButton.click();
     });
 
-    // Assert loading/connecting state resolves
+    // Assert error message appears
     await waitFor(() => {
-      expect(screen.getByTestId("user-address")).toHaveTextContent("demo:");
-      expect(screen.getByTestId("user-username")).toHaveTextContent("sandboxguy");
+      expect(screen.getByTestId("error-message")).toHaveTextContent(/Pi Browser required/i);
     });
 
-    // Verify localStorage has persisted the session
-    expect(localStorage.getItem("axiomid_wallet")).toContain("demo:");
+    // User should remain null
+    expect(screen.getByTestId("user-address")).toHaveTextContent("guest");
 
     unmount();
   });

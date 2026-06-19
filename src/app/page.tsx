@@ -154,12 +154,6 @@ export default function Home() {
       <div className="scanline" />
       <ErrorBanner />
 
-      {process.env.NEXT_PUBLIC_PI_SANDBOX === "true" && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-4 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-[10px] font-mono tracking-wider">
-          SANDBOX MODE
-        </div>
-      )}
-
       {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
@@ -296,9 +290,6 @@ export default function Home() {
                     </>
                   )}
                 </button>
-                <Link href="/dashboard" prefetch={false} className="btn-ghost w-fit text-center">
-                  {t("view_demo")}
-                </Link>
               </div>
             ) : (
               <div className="flex flex-col sm:flex-row gap-3 mt-1">

@@ -63,8 +63,6 @@ function makeDefaultCtx(overrides: Partial<ReturnType<typeof useWallet>> = {}): 
     isConnecting: false,
     error: null,
     isPiBrowser: false,
-    isDemoWallet: false,
-    isDemoWalletEnabled: true,
     connectWallet: jest.fn(),
     logout: jest.fn(),
     claimAction: jest.fn(),

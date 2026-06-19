@@ -267,59 +267,6 @@ describe("WalletProvider & WalletContext", () => {
     expect(localStorage.getItem("axiomid_wallet")).toBe("pi:pi-uid-456");
   });
 
-  it("sets user correctly from demo auth (flat API response)", async () => {
-    process.env.NEXT_PUBLIC_PI_SANDBOX = "true";
-    setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)");
-
-    // Mock connectPi to throw PiSdkError NOT_IN_PI_BROWSER so fallback to demo wallet triggers
-    mockConnectPi.mockRejectedValue(
-      new PiSdkError(PiSdkErrorCode.NOT_IN_PI_BROWSER, "Pi SDK authenticate function not available.")
-    );
-
-    // First mock the state token endpoint
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ state: "mock-state-token" }),
-    });
-    // Then mock the connect endpoint
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        userId: "user-demo-1",
-        walletAddress: "demo:abc123",
-        tier: "Visitor",
-        xp: 5,
-        did: null,
-        kycStatus: null,
-        isNewUser: true,
-      }),
-    });
-
-    let contextValue: ReturnType<typeof useWallet> | undefined;
-    const { getByTestId } = render(
-      <WalletProvider>
-        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
-      </WalletProvider>
-    );
-
-    await waitFor(() => {
-      expect(contextValue.isLoading).toBe(false);
-    });
-
-    await act(async () => {
-      getByTestId("connect-btn").click();
-    });
-
-    await waitFor(() => {
-      expect(contextValue.user).not.toBeNull();
-    });
-
-    expect(contextValue.user.id).toBe("user-demo-1");
-    expect(contextValue.user.walletAddress).toBe("demo:abc123");
-    expect(contextValue.user.tier).toBe("Visitor");
-    expect(contextValue.user.xp).toBe(5);
-  });
-
   it("rejects auth when Pi SDK fails in production mode", async () => {
     setUserAgent("Pi Browser; Android; minepi");
     process.env.NEXT_PUBLIC_PI_SANDBOX = "false";
