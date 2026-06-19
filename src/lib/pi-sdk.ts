@@ -125,8 +125,15 @@ export function determineSandboxMode(): boolean {
   try {
     if (window.self !== window.top) {
       const referrer = document.referrer || "";
-      if (referrer.includes("sandbox.minepi.com")) {
-        return true;
+      if (referrer) {
+        const referrerUrl = new URL(referrer);
+        const referrerHost = referrerUrl.hostname;
+        if (
+          referrerHost === "sandbox.minepi.com" ||
+          referrerHost.endsWith(".sandbox.minepi.com")
+        ) {
+          return true;
+        }
       }
     }
   } catch {}
