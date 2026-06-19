@@ -159,7 +159,6 @@ export default function Dashboard() {
           <WelcomeBanner
             username={user.piUsername || "User"}
             tier={user.tier}
-            xp={user.xp}
             levelProgress={levelProgress}
           />
 

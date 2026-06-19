@@ -53,7 +53,7 @@ export function KYAVerificationCard({ kycStatus, did, piUsername, onVerify }: KY
           </span>
         ) : (
           <span className="px-2.5 py-1 rounded-md text-[11px] font-mono" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)', border: '1px solid var(--card-border)' }}>
-            UNVERIFIED
+            {t('status_unverified')}
           </span>
         )}
       </div>

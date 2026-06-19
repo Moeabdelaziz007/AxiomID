@@ -34,11 +34,13 @@ export function ActionButton({
   loadingText,
   disabled,
   className = "",
+  type = "button",
   children,
   ...props
 }: ActionButtonProps) {
   return (
     <button
+      type={type}
       disabled={disabled || isLoading}
       aria-busy={isLoading}
       className={`${variantClasses[variant]} ${sizeClasses[size]} flex items-center justify-center gap-2 ${className}`}

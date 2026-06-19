@@ -5,7 +5,6 @@ import { useLanguage } from "@/app/context/language-context";
 interface WelcomeBannerProps {
   username: string;
   tier: string;
-  xp: number;
   levelProgress: number;
 }
 
@@ -15,7 +14,7 @@ interface WelcomeBannerProps {
  * @param levelProgress - The percentage of progress towards the next level, from 0 to 100
  * @returns The welcome banner element
  */
-export function WelcomeBanner({ username, tier, xp: _xp, levelProgress }: WelcomeBannerProps) {
+export function WelcomeBanner({ username, tier, levelProgress }: WelcomeBannerProps) {
   const { t } = useLanguage();
   return (
     <div className="bento-card p-6 sm:p-8 mb-6">
