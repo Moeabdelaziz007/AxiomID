@@ -4,6 +4,7 @@ import { apiError, apiSuccess, rateLimitHeaders } from "@/lib/errors";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { logger } from "@/lib/logger";
+import { createUserDid } from "@/lib/did";
 
 import { calculateTrustScore } from "@/lib/trust";
 
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest) {
         tier: true,
         xp: true,
         createdAt: true,
+        did: true,
         stamps: {
           select: {
             id: true,
@@ -42,9 +44,10 @@ export async function GET(request: NextRequest) {
     const leaderboard = topUsers.map((user, idx) => {
       const stampsCount = user.stamps.length;
       const trustScore = calculateTrustScore(user.xp, stampsCount);
+      const userDid = user.did || createUserDid(user.id);
       return {
         rank: idx + 1,
-        id: user.id,
+        id: userDid,
         piUsername: user.piUsername,
         walletAddress: user.walletAddress,
         tier: user.tier,

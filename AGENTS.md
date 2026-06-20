@@ -76,6 +76,7 @@ Use nostics for stable error codes with actionable fixes.
 - **No `as any` casts.** If TypeScript rejects a call, fix the types at the source — don't silence with casts.
 - The only permitted `eslint-disable @typescript-eslint/no-explicit-any` is on the `REPORT_DIAGNOSTIC` map return type in `src/lib/errors.ts`, which uses `any` as the heterogeneous nostics call return envelope (not an escape hatch from type safety).
 - Use `unknown` instead of `any` for external data boundaries (API responses, SDK callbacks).
+- **Strict API Error Codes:** Only use pre-registered error categories defined in the `ErrorCode` union inside `src/lib/errors.ts`. Never pass ad-hoc strings.
 
 ### 🩺 Nostics Diagnostic Catalog Rules (`src/diagnostics/catalog.ts`)
 
@@ -95,6 +96,8 @@ Use nostics for stable error codes with actionable fixes.
 - `window.Pi` typing is unified in `src/types/pi.d.ts` — never redeclare it locally in components.
 - **Dynamic Sandbox Detection (never hardcode):** Use `determineSandboxMode()` from `src/lib/pi-sdk.ts` which cascades through: env var override → hostname check (localhost/LAN/vercel.app) → iframe referrer (`sandbox.minepi.com`) → query param (`?sandbox=true`). Never hardcode `sandbox: true/false` in `Pi.init()`.
 - **Authentication timeout:** Pi Browser popup interactions on mobile are slow — use `≥45s` timeout for `authenticateWithTimeout()`, not the default 15s.
+- **Server-Side Cryptography Isolation:** Cryptographic key derivations (`deriveSovereignAgentKeypair`) and payload signing rely on Node's native `crypto` module. This execution must reside strictly in Next.js API routes or Server Components, never in Client Components due to browser environment incompatibility.
+- **SOVEREIGN_KEY_SALT Required:** `deriveSovereignAgentKeypair` MUST incorporate `process.env.SOVEREIGN_KEY_SALT` as HMAC key material. Never use public inputs alone.
 
 ### 🏗️ Next.js 16 / App Router Patterns
 
@@ -123,6 +126,9 @@ Use nostics for stable error codes with actionable fixes.
 - **Build must pass locally** (`npm run build`) before any push or merge request.
 - **Lint must pass** (`npm run lint`) — no new lint warnings are acceptable.
 - **Storytelling commits:** Every commit message must follow the IQRA Chronicle format: `type(scope): description ۞` + narrative body.
+- **Zero Tolerance for Red CI:** Never merge a Pull Request with failing CI checks (Red X status). If a check fails on GitHub Actions/Vercel, the developer/agent must fix it and verify locally first before requesting a merge.
+- **Git History Cleanliness & Squashing:** Bloating git history with repetitive, low-value commits (e.g. "fix: remove unused public asset" repeated 10+ times) is prohibited. Use selective staging (`git add -p`), commit amending (`git commit --amend`), or interactive rebasing (`git rebase -i`) to squash minor adjustments into cohesive, atomic commits before pushing.
+- **Regression & Test Stability:** The test suite status must remain stable. The number of passing tests must never decrease across PRs. Disabling or skipping active tests to bypass coverage requirements is strictly forbidden.
 
 ### 📁 Architecture Map
 
@@ -157,3 +163,4 @@ src/
 - Don't store secrets in `NEXT_PUBLIC_*` — use Vercel Env Variables only.
 - Don't call `console.log` in production route handlers — use nostics diagnostics.
 - Don't duplicate global IQRA conscience rules here — they live in `~/.gemini/config/AGENTS.md`.
+- **Synchronous Multi-DB Coupling:** Do not rely on direct database-to-database replication or sync loops triggered via simple cron scripts (like SQLite-D1-PostgreSQL synchronization via Vercel Cron). This creates a high point of failure and eventual consistency splits. Instead, implement a **Transactional Outbox** pattern where data updates are stored locally as log events and dispatched reliably using queue relays.

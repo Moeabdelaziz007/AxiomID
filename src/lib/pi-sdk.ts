@@ -416,7 +416,12 @@ export async function createPiPayment(amount: number, memo: string, metadata?: R
 }
 
 export function deriveSovereignAgentKeypair(stellarAddress: string, agentId: string): { publicKey: string; privateKey: string } {
-  const hmac = crypto.createHmac("sha256", stellarAddress);
+  const salt = process.env.SOVEREIGN_KEY_SALT || (process.env.NODE_ENV === "production" ? undefined : "development_fallback_salt_3f43ec47");
+  if (!salt) {
+    throw new Error("SOVEREIGN_KEY_SALT is not configured in production environment");
+  }
+  const hmac = crypto.createHmac("sha256", salt);
+  hmac.update(stellarAddress);
   hmac.update(agentId);
   const seed = hmac.digest();
 

@@ -96,7 +96,7 @@ export const translations = {
     connecting: "CONNECTING...",
     connect: "CONNECT",
     // Pi Browser prompts
-    pi_browser_required: "Open this app from Pi Browser",
+    pi_browser_required: "Connect Pi Browser to unlock your identity",
     // Passport & Components
     agent_passport: "AGENT PASSPORT",
     no_address: "No address",
@@ -330,7 +330,7 @@ export const translations = {
     connecting: "جاري الاتصال...",
     connect: "اتصال",
     // Pi Browser prompts
-    pi_browser_required: "افتح التطبيق من Pi Browser",
+    pi_browser_required: "قم بالاتصال عبر متصفح Pi لفتح هويتك الرقمية",
     // Passport & Components
     agent_passport: "جواز العميل",
     no_address: "لا يوجد عنوان",

@@ -7,15 +7,13 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     user: {
       count: jest.fn(),
+      aggregate: jest.fn(),
     },
     userAgent: {
       count: jest.fn(),
     },
     piPayment: {
       count: jest.fn(),
-    },
-    xpLedger: {
-      aggregate: jest.fn(),
     },
   },
 }));
@@ -45,12 +43,14 @@ describe('GET /api/status', () => {
   });
 
   it('returns network stats successfully', async () => {
-    mockPrisma.user.count.mockResolvedValue(1247);
+    (mockPrisma.user.count as jest.Mock)
+      .mockResolvedValueOnce(1247) // registeredUsers
+      .mockResolvedValueOnce(14);   // activeUsers
     (mockPrisma.userAgent.count as jest.Mock)
       .mockResolvedValueOnce(856) // total agents
       .mockResolvedValueOnce(312); // active agents
     mockPrisma.piPayment.count.mockResolvedValue(8934);
-    mockPrisma.xpLedger.aggregate.mockResolvedValue({ _sum: { amount: 456789 } } as any);
+    (mockPrisma.user.aggregate as jest.Mock).mockResolvedValue({ _sum: { xp: 456789 } } as any);
 
     const req = mockGetRequest();
     const res = await GET(req);
@@ -65,15 +65,18 @@ describe('GET /api/status', () => {
     expect(data.stats.activeAgents).toBe(312);
     expect(data.stats.totalPayments).toBe(8934);
     expect(data.stats.totalXpEarned).toBe(456789);
+    expect(data.stats.activeUsers).toBe(14);
   });
 
   it('handles null xpLedger sum gracefully (defaults to 0)', async () => {
-    mockPrisma.user.count.mockResolvedValue(0);
+    (mockPrisma.user.count as jest.Mock)
+      .mockResolvedValueOnce(0) // registeredUsers
+      .mockResolvedValueOnce(0);   // activeUsers
     (mockPrisma.userAgent.count as jest.Mock)
       .mockResolvedValueOnce(0)
       .mockResolvedValueOnce(0);
     mockPrisma.piPayment.count.mockResolvedValue(0);
-    mockPrisma.xpLedger.aggregate.mockResolvedValue({ _sum: { amount: null } } as any);
+    (mockPrisma.user.aggregate as jest.Mock).mockResolvedValue({ _sum: { xp: null } } as any);
 
     const req = mockGetRequest();
     const res = await GET(req);
@@ -82,6 +85,7 @@ describe('GET /api/status', () => {
     expect(res.status).toBe(200);
     expect(data.stats.totalXpEarned).toBe(0);
     expect(data.stats.registeredUsers).toBe(0);
+    expect(data.stats.activeUsers).toBe(1); // defaults to Math.max(1, 0)
   });
 
   it('returns 429 when rate limit is exceeded', async () => {
@@ -107,12 +111,14 @@ describe('GET /api/status', () => {
   });
 
   it('uses anonymous rate limit key (not authenticated)', async () => {
-    mockPrisma.user.count.mockResolvedValue(10);
+    (mockPrisma.user.count as jest.Mock)
+      .mockResolvedValueOnce(10)
+      .mockResolvedValueOnce(1);
     (mockPrisma.userAgent.count as jest.Mock)
       .mockResolvedValueOnce(5)
       .mockResolvedValueOnce(2);
     mockPrisma.piPayment.count.mockResolvedValue(0);
-    mockPrisma.xpLedger.aggregate.mockResolvedValue({ _sum: { amount: 100 } } as any);
+    (mockPrisma.user.aggregate as jest.Mock).mockResolvedValue({ _sum: { xp: 100 } } as any);
 
     const req = mockGetRequest();
     await GET(req);
@@ -124,12 +130,14 @@ describe('GET /api/status', () => {
   });
 
   it('timestamp is a valid ISO date string', async () => {
-    mockPrisma.user.count.mockResolvedValue(5);
+    (mockPrisma.user.count as jest.Mock)
+      .mockResolvedValueOnce(5)
+      .mockResolvedValueOnce(1);
     (mockPrisma.userAgent.count as jest.Mock)
       .mockResolvedValueOnce(3)
       .mockResolvedValueOnce(1);
     mockPrisma.piPayment.count.mockResolvedValue(2);
-    mockPrisma.xpLedger.aggregate.mockResolvedValue({ _sum: { amount: 500 } } as any);
+    (mockPrisma.user.aggregate as jest.Mock).mockResolvedValue({ _sum: { xp: 500 } } as any);
 
     const req = mockGetRequest();
     const res = await GET(req);

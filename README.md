@@ -1,62 +1,25 @@
-<!-- ════════════════ AIX SOVEREIGN STACK · UNIFIED BRANDING ════════════════ -->
-
 <div align="center">
   <img src="./public/axiomid-banner.png" alt="AxiomID Banner" width="100%" />
 </div>
 
-<div align="center">
-
-[![AIX Stack](https://img.shields.io/badge/AIX%20STACK-Echo369-FFD700?style=for-the-badge&labelColor=050505)](https://github.com/Moeabdelaziz007/aix-format/blob/main/AXIOM.md)
-[![Spec](https://img.shields.io/badge/SPEC-AIX%2F1.0-FFD700?style=for-the-badge&labelColor=050505)](https://github.com/Moeabdelaziz007/aix-format/blob/main/AXIOM.md)
-[![Layer](https://img.shields.io/badge/LAYER-L0%20%C2%B7%20ROOT%20AUTHORITY-FFD700?style=for-the-badge&labelColor=050505)](https://github.com/Moeabdelaziz007/AxiomID)
-[![Version](https://img.shields.io/badge/version-v1.0.0-FFD700?style=for-the-badge&labelColor=050505)](./package.json)
-[![License](https://img.shields.io/badge/LICENSE-Proprietary-FFD700?style=for-the-badge&labelColor=050505)](./LICENSE)
-
-</div>
-
-<div align="center">
-
-**Root Authority** &nbsp;.&nbsp; **👑 L0 . `AxiomID` . YOU ARE HERE** &nbsp;.&nbsp; Sovereign Core: [**L1 `aix-format`**](https://github.com/Moeabdelaziz007/aix-format) &nbsp;.&nbsp; [**L2 `iqra`**](https://github.com/Moeabdelaziz007/iqra) &nbsp;.&nbsp; [**L3 `aix-agent-skills`**](https://github.com/Moeabdelaziz007/aix-agent-skills)
-
-</div>
-
-<div align="center">
-
-<sub>Satellites: [**L4 `AlphaAxiom`**](https://github.com/Moeabdelaziz007/AlphaAxiom) &nbsp;.&nbsp; [**L5 `PiWorker-OS`**](https://github.com/Moeabdelaziz007/PiWorker-OS) &nbsp;.&nbsp; [**L6 `GemClaw`**](https://github.com/Moeabdelaziz007/GemClaw) &nbsp;.&nbsp; identity flows: L0 -&gt; all (every agent carries did:axiom:axiomid.app:*)</sub>
-
-</div>
-
 <br/>
-
-<!-- ════════════════ /AIX SOVEREIGN STACK ════════════════ -->
 
 <p align="center">
   <h1 align="center">AxiomID: The Human Authorization Protocol</h1>
-
-<p align="center">
-  <em>Built by <a href="https://github.com/Moeabdelaziz007">Mohamed Abdelaziz</a></em>
-</p>
-
-<p align="center">
-  <strong>"Identity is an Asset, not a Biometric."</strong>
 </p>
 
 <div align="center">
   <img src="https://img.shields.io/badge/Status-Beta_V1.0.0-00ff41?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/Stack-Next.js_16_|_Prisma_|_PostgreSQL-000000?style=for-the-badge&logo=next.js" alt="Stack" />
-  <img src="https://img.shields.io/badge/Aesthetic-Sophisticated_Cyberpunk-00d4ff?style=for-the-badge&logoColor=white" alt="Aesthetic" />
 </div>
 
-<p align="center">
-  <a href="https://github.com/Moeabdelaziz007#07-architects--ai-collaborators--المعماريون-والمتعاونون-الذكيون"><img src="https://img.shields.io/badge/SOVEREIGN%20AI%20STACK-1%20Human%20%2B%2012%20AI%20Agents%20across%205%20projects-39FF14?style=for-the-badge&labelColor=050505&logo=github&logoColor=39FF14" alt="Sovereign AI Stack · 1 Human + 12 AI Agents across 5 projects"/></a>
-</p>
+---
 
-<p align="center">
-  <a href="#-philosophy">🧬 Philosophy</a> •
-  <a href="#-architecture">📐 Architecture</a> •
-  <a href="#-roadmap">🗺️ Roadmap</a> •
-  <a href="#-quick-start">🚀 Quick Start</a>
-</p>
+### 🧬 What is AxiomID?
+
+1. **Problem:** Sybil attacks and automated bot impersonations in agentic networks.
+2. **Product:** Decentralized Identifier (DID) and Verifiable Credentials (VC) layer for the Pi Network.
+3. **MVP Status:** W3C DID ✅ | Pi KYC ✅ | Stamps ✅ | Marketplace 🚧
 
 ---
 
@@ -71,6 +34,8 @@ We are building the **"Quantum Command Center"** for digital identity:
 
 ### The "Sophisticated Engineering" Aesthetic
 Our UI reflects our code: dark, precise, and data-dense. We use an **OLED Black** foundation with **Neon Emerald** (Verified) and **Electric Blue** (Data) accents. It feels like jacking into a secure mainframe, not browsing a marketing site.
+
+---use an **OLED Black** foundation with **Neon Emerald** (Verified) and **Electric Blue** (Data) accents. It feels like jacking into a secure mainframe, not browsing a marketing site.
 
 ---
 

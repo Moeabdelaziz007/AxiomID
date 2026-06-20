@@ -24,12 +24,12 @@ interface PassportUser {
   kycStatus?: string | null;
   createdAt: Date;
   stamps?: PassportStamp[];
-  agent?: { id: string; name: string; status: string } | null;
+  agent?: { publicId: string; name: string; status: string } | null;
 }
 
 const AGENT_SELECT = {
   agent: {
-    select: { id: true, name: true, status: true },
+    select: { publicId: true, name: true, status: true },
   },
   stamps: {
     select: { type: true, provider: true },
@@ -70,7 +70,7 @@ function buildPassportResponse(user: PassportUser) {
   let agentPublicKey: string | null = null;
   if (user.agent && (user.stellarAddress || user.walletAddress)) {
     try {
-      const keys = deriveSovereignAgentKeypair(user.stellarAddress || user.walletAddress, user.agent.id);
+      const keys = deriveSovereignAgentKeypair(user.stellarAddress || user.walletAddress, user.agent.publicId);
       agentPublicKey = keys.publicKey;
     } catch (e) {
       logger.error('[PASSPORT-API] Key derivation failed:', e);

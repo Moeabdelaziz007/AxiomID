@@ -25,12 +25,19 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const [userCount, agentCount, activeAgentCount, paymentCount, xpSum] = await Promise.all([
+    const [userCount, agentCount, activeAgentCount, paymentCount, xpSum, activeUsersCount] = await Promise.all([
       prisma.user.count(),
       prisma.userAgent.count(),
       prisma.userAgent.count({ where: { status: 'ACTIVE' } }),
       prisma.piPayment.count(),
-      prisma.xpLedger.aggregate({ _sum: { amount: true } }),
+      prisma.user.aggregate({ _sum: { xp: true } }),
+      prisma.user.count({
+        where: {
+          lastActive: {
+            gte: new Date(Date.now() - 15 * 60 * 1000),
+          },
+        },
+      }),
     ]);
 
     return apiSuccess({
@@ -42,7 +49,8 @@ export async function GET(request: NextRequest) {
         totalAgents: agentCount,
         activeAgents: activeAgentCount,
         totalPayments: paymentCount,
-        totalXpEarned: xpSum._sum.amount ?? 0,
+        totalXpEarned: xpSum._sum.xp ?? 0,
+        activeUsers: Math.max(1, activeUsersCount),
       },
     });
   } catch (error) {

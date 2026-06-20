@@ -90,10 +90,10 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
               <span className="flex-1 border-t border-dashed border-white/10 ml-1"></span>
             </div>
             <div className="space-y-1 pl-2">
-              <div>HOST: did:axiom:l0-gate</div>
-              <div>OS: WebAssembly MicroVM</div>
-              <div>RUNTIME: Node v16.2.9</div>
-              <div>ENVIRONMENT: {process.env.NODE_ENV || "development"}</div>
+              <div>HOST: <code>did:axiom:l0-gate</code></div>
+              <div>OS: <code>WebAssembly MicroVM</code></div>
+              <div>RUNTIME: <code>Node v16.2.9</code></div>
+              <div>ENVIRONMENT: <code>{process.env.NODE_ENV || "development"}</code></div>
             </div>
           </div>
  
@@ -103,10 +103,10 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
               <span className="flex-1 border-t border-dashed border-white/10 ml-1"></span>
             </div>
             <div className="space-y-1 pl-2">
-              <div>L0 SECURITY: HIGH_SHIELD</div>
-              <div>PROVENANCE: SIGNED</div>
-              <div>ATTEMPTS: RATE_LIMITED</div>
-              <div>ATTENTIVENESS: 9.8/10</div>
+              <div>L0 SECURITY: <code>HIGH_SHIELD</code></div>
+              <div>PROVENANCE: <code>SIGNED</code></div>
+              <div>ATTEMPTS: <code>RATE_LIMITED</code></div>
+              <div>ATTENTIVENESS: <code>9.8/10</code></div>
             </div>
           </div>
  
@@ -116,9 +116,9 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
               <span className="flex-1 border-t border-dashed border-white/10 ml-1"></span>
             </div>
             <div className="space-y-1 pl-2">
-              <div>⎔ pg-connector.mcp [UP]</div>
-              <div>⎔ github-operator.mcp [UP]</div>
-              <div>⎔ verify-stamp.did [UP]</div>
+              <div>⎔ <code>pg-connector.mcp</code> [UP]</div>
+              <div>⎔ <code>github-operator.mcp</code> [UP]</div>
+              <div>⎔ <code>verify-stamp.did</code> [UP]</div>
             </div>
           </div>
         </div>
@@ -197,11 +197,11 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
       {/* ── BOTTOM TUI KEYBINDINGS HELP BAR (Lazygit Style) ── */}
       <div className="bg-[#050508] border-t border-white/5 px-4 py-2 font-mono text-[9px] text-faint select-none">
         <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
-          <span><b className="bg-white/10 text-surface px-1 rounded mr-1">Esc</b> {language === "ar" ? "إغلاق" : "Exit"}</span>
-          <span><b className="bg-neon-green/20 text-neon-green px-1 rounded mr-1">Space</b> {t('terminal_run_test')}</span>
-          <span><b className="bg-white/10 text-surface px-1 rounded mr-1">Ctrl+L</b> {t('terminal_clear')}</span>
-          <span className="hidden sm:inline"><b className="bg-white/10 text-surface px-1 rounded mr-1">F1</b> {language === "ar" ? "دليل المساعدة" : "Help Docs"}</span>
-          <span className="hidden sm:inline"><b className="bg-white/10 text-surface px-1 rounded mr-1">Tab</b> {language === "ar" ? "تبديل النوافذ" : "Switch Pane"}</span>
+          <span><kbd className="bg-white/10 text-surface px-1 rounded mr-1 font-sans">Esc</kbd> {language === "ar" ? "إغلاق" : "Exit"}</span>
+          <span><kbd className="bg-neon-green/20 text-neon-green px-1 rounded mr-1 font-sans">Space</kbd> {t('terminal_run_test')}</span>
+          <span><kbd className="bg-white/10 text-surface px-1 rounded mr-1 font-sans">Ctrl+L</kbd> {t('terminal_clear')}</span>
+          <span className="hidden sm:inline"><kbd className="bg-white/10 text-surface px-1 rounded mr-1 font-sans">F1</kbd> {language === "ar" ? "دليل المساعدة" : "Help Docs"}</span>
+          <span className="hidden sm:inline"><kbd className="bg-white/10 text-surface px-1 rounded mr-1 font-sans">Tab</kbd> {language === "ar" ? "تبديل النوافذ" : "Switch Pane"}</span>
         </div>
       </div>
     </motion.div>
