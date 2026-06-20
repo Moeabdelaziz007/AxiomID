@@ -35,10 +35,15 @@ export async function POST(request: NextRequest) {
     return apiError("VALIDATION_ERROR", parsed.error.issues[0].message, parsed.error.issues);
   }
 
-  try {
-    const didParts = parsed.data.did.split(":");
-    const uid = didParts[didParts.length - 1];
+  const didParts = parsed.data.did.split(":");
+  const uid = decodeURIComponent(didParts[didParts.length - 1]);
 
+  // Authorization: caller may only sign with a DID derived from their own Pi UID.
+  if (uid !== auth.user.piUid) {
+    return apiError("FORBIDDEN", "Cannot sign with a DID you do not own");
+  }
+
+  try {
     const keys = deriveSovereignAgentKeypair(uid, "axiom-root");
     const signature = signPayloadWithAgentKey(parsed.data.payload, keys.privateKey);
 

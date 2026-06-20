@@ -6,6 +6,19 @@ import { logger } from "@/lib/logger";
 const revokedTokens = new Set<string>();
 
 /**
+ * Checks whether a token has been revoked.
+ *
+ * Exported so that token-validation paths (e.g. access-token verification)
+ * can consult revocation state from a single shared source.
+ *
+ * @param token - The token to check
+ * @returns `true` if the token has been revoked, `false` otherwise
+ */
+export function isTokenRevoked(token: string): boolean {
+  return revokedTokens.has(token);
+}
+
+/**
  * Processes an OAuth2 token revocation request.
  *
  * Validates the request body and adds the token to the revocation list.
