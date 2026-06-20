@@ -37,10 +37,8 @@ interface PiPaymentCallbacks {
 interface PiInstance {
   init: (options: { version: string; sandbox?: boolean }) => void;
   authenticate: (
-    params?: {
-      scopes?: string[];
-      onIncompletePaymentFound?: (payment: PiPaymentDTO) => void;
-    }
+    scopes: string[],
+    onIncompletePaymentFound?: (payment: PiPaymentDTO) => void
   ) => Promise<PiAuthResult>;
   createPayment: (
     paymentData: {

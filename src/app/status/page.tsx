@@ -171,7 +171,7 @@ export default function StatusPage() {
                       cx="50"
                       cy="50"
                       r="40"
-                      stroke="#00ff41"
+                      stroke="#22c55e"
                       strokeWidth="6"
                       fill="none"
                       strokeDasharray={`${2 * Math.PI * 40}`}

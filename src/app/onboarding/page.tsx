@@ -69,6 +69,29 @@ export default function OnboardingPage() {
     }
   };
 
+  type OnboardingState = "VISITOR" | "CONNECTED" | "PARTIAL_VERIFIED" | "VERIFIED" | "PENDING_REVIEW" | "ERROR";
+
+  const getOnboardingState = (): OnboardingState => {
+    if (!user) return "VISITOR";
+    if (user.kycStatus === "VERIFIED") return "VERIFIED";
+    if (user.kycStatus === "PENDING" || user.kycStatus === "PENDING_REVIEW") return "PENDING_REVIEW";
+    if (user.kycStatus === "PARTIAL" || user.kycStatus === "PARTIAL_VERIFIED") return "PARTIAL_VERIFIED";
+    return "CONNECTED";
+  };
+
+  const stateValue = getOnboardingState();
+
+  const stateConfigs: Record<OnboardingState, { label: string; colorClass: string }> = {
+    VISITOR: { label: "VISITOR", colorClass: "text-zinc-500 border-zinc-800 bg-zinc-900/50" },
+    CONNECTED: { label: "CONNECTED", colorClass: "text-blue-400 border-blue-500/20 bg-blue-500/5" },
+    PARTIAL_VERIFIED: { label: "PARTIAL KYC", colorClass: "text-amber-400 border-amber-500/20 bg-amber-500/5" },
+    VERIFIED: { label: "VERIFIED", colorClass: "text-green-400 border-green-500/20 bg-green-500/5" },
+    PENDING_REVIEW: { label: "PENDING REVIEW", colorClass: "text-purple-400 border-purple-500/20 bg-purple-500/5" },
+    ERROR: { label: "ERROR", colorClass: "text-red-400 border-red-500/20 bg-red-500/5" }
+  };
+
+  const stateConfig = stateConfigs[stateValue];
+
   return (
     <main className="min-h-screen bg-grid relative pb-10 flex flex-col justify-between">
       <div className="scanline" />
@@ -100,9 +123,15 @@ export default function OnboardingPage() {
           {/* Left Side: Step Guide */}
           <div className="md:col-span-6 space-y-6">
             <div>
-              <span className="text-[10px] font-mono text-electric-blue uppercase tracking-widest block mb-2 font-bold">
-                STEP {step} OF 4
-              </span>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[10px] font-mono text-electric-blue uppercase tracking-widest font-bold">
+                  STEP {step} OF 4
+                </span>
+                <span className="text-zinc-700">•</span>
+                <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded border ${stateConfig.colorClass}`}>
+                  STATE: {stateConfig.label}
+                </span>
+              </div>
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-white transition-all duration-300">
                 {currentStepInfo().title}
               </h2>

@@ -4,6 +4,7 @@ import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Fingerprint, Bot, Zap } from "lucide-react";
 import { createUserDid } from "@/lib/did";
+import { User } from "@/app/context/wallet-context";
 
 interface OnboardingModalProps {
   step: number;
@@ -12,7 +13,7 @@ interface OnboardingModalProps {
   agentLoading: boolean;
   shouldShowPiBrowserPrompt: boolean;
   isConnecting: boolean;
-  user: { agent?: { name?: string }; id: string } | null;
+  user: User | null;
   onConnect: () => void;
   onCreateAgent: (name?: string) => Promise<void>;
   onSkip: () => void;
@@ -41,6 +42,29 @@ export function OnboardingModal({
 }: OnboardingModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  type OnboardingState = "VISITOR" | "CONNECTED" | "PARTIAL_VERIFIED" | "VERIFIED" | "PENDING_REVIEW" | "ERROR";
+
+  const getOnboardingState = (u: any): OnboardingState => {
+    if (!u) return "VISITOR";
+    if (u.kycStatus === "VERIFIED") return "VERIFIED";
+    if (u.kycStatus === "PENDING" || u.kycStatus === "PENDING_REVIEW") return "PENDING_REVIEW";
+    if (u.kycStatus === "PARTIAL" || u.kycStatus === "PARTIAL_VERIFIED") return "PARTIAL_VERIFIED";
+    return "CONNECTED";
+  };
+
+  const stateValue = getOnboardingState(user);
+
+  const stateConfigs: Record<OnboardingState, { label: string; colorClass: string }> = {
+    VISITOR: { label: "VISITOR", colorClass: "text-zinc-500 border-zinc-800 bg-zinc-900/50" },
+    CONNECTED: { label: "CONNECTED", colorClass: "text-blue-400 border-blue-500/20 bg-blue-500/5" },
+    PARTIAL_VERIFIED: { label: "PARTIAL KYC", colorClass: "text-amber-400 border-amber-500/20 bg-amber-500/5" },
+    VERIFIED: { label: "VERIFIED", colorClass: "text-green-400 border-green-500/20 bg-green-500/5" },
+    PENDING_REVIEW: { label: "PENDING REVIEW", colorClass: "text-purple-400 border-purple-500/20 bg-purple-500/5" },
+    ERROR: { label: "ERROR", colorClass: "text-red-400 border-red-500/20 bg-red-500/5" }
+  };
+
+  const stateConfig = stateConfigs[stateValue];
 
   useEffect(() => {
     previousFocusRef.current = document.activeElement as HTMLElement;
@@ -86,7 +110,13 @@ export function OnboardingModal({
         <div className="flex justify-between items-start mb-6">
           <div>
             <h3 id="onboarding-title" className="text-xl font-bold text-surface font-mono">AGENT ONBOARDING</h3>
-            <p className="text-xs text-subtle font-mono mt-1">Step {step} of 3</p>
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className="text-[10px] text-subtle font-mono">Step {step} of 3</span>
+              <span className="text-zinc-600">•</span>
+              <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded border ${stateConfig.colorClass}`}>
+                {stateConfig.label}
+              </span>
+            </div>
           </div>
           <button onClick={onSkip} className="text-faint hover:text-surface text-xs font-mono border border-white/5 hover:border-white/10 px-2.5 py-1 rounded">
             SKIP

@@ -361,21 +361,54 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
     try {
       if (typeof window !== "undefined") {
-        pushLog("Attempting Pi SDK authentication...");
+        let result;
+        if (!checkPiBrowser() && determineSandboxMode() && process.env.NODE_ENV !== "test") {
+          pushLog("⚠️ Standard browser detected in Sandbox/Dev mode.");
+          pushLog("Connecting with simulated credentials...");
+          result = {
+            token: "sandbox-dev-token-abc-123",
+            user: {
+              uid: "sandbox-developer",
+              username: "developer",
+              name: "Sandbox Developer",
+              stellarAddress: "GD5TJZNKPNFSSXN7XF26NNDAOVDN57S7LNJ6FSL2X5D62N676572N4Y2",
+            }
+          };
+        } else {
+          pushLog("Attempting Pi SDK authentication...");
+          try {
+            result = await connectPi(pushLog);
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            pushLog(`Pi SDK auth failed: ${msg}`);
+
+            const isPiSdkUnavailable = err instanceof PiSdkError && (
+              err.code === PiSdkErrorCode.NOT_IN_PI_BROWSER ||
+              err.code === PiSdkErrorCode.SDK_NOT_AVAILABLE ||
+              err.code === PiSdkErrorCode.SDK_SCRIPT_LOAD_FAILED ||
+              err.code === PiSdkErrorCode.SDK_SCRIPT_TIMEOUT
+            );
+
+            if (isPiSdkUnavailable) {
+              throw new Error("Pi Browser required. Open this app inside Pi Browser to authenticate.");
+            }
+            throw err;
+          }
+        }
+
+        const accessToken = result.token;
+        const piUser = result.user;
+
+        setPiAccessToken(accessToken);
+        setLocalStorageItem("pi_access_token", accessToken);
+        const walletAddress = `pi:${piUser.uid}`;
+        const stellarAddress = piUser.stellarAddress || null;
+        pushLog(`Wallet: ${walletAddress}`);
+        if (stellarAddress) pushLog(`Stellar Address: ${stellarAddress}`);
+
+        let res;
         try {
-          const result = await connectPi(pushLog);
-          const accessToken = result.token;
-          const piUser = result.user;
-
-          setPiAccessToken(accessToken);
-          setLocalStorageItem("pi_access_token", accessToken);
-          const walletAddress = `pi:${piUser.uid}`;
-          const stellarAddress = piUser.stellarAddress || piUser.wallet_address || null;
-          pushLog(`Wallet: ${walletAddress}`);
-          if (stellarAddress) pushLog(`Stellar Address: ${stellarAddress}`);
-
-          pushLog("Verifying authentication with server...");
-          const res = await fetch("/api/auth/pi", {
+          res = await fetch("/api/auth/pi", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -384,41 +417,26 @@ export function WalletProvider({ children }: { children: ReactNode }) {
               username: piUser.username,
             }),
             signal: AbortSignal.timeout(10000),
-          }).catch((err) => {
-            if (err.name === "TimeoutError") {
-              throw new Error("Authentication request timed out. Please try again.");
-            }
-            throw err;
           });
-
-          if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.error || "Authentication failed");
-          }
-
-          const data = await res.json();
-          setLocalStorageItem("axiomid_wallet", walletAddress);
-          setUser(mapApiUser(data, {
-            stellarAddress: stellarAddress,
-          }));
-          pushLog("Wallet authenticated successfully!");
-          return;
-        } catch (err: unknown) {
-          const msg = err instanceof Error ? err.message : String(err);
-          pushLog(`Pi SDK auth failed: ${msg}`);
-
-          const isPiSdkUnavailable = err instanceof PiSdkError && (
-            err.code === PiSdkErrorCode.NOT_IN_PI_BROWSER ||
-            err.code === PiSdkErrorCode.SDK_NOT_AVAILABLE ||
-            err.code === PiSdkErrorCode.SDK_SCRIPT_LOAD_FAILED ||
-            err.code === PiSdkErrorCode.SDK_SCRIPT_TIMEOUT
-          );
-
-          if (isPiSdkUnavailable) {
-            throw new Error("Pi Browser required. Open this app inside Pi Browser to authenticate.");
+        } catch (err: any) {
+          if (err.name === "TimeoutError") {
+            throw new Error("Authentication request timed out. Please try again.");
           }
           throw err;
         }
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "Authentication failed");
+        }
+
+        const data = await res.json();
+        setLocalStorageItem("axiomid_wallet", walletAddress);
+        setUser(mapApiUser(data, {
+          stellarAddress: stellarAddress,
+        }));
+        pushLog("Wallet authenticated successfully!");
+        return;
       }
 
       throw new Error("Pi Browser required. Open this app inside Pi Browser to authenticate.");

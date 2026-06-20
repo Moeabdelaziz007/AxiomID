@@ -8,6 +8,7 @@ jest.mock('@/lib/prisma', () => ({
     user: {
       count: jest.fn(),
       aggregate: jest.fn(),
+      findMany: jest.fn(),
     },
     userAgent: {
       count: jest.fn(),
@@ -45,7 +46,11 @@ describe('GET /api/status', () => {
   it('returns network stats successfully', async () => {
     (mockPrisma.user.count as jest.Mock)
       .mockResolvedValueOnce(1247) // registeredUsers
-      .mockResolvedValueOnce(14);   // activeUsers
+      .mockResolvedValueOnce(14)   // activeUsers
+      .mockResolvedValueOnce(89);  // verifiedUsers
+    (mockPrisma.user.findMany as jest.Mock).mockResolvedValueOnce([
+      { xp: 50, stamps: [{ id: '1' }] }
+    ]);
     (mockPrisma.userAgent.count as jest.Mock)
       .mockResolvedValueOnce(856) // total agents
       .mockResolvedValueOnce(312); // active agents
@@ -71,7 +76,9 @@ describe('GET /api/status', () => {
   it('handles null xpLedger sum gracefully (defaults to 0)', async () => {
     (mockPrisma.user.count as jest.Mock)
       .mockResolvedValueOnce(0) // registeredUsers
-      .mockResolvedValueOnce(0);   // activeUsers
+      .mockResolvedValueOnce(0)   // activeUsers
+      .mockResolvedValueOnce(0);  // verifiedUsers
+    (mockPrisma.user.findMany as jest.Mock).mockResolvedValueOnce([]);
     (mockPrisma.userAgent.count as jest.Mock)
       .mockResolvedValueOnce(0)
       .mockResolvedValueOnce(0);
@@ -113,7 +120,9 @@ describe('GET /api/status', () => {
   it('uses anonymous rate limit key (not authenticated)', async () => {
     (mockPrisma.user.count as jest.Mock)
       .mockResolvedValueOnce(10)
-      .mockResolvedValueOnce(1);
+      .mockResolvedValueOnce(1)
+      .mockResolvedValueOnce(2);
+    (mockPrisma.user.findMany as jest.Mock).mockResolvedValueOnce([]);
     (mockPrisma.userAgent.count as jest.Mock)
       .mockResolvedValueOnce(5)
       .mockResolvedValueOnce(2);
@@ -132,7 +141,9 @@ describe('GET /api/status', () => {
   it('timestamp is a valid ISO date string', async () => {
     (mockPrisma.user.count as jest.Mock)
       .mockResolvedValueOnce(5)
+      .mockResolvedValueOnce(1)
       .mockResolvedValueOnce(1);
+    (mockPrisma.user.findMany as jest.Mock).mockResolvedValueOnce([]);
     (mockPrisma.userAgent.count as jest.Mock)
       .mockResolvedValueOnce(3)
       .mockResolvedValueOnce(1);

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { apiError, apiSuccess, rateLimitHeaders } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
+import { calculateTrustScore } from '@/lib/trust';
 
 /**
  * Handle GET /status requests and return network metadata and aggregate statistics.
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const [userCount, agentCount, activeAgentCount, paymentCount, xpSum, activeUsersCount] = await Promise.all([
+    const [userCount, agentCount, activeAgentCount, paymentCount, xpSum, activeUsersCount, verifiedUsersCount, usersSample] = await Promise.all([
       prisma.user.count(),
       prisma.userAgent.count(),
       prisma.userAgent.count({ where: { status: 'ACTIVE' } }),
@@ -38,7 +39,24 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
+      prisma.user.count({ where: { kycStatus: 'VERIFIED' } }),
+      prisma.user.findMany({
+        take: 100,
+        select: {
+          xp: true,
+          stamps: {
+            select: { id: true }
+          }
+        }
+      })
     ]);
+
+    let totalTrustScore = 0;
+    usersSample.forEach(u => {
+      totalTrustScore += calculateTrustScore(u.xp, u.stamps.length);
+    });
+    const averageTrustScore = usersSample.length > 0 ? Math.round(totalTrustScore / usersSample.length) : 85;
+    const verificationRate = userCount > 0 ? Math.round((verifiedUsersCount / userCount) * 100) : 0;
 
     return apiSuccess({
       network: 'axiomid',
@@ -51,6 +69,8 @@ export async function GET(request: NextRequest) {
         totalPayments: paymentCount,
         totalXpEarned: xpSum._sum.xp ?? 0,
         activeUsers: Math.max(1, activeUsersCount),
+        averageTrustScore,
+        verificationRate,
       },
     });
   } catch (error) {

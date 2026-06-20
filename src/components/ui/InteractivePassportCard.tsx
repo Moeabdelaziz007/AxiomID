@@ -191,6 +191,11 @@ export default function InteractivePassportCard({ user, readonly = false, locked
               }`}>
                 KYC {isKyc ? t("status_verified") : "LOCKED"}
               </span>
+              {hasUser && (
+                <span className="px-2 py-0.5 rounded text-[8px] font-mono uppercase tracking-wider font-semibold border bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-[0_0_8px_rgba(59,130,246,0.15)]">
+                  STATE: {isKyc ? "VERIFIED" : (isKya ? "PARTIAL" : "CONNECTED")}
+                </span>
+              )}
             </div>
           </div>
         </div>

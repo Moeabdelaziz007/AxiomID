@@ -377,7 +377,7 @@ export default function Dashboard() {
             agentLoading={false}
             shouldShowPiBrowserPrompt={shouldShowPiBrowserPrompt}
             isConnecting={isConnecting}
-            user={user ? { agent: user.agent ? { name: user.agent.name } : undefined, id: user.id } : null}
+            user={user}
             onConnect={connectWallet}
             onCreateAgent={handleCreateAgent}
             onSkip={() => {

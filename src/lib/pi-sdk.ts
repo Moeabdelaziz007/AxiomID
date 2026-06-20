@@ -1,26 +1,6 @@
 import { logger } from "@/lib/logger";
 
-declare global {
-  interface Window {
-    Pi?: {
-      init: (args: { version: string; sandbox: boolean }) => void;
-      authenticate: (args: { scopes: string[] }) => Promise<{
-        user: { uid: string; username: string; name: string; stellarAddress?: string };
-        accessToken: string;
-      }>;
-      createPayment: (args: {
-        amount: number;
-        memo: string;
-        metadata?: Record<string, unknown>;
-      }, serverControllers: {
-        onReadyForServerApproval: (paymentId: string) => void;
-        onReadyForServerCompletion: (paymentId: string, txid: string) => void;
-        onError: (error: Error) => void;
-        onCancel: () => void;
-      }) => Promise<{ status: string; identifier: string }>;
-    };
-  }
-}
+
 
 export enum PiSdkErrorCode {
   NOT_IN_PI_BROWSER = "NOT_IN_PI_BROWSER",

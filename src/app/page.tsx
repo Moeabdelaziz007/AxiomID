@@ -122,9 +122,14 @@ export default function Home() {
               </button>
             </div>
           ) : (
-            <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} aria-label={isConnecting ? t("connecting") : t("connect")} className="btn-primary text-xs px-3 sm:px-4 py-2">
-              {isConnecting ? t("connecting") : t("connect")}
-            </button>
+            <div className="flex items-center gap-2">
+              <Link href="/dashboard" prefetch={false} className="btn-ghost text-xs px-3 sm:px-4 py-2">
+                {t("nav_dashboard")}
+              </Link>
+              <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} aria-label={isConnecting ? t("connecting") : t("connect")} className="btn-primary text-xs px-3 sm:px-4 py-2">
+                {isConnecting ? t("connecting") : t("connect")}
+              </button>
+            </div>
           )}
         </div>
       </motion.header>
@@ -185,16 +190,25 @@ export default function Home() {
               className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto pt-2"
             >
               {!user ? (
-                <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} className="btn-primary flex items-center justify-center gap-2 text-xs sm:text-sm px-6 py-3 min-h-[48px]">
-                  {isConnecting ? (
-                    <><span className="animate-spin">⟳</span> {t("connecting")}</>
+                <>
+                  {isPiBrowser ? (
+                    <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} className="btn-primary flex items-center justify-center gap-2 text-xs sm:text-sm px-6 py-3 min-h-[48px]">
+                      {isConnecting ? (
+                        <><span className="animate-spin">⟳</span> {t("connecting")}</>
+                      ) : (
+                        <>
+                          {t("connect_wallet")}
+                          <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                        </>
+                      )}
+                    </button>
                   ) : (
-                    <>
-                      {t("connect_wallet")}
+                    <Link href="/dashboard" prefetch={false} className="btn-primary flex items-center justify-center gap-2 text-xs sm:text-sm px-6 py-3 min-h-[48px]">
+                      {t("enter_dashboard")}
                       <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                    </>
+                    </Link>
                   )}
-                </button>
+                </>
               ) : (
                 <Link href="/dashboard" prefetch={false} className="btn-primary flex items-center justify-center gap-2 text-xs sm:text-sm px-6 py-3 min-h-[48px]">
                   {t("enter_dashboard")}
