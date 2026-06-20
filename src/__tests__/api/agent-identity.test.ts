@@ -11,6 +11,7 @@ jest.mock("@/lib/logger", () => ({
 }));
 jest.mock("@/lib/auth-tokens", () => ({
   createIdentityAssertion: jest.fn(),
+  verifyIdentityAssertion: jest.fn().mockResolvedValue({ sub: "did:axiom:some-user", scopes: ["api.read", "api.write"] }),
 }));
 jest.mock("@/lib/claim-ceremony", () => ({
   createClaimToken: jest.fn(),

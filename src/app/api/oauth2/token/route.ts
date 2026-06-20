@@ -5,7 +5,7 @@ import { getClientIp } from "@/lib/ip";
 import { TokenExchangeSchema } from "@/lib/validators";
 import { verifyIdentityAssertion, createAccessToken } from "@/lib/auth-tokens";
 import { verifyClaimToken } from "@/lib/claim-ceremony";
-import { isTokenRevoked } from "@/app/api/oauth2/revoke/route";
+import { isTokenRevoked } from "@/lib/revocation";
 import { createPiDid } from "@/lib/did";
 import { logger } from "@/lib/logger";
 

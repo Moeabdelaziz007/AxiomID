@@ -10,7 +10,23 @@ jest.mock("@/lib/logger", () => ({
   logger: { error: jest.fn(), warn: jest.fn(), info: jest.fn() },
 }));
 jest.mock("@/lib/auth-middleware", () => ({
-  requireAuth: jest.fn().mockResolvedValue({ error: null, user: { id: "user-1", walletAddress: "test", piUid: "pi-1", piUsername: "tester", did: null, xp: 0, tier: "Visitor" } }),
+  requireAuth: jest.fn().mockImplementation(async (request) => {
+    let piUid = "pi-1";
+    try {
+      const clone = request.clone();
+      const body = await clone.json();
+      if (body && typeof body.did === "string") {
+        const didParts = body.did.split(":");
+        piUid = decodeURIComponent(didParts[didParts.length - 1]);
+      }
+    } catch {
+      // ignore
+    }
+    return {
+      error: null,
+      user: { id: "user-1", walletAddress: "test", piUid, piUsername: "tester", did: null, xp: 0, tier: "Visitor" },
+    };
+  }),
 }));
 jest.mock("@/lib/sovereign-keys", () => ({
   signPayloadWithAgentKey: jest.fn(),

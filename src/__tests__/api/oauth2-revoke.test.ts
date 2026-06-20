@@ -3,7 +3,7 @@
  */
 
 jest.mock("@/lib/rate-limiter", () => ({
-  checkRateLimit: jest.fn(),
+  checkRateLimit: jest.fn().mockResolvedValue({ allowed: true }),
   RATE_LIMITS: { authenticated: { windowMs: 60000, maxRequests: 100 } },
 }));
 jest.mock("@/lib/logger", () => ({

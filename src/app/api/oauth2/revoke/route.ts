@@ -3,20 +3,7 @@ import { apiError, apiSuccess } from "@/lib/errors";
 import { TokenRevocationSchema } from "@/lib/validators";
 import { logger } from "@/lib/logger";
 
-const revokedTokens = new Set<string>();
-
-/**
- * Checks whether a token has been revoked.
- *
- * Exported so that token-validation paths (e.g. access-token verification)
- * can consult revocation state from a single shared source.
- *
- * @param token - The token to check
- * @returns `true` if the token has been revoked, `false` otherwise
- */
-export function isTokenRevoked(token: string): boolean {
-  return revokedTokens.has(token);
-}
+import { revokeToken } from "@/lib/revocation";
 
 /**
  * Processes an OAuth2 token revocation request.
@@ -26,9 +13,9 @@ export function isTokenRevoked(token: string): boolean {
  * @param request - The incoming HTTP request with the token to revoke
  * @returns An API response with a success flag or error details
  */
-import { checkRateLimit, RATE_LIMITS } from "`@/lib/rate-limiter`";
-import { getClientIp } from "`@/lib/ip`";
-import { rateLimitHeaders } from "`@/lib/errors`";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
+import { getClientIp } from "@/lib/ip";
+import { rateLimitHeaders } from "@/lib/errors";
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -50,7 +37,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    revokedTokens.add(parsed.data.token);
+    revokeToken(parsed.data.token);
     return apiSuccess({ success: true });
   } catch (error) {
     logger.error("[OAUTH2-REVOKE] Error:", error);
