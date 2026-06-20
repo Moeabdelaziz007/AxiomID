@@ -59,11 +59,12 @@ describe("JWKS", () => {
     expect(mockDerive).not.toHaveBeenCalled();
   });
 
-  it("calls deriveSovereignAgentKeypair with the DID and 'axiom-root'", () => {
+  it("calls deriveSovereignAgentKeypair with the DID's uid and 'axiom-root'", () => {
     const did = "did:axiom:axiomid.app:pi:abc123";
     exportJwks(did);
 
-    expect(mockDerive).toHaveBeenCalledWith(did, "axiom-root");
+    // Must use the uid (last DID segment) to match /api/agent/sign derivation
+    expect(mockDerive).toHaveBeenCalledWith("abc123", "axiom-root");
   });
 
   it("x field is a base64url string", () => {

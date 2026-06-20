@@ -3,7 +3,10 @@ import { z } from "zod";
 const DID_CONTEXT = "https://www.w3.org/ns/did/v1";
 
 export const DidDocumentSchema = z.object({
-  "@context": z.array(z.string()),
+  "@context": z.array(z.string()).refine(
+    (arr) => arr.includes(DID_CONTEXT),
+    { message: `DID context must include ${DID_CONTEXT}` }
+  ),
   id: z.string(),
   verificationMethod: z.array(z.object({
     id: z.string(),

@@ -24,7 +24,12 @@ export function exportJwks(did: string): Jwks {
   const keys: Jwk[] = [];
 
   if (did && did !== "*") {
-    const keypair = deriveSovereignAgentKeypair(did, "axiom-root");
+    // Derive from the uid (last DID segment) to match the signing key
+    // derivation in /api/agent/sign, so the published public key verifies
+    // signatures produced there.
+    const didParts = did.split(":");
+    const uid = decodeURIComponent(didParts[didParts.length - 1]);
+    const keypair = deriveSovereignAgentKeypair(uid, "axiom-root");
     const kid = `${did}#key-1`;
     keys.push(pemToJwk(keypair.publicKey, kid));
   }

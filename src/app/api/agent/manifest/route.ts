@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { apiError, apiSuccess } from "@/lib/errors";
 import { requireAuth } from "@/lib/auth-middleware";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 import { createPrivateKey, sign } from "crypto";
 
 /**
@@ -58,8 +59,14 @@ export async function GET(request: NextRequest) {
     },
   };
 
-  const privateKey = createPrivateKey(issuerPrivateKeyPem);
-  const proofValue = sign(null, Buffer.from(JSON.stringify(credential)), privateKey).toString("hex");
+  let proofValue: string;
+  try {
+    const privateKey = createPrivateKey(issuerPrivateKeyPem);
+    proofValue = sign(null, Buffer.from(JSON.stringify(credential)), privateKey).toString("hex");
+  } catch (error) {
+    logger.error("[AGENT-MANIFEST] Failed to sign credential:", error);
+    return apiError("INTERNAL_ERROR", "Failed to sign credential");
+  }
 
   const manifest = {
     ...credential,

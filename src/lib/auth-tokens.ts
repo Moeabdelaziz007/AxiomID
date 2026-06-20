@@ -69,15 +69,21 @@ export async function verifyIdentityAssertion(token: string): Promise<IdentityAs
   try {
     const result = await jwtVerify(token, key, { issuer: ISSUER, audience: AUDIENCE });
     const p = result.payload;
-    if (typeof p.sub !== "string" || typeof p.iss !== "string") {
+    if (
+      typeof p.sub !== "string" ||
+      typeof p.iss !== "string" ||
+      !Array.isArray(p.scopes) ||
+      typeof p.exp !== "number" ||
+      typeof p.iat !== "number"
+    ) {
       throw new Error("Token payload missing required claims");
     }
     return {
       sub: p.sub,
-      scopes: Array.isArray(p.scopes) ? p.scopes.map(String) : [],
+      scopes: p.scopes.map(String),
       iss: p.iss,
-      exp: Number(p.exp),
-      iat: Number(p.iat),
+      exp: p.exp,
+      iat: p.iat,
     };
   } catch (err) {
     if (err instanceof errors.JWTExpired) {
