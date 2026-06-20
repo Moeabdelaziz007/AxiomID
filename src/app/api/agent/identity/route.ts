@@ -51,12 +51,13 @@ export async function POST(request: NextRequest) {
     }
 
     const claim = createClaimToken();
+    const expiresIn = Math.max(0, Math.floor((claim.expiresAt - Date.now()) / 1000));
     return apiSuccess({
       claim_token: claim.token,
       claim: {
         user_code: claim.userCode,
         verification_uri: claim.verificationUri,
-        expires_at: claim.expiresAt,
+        expires_in: expiresIn,
         status: claim.status,
       },
     });

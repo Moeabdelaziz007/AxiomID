@@ -31,7 +31,7 @@ export async function POST(
     }
 
     if (skill.pricePi <= 0) {
-      return apiError('BAD_REQUEST', 'Skill is free. Use /install directly.');
+      return apiError('VALIDATION_ERROR', 'Skill is free. Use /install directly.');
     }
 
     // TODO: Integrate with Pi Payment SDK (create payment intent and return ID)
