@@ -6,6 +6,7 @@ import { logger } from "@/lib/logger";
 import { AgentIdentitySchema } from "@/lib/validators";
 import { createIdentityAssertion, verifyIdentityAssertion } from "@/lib/auth-tokens";
 import { createClaimToken } from "@/lib/claim-ceremony";
+import { deriveDid } from "@/lib/did";
 
 /**
  * Processes an agent identity request and returns either a scoped identity assertion or a claim token.
@@ -42,13 +43,13 @@ export async function POST(request: NextRequest) {
         return apiError("INVALID_ID_JAG", "Invalid or unverifiable identity assertion");
       }
 
-      const did = verified.sub;
+      const did = deriveDid(parsed.data.assertion);
       const scopes = verified.scopes.length > 0 ? verified.scopes : ["api.read", "api.write"];
       const identityAssertion = await createIdentityAssertion(did, scopes);
       return apiSuccess({ identity_assertion: identityAssertion, did, scopes });
     }
 
-    const claim = createClaimToken();
+    const claim = await createClaimToken();
     const expiresIn = Math.max(0, Math.floor((claim.expiresAt - Date.now()) / 1000));
     return apiSuccess({
       claim_token: claim.token,
@@ -60,6 +61,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+
     logger.error("[AGENT-IDENTITY] Error:", error);
     return apiError("INTERNAL_ERROR", "Failed to process identity request");
   }

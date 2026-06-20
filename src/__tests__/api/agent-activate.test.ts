@@ -30,6 +30,7 @@ jest.mock('@/lib/ip', () => ({
   getClientIp: jest.fn(() => '127.0.0.1'),
 }));
 
+import { NextRequest } from "next/server";
 import { POST } from '@/app/api/agent/activate/route';
 import { prisma } from '@/lib/prisma';
 import { checkRateLimit } from '@/lib/rate-limiter';
@@ -39,15 +40,19 @@ const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 const mockCheckRateLimit = checkRateLimit as jest.Mock;
 const mockRequireAuth = requireAuth as jest.Mock;
 
-function mockPostRequest(body: unknown) {
-  return new Request('http://localhost/api/agent/activate', {
+function mockPostRequest(body: unknown): NextRequest {
+  return new NextRequest('http://localhost/api/agent/activate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: typeof body === 'string' ? body : JSON.stringify(body),
-  }) as any;
+  });
 }
 
+
+import { UserAgent } from '@prisma/client';
+
 describe('POST /api/agent/activate', () => {
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 99, resetAt: Date.now() + 60000 });
@@ -123,7 +128,7 @@ describe('POST /api/agent/activate', () => {
 
   it('returns 409 when agent is already active', async () => {
     mockPrisma.$queryRaw.mockResolvedValue([]);
-    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'agent-4', userId: 'mock-user-id', status: 'ACTIVE' } as any);
+    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'agent-4', userId: 'mock-user-id', status: 'ACTIVE' } as unknown as UserAgent);
 
     const req = mockPostRequest({});
     const res = await POST(req);

@@ -1,9 +1,10 @@
- 
 /**
  * @jest-environment node
  */
 
 import { apiError } from '@/lib/errors';
+import { UserAgent } from '@prisma/client';
+import { NextRequest } from 'next/server';
 
 jest.mock('@/lib/auth-middleware', () => ({
   requireAuth: jest.fn(),
@@ -39,12 +40,12 @@ const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 const mockCheckRateLimit = checkRateLimit as jest.Mock;
 const mockRequireAuth = requireAuth as jest.Mock;
 
-function mockPostRequest(body: unknown) {
-  return new Request('http://localhost/api/agent', {
+function mockPostRequest(body: unknown): NextRequest {
+  return new NextRequest('http://localhost/api/agent', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: typeof body === 'string' ? body : JSON.stringify(body),
-  }) as any;
+  });
 }
 
 describe('POST /api/agent', () => {
@@ -71,7 +72,7 @@ describe('POST /api/agent', () => {
       publicId: 'pub-agent-1',
       name: 'My Agent',
       status: 'INACTIVE',
-    } as any);
+    } as unknown as UserAgent);
 
     const req = mockPostRequest({});
     const res = await POST(req);
@@ -90,7 +91,7 @@ describe('POST /api/agent', () => {
       publicId: 'pub-agent-2',
       name: 'Custom Agent',
       status: 'INACTIVE',
-    } as any);
+    } as unknown as UserAgent);
 
     const req = mockPostRequest({ name: 'Custom Agent', description: 'My custom description' });
     const res = await POST(req);
@@ -101,11 +102,11 @@ describe('POST /api/agent', () => {
   });
 
   it('returns 400 on invalid JSON body', async () => {
-    const req = new Request('http://localhost/api/agent', {
+    const req = new NextRequest('http://localhost/api/agent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: 'not-json',
-    }) as any;
+    });
     const res = await POST(req);
     const data = await res.json();
 
@@ -128,7 +129,7 @@ describe('POST /api/agent', () => {
   });
 
   it('returns 409 when user already has an agent', async () => {
-    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'existing-agent' } as any);
+    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'existing-agent' } as unknown as UserAgent);
 
     const req = mockPostRequest({});
     const res = await POST(req);

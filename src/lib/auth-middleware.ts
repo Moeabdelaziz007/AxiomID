@@ -2,6 +2,8 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { apiError } from '@/lib/errors';
 import { createHash } from 'crypto';
+import { isTokenRevoked } from '@/lib/revocation';
+import { verifyPiTokenWithJwks } from '@/lib/auth-tokens';
 
 export interface AuthenticatedUser {
   id: string;
@@ -113,6 +115,11 @@ export async function requireAuth(request: NextRequest): Promise<
     return { error: apiError('UNAUTHORIZED', 'Empty access token'), user: null };
   }
 
+  // Check if token has been revoked
+  if (isTokenRevoked(accessToken)) {
+    return { error: apiError('UNAUTHORIZED', 'Token has been revoked'), user: null };
+  }
+
   const tokenHash = hashToken(accessToken);
   const cachedUser = getCachedUser(tokenHash);
   if (cachedUser) {
@@ -120,17 +127,33 @@ export async function requireAuth(request: NextRequest): Promise<
   }
 
   try {
-    const piResponse = await fetch('https://api.minepi.com/v2/me', {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      signal: AbortSignal.timeout(5000),
-    });
+    let piUser: { uid?: string; username?: string | null } = {};
 
-    if (!piResponse.ok) {
-      invalidateCachedToken(tokenHash);
-      return { error: apiError('UNAUTHORIZED', 'Invalid Pi access token'), user: null };
+    try {
+      const payload = await verifyPiTokenWithJwks(accessToken);
+      piUser = {
+        uid: payload.sub,
+        username: payload.username || payload.pi_username || null,
+      };
+    } catch {
+      // Fallback: Verify Pi token via online API
+      const piResponse = await fetch('https://api.minepi.com/v2/me', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        signal: AbortSignal.timeout(5000),
+      });
+
+      if (!piResponse.ok) {
+        invalidateCachedToken(tokenHash);
+        return { error: apiError('UNAUTHORIZED', 'Invalid Pi access token'), user: null };
+      }
+
+      const rawUser: { uid?: string; username?: string } = await piResponse.json();
+      piUser = {
+        uid: rawUser.uid,
+        username: rawUser.username || null,
+      };
     }
 
-    const piUser: { uid?: string; username?: string } = await piResponse.json();
     if (!piUser.uid) {
       return { error: apiError('UNAUTHORIZED', 'Pi token missing uid'), user: null };
     }
@@ -152,7 +175,6 @@ export async function requireAuth(request: NextRequest): Promise<
       return { error: apiError('UNAUTHORIZED', 'User not found. Please authenticate first via POST /api/auth/pi'), user: null };
     }
 
-
     const authenticatedUser = user as AuthenticatedUser;
     setCachedUser(tokenHash, authenticatedUser);
 
@@ -161,3 +183,4 @@ export async function requireAuth(request: NextRequest): Promise<
     return { error: apiError('UNAUTHORIZED', 'Failed to verify Pi token'), user: null };
   }
 }
+

@@ -58,13 +58,14 @@ describe("POST /api/agent/identity", () => {
   });
 
   it("returns claim_token for anonymous registration", async () => {
-    mockCreateClaim.mockReturnValue({
+    mockCreateClaim.mockResolvedValue({
       token: "claim-abc",
       userCode: "AXIO-1234",
       verificationUri: "https://axiomid.app/claim",
       expiresAt: Date.now() + 600000,
       status: "pending",
     });
+
 
     const req = mockPostRequest({ type: "anonymous" });
     const res = await POST(req);
@@ -131,7 +132,7 @@ describe("POST /api/agent/identity", () => {
   });
 
   it("anonymous response includes verification_uri in claim", async () => {
-    mockCreateClaim.mockReturnValue({
+    mockCreateClaim.mockResolvedValue({
       token: "claim-xyz",
       userCode: "AXIO-ABCD",
       verificationUri: "https://axiomid.app/claim",
@@ -148,13 +149,14 @@ describe("POST /api/agent/identity", () => {
 
   it("anonymous response includes expires_in in claim", async () => {
     const futureExpiry = Date.now() + 600000;
-    mockCreateClaim.mockReturnValue({
+    mockCreateClaim.mockResolvedValue({
       token: "claim-xyz",
       userCode: "AXIO-ABCD",
       verificationUri: "https://axiomid.app/claim",
       expiresAt: futureExpiry,
       status: "pending",
     });
+
 
     const req = mockPostRequest({ type: "anonymous" });
     const res = await POST(req);

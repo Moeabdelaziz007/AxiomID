@@ -38,13 +38,14 @@ export async function POST(request: NextRequest) {
   const didParts = parsed.data.did.split(":");
   const uid = decodeURIComponent(didParts[didParts.length - 1]);
 
-  // Authorization: caller may only sign with a DID derived from their own Pi UID.
-  if (uid !== auth.user.piUid) {
-    return apiError("FORBIDDEN", "Cannot sign with a DID you do not own");
+  // Authorization: caller may only sign with a DID that matches their session DID.
+  if (!auth.user.did || auth.user.did !== parsed.data.did) {
+    return apiError("FORBIDDEN", "Cannot sign with a DID that does not match your session DID");
   }
 
   try {
     const keys = deriveSovereignAgentKeypair(uid, "axiom-root");
+
     const signature = signPayloadWithAgentKey(parsed.data.payload, keys.privateKey);
 
     return apiSuccess({

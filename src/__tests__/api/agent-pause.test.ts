@@ -1,9 +1,10 @@
- 
 /**
  * @jest-environment node
  */
 
 import { apiError } from '@/lib/errors';
+import { UserAgent } from '@prisma/client';
+import { NextRequest } from 'next/server';
 
 jest.mock('@/lib/auth-middleware', () => ({
   requireAuth: jest.fn(),
@@ -39,12 +40,12 @@ const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 const mockCheckRateLimit = checkRateLimit as jest.Mock;
 const mockRequireAuth = requireAuth as jest.Mock;
 
-function mockPostRequest(body: unknown) {
-  return new Request('http://localhost/api/agent/pause', {
+function mockPostRequest(body: unknown): NextRequest {
+  return new NextRequest('http://localhost/api/agent/pause', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: typeof body === 'string' ? body : JSON.stringify(body),
-  }) as any;
+  });
 }
 
 describe('POST /api/agent/pause', () => {
@@ -65,12 +66,12 @@ describe('POST /api/agent/pause', () => {
   });
 
   it('pauses an ACTIVE agent successfully', async () => {
-    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'agent-1', userId: 'mock-user-id', status: 'ACTIVE' } as any);
+    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'agent-1', userId: 'mock-user-id', status: 'ACTIVE' } as unknown as UserAgent);
     mockPrisma.userAgent.update.mockResolvedValue({
       id: 'agent-1',
       publicId: 'pub-agent-1',
       status: 'PAUSED',
-    } as any);
+    } as unknown as UserAgent);
 
     const req = mockPostRequest({});
     const res = await POST(req);
@@ -107,7 +108,7 @@ describe('POST /api/agent/pause', () => {
   });
 
   it('returns 409 when agent is not currently active (INACTIVE)', async () => {
-    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'agent-3', userId: 'mock-user-id', status: 'INACTIVE' } as any);
+    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'agent-3', userId: 'mock-user-id', status: 'INACTIVE' } as unknown as UserAgent);
 
     const req = mockPostRequest({});
     const res = await POST(req);
@@ -118,7 +119,7 @@ describe('POST /api/agent/pause', () => {
   });
 
   it('returns 409 when agent is already paused', async () => {
-    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'agent-4', userId: 'mock-user-id', status: 'PAUSED' } as any);
+    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'agent-4', userId: 'mock-user-id', status: 'PAUSED' } as unknown as UserAgent);
 
     const req = mockPostRequest({});
     const res = await POST(req);
@@ -140,7 +141,7 @@ describe('POST /api/agent/pause', () => {
   });
 
   it('returns 500 on database error', async () => {
-    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'agent-1', userId: 'mock-user-id', status: 'ACTIVE' } as any);
+    mockPrisma.userAgent.findUnique.mockResolvedValue({ id: 'agent-1', userId: 'mock-user-id', status: 'ACTIVE' } as unknown as UserAgent);
     mockPrisma.userAgent.update.mockRejectedValue(new Error('Database unavailable'));
 
     const req = mockPostRequest({});

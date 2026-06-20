@@ -54,7 +54,7 @@ describe("POST /api/oauth2/token", () => {
   });
 
   it("returns access token on confirmed claim", async () => {
-    mockVerifyClaim.mockReturnValue({ status: "confirmed", userId: "user-1" });
+    mockVerifyClaim.mockResolvedValue({ status: "confirmed", userId: "user-1" });
 
     const req = mockPostRequest({ grant_type: "claim", claim_token: "claim-abc" });
     const res = await POST(req);
@@ -65,7 +65,7 @@ describe("POST /api/oauth2/token", () => {
   });
 
   it("returns pending status for unconfirmed claim", async () => {
-    mockVerifyClaim.mockReturnValue({ status: "pending" });
+    mockVerifyClaim.mockResolvedValue({ status: "pending" });
 
     const req = mockPostRequest({ grant_type: "claim", claim_token: "claim-abc" });
     const res = await POST(req);
@@ -122,7 +122,7 @@ describe("POST /api/oauth2/token", () => {
   });
 
   it("returns 410 for expired/null claim token", async () => {
-    mockVerifyClaim.mockReturnValue(null);
+    mockVerifyClaim.mockResolvedValue(null);
 
     const req = mockPostRequest({ grant_type: "claim", claim_token: "expired-claim" });
     const res = await POST(req);
@@ -143,7 +143,7 @@ describe("POST /api/oauth2/token", () => {
   });
 
   it("confirmed claim response includes identity_assertion and scopes", async () => {
-    mockVerifyClaim.mockReturnValue({ status: "confirmed", userId: "user-2" });
+    mockVerifyClaim.mockResolvedValue({ status: "confirmed", userId: "user-2" });
     mockCreateToken.mockResolvedValue("claim-access-token");
 
     const req = mockPostRequest({ grant_type: "claim", claim_token: "claim-abc" });

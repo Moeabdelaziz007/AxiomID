@@ -1,8 +1,9 @@
 import crypto from "crypto";
+import { prisma } from "@/lib/prisma";
 
 const CLAIM_TOKEN_EXPIRY_MS = 10 * 60 * 1000;
 
-interface ClaimRecord {
+export interface ClaimRecord {
   token: string;
   userCode: string;
   verificationUri: string;
@@ -10,8 +11,6 @@ interface ClaimRecord {
   userId: string | null;
   status: "pending" | "confirmed" | "expired";
 }
-
-const claimStore = new Map<string, ClaimRecord>();
 
 /**
  * Generates a random user code.
@@ -33,21 +32,30 @@ function generateUserCode(): string {
  * @param expiresInMs - Milliseconds from now until the token expires. Defaults to 10 minutes. Pass a negative value to create an already-expired token for testing.
  * @returns A new claim record containing the token, user code, verification URI, and expiration timestamp.
  */
-export function createClaimToken(expiresInMs: number = CLAIM_TOKEN_EXPIRY_MS): ClaimRecord {
+export async function createClaimToken(expiresInMs: number = CLAIM_TOKEN_EXPIRY_MS): Promise<ClaimRecord> {
   const token = crypto.randomBytes(32).toString("hex");
   const userCode = generateUserCode();
+  const expiresAt = new Date(Date.now() + expiresInMs);
 
-  const record: ClaimRecord = {
-    token,
-    userCode,
-    verificationUri: "https://axiomid.app/claim",
-    expiresAt: Date.now() + expiresInMs,
-    userId: null,
-    status: "pending",
+  const claim = await prisma.claim.create({
+    data: {
+      token,
+      userCode,
+      verificationUri: "https://axiomid.app/claim",
+      expiresAt,
+      userId: null,
+      status: "pending",
+    },
+  });
+
+  return {
+    token: claim.token,
+    userCode: claim.userCode,
+    verificationUri: claim.verificationUri,
+    expiresAt: claim.expiresAt.getTime(),
+    userId: claim.userId,
+    status: claim.status as any,
   };
-
-  claimStore.set(token, record);
-  return record;
 }
 
 /**
@@ -56,36 +64,57 @@ export function createClaimToken(expiresInMs: number = CLAIM_TOKEN_EXPIRY_MS): C
  * @param token - The claim token to verify
  * @returns The claim record if the token exists and has not expired, `null` otherwise
  */
-export function verifyClaimToken(token: string): ClaimRecord | null {
-  const record = claimStore.get(token);
-  if (!record) return null;
+export async function verifyClaimToken(token: string): Promise<ClaimRecord | null> {
+  const claim = await prisma.claim.findUnique({
+    where: { token },
+  });
+  if (!claim) return null;
 
-  if (Date.now() > record.expiresAt) {
-    record.status = "expired";
+  if (Date.now() > claim.expiresAt.getTime()) {
+    if (claim.status !== "expired") {
+      await prisma.claim.update({
+        where: { token },
+        data: { status: "expired" },
+      });
+      claim.status = "expired";
+    }
     return null;
   }
 
-  return record;
+  return {
+    token: claim.token,
+    userCode: claim.userCode,
+    verificationUri: claim.verificationUri,
+    expiresAt: claim.expiresAt.getTime(),
+    userId: claim.userId,
+    status: claim.status as any,
+  };
 }
 
 /**
  * Marks a claim token as confirmed and associates it with a user ID.
  *
- * `@param` token - The claim token to confirm
- * `@param` userId - The user ID to associate with the claim
- * `@throws` Error if the token does not exist.
- * `@throws` Error if the token has expired.
+ * @param token - The claim token to confirm
+ * @param userId - The user ID to associate with the claim
+ * @throws Error if the token does not exist.
+ * @throws Error if the token has expired.
  */
-export function confirmClaimToken(token: string, userId: string): void {
-  const record = verifyClaimToken(token);
+export async function confirmClaimToken(token: string, userId: string): Promise<void> {
+  const record = await verifyClaimToken(token);
   if (!record) {
-    // verifyClaimToken returns null for both unknown and expired tokens;
-    // distinguish them for a clearer error.
-    throw new Error(claimStore.has(token) ? "Claim token expired" : "Claim token not found");
+    const exists = await prisma.claim.findUnique({
+      where: { token },
+    });
+    throw new Error(exists ? "Claim token expired" : "Claim token not found");
   }
 
-  record.status = "confirmed";
-  record.userId = userId;
+  await prisma.claim.update({
+    where: { token },
+    data: {
+      status: "confirmed",
+      userId,
+    },
+  });
 }
 
 /**
@@ -94,11 +123,30 @@ export function confirmClaimToken(token: string, userId: string): void {
  * @param userCode - The user code to search for
  * @returns The matching pending claim record, or `null` if not found.
  */
-export function findClaimByUserCode(userCode: string): ClaimRecord | null {
-  for (const record of claimStore.values()) {
-    if (record.userCode === userCode && record.status === "pending") {
-      return record;
-    }
+export async function findClaimByUserCode(userCode: string): Promise<ClaimRecord | null> {
+  const claim = await prisma.claim.findFirst({
+    where: {
+      userCode,
+      status: "pending",
+    },
+  });
+
+  if (!claim) return null;
+
+  if (Date.now() > claim.expiresAt.getTime()) {
+    await prisma.claim.update({
+      where: { token: claim.token },
+      data: { status: "expired" },
+    });
+    return null;
   }
-  return null;
+
+  return {
+    token: claim.token,
+    userCode: claim.userCode,
+    verificationUri: claim.verificationUri,
+    expiresAt: claim.expiresAt.getTime(),
+    userId: claim.userId,
+    status: claim.status as any,
+  };
 }

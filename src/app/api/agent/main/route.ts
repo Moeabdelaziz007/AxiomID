@@ -47,21 +47,23 @@ export async function POST(request: NextRequest) {
       return apiError("FORBIDDEN", `Agent is ${agent.status.toLowerCase()}, not active`);
     }
 
-    await prisma.agentLog.create({
-      data: {
-        userId: user.id,
-        agentId: agent.id,
-        level: "info",
-        source: "agent",
-        message: `Executed action: ${parsed.data.action}`,
-        metadata: parsed.data.params ? JSON.stringify(parsed.data.params) : null,
-      },
-    });
+    await prisma.$transaction([
+      prisma.agentLog.create({
+        data: {
+          userId: user.id,
+          agentId: agent.id,
+          level: "info",
+          source: "agent",
+          message: `Executed action: ${parsed.data.action}`,
+          metadata: parsed.data.params ? JSON.stringify(parsed.data.params) : null,
+        },
+      }),
+      prisma.userAgent.update({
+        where: { id: agent.id },
+        data: { lastActive: new Date() },
+      }),
+    ]);
 
-    await prisma.userAgent.update({
-      where: { id: agent.id },
-      data: { lastActive: new Date() },
-    });
 
     return apiSuccess({
       agentId: agent.id,

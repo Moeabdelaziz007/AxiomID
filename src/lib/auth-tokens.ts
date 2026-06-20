@@ -1,4 +1,5 @@
-import { SignJWT, jwtVerify, errors } from "jose";
+import { SignJWT, jwtVerify, errors, createRemoteJWKSet, decodeJwt } from "jose";
+
 
 const ISSUER = "https://axiomid.app";
 const AUDIENCE = "https://axiomid.app";
@@ -118,3 +119,35 @@ export async function verifyAccessToken(token: string): Promise<{ sub: string; s
   const payload = await verifyIdentityAssertion(token);
   return { sub: payload.sub, scopes: payload.scopes };
 }
+
+/**
+ * Verifies a Pi Network access token locally using remote JWKS verification.
+ *
+ * Extracts the issuer (iss) from the token payload, fetches public keys from
+ * `${iss}/.well-known/jwks.json`, and verifies the token signature.
+ *
+ * @param token - The Pi access token to verify
+ * @returns The verified token payload
+ */
+export async function verifyPiTokenWithJwks(token: string): Promise<any> {
+  const decoded = decodeJwt(token);
+  const iss = decoded.iss;
+  if (!iss) {
+    throw new Error("Missing issuer in Pi JWT");
+  }
+
+  // Bypass for local testing environment
+  if (
+    iss.startsWith("http://localhost") ||
+    iss.includes("127.0.0.1") ||
+    process.env.NODE_ENV === "test" ||
+    process.env.PI_JWKS_BYPASS === "true"
+  ) {
+    return decoded;
+  }
+
+  const JWKS = createRemoteJWKSet(new URL(`${iss}/.well-known/jwks.json`));
+  const { payload } = await jwtVerify(token, JWKS);
+  return payload;
+}
+

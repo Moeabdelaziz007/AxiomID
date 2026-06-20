@@ -470,3 +470,20 @@ model AgentPresence {
   metadata      String?  @db.Text // JSON blob for agent-specific data
   updatedAt     DateTime @updatedAt
 }
+
+model Claim {
+  id              String   @id @default(uuid())
+  token           String   @unique @db.VarChar(255)
+  userCode        String   @db.VarChar(50)
+  verificationUri String   @db.VarChar(255)
+  expiresAt       DateTime
+  userId          String?  @db.VarChar(255)
+  status          String   @default("pending") @db.VarChar(50) // "pending" | "confirmed" | "expired"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([token])
+  @@index([userCode])
+  @@index([status])
+}
+

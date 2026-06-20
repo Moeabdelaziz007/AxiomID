@@ -12,10 +12,12 @@ jest.mock("@/lib/logger", () => ({
 jest.mock("@/lib/auth-middleware", () => ({
   requireAuth: jest.fn().mockImplementation(async (request) => {
     let piUid = "pi-1";
+    let did = "did:axiom:axiomid.app:pi:pi-1";
     try {
       const clone = request.clone();
       const body = await clone.json();
       if (body && typeof body.did === "string") {
+        did = body.did;
         const didParts = body.did.split(":");
         piUid = decodeURIComponent(didParts[didParts.length - 1]);
       }
@@ -24,7 +26,7 @@ jest.mock("@/lib/auth-middleware", () => ({
     }
     return {
       error: null,
-      user: { id: "user-1", walletAddress: "test", piUid, piUsername: "tester", did: null, xp: 0, tier: "Visitor" },
+      user: { id: "user-1", walletAddress: "test", piUid, piUsername: "tester", did, xp: 0, tier: "Visitor" },
     };
   }),
 }));

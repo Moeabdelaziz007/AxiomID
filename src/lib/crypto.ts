@@ -20,13 +20,18 @@ function getKey(): Buffer {
 
 export function encryptToken(plaintext: string): string {
   PlaintextSchema.parse(plaintext);
-  const key = getKey();
-  const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv(ALGORITHM, key, iv, { authTagLength: AUTH_TAG_LENGTH });
-  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
-  const authTag = cipher.getAuthTag();
-  return `${iv.toString('base64')}:${authTag.toString('base64')}:${encrypted.toString('base64')}`;
+  try {
+    const key = getKey();
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv, { authTagLength: AUTH_TAG_LENGTH });
+    const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
+    const authTag = cipher.getAuthTag();
+    return `${iv.toString('base64')}:${authTag.toString('base64')}:${encrypted.toString('base64')}`;
+  } catch (error) {
+    throw new Error(`Token encryption failed: ${(error as Error).message}`);
+  }
 }
+
 
 export function getIssuerPrivateKey(): { key: string; alg: string } {
   const key = process.env.ISSUER_PRIVATE_KEY;

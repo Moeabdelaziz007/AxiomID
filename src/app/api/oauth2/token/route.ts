@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const claim = verifyClaimToken(parsed.data.claim_token);
+    const claim = await verifyClaimToken(parsed.data.claim_token);
 
     if (!claim) {
       return apiError("CLAIM_EXPIRED", "Claim token expired or invalid");
