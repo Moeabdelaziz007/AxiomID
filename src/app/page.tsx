@@ -83,9 +83,9 @@ export default function Home() {
                 <path d="M40 64 H60 L58 68 H42 Z" fill="#39FF14" />
                 <defs>
                   <linearGradient id="logoGrad" x1="0" y1="0" x2="100" y2="100">
-                    <stop offset="0%" stop-color="#39FF14"/>
-                    <stop offset="50%" stop-color="#00d4ff"/>
-                    <stop offset="100%" stop-color="#a855f7"/>
+                    <stop offset="0%" stopColor="#39FF14"/>
+                    <stop offset="50%" stopColor="#00d4ff"/>
+                    <stop offset="100%" stopColor="#a855f7"/>
                   </linearGradient>
                 </defs>
               </svg>
@@ -201,7 +201,7 @@ export default function Home() {
                   <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                 </Link>
               )}
-              <Link href={"/docs" as any} className="btn-ghost flex items-center justify-center text-xs sm:text-sm px-6 py-3 min-h-[48px]">
+              <Link href="/docs" className="btn-ghost flex items-center justify-center text-xs sm:text-sm px-6 py-3 min-h-[48px]">
                 {language === "en" ? "Documentation" : "الوثائق التقنية"}
               </Link>
             </motion.div>

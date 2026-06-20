@@ -124,8 +124,14 @@ export function determineSandboxMode(): boolean {
   try {
     if (window.self !== window.top) {
       const referrer = document.referrer || "";
-      if (referrer.includes("sandbox.minepi.com")) {
-        return true;
+      if (referrer) {
+        const referrerHost = new URL(referrer).hostname.toLowerCase();
+        if (
+          referrerHost === "sandbox.minepi.com" ||
+          referrerHost.endsWith(".sandbox.minepi.com")
+        ) {
+          return true;
+        }
       }
     }
   } catch {}

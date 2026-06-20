@@ -12,7 +12,7 @@ export default function AboutPage() {
   const { language } = useLanguage();
 
   return (
-    <main className="min-h-screen bg-grid relative pb-20">
+    <main id="main-content" className="min-h-screen bg-grid relative pb-20">
       <div className="scanline" />
 
       {/* Header */}
@@ -42,7 +42,9 @@ export default function AboutPage() {
           {language === "en" ? "Sovereign Human Authorization" : "تفويض الهوية البشرية السيادية"}
         </h1>
         <p className="text-sm md:text-base text-zinc-400 mt-3 max-w-2xl mx-auto leading-relaxed">
-          AxiomID is a cryptographic framework that bridges human intent with autonomous AI actions, building a decentralized layer of trust using W3C DIDs and secure blockchain state assertions.
+          {language === "en"
+            ? "AxiomID is a cryptographic framework that bridges human intent with autonomous AI actions, building a decentralized layer of trust using W3C DIDs and secure blockchain state assertions."
+            : "AxiomID هو إطار عمل تشفيري يربط بين النوايا البشرية وإجراءات الذكاء الاصطناعي المستقلة، مما يبني طبقة لامركزية من الثقة باستخدام معرفات W3C DIDs وتأكيدات حالة البلوكشين الآمنة."}
         </p>
       </div>
 

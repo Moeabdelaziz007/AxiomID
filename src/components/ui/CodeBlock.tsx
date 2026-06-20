@@ -18,7 +18,7 @@ export default function CodeBlock({ code, language = "json" }: CodeBlockProps) {
   };
 
   return (
-    <div className="relative rounded-xl overflow-hidden border border-white/5 bg-[#0e1015] my-4 font-mono text-[11px] leading-relaxed">
+    <div className="relative rounded-xl overflow-hidden border border-white/5 bg-[`#10131a`] my-4 font-mono text-[11px] leading-relaxed">
       {/* Top Bar */}
       <div className="flex justify-between items-center px-4 py-2 border-b border-white/5 bg-white/[0.02] text-zinc-500 text-[10px]">
         <span>{language.toUpperCase()}</span>

@@ -175,11 +175,16 @@ export default function StatusPage() {
                       strokeWidth="6"
                       fill="none"
                       strokeDasharray={`${2 * Math.PI * 40}`}
-                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - (stats.verificationRate ?? 95) / 100)}`}
+                      stroke="`#00ff41`"
+                      strokeWidth="6"
+                      fill="none"
+                      strokeDasharray={`${2 * Math.PI * 40}`}
+                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - (stats.verificationRate ?? 0) / 100)}`}
+                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - (stats.verificationRate ?? 0) / 100)}`}
                       strokeLinecap="round"
                     />
                   </svg>
-                  <span className="absolute text-sm font-bold font-mono text-white">{stats.verificationRate ?? 95}%</span>
+                  <span className="absolute text-sm font-bold font-mono text-white">{stats.verificationRate ?? "—"}%</span>
                 </div>
                 <span className="text-[9px] font-mono text-zinc-500 mt-2">KYC success index</span>
               </div>

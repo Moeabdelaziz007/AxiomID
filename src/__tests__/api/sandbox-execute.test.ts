@@ -17,15 +17,16 @@ jest.mock('@/lib/ip', () => ({
 
 import { POST } from '@/app/api/sandbox/execute/route';
 import { requireAuth } from '@/lib/auth-middleware';
+import type { NextRequest } from 'next/server';
 
 const mockRequireAuth = requireAuth as jest.Mock;
 
-function mockPostRequest(body: unknown) {
+function mockPostRequest(body: unknown): NextRequest {
   return new Request('http://localhost/api/sandbox/execute', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: typeof body === 'string' ? body : JSON.stringify(body),
-  }) as any;
+  }) as NextRequest;
 }
 
 describe('POST /api/sandbox/execute', () => {

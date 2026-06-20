@@ -19,7 +19,7 @@ const AGENT_SELECT = {
   },
 };
 
-function getKyaStatus(stamps: any[] | undefined): string {
+function getKyaStatus(stamps: { type: string; provider: string }[] | undefined): string {
   if (!stamps || stamps.length === 0) return "pending";
   const hasIdentityStamp = stamps.some(
     (s) => s.type === "verify_identity" || s.provider === "pi"
@@ -97,7 +97,7 @@ export async function POST(
     const trustScore = calculateTrustScore(user.xp || 0, stamps.length);
 
     const passportAttestation = {
-      username: user.piUsername || "AxiomID Agent",
+      username: user.piUsername ?? null,
       xp: user.xp,
       tier: user.tier,
       trustScore,

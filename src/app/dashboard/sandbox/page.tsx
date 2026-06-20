@@ -145,11 +145,21 @@ export default function SandboxPage() {
           if (line.trim()) {
             try {
               const parsed = JSON.parse(line);
-              setLogs((prev) => [...prev, parsed.text]);
+              setLogs((prev) => [...prev, parsed.text].slice(-200));
             } catch {
               // Ignore invalid lines
             }
           }
+        }
+      }
+
+      // Process any trailing data left in the buffer (stream may not end with a newline)
+      if (buffer.trim()) {
+        try {
+          const parsed = JSON.parse(buffer);
+          setLogs((prev) => [...prev, parsed.text].slice(-200));
+        } catch {
+          // Ignore invalid lines
         }
       }
     } catch (err) {
@@ -173,7 +183,7 @@ export default function SandboxPage() {
       setLogs((prev) => [
         ...prev,
         `[FATAL] ${err instanceof Error ? err.message : String(err)}`,
-      ]);
+      ].slice(-200));
     } finally {
       setExecuting(false);
     }
@@ -279,7 +289,7 @@ export default function SandboxPage() {
             <div className="font-mono text-[10px] space-y-1.5 max-h-60 overflow-y-auto scrollbar-thin p-1 min-h-[120px]">
               {logs.length === 0 ? (
                 <span className="text-gray-600 block">
-                  Waiting for execution triggers... (Click "Run Test" to start sandbox session)
+                  Waiting for execution triggers... (Click &quot;Run Test&quot; to start sandbox session)
                 </span>
               ) : (
                 logs.map((log, idx) => {

@@ -36,8 +36,8 @@ export default function InteractivePassportCard({ user, readonly = false, locked
   const tierColor = locked ? "#64748b" : getTierColor(tier);
   const xp = locked ? 0 : (user?.xp ?? 0);
   const trustScore = locked ? 0 : (user?.trustScore ?? 0);
-  const isKya = !locked && (user?.kyaStatus === "verified" || hasUser);
-  const isKyc = !locked && (user?.kycStatus === "verified" || hasUser);
+  const isKya = !locked && user?.kyaStatus === "verified";
+  const isKyc = !locked && user?.kycStatus === "verified";
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (readonly || locked || !cardRef.current) return;

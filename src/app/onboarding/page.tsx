@@ -34,6 +34,8 @@ export default function OnboardingPage() {
       const ok = await createAgent(agentName || "Axiom Pioneer Agent");
       if (ok) {
         handleNextStep();
+      } else {
+        alert(language === "en" ? "Failed to provision agent. Please try again." : "فشل في إعداد العميل. يرجى المحاولة مرة أخرى.");
       }
     } catch (err) {
       console.error(err);
