@@ -22,7 +22,7 @@ function generateUserCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let code = "AXIO-";
   for (let i = 0; i < 4; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
+    code += chars[crypto.randomInt(0, chars.length)];
   }
   return code;
 }
@@ -77,12 +77,11 @@ export function verifyClaimToken(token: string): ClaimRecord | null {
  * `@throws` Error if the token has expired.
  */
 export function confirmClaimToken(token: string, userId: string): void {
-  const record = claimStore.get(token);
-  if (!record) throw new Error("Claim token not found");
-
-  if (Date.now() > record.expiresAt) {
-    record.status = "expired";
-    throw new Error("Claim token expired");
+  const record = verifyClaimToken(token);
+  if (!record) {
+    // verifyClaimToken returns null for both unknown and expired tokens;
+    // distinguish them for a clearer error.
+    throw new Error(claimStore.has(token) ? "Claim token expired" : "Claim token not found");
   }
 
   record.status = "confirmed";

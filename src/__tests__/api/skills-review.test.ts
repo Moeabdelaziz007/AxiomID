@@ -63,18 +63,18 @@ const mockUser = {
 const SLUG = "test-skill";
 const SKILL = { id: "skill-1", slug: SLUG, name: "Test Skill" };
 
-function mockPostRequest(body: unknown) {
+function mockPostRequest(body: unknown): NextRequest {
   return new NextRequest(`http://localhost/api/skills/${SLUG}/review`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: typeof body === "string" ? body : JSON.stringify(body),
-  }) as any;
+  });
 }
 
-function mockGetRequest(url?: string) {
+function mockGetRequest(url?: string): NextRequest {
   return new NextRequest(url || `http://localhost/api/skills/${SLUG}/review`, {
     method: "GET",
-  }) as any;
+  });
 }
 
 function makeParams(slug = SLUG) {
@@ -103,7 +103,7 @@ describe("POST /api/skills/[slug]/review — rate limiting", () => {
   });
 
   it("auth check happens before rate limit check", async () => {
-    const { apiError } = jest.requireActual("@/lib/errors") as any;
+    const { apiError } = jest.requireActual<typeof import("@/lib/errors")>("@/lib/errors");
     mockRequireAuth.mockResolvedValue({ error: apiError("UNAUTHORIZED", "Unauthorized"), user: null });
 
     const req = mockPostRequest({ rating: 5 });
@@ -121,7 +121,7 @@ describe("POST /api/skills/[slug]/review — auth", () => {
   });
 
   it("returns 401 when authentication fails", async () => {
-    const { apiError } = jest.requireActual("@/lib/errors") as any;
+    const { apiError } = jest.requireActual<typeof import("@/lib/errors")>("@/lib/errors");
     mockRequireAuth.mockResolvedValue({ error: apiError("UNAUTHORIZED", "Unauthorized"), user: null });
 
     const req = mockPostRequest({ rating: 5 });
@@ -145,7 +145,7 @@ describe("POST /api/skills/[slug]/review — validation", () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: "{bad",
-    }) as any;
+    });
     const res = await POST(req, makeParams());
     const data = await res.json();
 
@@ -218,9 +218,9 @@ describe("POST /api/skills/[slug]/review — business logic", () => {
       rating: 5,
       review: "Great skill!",
       createdAt: new Date(),
-    } as any);
+    } as Awaited<ReturnType<typeof mockPrisma.skillReview.create>>);
     mockPrisma.skillReview.aggregate.mockResolvedValue({ _avg: { rating: 5 }, _count: { rating: 1 } });
-    mockPrisma.skill.update.mockResolvedValue({} as any);
+    mockPrisma.skill.update.mockResolvedValue({} as Awaited<ReturnType<typeof mockPrisma.skill.update>>);
 
     const req = mockPostRequest({ rating: 5, review: "Great skill!" });
     const res = await POST(req, makeParams());
@@ -241,9 +241,9 @@ describe("POST /api/skills/[slug]/review — business logic", () => {
 
   it("creates review with null review text when omitted", async () => {
     mockPrisma.skill.findUnique.mockResolvedValue(SKILL);
-    mockPrisma.skillReview.create.mockResolvedValue({ id: "rev-2", rating: 3 } as any);
+    mockPrisma.skillReview.create.mockResolvedValue({ id: "rev-2", rating: 3 } as Awaited<ReturnType<typeof mockPrisma.skillReview.create>>);
     mockPrisma.skillReview.aggregate.mockResolvedValue({ _avg: { rating: 3 }, _count: { rating: 1 } });
-    mockPrisma.skill.update.mockResolvedValue({} as any);
+    mockPrisma.skill.update.mockResolvedValue({} as Awaited<ReturnType<typeof mockPrisma.skill.update>>);
 
     const req = mockPostRequest({ rating: 3 });
     const res = await POST(req, makeParams());
@@ -258,9 +258,9 @@ describe("POST /api/skills/[slug]/review — business logic", () => {
 
   it("updates skill avgRating and ratingCount after review", async () => {
     mockPrisma.skill.findUnique.mockResolvedValue(SKILL);
-    mockPrisma.skillReview.create.mockResolvedValue({ id: "rev-3", rating: 4 } as any);
+    mockPrisma.skillReview.create.mockResolvedValue({ id: "rev-3", rating: 4 } as Awaited<ReturnType<typeof mockPrisma.skillReview.create>>);
     mockPrisma.skillReview.aggregate.mockResolvedValue({ _avg: { rating: 4.0 }, _count: { rating: 5 } });
-    mockPrisma.skill.update.mockResolvedValue({} as any);
+    mockPrisma.skill.update.mockResolvedValue({} as Awaited<ReturnType<typeof mockPrisma.skill.update>>);
 
     const req = mockPostRequest({ rating: 4 });
     await POST(req, makeParams());

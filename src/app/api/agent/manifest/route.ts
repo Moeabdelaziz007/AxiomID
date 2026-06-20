@@ -62,6 +62,10 @@ export async function GET(request: NextRequest) {
   let proofValue: string;
   try {
     const privateKey = createPrivateKey(issuerPrivateKeyPem);
+    if (privateKey.asymmetricKeyType !== "ed25519") {
+      logger.error(`[AGENT-MANIFEST] ISSUER_PRIVATE_KEY must be Ed25519, got ${privateKey.asymmetricKeyType}`);
+      return apiError("INTERNAL_ERROR", "Issuer key misconfigured");
+    }
     proofValue = sign(null, Buffer.from(JSON.stringify(credential)), privateKey).toString("hex");
   } catch (error) {
     logger.error("[AGENT-MANIFEST] Failed to sign credential:", error);
@@ -71,7 +75,7 @@ export async function GET(request: NextRequest) {
   const manifest = {
     ...credential,
     proof: {
-      type: "Ed25519Signature2018",
+      type: "Ed25519Signature2020",
       verificationMethod: "did:axiom:issuer#key-1",
       proofPurpose: "assertionMethod",
       created: issuanceDate,
