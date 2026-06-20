@@ -40,8 +40,10 @@ export function exportJwks(did: string): Jwks {
 /**
  * Converts a PEM-encoded public key to a JSON Web Key.
  *
- * @throws Throws an error if the key type is not Ed25519.
- * @returns A JWK representation of the public key.
+ * `@param` publicKeyPem - The PEM-encoded public key string
+ * `@param` kid - The key identifier to assign to the JWK
+ * `@throws` Throws an error if the key type is not Ed25519.
+ * `@returns` A JWK representation of the public key.
  */
 export function pemToJwk(publicKeyPem: string, kid: string): Jwk {
   const keyObject = crypto.createPublicKey(publicKeyPem);
