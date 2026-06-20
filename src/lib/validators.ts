@@ -78,6 +78,7 @@ export const SkillUpdateSchema = z.object({
   version: z.string().optional(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'DEPRECATED']).optional(),
   isPublished: z.boolean().optional(),
+  changelog: z.string().max(2000).optional(),
 });
 
 export const SkillReviewCreateSchema = z.object({
