@@ -46,7 +46,7 @@ function pemToMultibase(publicKeyPem: string): string {
 
 export const DidDocumentSchema = z.object({
   "@context": z.array(z.string()).refine(
-    (arr) => arr.includes(DID_CONTEXT),
+    (arr) => arr.some((item) => item === DID_CONTEXT),
     { message: `DID context must include ${DID_CONTEXT}` }
   ),
   id: z.string(),
