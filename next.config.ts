@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import { nosticsStrip } from "@nostics/unplugin/strip-transform";
 
 const nextConfig: NextConfig = {
+  transpilePackages: ["jose"],
   reactStrictMode: true,
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
