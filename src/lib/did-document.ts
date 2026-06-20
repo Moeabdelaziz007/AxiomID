@@ -44,7 +44,6 @@ export function buildDidDocument(
   return doc;
 }
 
-export async function resolveDidDocument(did: string): Promise<DidDocument | null> {
-  void did;
+export async function resolveDidDocument(_did: string): Promise<DidDocument | null> {
   return null;
 }

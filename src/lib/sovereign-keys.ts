@@ -45,6 +45,14 @@ export function signPayloadWithAgentKey(payload: string, privateKeyPem: string):
   return crypto.sign(null, Buffer.from(payload, "utf8"), privateKeyObj).toString("hex");
 }
 
+export function deriveUserRootKey(piUid: string): { publicKey: string; privateKey: string } {
+  const salt = process.env.SOVEREIGN_KEY_SALT || (process.env.NODE_ENV === "production" ? undefined : "development_fallback_salt_3f43ec47");
+  if (!salt) {
+    throw new Error("SOVEREIGN_KEY_SALT is not configured in production environment");
+  }
+  return deriveSovereignAgentKeypair(piUid, "axiom-root");
+}
+
 export function verifyAgentSignature(payload: string, signatureHex: string, publicKeyPem: string): boolean {
   const publicKeyObj = crypto.createPublicKey({
     key: publicKeyPem,

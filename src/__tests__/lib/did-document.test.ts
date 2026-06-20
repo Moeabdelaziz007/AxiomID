@@ -36,6 +36,6 @@ describe("DID Document", () => {
     // resolveDidDocument will be implemented to look up by DID string
     // For now, test that it returns the document or null
     const doc = await resolveDidDocument("did:axiom:axiomid.app:pi:abc123");
-    // Will be mocked in later steps
+    expect(doc).toBeNull();
   });
 });
