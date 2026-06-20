@@ -38,7 +38,9 @@ describe("Claim Ceremony", () => {
   });
 
   it("rejects expired claim tokens", () => {
-    const claim = createClaimToken(-1);
+    const claim = createClaimToken(100); // 100ms expiry
+    // Wait for expiration
+    jest.advanceTimersByTime(150);
 
     const result = verifyClaimToken(claim.token);
     expect(result).toBeNull();
