@@ -5,7 +5,6 @@ import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { logger } from "@/lib/logger";
 import { createUserDid } from "@/lib/did";
-
 import { calculateTrustScore } from "@/lib/trust";
 
 /**

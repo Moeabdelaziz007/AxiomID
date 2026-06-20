@@ -35,8 +35,6 @@ We are building the **"Quantum Command Center"** for digital identity:
 ### The "Sophisticated Engineering" Aesthetic
 Our UI reflects our code: dark, precise, and data-dense. We use an **OLED Black** foundation with **Neon Emerald** (Verified) and **Electric Blue** (Data) accents. It feels like jacking into a secure mainframe, not browsing a marketing site.
 
----use an **OLED Black** foundation with **Neon Emerald** (Verified) and **Electric Blue** (Data) accents. It feels like jacking into a secure mainframe, not browsing a marketing site.
-
 ---
 
 ## 📐 Architecture & Tiers

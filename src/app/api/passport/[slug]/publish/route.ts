@@ -9,6 +9,7 @@ import { calculateTrustScore } from "@/lib/trust";
 import { signPassportCredential } from "@/lib/vc";
 import { publishToMockGateway } from "@/lib/storage/ipfs-sync";
 import { PassportSlugParamSchema } from "@/lib/validators";
+import { getKyaStatus, getKycStatus } from "../_utils";
 
 const AGENT_SELECT = {
   agent: {
@@ -18,20 +19,6 @@ const AGENT_SELECT = {
     select: { type: true, provider: true },
   },
 };
-
-function getKyaStatus(stamps: { type: string; provider: string }[] | undefined): string {
-  if (!stamps || stamps.length === 0) return "pending";
-  const hasIdentityStamp = stamps.some(
-    (s) => s.type === "verify_identity" || s.provider === "pi"
-  );
-  return hasIdentityStamp ? "verified" : "pending";
-}
-
-function getKycStatus(kycStatus: string | undefined | null): string {
-  if (kycStatus === "VERIFIED") return "verified";
-  if (!kycStatus || kycStatus === "PENDING" || kycStatus === "NONE") return "pending";
-  return "denied";
-}
 
 export async function POST(
   request: NextRequest,

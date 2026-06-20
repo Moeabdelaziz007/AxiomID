@@ -673,17 +673,8 @@ describe("WalletProvider & WalletContext", () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
 // checkPiBrowser — URL hostname parsing (PR security fix)
-//
-// PR change: replaced `referrer.includes("minepi.com")` with
-//   `new URL(referrer).hostname.toLowerCase() === "minepi.com"`
-// This prevents false positives from domains that merely contain the string
-// "minepi.com" (e.g. "evil-minepi.com" or "sandbox.minepi.com.attacker.com").
-// ─────────────────────────────────────────────────────────────────────────────
-
-describe("checkPiBrowser — iframe referrer URL hostname parsing (PR security fix)", () => {
-  it("is covered by unit tests in pi-sdk.test.ts", () => {
-    expect(true).toBe(true);
-  });
-});
+// PR change replaced `referrer.includes("minepi.com")` with
+// `new URL(referrer).hostname.toLowerCase() === "minepi.com"` to prevent
+// false positives from domains like "evil-minepi.com" or
+// "sandbox.minepi.com.attacker.com". Covered by pi-sdk.test.ts.
