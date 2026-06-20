@@ -6,6 +6,7 @@
 import {
   createPiPayment,
   connectPi,
+  checkPiBrowser,
 } from '@/lib/pi-sdk';
 
 describe('pi-sdk', () => {
@@ -102,6 +103,67 @@ describe('pi-sdk', () => {
       expect(pushLog).toHaveBeenCalledWith(expect.stringContaining('Pi Browser User'));
 
       delete (global as any).window.Pi;
+    });
+  });
+
+  describe('checkPiBrowser', () => {
+    const originalWindow = (global as any).window;
+    const originalNavigator = (global as any).navigator;
+    const originalDocument = (global as any).document;
+
+    beforeEach(() => {
+      (global as any).window = undefined;
+      (global as any).navigator = undefined;
+      (global as any).document = undefined;
+    });
+
+    afterEach(() => {
+      (global as any).window = originalWindow;
+      (global as any).navigator = originalNavigator;
+      (global as any).document = originalDocument;
+    });
+
+    it('returns false when window is undefined', () => {
+      expect(checkPiBrowser()).toBe(false);
+    });
+
+    it('returns true when window.Pi is defined', () => {
+      (global as any).window = { Pi: {} };
+      expect(checkPiBrowser()).toBe(true);
+    });
+
+    it('returns true when userAgent contains Pi Browser', () => {
+      (global as any).window = {};
+      (global as any).navigator = { userAgent: 'Pi Browser' };
+      expect(checkPiBrowser()).toBe(true);
+    });
+
+    it('returns true when inside iframe with minepi.com referrer', () => {
+      (global as any).window = { self: {}, top: {} };
+      (global as any).navigator = { userAgent: '' };
+      (global as any).document = { referrer: 'https://minepi.com/auth' };
+      expect(checkPiBrowser()).toBe(true);
+    });
+
+    it('returns true when inside iframe with sandbox.minepi.com referrer', () => {
+      (global as any).window = { self: {}, top: {} };
+      (global as any).navigator = { userAgent: '' };
+      (global as any).document = { referrer: 'https://sandbox.minepi.com/auth' };
+      expect(checkPiBrowser()).toBe(true);
+    });
+
+    it('returns false when inside iframe with evil-minepi.com referrer', () => {
+      (global as any).window = { self: {}, top: {} };
+      (global as any).navigator = { userAgent: '' };
+      (global as any).document = { referrer: 'https://evil-minepi.com/auth' };
+      expect(checkPiBrowser()).toBe(false);
+    });
+
+    it('returns false when inside iframe with sandbox.minepi.com.attacker.com referrer', () => {
+      (global as any).window = { self: {}, top: {} };
+      (global as any).navigator = { userAgent: '' };
+      (global as any).document = { referrer: 'https://sandbox.minepi.com.attacker.com/auth' };
+      expect(checkPiBrowser()).toBe(false);
     });
   });
 });

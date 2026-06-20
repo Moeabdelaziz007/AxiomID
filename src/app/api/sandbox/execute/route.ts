@@ -44,7 +44,10 @@ export async function POST(request: NextRequest) {
     skillName = nameMatch[1].trim().replace(/['"]/g, "");
   }
 
-  // Simulate streaming output of isolated sandbox VM execution
+  // Simulate streaming output of isolated sandbox VM execution.
+  // NOTE: This endpoint uses a real Web ReadableStream (ND-JSON format) to stream execution steps
+  // back to the developer terminal, simulating the visual step-by-step latency of secure sandboxes
+  // (like AWS Firecracker) slated for full hardware isolation in Stage 4.
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {

@@ -54,6 +54,10 @@ const WalletContext = createContext<WalletContextType | null>(null);
 /**
  * Determines if a wallet address is a demo wallet.
  *
+ * NOTE: Demo wallet addresses starting with "demo:" are kept strictly as an internal fallback
+ * for development simulation environments. They are blocked from persisting or logging into
+ * production wallets to prevent key safety leaks and database pollution.
+ *
  * @returns `true` if the address starts with `"demo:"`, `false` otherwise.
  */
 function isDemoWalletAddress(walletAddress?: string | null): boolean {

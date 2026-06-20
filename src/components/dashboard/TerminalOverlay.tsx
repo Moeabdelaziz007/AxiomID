@@ -44,6 +44,10 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
     const emptyBlocks = totalBlocks - filledBlocks;
     return `[${"█".repeat(filledBlocks)}${"░".repeat(emptyBlocks)}]`;
   };
+
+  const MAX_LOGS = 200;
+  const visibleLogs = logs.slice(-MAX_LOGS);
+  const visibleWalletLogs = walletLogs.slice(-MAX_LOGS);
  
   return (
     <motion.div
@@ -163,10 +167,6 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
           </div>
  
           {/* Scrollable Logs Output */}
-          const MAX_LOGS = 200;
-          const visibleLogs = logs.slice(-MAX_LOGS);
-          const visibleWalletLogs = walletLogs.slice(-MAX_LOGS);
-          
           <div ref={scrollRef} className="overflow-y-auto flex-1 p-4 font-mono text-[10px] leading-relaxed scrollbar-thin space-y-1.5 selection:bg-neon-green/20">
             {visibleLogs.map((line, i) => (
               <div key={`init-${i}`} className="flex items-start gap-2 border-l border-white/5 pl-2">
@@ -181,7 +181,6 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
                 <span className="text-neon-green/80">{line}</span>
               </div>
             ))}
-          </div>
  
             {walletLogs.length === 0 && logs.length <= 1 && (
               <div className="italic mt-2 flex items-center gap-2 text-faint">
