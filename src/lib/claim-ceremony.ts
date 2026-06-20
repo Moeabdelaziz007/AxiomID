@@ -13,6 +13,11 @@ interface ClaimRecord {
 
 const claimStore = new Map<string, ClaimRecord>();
 
+/**
+ * Generates a random user code with the format AXIO-XXXX.
+ *
+ * @returns A string starting with `AXIO-` followed by four random uppercase letters or digits.
+ */
 function generateUserCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let code = "AXIO-";
@@ -22,7 +27,12 @@ function generateUserCode(): string {
   return code;
 }
 
-/** Create a claim token. Pass expiresInMs < 0 to create an already-expired token for testing. */
+/**
+ * Generates a new claim token record for the verification ceremony.
+ *
+ * @param expiresInMs - Milliseconds from now until the token expires. Defaults to 10 minutes. Pass a negative value to create an already-expired token for testing.
+ * @returns A new claim record containing the token, user code, verification URI, and expiration timestamp.
+ */
 export function createClaimToken(expiresInMs: number = CLAIM_TOKEN_EXPIRY_MS): ClaimRecord {
   const token = crypto.randomBytes(32).toString("hex");
   const userCode = generateUserCode();
@@ -40,6 +50,12 @@ export function createClaimToken(expiresInMs: number = CLAIM_TOKEN_EXPIRY_MS): C
   return record;
 }
 
+/**
+ * Retrieves a claim record if the token is valid.
+ *
+ * @param token - The claim token to verify
+ * @returns The claim record if the token exists and has not expired, `null` otherwise
+ */
 export function verifyClaimToken(token: string): ClaimRecord | null {
   const record = claimStore.get(token);
   if (!record) return null;
@@ -52,6 +68,12 @@ export function verifyClaimToken(token: string): ClaimRecord | null {
   return record;
 }
 
+/**
+ * Marks a claim token as confirmed and associates it with a user ID.
+ *
+ * @throws Error if the token does not exist.
+ * @throws Error if the token has expired.
+ */
 export function confirmClaimToken(token: string, userId: string): void {
   const record = claimStore.get(token);
   if (!record) throw new Error("Claim token not found");
@@ -65,6 +87,12 @@ export function confirmClaimToken(token: string, userId: string): void {
   record.userId = userId;
 }
 
+/**
+ * Retrieves a pending claim record matching the given user code.
+ *
+ * @param userCode - The user code to search for
+ * @returns The matching pending claim record, or `null` if not found.
+ */
 export function findClaimByUserCode(userCode: string): ClaimRecord | null {
   for (const record of claimStore.values()) {
     if (record.userCode === userCode && record.status === "pending") {

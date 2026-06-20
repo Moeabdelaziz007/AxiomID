@@ -36,6 +36,13 @@ export function deriveSovereignAgentKeypair(stellarAddress: string, agentId: str
   };
 }
 
+/**
+ * Signs a payload using the provided private key.
+ *
+ * @param payload - The message to be signed
+ * @param privateKeyPem - The private key in PEM/PKCS#8 format
+ * @returns The signature as a hexadecimal-encoded string
+ */
 export function signPayloadWithAgentKey(payload: string, privateKeyPem: string): string {
   const privateKeyObj = crypto.createPrivateKey({
     key: privateKeyPem,
@@ -45,6 +52,13 @@ export function signPayloadWithAgentKey(payload: string, privateKeyPem: string):
   return crypto.sign(null, Buffer.from(payload, "utf8"), privateKeyObj).toString("hex");
 }
 
+/**
+ * Derives the root keypair for a user.
+ *
+ * @param piUid - The user identifier
+ * @returns The derived root keypair containing public and private keys as PEM-encoded strings
+ * @throws If `SOVEREIGN_KEY_SALT` is not configured in a production environment
+ */
 export function deriveUserRootKey(piUid: string): { publicKey: string; privateKey: string } {
   const salt = process.env.SOVEREIGN_KEY_SALT || (process.env.NODE_ENV === "production" ? undefined : "development_fallback_salt_3f43ec47");
   if (!salt) {
@@ -53,6 +67,11 @@ export function deriveUserRootKey(piUid: string): { publicKey: string; privateKe
   return deriveSovereignAgentKeypair(piUid, "axiom-root");
 }
 
+/**
+ * Verifies that a signature is valid for a payload.
+ *
+ * @returns `true` if the signature is valid, `false` otherwise.
+ */
 export function verifyAgentSignature(payload: string, signatureHex: string, publicKeyPem: string): boolean {
   const publicKeyObj = crypto.createPublicKey({
     key: publicKeyPem,

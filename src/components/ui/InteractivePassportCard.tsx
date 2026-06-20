@@ -21,6 +21,14 @@ interface InteractivePassportCardProps {
   onSign?: (payload: string) => Promise<string>;
 }
 
+/**
+ * Renders an interactive agent passport card with 3D tilt effects, tier-based styling, and verification status indicators.
+ *
+ * The card displays user identity information including username, wallet address, tier, XP balance, trust score, and verification statuses (KYA/KYC). When not locked or in readonly mode, the card responds to pointer and touch movements with a 3D tilt effect and holographic shine overlay. In locked mode, the card displays an obscured preview state. A `PassportKeyManager` child component is conditionally rendered when a user is present, enabling signing capabilities.
+ *
+ * @param locked - When `true`, displays the card in a locked preview state with obscured information.
+ * @param onSign - Optional async callback for signing operations, passed to `PassportKeyManager`.
+ */
 export default function InteractivePassportCard({ user, readonly = false, locked = false, onSign }: InteractivePassportCardProps) {
   const { t, language } = useLanguage();
   const cardRef = useRef<HTMLDivElement>(null);

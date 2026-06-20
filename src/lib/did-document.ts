@@ -17,6 +17,14 @@ export const DidDocumentSchema = z.object({
 
 export type DidDocument = z.infer<typeof DidDocumentSchema>;
 
+/**
+ * Constructs a DID document from a DID identifier and optional public key.
+ *
+ * @param did - The DID identifier
+ * @param publicKeyMultibase - The public key in multibase format
+ * @param keyVersion - Version number used to generate the key identifier
+ * @returns A DID document with verification methods if a public key is provided
+ */
 export function buildDidDocument(
   did: string,
   publicKeyMultibase?: string,
@@ -44,6 +52,12 @@ export function buildDidDocument(
   return doc;
 }
 
+/**
+ * Resolves a DID document for the specified DID identifier.
+ *
+ * @param _did - The DID to resolve
+ * @returns The resolved DID document, or `null` if the document cannot be resolved
+ */
 export async function resolveDidDocument(_did: string): Promise<DidDocument | null> {
   return null;
 }

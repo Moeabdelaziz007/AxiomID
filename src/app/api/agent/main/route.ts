@@ -7,6 +7,11 @@ import { requireAuth } from "@/lib/auth-middleware";
 import { prisma } from "@/lib/prisma";
 import { AgentMainSchema } from "@/lib/validators";
 
+/**
+ * Executes an authenticated agent action for the current user.
+ *
+ * @returns An API response containing the executed action details and timestamp, or an error response.
+ */
 export async function POST(request: NextRequest) {
   const auth = await requireAuth(request);
   if (auth.error) return auth.error;

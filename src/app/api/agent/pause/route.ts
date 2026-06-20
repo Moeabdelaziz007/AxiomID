@@ -6,6 +6,13 @@ import { logger } from "@/lib/logger";
 import { requireAuth } from "@/lib/auth-middleware";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Pauses the authenticated user's agent.
+ *
+ * The agent must have ACTIVE status; otherwise an error is returned.
+ *
+ * @returns The updated agent with its ID, public ID, and new PAUSED status
+ */
 export async function POST(request: NextRequest) {
   const auth = await requireAuth(request);
   if (auth.error) return auth.error;

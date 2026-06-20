@@ -7,6 +7,11 @@ import { AgentIdentitySchema } from "@/lib/validators";
 import { createIdentityAssertion } from "@/lib/auth-tokens";
 import { createClaimToken } from "@/lib/claim-ceremony";
 
+/**
+ * Derives a deterministic DID from an assertion string.
+ *
+ * @returns A DID string in the format `did:axiom:user:<hash>`.
+ */
 function deriveDid(assertion: string): string {
   const hash = Array.from(new TextEncoder().encode(assertion))
     .map((b) => b.toString(16).padStart(2, "0"))
@@ -14,6 +19,13 @@ function deriveDid(assertion: string): string {
   return `did:axiom:user:${hash.slice(0, 16)}`;
 }
 
+/**
+ * Processes agent identity requests to generate identity assertions or claim tokens.
+ *
+ * Enforces per-IP rate limiting and validates the request body against the agent identity schema before processing.
+ *
+ * @returns An API response containing either an identity assertion with its derived DID and scopes, or a claim token with verification details.
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`agent-identity:${ip}`, RATE_LIMITS.authenticated);

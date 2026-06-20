@@ -8,6 +8,15 @@ interface PassportKeyManagerProps {
   onSign?: (payload: string) => Promise<string>;
 }
 
+/**
+ * Renders a UI component for displaying a DID and optionally signing payloads.
+ *
+ * Provides a copy-to-clipboard button for the DID and, if a signer is provided, a payload input with a sign button.
+ *
+ * @param did - The DID string to display and copy.
+ * @param onSign - Optional async signer function that accepts a payload string and returns a signature.
+ * @returns A React component with DID management and optional signing interfaces.
+ */
 export default function PassportKeyManager({ did, onSign }: PassportKeyManagerProps) {
   const [payload, setPayload] = useState("");
   const [signature, setSignature] = useState<string | null>(null);

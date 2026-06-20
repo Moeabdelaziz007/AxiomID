@@ -14,6 +14,12 @@ interface Jwks {
   keys: Jwk[];
 }
 
+/**
+ * Exports a JSON Web Key Set for the given DID.
+ *
+ * @param did - The Decentralized Identifier (DID) for which to export the JWKS
+ * @returns A JWKS object containing the derived public key for the DID, or an empty JWKS if the DID is falsy or the string "*"
+ */
 export function exportJwks(did: string): Jwks {
   const keys: Jwk[] = [];
 
@@ -26,6 +32,12 @@ export function exportJwks(did: string): Jwks {
   return { keys };
 }
 
+/**
+ * Converts a PEM-encoded public key to a JSON Web Key.
+ *
+ * @throws Throws an error if the key type is not Ed25519.
+ * @returns A JWK representation of the public key.
+ */
 export function pemToJwk(publicKeyPem: string, kid: string): Jwk {
   const keyObject = crypto.createPublicKey(publicKeyPem);
   const keyType = keyObject.asymmetricKeyType;

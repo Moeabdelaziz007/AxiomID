@@ -1,6 +1,11 @@
 import { NextRequest } from "next/server";
 import { apiSuccess } from "@/lib/errors";
 
+/**
+ * Serves OAuth/OIDC authorization server metadata for client discovery.
+ *
+ * @returns An HTTP response with OAuth authorization server configuration, supported capabilities, and agent authentication settings.
+ */
 export async function GET(_request: NextRequest) {
   return apiSuccess({
     issuer: "https://axiomid.app",

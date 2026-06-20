@@ -8,6 +8,11 @@ const ClaimCheckSchema = z.object({
   user_code: z.string().min(1, "user_code is required"),
 });
 
+/**
+ * Retrieves an identity claim by user code.
+ *
+ * @returns An API response containing the claim details (status, verification URI, and expiration time) if found, or an error response if validation fails or the claim is not found.
+ */
 export async function POST(request: NextRequest) {
   let body: unknown;
   try {

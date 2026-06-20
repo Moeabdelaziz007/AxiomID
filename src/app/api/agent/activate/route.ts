@@ -6,6 +6,11 @@ import { logger } from "@/lib/logger";
 import { requireAuth } from "@/lib/auth-middleware";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Activates an authenticated user's agent after rate-limit verification.
+ *
+ * @returns The activated agent's ID and status on success, or an error response if activation fails.
+ */
 export async function POST(request: NextRequest) {
   const auth = await requireAuth(request);
   if (auth.error) return auth.error;

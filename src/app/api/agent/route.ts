@@ -12,6 +12,14 @@ const CreateAgentSchema = z.object({
   description: z.string().max(500).optional(),
 });
 
+/**
+ * Creates a new agent for an authenticated user.
+ *
+ * Returns HTTP 201 with agent details on success, or an error response if the request
+ * is invalid, rate-limited, unauthenticated, or if the user already has an agent.
+ *
+ * @param request - The incoming HTTP request
+ */
 export async function POST(request: NextRequest) {
   const auth = await requireAuth(request);
   if (auth.error) return auth.error;

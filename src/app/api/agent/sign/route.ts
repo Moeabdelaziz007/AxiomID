@@ -6,6 +6,14 @@ import { AgentSignSchema } from "@/lib/validators";
 import { signPayloadWithAgentKey, deriveSovereignAgentKeypair } from "@/lib/sovereign-keys";
 import { logger } from "@/lib/logger";
 
+/**
+ * Handles authenticated agent payload signing requests.
+ *
+ * Enforces rate limiting and input validation, derives a keypair from the provided DID, and signs the payload.
+ *
+ * @param request - The incoming HTTP request
+ * @returns A JSON response containing the signature and metadata on success, or an error response
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`agent-sign:${ip}`, RATE_LIMITS.authenticated);

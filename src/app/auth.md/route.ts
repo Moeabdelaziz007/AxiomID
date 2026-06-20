@@ -81,6 +81,11 @@ did:axiom:axiomid.app:pi:{uid}
 - \`agent.sign\` — Sign payloads with DID key
 `;
 
+/**
+ * Serves Markdown documentation for the AxiomID agent registration and authentication flow.
+ *
+ * @returns A Response containing the Markdown documentation.
+ */
 export async function GET(_request: NextRequest) {
   return new Response(AUTH_MD_CONTENT, {
     status: 200,

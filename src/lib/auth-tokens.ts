@@ -12,11 +12,26 @@ export interface IdentityAssertionPayload {
   iat: number;
 }
 
+/**
+ * Retrieves the HS256 signing key for JWT operations.
+ *
+ * Reads from the `AUTH_TOKEN_SECRET` environment variable, falling back to a development key if unset.
+ *
+ * @returns The signing key as a `Uint8Array`
+ */
 function getSigningKey(): Uint8Array {
   const key = process.env.AUTH_TOKEN_SECRET || "dev-auth-token-secret-change-in-production";
   return new TextEncoder().encode(key);
 }
 
+/**
+ * Creates and signs a JWT identity assertion token.
+ *
+ * @param did - The decentralized identifier to embed as the token subject
+ * @param scopes - The permission scopes to include in the token
+ * @param expiresInSec - Token lifetime in seconds (default: 3600)
+ * @returns A signed JWT token string
+ */
 export async function createIdentityAssertion(
   did: string,
   scopes: string[],
@@ -35,6 +50,19 @@ export async function createIdentityAssertion(
     .sign(key);
 }
 
+/**
+ * Verifies a JWT identity assertion token and returns its normalized payload.
+ *
+ * Validates the token signature, issuer, audience, and expiration. The returned
+ * payload ensures `scopes` is a string array and timestamps are numbers.
+ *
+ * @param token - The JWT token to verify
+ * @returns The verified identity assertion payload
+ * @throws If the token has expired
+ * @throws If the token has invalid claims (issuer/audience mismatch)
+ * @throws If the token signature verification failed
+ * @throws If the token payload is missing required claims
+ */
 export async function verifyIdentityAssertion(token: string): Promise<IdentityAssertionPayload> {
   const key = getSigningKey();
 
@@ -65,10 +93,21 @@ export async function verifyIdentityAssertion(token: string): Promise<IdentityAs
   }
 }
 
+/**
+ * Creates a signed JWT access token for the given decentralized identifier and scopes.
+ *
+ * @returns A signed JWT string.
+ */
 export async function createAccessToken(did: string, scopes: string[]): Promise<string> {
   return createIdentityAssertion(did, scopes);
 }
 
+/**
+ * Verifies an access token and extracts the subject identifier and scopes.
+ *
+ * @param token - A JWT access token to verify
+ * @returns An object containing the subject identifier (`sub`) and authorized scopes
+ */
 export async function verifyAccessToken(token: string): Promise<{ sub: string; scopes: string[] }> {
   const payload = await verifyIdentityAssertion(token);
   return { sub: payload.sub, scopes: payload.scopes };

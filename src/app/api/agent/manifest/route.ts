@@ -4,6 +4,15 @@ import { requireAuth } from "@/lib/auth-middleware";
 import { prisma } from "@/lib/prisma";
 import { createPrivateKey, sign } from "crypto";
 
+/**
+ * Generates and signs a verifiable credential manifest for an authenticated user.
+ *
+ * Authenticates the request, retrieves the user's profile, constructs a W3C Verifiable
+ * Credential, and returns it signed with the issuer's private key. The response is
+ * publicly cacheable for five minutes.
+ *
+ * @returns A signed verifiable credential manifest in JSON-LD format, or an error response.
+ */
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
   if (auth.error) return auth.error;

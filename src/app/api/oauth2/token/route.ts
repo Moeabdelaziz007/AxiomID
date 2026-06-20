@@ -7,6 +7,13 @@ import { verifyIdentityAssertion, createAccessToken } from "@/lib/auth-tokens";
 import { verifyClaimToken } from "@/lib/claim-ceremony";
 import { logger } from "@/lib/logger";
 
+/**
+ * Exchanges authentication credentials for an access token via OAuth2 token exchange.
+ *
+ * Supports JWT-bearer assertion and claim token exchange flows.
+ *
+ * @returns An API response containing the access token, pending status, or error information
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`agent-token:${ip}`, RATE_LIMITS.authenticated);
