@@ -88,10 +88,27 @@ describe("Exponential Backoff", () => {
   });
 
   it("applies jitter (delay varies between calls)", () => {
-    const delays = Array.from({ length: 10 }, () => exponentialBackoff(5, 1000, 30000, 0.5));
+    const delays = Array.from({ length: 10 }, () => exponentialBackoff(2, 1000, 30000, 0.5));
     const unique = new Set(delays);
     expect(unique.size).toBeGreaterThan(1);
   });
+
+  it("attempt=2 with jitter=0.5 produces delays within unclamped range [2000, 6000]", () => {
+    // attempt=2: base = 1000 * 2^2 = 4000; jitter range = ±(4000 * 0.5) = ±2000
+    // raw range = [2000, 6000] — no clamping occurs since maxDelay=30000
+    for (let i = 0; i < 50; i++) {
+      const delay = exponentialBackoff(2, 1000, 30000, 0.5);
+      expect(delay).toBeGreaterThanOrEqual(2000);
+      expect(delay).toBeLessThanOrEqual(6000);
+    }
+  });
+
+  it("attempt=2 with zero jitter returns exactly the base exponential delay", () => {
+    // 1000 * 2^2 = 4000 with no jitter
+    const delay = exponentialBackoff(2, 1000, 30000, 0);
+    expect(delay).toBe(4000);
+  });
+
 });
 
 describe("Shannon Entropy", () => {

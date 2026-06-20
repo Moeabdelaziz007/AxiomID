@@ -78,6 +78,18 @@ const mockSkill = {
   createdAt: "2024-01-01T00:00:00Z",
 };
 
+const mockSkillDetail = {
+  ...mockSkill,
+  manifestMd: "# Test Skill",
+  agentScript: null,
+  testSuite: null,
+  status: "PUBLISHED",
+  isPublished: true,
+  installationCount: 42,
+  reviewCount: 10,
+  updatedAt: "2024-01-01T00:00:00Z",
+};
+
 describe("MarketplacePage — initial load and error handling (PR change)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -192,20 +204,7 @@ describe("MarketplacePage — install button state (PR change: wallet integratio
         ok: true,
         json: async () => ({ skills: [mockSkill] }),
       })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          ...mockSkill,
-          manifestMd: "# Test",
-          agentScript: null,
-          testSuite: null,
-          status: "PUBLISHED",
-          isPublished: true,
-          installationCount: 42,
-          reviewCount: 10,
-          updatedAt: "2024-01-01T00:00:00Z",
-        }),
-      });
+      .mockResolvedValueOnce({ ok: true, json: async () => mockSkillDetail });
 
     render(<MarketplacePage />);
 
@@ -228,20 +227,7 @@ describe("MarketplacePage — install button state (PR change: wallet integratio
         ok: true,
         json: async () => ({ skills: [mockSkill] }),
       })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          ...mockSkill,
-          manifestMd: "# Test",
-          agentScript: null,
-          testSuite: null,
-          status: "PUBLISHED",
-          isPublished: true,
-          installationCount: 42,
-          reviewCount: 10,
-          updatedAt: "2024-01-01T00:00:00Z",
-        }),
-      });
+      .mockResolvedValueOnce({ ok: true, json: async () => mockSkillDetail });
 
     render(<MarketplacePage />);
 
@@ -263,20 +249,7 @@ describe("MarketplacePage — install button state (PR change: wallet integratio
         ok: true,
         json: async () => ({ skills: [mockSkill] }),
       })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          ...mockSkill,
-          manifestMd: "# Test",
-          agentScript: null,
-          testSuite: null,
-          status: "PUBLISHED",
-          isPublished: true,
-          installationCount: 42,
-          reviewCount: 10,
-          updatedAt: "2024-01-01T00:00:00Z",
-        }),
-      });
+      .mockResolvedValueOnce({ ok: true, json: async () => mockSkillDetail });
 
     render(<MarketplacePage />);
 
@@ -308,20 +281,7 @@ describe("MarketplacePage — handleInstall wallet flow (PR change)", () => {
         ok: true,
         json: async () => ({ skills: [mockSkill] }),
       })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          ...mockSkill,
-          manifestMd: "# Test",
-          agentScript: null,
-          testSuite: null,
-          status: "PUBLISHED",
-          isPublished: true,
-          installationCount: 42,
-          reviewCount: 10,
-          updatedAt: "2024-01-01T00:00:00Z",
-        }),
-      });
+      .mockResolvedValueOnce({ ok: true, json: async () => mockSkillDetail });
 
     render(<MarketplacePage />);
 
@@ -402,6 +362,86 @@ describe("MarketplacePage — handleInstall wallet flow (PR change)", () => {
       expect(screen.getByRole("alert")).toBeInTheDocument();
       expect(screen.getByRole("alert")).toHaveTextContent("Permission denied");
     });
+  });
+});
+
+describe("MarketplacePage — install button aria-label states (PR change)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  async function openSkillDetail() {
+    await waitFor(() => {
+      expect(screen.getByText("Test Skill")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText("Test Skill"));
+    await waitFor(() => {
+      expect(screen.getByText("# Test Skill")).toBeInTheDocument();
+    });
+  }
+
+  it("aria-label is 'Connect Wallet to Install' when user is null (PR change)", async () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null, isConnecting: false }));
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ skills: [mockSkill] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockSkillDetail });
+
+    render(<MarketplacePage />);
+    await openSkillDetail();
+
+    const btn = screen.getByRole("button", { name: /connect wallet to install/i });
+    expect(btn).toHaveAttribute("aria-label", "Connect Wallet to Install");
+  });
+
+  it("aria-label is 'Install Skill' when user is authenticated (PR change)", async () => {
+    const mockUser = {
+      id: "u1",
+      walletAddress: "pi:user1",
+      piUsername: "user1",
+      xp: 0,
+      tier: "Citizen" as const,
+      trustScore: 0,
+      createdAt: new Date().toISOString(),
+      actions: [],
+    };
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: mockUser, isConnecting: false }));
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ skills: [mockSkill] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockSkillDetail });
+
+    render(<MarketplacePage />);
+    await openSkillDetail();
+
+    const btn = screen.getByRole("button", { name: /install skill/i });
+    expect(btn).toHaveAttribute("aria-label", "Install Skill");
+  });
+
+  it("aria-label is 'Connecting' when isConnecting is true (PR change)", async () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null, isConnecting: true }));
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ skills: [mockSkill] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockSkillDetail });
+
+    render(<MarketplacePage />);
+    await openSkillDetail();
+
+    const btn = screen.getByRole("button", { name: /connecting/i });
+    expect(btn).toHaveAttribute("aria-label", "Connecting");
+  });
+
+  it("'Connect Wallet to Install' aria-label takes lower priority than 'Connecting' when isConnecting (PR change)", async () => {
+    // isConnecting=true should show Connecting regardless of user being null
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null, isConnecting: true }));
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ skills: [mockSkill] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockSkillDetail });
+
+    render(<MarketplacePage />);
+    await openSkillDetail();
+
+    const btn = screen.getByRole("button", { name: /connecting/i });
+    expect(btn).not.toHaveAttribute("aria-label", "Connect Wallet to Install");
+    expect(btn).toHaveAttribute("aria-label", "Connecting");
   });
 });
 

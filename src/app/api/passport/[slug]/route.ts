@@ -6,6 +6,8 @@ import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { createUserDid } from "@/lib/did";
 import { calculateTrustScore } from "@/lib/trust";
+import { deriveSovereignAgentKeypair } from "@/lib/sovereign-keys";
+import { getKyaStatus, getKycStatus } from "./_utils";
 
 interface PassportStamp {
   type: string;
@@ -23,48 +25,32 @@ interface PassportUser {
   kycStatus?: string | null;
   createdAt: Date;
   stamps?: PassportStamp[];
-  agent?: { name: string; status: string } | null;
+  agent?: { publicId: string; name: string; status: string } | null;
 }
 
 const AGENT_SELECT = {
   agent: {
-    select: { name: true, status: true },
+    select: { publicId: true, name: true, status: true },
   },
   stamps: {
     select: { type: true, provider: true },
   },
 };
 
-/**
- * Determines the Know Your Account (KYA) status based on available verification stamps.
- *
- * @param stamps - Optional array of passport stamps.
- * @returns `"verified"` if an identity verification or Pi stamp is present, `"pending"` otherwise.
- */
-function getKyaStatus(stamps: PassportStamp[] | undefined): "verified" | "pending" | "denied" {
-  if (!stamps || stamps.length === 0) return "pending";
-  const hasIdentityStamp = stamps.some(
-    (s) => s.type === "verify_identity" || s.provider === "pi"
-  );
-  return hasIdentityStamp ? "verified" : "pending";
-}
-
-/**
- * Normalizes a KYC status value to a standard verification state.
- *
- * @param kycStatus - The KYC status string, which may be undefined or null
- * @returns `"verified"` for `"VERIFIED"`, `"pending"` for missing or `"PENDING"`/`"NONE"`, `"denied"` for any other value
- */
-function getKycStatus(kycStatus: string | undefined | null): "verified" | "pending" | "denied" {
-  if (kycStatus === "VERIFIED") return "verified";
-  if (!kycStatus || kycStatus === "PENDING" || kycStatus === "NONE") return "pending";
-  return "denied";
-}
-
 function buildPassportResponse(user: PassportUser) {
   const did = user.did || createUserDid(user.id);
   const stamps = user.stamps || [];
-  const trustScore = calculateTrustScore(user.xp || 0, stamps.length);
+  const trustScore = calculateTrustScore(user.xp, stamps.length);
+
+  let agentPublicKey: string | null = null;
+  if (user.agent && (user.stellarAddress || user.walletAddress)) {
+    try {
+      const keys = deriveSovereignAgentKeypair(user.stellarAddress || user.walletAddress, user.agent.publicId);
+      agentPublicKey = keys.publicKey;
+    } catch (e) {
+      logger.error('[PASSPORT-API] Key derivation failed:', e);
+    }
+  }
 
   return {
     username: user.piUsername || "AxiomID Agent",
@@ -80,6 +66,7 @@ function buildPassportResponse(user: PassportUser) {
     issuedDate: user.createdAt.toISOString(),
     agentName: user.agent?.name || null,
     agentStatus: user.agent?.status || null,
+    agentPublicKey,
   };
 }
 

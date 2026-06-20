@@ -224,3 +224,164 @@ describe('POST /api/auth/pi', () => {
     expect(data.code).toBe('PI_AUTH_FAILED');
   });
 });
+
+describe('POST /api/auth/pi — sandbox dev token bypass (PR change)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    global.fetch = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  // In test environment, NODE_ENV === 'test' which is !== 'production',
+  // so isSandboxOrDev is true and the bypass is active.
+  it('skips Pi API call and uses hardcoded stellar address for sandbox-dev-token', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue(null);
+    mockPrisma.user.create.mockResolvedValue({
+      id: 'sandbox-user-1',
+      walletAddress: 'pi:sandbox-developer',
+      stellarAddress: 'GD5TJZNKPNFSSXN7XF26NNDAOVDN57S7LNJ6FSL2X5D62N676572N4Y2',
+      piUid: 'sandbox-developer',
+      piUsername: 'developer',
+      xp: 0,
+      tier: 'Visitor',
+      did: 'did:axiom:axiomid.app:pi:sandbox-developer',
+      kycStatus: 'NONE',
+      agent: null,
+    } as any);
+
+    const req = mockRequest({
+      accessToken: 'sandbox-dev-token-abc-123',
+      uid: 'sandbox-developer',
+      username: 'developer',
+    });
+
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    // Fetch to api.minepi.com must NOT be called for the sandbox token
+    expect(global.fetch).not.toHaveBeenCalled();
+    // The hardcoded stellar address should propagate into the create call
+    expect(mockPrisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          stellarAddress: 'GD5TJZNKPNFSSXN7XF26NNDAOVDN57S7LNJ6FSL2X5D62N676572N4Y2',
+        }),
+      })
+    );
+    expect(data.walletAddress).toBe('pi:sandbox-developer');
+  });
+
+  it('still calls Pi API when accessToken is NOT the sandbox dev token (even in dev)', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid: 'real-uid', username: 'realuser' }),
+    });
+
+    mockPrisma.user.findUnique.mockResolvedValue(null);
+    mockPrisma.user.create.mockResolvedValue({
+      id: 'real-user-1',
+      walletAddress: 'pi:real-uid',
+      stellarAddress: null,
+      piUid: 'real-uid',
+      piUsername: 'realuser',
+      xp: 0,
+      tier: 'Visitor',
+      did: 'did:axiom:axiomid.app:pi:real-uid',
+      kycStatus: 'NONE',
+      agent: null,
+    } as any);
+
+    const req = mockRequest({
+      accessToken: 'some-real-token',
+      uid: 'real-uid',
+      username: 'realuser',
+    });
+
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    // Pi API should still be called for non-sandbox tokens
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://api.minepi.com/v2/me',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer some-real-token' },
+      })
+    );
+  });
+
+  it('sandbox bypass creates user with correct walletAddress and DID format', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue(null);
+    mockPrisma.user.create.mockImplementation(async (args: any) => ({
+      id: 'sb-user',
+      walletAddress: args.data.walletAddress,
+      stellarAddress: args.data.stellarAddress,
+      piUid: args.data.piUid,
+      piUsername: args.data.piUsername,
+      xp: args.data.xp,
+      tier: args.data.tier,
+      did: args.data.did,
+      kycStatus: 'NONE',
+      agent: null,
+    }));
+
+    const req = mockRequest({
+      accessToken: 'sandbox-dev-token-abc-123',
+      uid: 'sandbox-developer',
+      username: 'developer',
+    });
+
+    await POST(req);
+
+    expect(mockPrisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          walletAddress: 'pi:sandbox-developer',
+          piUid: 'sandbox-developer',
+          did: expect.stringContaining('sandbox-developer'),
+          didMethod: 'did:axiom',
+        }),
+      })
+    );
+  });
+
+  it('sandbox bypass updates existing user without calling Pi API', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'existing-sandbox-user',
+      piUid: 'sandbox-developer',
+      did: 'did:axiom:axiomid.app:pi:sandbox-developer',
+      didMethod: 'did:axiom',
+      agent: null,
+    } as any);
+
+    mockPrisma.user.update.mockResolvedValue({
+      id: 'existing-sandbox-user',
+      walletAddress: 'pi:sandbox-developer',
+      stellarAddress: 'GD5TJZNKPNFSSXN7XF26NNDAOVDN57S7LNJ6FSL2X5D62N676572N4Y2',
+      piUid: 'sandbox-developer',
+      piUsername: 'developer',
+      xp: 50,
+      tier: 'Citizen',
+      did: 'did:axiom:axiomid.app:pi:sandbox-developer',
+      kycStatus: 'NONE',
+      agent: null,
+    } as any);
+
+    const req = mockRequest({
+      accessToken: 'sandbox-dev-token-abc-123',
+      uid: 'sandbox-developer',
+      username: 'developer',
+    });
+
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(mockPrisma.user.update).toHaveBeenCalled();
+    expect(data.stellarAddress).toBe('GD5TJZNKPNFSSXN7XF26NNDAOVDN57S7LNJ6FSL2X5D62N676572N4Y2');
+  });
+});

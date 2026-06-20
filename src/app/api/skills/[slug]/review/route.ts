@@ -50,6 +50,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
       },
     });
 
+    const aggregation = await prisma.skillReview.aggregate({
+      where: { skillId: skill.id },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+
+    await prisma.skill.update({
+      where: { id: skill.id },
+      data: {
+        avgRating: aggregation._avg.rating ?? 0,
+        ratingCount: aggregation._count.rating,
+      },
+    });
+
     return apiSuccess(skillReview, 201);
   } catch (error) {
     logger.error("[REVIEW] Create error:", error);

@@ -673,23 +673,8 @@ describe("WalletProvider & WalletContext", () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
 // checkPiBrowser — URL hostname parsing (PR security fix)
-//
-// PR change: replaced `referrer.includes("minepi.com")` with
-//   `new URL(referrer).hostname.toLowerCase() === "minepi.com"`
-// This prevents false positives from domains that merely contain the string
-// "minepi.com" (e.g. "evil-minepi.com" or "sandbox.minepi.com.attacker.com").
-// ─────────────────────────────────────────────────────────────────────────────
-
-describe("checkPiBrowser — iframe referrer URL hostname parsing (PR security fix)", () => {
-  // NOTE: Iframe detection tests require redefining window.top which jsdom
-  // does not allow (non-configurable property). These cases are covered by
-  // unit tests in pi-sdk.test.ts which directly test checkPiBrowser().
-  it.skip("isPiBrowser=true when in iframe with exact referrer hostname 'minepi.com'", async () => {});
-  it.skip("isPiBrowser=true when in iframe with exact referrer hostname 'sandbox.minepi.com'", async () => {});
-  it.skip("isPiBrowser=false when in iframe with referrer 'evil-minepi.com'", async () => {});
-  it.skip("isPiBrowser=false when in iframe with referrer 'sandbox.minepi.com.attacker.com'", async () => {});
-  it.skip("isPiBrowser=false when in iframe with malformed referrer URL", async () => {});
-  it.skip("isPiBrowser=false when NOT in iframe even if referrer contains minepi.com", async () => {});
-});
+// PR change replaced `referrer.includes("minepi.com")` with
+// `new URL(referrer).hostname.toLowerCase() === "minepi.com"` to prevent
+// false positives from domains like "evil-minepi.com" or
+// "sandbox.minepi.com.attacker.com". Covered by pi-sdk.test.ts.
