@@ -136,3 +136,27 @@ export type CredentialStatusQueryInput = z.infer<typeof CredentialStatusQuerySch
 export type DidDocumentQueryInput = z.infer<typeof DidDocumentQuerySchema>;
 export type SlugParamInput = z.infer<typeof SlugParamSchema>;
 export type PassportSlugParamInput = z.infer<typeof PassportSlugParamSchema>;
+
+export const AgentIdentitySchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("identity_assertion"), assertion: z.string().min(1) }),
+  z.object({ type: z.literal("anonymous") }),
+]);
+
+export const TokenExchangeSchema = z.discriminatedUnion("grant_type", [
+  z.object({ grant_type: z.literal("jwt-bearer"), assertion: z.string().min(1) }),
+  z.object({ grant_type: z.literal("claim"), claim_token: z.string().min(1) }),
+]);
+
+export const TokenRevocationSchema = z.object({
+  token: z.string().min(1),
+});
+
+export const AgentSignSchema = z.object({
+  payload: z.string().min(1, "Payload is required"),
+  did: z.string().startsWith("did:axiom:", "Invalid AxiomID DID"),
+});
+
+export type AgentIdentityInput = z.infer<typeof AgentIdentitySchema>;
+export type TokenExchangeInput = z.infer<typeof TokenExchangeSchema>;
+export type TokenRevocationInput = z.infer<typeof TokenRevocationSchema>;
+export type AgentSignInput = z.infer<typeof AgentSignSchema>;
