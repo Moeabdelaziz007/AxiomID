@@ -43,7 +43,7 @@ export default function TopThreeCards({ users }: TopThreeCardsProps) {
           : "text-amber-600 filter drop-shadow-[0_0_8px_rgba(180,83,9,0.2)]";
 
     const heightClass = type === "gold" ? "min-h-[220px] md:scale-105 z-10" : "min-h-[190px]";
-    const tierColor = getTierColor(user.tier as any);
+    const tierColor = getTierColor(user.tier);
 
     return (
       <div 
