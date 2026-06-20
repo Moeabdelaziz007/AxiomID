@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
-import { apiError, apiSuccess } from "@/lib/errors";
+import { apiError, apiSuccess, rateLimitHeaders } from "@/lib/errors";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
+import { getClientIp } from "@/lib/ip";
 import { logger } from "@/lib/logger";
 import { findClaimByUserCode } from "@/lib/claim-ceremony";
 import { z } from "zod";
@@ -14,6 +16,12 @@ const ClaimCheckSchema = z.object({
  * @returns An API response containing the claim details (status, verification URI, and expiration time) if found, or an error response if validation fails or the claim is not found.
  */
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  const rateLimit = await checkRateLimit(`agent-claim:${ip}`, RATE_LIMITS.authenticated);
+  if (!rateLimit.allowed) {
+    return apiError("RATE_LIMITED", "Too many requests.", undefined, rateLimitHeaders(rateLimit));
+  }
+
   let body: unknown;
   try {
     body = await request.json();

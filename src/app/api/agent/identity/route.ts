@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import crypto from "crypto";
 import { apiError, apiSuccess, rateLimitHeaders } from "@/lib/errors";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
@@ -13,10 +14,8 @@ import { createClaimToken } from "@/lib/claim-ceremony";
  * @returns A DID string with the format `did:axiom:user:` followed by the first 16 hex characters of the UTF-8-encoded assertion.
  */
 function deriveDid(assertion: string): string {
-  const hash = Array.from(new TextEncoder().encode(assertion))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return `did:axiom:user:${hash.slice(0, 16)}`;
+  const hash = crypto.createHash("sha256").update(assertion).digest("hex").slice(0, 16);
+  return `did:axiom:user:${hash}`;
 }
 
 /**

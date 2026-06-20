@@ -5,6 +5,7 @@ import { getClientIp } from "@/lib/ip";
 import { AgentSignSchema } from "@/lib/validators";
 import { signPayloadWithAgentKey, deriveSovereignAgentKeypair } from "@/lib/sovereign-keys";
 import { logger } from "@/lib/logger";
+import { requireAuth } from "@/lib/auth-middleware";
 
 /**
  * Signs an authenticated agent payload.
@@ -13,6 +14,9 @@ import { logger } from "@/lib/logger";
  * @returns A JSON response with the signature, DID, and key version
  */
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if (auth.error) return auth.error;
+
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`agent-sign:${ip}`, RATE_LIMITS.authenticated);
   if (!rateLimit.allowed) {

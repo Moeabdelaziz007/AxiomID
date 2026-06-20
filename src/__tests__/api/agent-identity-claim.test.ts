@@ -9,17 +9,20 @@ jest.mock("@/lib/rate-limiter", () => ({
 jest.mock("@/lib/logger", () => ({
   logger: { error: jest.fn(), warn: jest.fn(), info: jest.fn() },
 }));
+jest.mock("@/lib/ip", () => ({
+  getClientIp: jest.fn(() => "127.0.0.1"),
+}));
 jest.mock("@/lib/claim-ceremony", () => ({
   findClaimByUserCode: jest.fn(),
-  verifyClaimToken: jest.fn(),
 }));
 
 import { NextRequest } from "next/server";
 import { POST } from "@/app/api/agent/identity/claim/route";
-import { findClaimByUserCode, verifyClaimToken } from "@/lib/claim-ceremony";
+import { findClaimByUserCode } from "@/lib/claim-ceremony";
+import { checkRateLimit } from "@/lib/rate-limiter";
 
 const mockFindClaim = findClaimByUserCode as jest.Mock;
-const mockVerifyClaim = verifyClaimToken as jest.Mock;
+const mockCheckRateLimit = checkRateLimit as jest.Mock;
 
 function mockPostRequest(body: unknown): NextRequest {
   return new NextRequest("http://localhost/api/agent/identity/claim", {
@@ -32,6 +35,7 @@ function mockPostRequest(body: unknown): NextRequest {
 describe("POST /api/agent/identity/claim", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 99, resetAt: Date.now() + 60000 });
   });
 
   it("returns claim status when user_code is valid", async () => {
