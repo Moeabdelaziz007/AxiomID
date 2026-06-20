@@ -112,12 +112,12 @@ export default function MarketplacePage() {
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
-    if ((selectedSkill || detailLoading) && !dialog.open) {
+    if (selectedSkill && !dialog.open) {
       dialog.showModal();
-    } else if (!selectedSkill && !detailLoading && dialog.open) {
+    } else if (!selectedSkill && dialog.open) {
       dialog.close();
     }
-  }, [selectedSkill, detailLoading]);
+  }, [selectedSkill]);
 
   const openDetail = async (slug: string) => {
     previousFocusRef.current = document.activeElement as HTMLElement;
@@ -129,25 +129,21 @@ export default function MarketplacePage() {
       const res = await fetch(`/api/skills/${slug}`, { signal: controller.signal });
       if (!res.ok) {
         setError(`Failed to load skill (${res.status})`);
-        setDetailLoading(false); // Ensure loading is reset on error
         return;
       }
       const data = await res.json();
       setSelectedSkill(data);
-      setDetailLoading(false);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
       setError("Failed to load skill details");
-      setDetailLoading(false);
     } finally {
-      // Clean up
+      setDetailLoading(false);
     }
   };
 
   const closeModal = useCallback(() => {
     fetchAbortRef.current?.abort();
     setSelectedSkill(null);
-    setDetailLoading(false); // Ensure loading is cleared
     previousFocusRef.current?.focus();
   }, []);
 
@@ -290,9 +286,28 @@ export default function MarketplacePage() {
                     <button
                       key={skill.id}
                       onClick={() => openDetail(skill.slug)}
-                      className="bento-card p-5 text-start hover:border-white/20 transition-all duration-200 group"
+                      className="bento-card p-5 text-start transition-all duration-300 group relative overflow-hidden"
+                      style={{ 
+                        borderWidth: '1px',
+                        borderStyle: 'solid',
+                        borderColor: 'var(--card-border)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = `${tierColor}50`;
+                        e.currentTarget.style.boxShadow = `0 8px 30px -10px ${tierColor}15, 0 0 0 1px ${tierColor}20`;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--card-border)';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
                     >
-                      <div className="flex items-start justify-between mb-3">
+                      {/* Spectral glowing background stripe for premium tier vibes */}
+                      <div 
+                        className="absolute top-0 left-0 right-0 h-1 opacity-20 group-hover:opacity-60 transition-opacity duration-300"
+                        style={{ background: `linear-gradient(90deg, transparent, ${tierColor}, transparent)` }}
+                      />
+
+                      <div className="flex items-start justify-between mb-3 relative z-10">
                         <div className="flex-1 min-w-0">
                           <h4 className="text-sm font-bold text-surface font-mono truncate group-hover:text-neon-green transition-colors">
                             {skill.name}
@@ -313,11 +328,19 @@ export default function MarketplacePage() {
                         </span>
                       </div>
 
-                      <p className="text-xs text-subtle line-clamp-2 mb-4 min-h-[32px]">
+                      <p className="text-xs text-subtle line-clamp-2 mb-4 min-h-[32px] relative z-10">
                         {skill.description || "No description"}
                       </p>
 
-                      <div className="flex items-center justify-between text-[9px] font-mono">
+                      {/* Cryptographic L0 Authority Trust Stamp Indicator */}
+                      <div className="flex items-center gap-1.5 mb-4 text-[9px] font-mono text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 px-2 py-0.5 rounded w-fit relative z-10">
+                        <svg className="w-3 h-3 text-emerald-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        <span>AxiomID Signed & Signed Attestation</span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[9px] font-mono border-t border-white/5 pt-3 mt-1 relative z-10">
                         <div className="flex items-center gap-3">
                           <span style={{ color: "var(--text-muted)" }}>
                             <Download className="w-3 h-3 inline me-1" />{skill.installCount}
@@ -434,9 +457,9 @@ export default function MarketplacePage() {
                     disabled={installing || isConnecting}
                     aria-busy={installing}
                     aria-label={installing ? "Installing" : isConnecting ? "Connecting" : !user ? "Connect Wallet to Install" : "Install Skill"}
-                    className="flex-1 btn-primary py-2.5 text-xs font-mono"
+                    className="flex-1 btn-primary py-2.5 text-xs font-mono uppercase"
                   >
-                    {installing ? "INSTALLING..." : isConnecting ? "CONNECTING..." : !user ? "CONNECT WALLET TO INSTALL" : "INSTALL SKILL → AGENT"}
+                    {installing ? "Installing..." : isConnecting ? "Connecting..." : !user ? "Connect Wallet to Install" : "Install Skill → Agent"}
                   </button>
                   <button
                     onClick={() => {

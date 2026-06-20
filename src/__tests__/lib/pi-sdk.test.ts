@@ -6,6 +6,7 @@
 import {
   createPiPayment,
   connectPi,
+  checkPiBrowser,
 } from '@/lib/pi-sdk';
 
 describe('pi-sdk', () => {
@@ -34,6 +35,10 @@ describe('pi-sdk', () => {
 
       const result = await connectPi();
 
+      expect(mockAuthenticate).toHaveBeenCalledWith(
+        expect.arrayContaining(["username", "payments"]),
+        expect.any(Function)
+      );
       expect(result.token).toBe('token-abc');
       expect(result.user.uid).toBe('uid-123');
       expect(result.user.username).toBe('piuser');
@@ -52,6 +57,10 @@ describe('pi-sdk', () => {
 
       const result = await connectPi();
 
+      expect(mockAuthenticate).toHaveBeenCalledWith(
+        expect.arrayContaining(["username", "payments"]),
+        expect.any(Function)
+      );
       expect(mockAuthenticate).toHaveBeenCalled();
       expect(result.token).toBe('pb-token');
       expect(result.user.uid).toBe('pb-uid');
@@ -98,10 +107,82 @@ describe('pi-sdk', () => {
 
       await connectPi(pushLog);
 
+      expect(window.Pi.authenticate).toHaveBeenCalledWith(
+        expect.arrayContaining(["username", "payments"]),
+        expect.any(Function)
+      );
       expect(pushLog).toHaveBeenCalledWith(expect.stringContaining('Authenticated'));
       expect(pushLog).toHaveBeenCalledWith(expect.stringContaining('Pi Browser User'));
 
       delete (global as any).window.Pi;
+    });
+  });
+
+  describe('checkPiBrowser', () => {
+    interface MutableGlobals {
+      window: any;
+      navigator: any;
+      document: any;
+    }
+
+    const g = global as unknown as MutableGlobals;
+    const originalWindow = g.window;
+    const originalNavigator = g.navigator;
+    const originalDocument = g.document;
+
+    beforeEach(() => {
+      g.window = undefined;
+      g.navigator = undefined;
+      g.document = undefined;
+    });
+
+    afterEach(() => {
+      g.window = originalWindow;
+      g.navigator = originalNavigator;
+      g.document = originalDocument;
+    });
+
+    it('returns false when window is undefined', () => {
+      expect(checkPiBrowser()).toBe(false);
+    });
+
+    it('returns true when window.Pi is defined', () => {
+      g.window = { Pi: {} };
+      expect(checkPiBrowser()).toBe(true);
+    });
+
+    it('returns true when userAgent contains Pi Browser', () => {
+      g.window = {};
+      g.navigator = { userAgent: 'Pi Browser' };
+      expect(checkPiBrowser()).toBe(true);
+    });
+
+    it('returns true when inside iframe with minepi.com referrer', () => {
+      g.window = { self: {}, top: {} };
+      g.navigator = { userAgent: '' };
+      g.document = { referrer: 'https://minepi.com/auth' };
+      expect(checkPiBrowser()).toBe(true);
+    });
+
+    it('returns true when inside iframe with sandbox.minepi.com referrer', () => {
+      g.window = { self: {}, top: {} };
+      g.navigator = { userAgent: '' };
+      g.document = { referrer: 'https://sandbox.minepi.com/auth' };
+      expect(checkPiBrowser()).toBe(true);
+    });
+
+    it('returns false when inside iframe with evil-minepi.com referrer', () => {
+      g.window = { self: {}, top: {} };
+      g.navigator = { userAgent: '' };
+      g.document = { referrer: 'https://evil-minepi.com/auth' };
+      expect(checkPiBrowser()).toBe(false);
+    });
+
+    it('returns false when inside iframe with sandbox.minepi.com.attacker.com referrer', () => {
+      g.window = { self: {}, top: {} };
+      g.navigator = { userAgent: '' };
+      g.document = { referrer: 'https://sandbox.minepi.com.attacker.com/auth' };
+      expect(checkPiBrowser()).toBe(false);
     });
   });
 });

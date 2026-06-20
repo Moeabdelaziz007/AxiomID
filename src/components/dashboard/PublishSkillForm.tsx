@@ -43,14 +43,9 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
     setPublishing(true);
     setError("");
     try {
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      const storedToken = localStorage.getItem("pi_access_token");
-      if (storedToken) {
-        headers["Authorization"] = `Bearer ${storedToken}`;
-      }
       const res = await fetch("/api/skills", {
         method: "POST",
-        headers,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
       if (res.ok) {

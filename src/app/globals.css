@@ -351,8 +351,8 @@ body {
 }
 
 [data-theme="light"] .btn-primary:hover {
-  background: var(--color-primary-hover);
-  box-shadow: 0 2px 12px rgba(37, 99, 235, 0.25);
+  background: color-mix(in srgb, var(--neon-green) 90%, black);
+  box-shadow: 0 2px 12px rgba(5, 150, 105, 0.25);
 }
 
 .btn-secondary {
@@ -856,6 +856,59 @@ a:focus-visible {
     font-size: 9px;
     padding: 3px 8px;
   }
+}
+
+/* ============================================
+   ADVANCED PREMIUM VISUAL EFFECTS UTILITIES
+   ============================================ */
+@keyframes holographic {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-holographic {
+  background-size: 200% 200%;
+  animation: holographic 8s ease infinite;
+}
+
+.glass-card {
+  background: rgba(29, 32, 39, 0.7) !important;
+  backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glow-border {
+  position: relative;
+}
+
+.glow-border::before {
+  content: "";
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(135deg, #00ff41 0%, #00d4ff 50%, #a855f7 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.35;
+  transition: opacity 0.3s ease;
+}
+
+.glow-border:hover::before {
+  opacity: 0.85;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.5; }
+}
+
+.particle-bg {
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-size: 20px 20px;
 }
 
 

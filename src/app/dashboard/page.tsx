@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useWallet } from "../context/wallet-context";
+import skillsData from "@/data/skills.json";
 import { StampBoard } from "@/components/StampBoard";
 import { AgentCard } from "@/components/AgentCard";
 import { OnboardingModal } from "@/components/dashboard/OnboardingModal";
@@ -21,6 +22,8 @@ import { AgentControlsCard } from "@/components/dashboard/AgentControlsCard";
 import { CreateAgentCard } from "@/components/dashboard/CreateAgentCard";
 import { TerminalOverlay } from "@/components/dashboard/TerminalOverlay";
 import { PiBrowserGuard, PiBrowserBanner } from "@/components/PiBrowserGuard";
+import dynamic from "next/dynamic";
+const InteractivePassportCard = dynamic(() => import("@/components/ui/InteractivePassportCard"), { ssr: false });
 
 type TabId = "passport" | "actions" | "terminal" | "marketplace" | "agent";
 
@@ -127,29 +130,63 @@ export default function Dashboard() {
           </div>
         </div>
       ) : !user ? (
-        /* ── NOT CONNECTED ── */
+        /* ── NOT CONNECTED / SHOWCASE MODE ── */
         <div className="space-y-6">
-          <div className="bento-card p-5 border border-electric-blue/20 bg-electric-blue/5">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-electric-blue/20 flex items-center justify-center flex-shrink-0">
-                  <Zap className="w-5 h-5 text-electric-blue" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-surface">Connect Your Pi Wallet</h3>
-                  <p className="text-xs text-subtle">Open Pi Browser to authenticate and manage your agent.</p>
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            
+            {/* Left: Connect Wallet Promo */}
+            <div className="md:col-span-7 space-y-4">
+              <div className="bento-card p-6 border border-electric-blue/20 bg-electric-blue/5">
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-electric-blue/20 flex items-center justify-center flex-shrink-0">
+                      <Zap className="w-6 h-6 text-electric-blue animate-pulse" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-white">{t("connect_wallet")}</h3>
+                      <p className="text-xs text-zinc-400 mt-1">{t("settings_wallet_prompt")}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-2">
+                    {shouldShowPiBrowserPrompt ? (
+                      <div className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-center text-amber-200 text-xs font-mono">
+                        {t("pi_browser_required")}
+                      </div>
+                    ) : (
+                      <button type="button" onClick={connectWallet} disabled={isConnecting} className="btn-primary w-full text-xs py-3 font-semibold uppercase tracking-wider flex items-center justify-center gap-2">
+                        {isConnecting ? (
+                          <><span className="animate-spin">⟳</span> {t("connecting")}</>
+                        ) : (
+                          <>
+                            {t("connect_wallet")}
+                            <Fingerprint className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-              {shouldShowPiBrowserPrompt ? (
-                <div className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-1.5 text-center text-amber-200 text-xs">
-                  Open in Pi Browser
-                </div>
-              ) : (
-                <button type="button" onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} aria-label={isConnecting ? "Connecting" : "Connect Wallet"} className="btn-primary text-xs px-4 py-2">
-                  {isConnecting ? "CONNECTING..." : "CONNECT WALLET"}
-                </button>
-              )}
+              
+              <div className="bento-card p-5 border border-white/5 bg-white/[0.01]">
+                <h4 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest mb-2">Showcase Mode</h4>
+                <p className="text-xs text-zinc-500 leading-relaxed">
+                  Establish a secure human-AI delegation link. Once authenticated inside the Pi Browser, this dashboard unlocks real-time transaction guards, live oracles, and social stamp bindings.
+                </p>
+              </div>
             </div>
+
+            {/* Right: Locked Passport Showcase */}
+            <div className="md:col-span-5 flex justify-center relative">
+              <div className="absolute -inset-4 bg-gradient-to-tr from-emerald-500/5 via-electric-blue/5 to-axiom-purple/5 rounded-[36px] filter blur-xl opacity-60 pointer-events-none" />
+              <InteractivePassportCard
+                readonly
+                locked
+                user={null}
+              />
+            </div>
+
           </div>
         </div>
       ) : user ? (
@@ -159,22 +196,54 @@ export default function Dashboard() {
             username={user.piUsername || "User"}
             tier={user.tier}
             levelProgress={levelProgress}
+            xp={user.xp}
           />
 
           {/* Tab content */}
           <TabPanel id="passport" activeTab={activeTab}>
-            <div className="space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <AgentStatsCard
-                  tier={user.tier}
-                  xp={user.xp}
-                  agentName={agent?.name ?? null}
-                  agentStatus={agentStatus}
-                  trustScore={user.trustScore}
-                />
-                <SkillsCard skills={[]} />
-                <QuickLinksCard passportSlug={user.piUsername || user.walletAddress || "user"} did={user.did || undefined} />
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                {/* 3D Passport card */}
+                <div className="lg:col-span-5">
+                  <div className="relative group cursor-pointer" onClick={() => router.push(`/passport/${user.piUsername || user.walletAddress}`)}>
+                    <InteractivePassportCard
+                      user={{
+                        piUsername: user.piUsername,
+                        walletAddress: user.walletAddress,
+                        tier: user.tier,
+                        xp: user.xp,
+                        trustScore: user.trustScore,
+                        kyaStatus: user.kycStatus ? "verified" : "pending",
+                        kycStatus: user.kycStatus ? "verified" : "pending"
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl flex items-center justify-center pointer-events-none">
+                      <span className="text-xs font-mono text-white tracking-widest uppercase bg-black/60 px-3 py-1.5 rounded-lg border border-white/10">
+                        {t("view_passport")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stats + Links */}
+                <div className="lg:col-span-7 space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <AgentStatsCard
+                      tier={user.tier}
+                      xp={user.xp}
+                      agentName={agent?.name ?? null}
+                      agentStatus={agentStatus}
+                      trustScore={user.trustScore}
+                    />
+                    <QuickLinksCard passportSlug={user.piUsername || user.walletAddress || "user"} did={user.did || undefined} />
+                  </div>
+                  
+                  <SkillsCard skills={skillsData.skills.slice(0, 3)} />
+                </div>
+
               </div>
+
               <KYAVerificationCard
                 kycStatus={user.kycStatus ?? "UNVERIFIED"}
                 did={user.did ?? ""}
@@ -200,20 +269,18 @@ export default function Dashboard() {
                   </Link>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {[
-                    { name: "agent-memory", description: "Redis-backed agent memory and context persistence", tier: "BASIC_TOOL" },
-                    { name: "voice-wizard", description: "Voice-first agent creation flow (STT→LLM→TTS)", tier: "BASIC_TOOL" },
-                    { name: "sovereign-constitution", description: "Constitutional AI governance for agent swarms", tier: "SOVEREIGN" },
-                  ].map((skill) => (
+                  {skillsData.skills.slice(0, 6).map((skill: { name: string; description: string; tier?: string }) => (
                     <div
                       key={skill.name}
                       className="p-3 rounded-xl border border-white/5 bg-white/[0.02] hover:border-axiom-purple/30 transition-colors cursor-default"
                     >
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-surface font-mono">{skill.name}</span>
-                        <span className="text-[9px] font-mono text-axiom-purple bg-axiom-purple/10 px-1.5 py-0.5 rounded">
-                          {skill.tier}
-                        </span>
+                        {skill.tier && (
+                          <span className="text-[9px] font-mono text-axiom-purple bg-axiom-purple/10 px-1.5 py-0.5 rounded">
+                            {skill.tier}
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-faint line-clamp-2">{skill.description}</p>
                     </div>
@@ -310,7 +377,7 @@ export default function Dashboard() {
             agentLoading={false}
             shouldShowPiBrowserPrompt={shouldShowPiBrowserPrompt}
             isConnecting={isConnecting}
-            user={user ? { agent: user.agent ? { name: user.agent.name } : undefined, id: user.id } : null}
+            user={user}
             onConnect={connectWallet}
             onCreateAgent={handleCreateAgent}
             onSkip={() => {

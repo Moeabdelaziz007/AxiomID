@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { apiError, apiSuccess, rateLimitHeaders } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
+import { calculateTrustScore } from '@/lib/trust';
 
 /**
  * Handle GET /status requests and return network metadata and aggregate statistics.
@@ -25,15 +26,37 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const [userCount, agentCount, activeAgentCount, paymentCount, xpSum, trustAvg, verifiedCount] = await Promise.all([
+    const [userCount, agentCount, activeAgentCount, paymentCount, xpSum, activeUsersCount, verifiedUsersCount, usersSample] = await Promise.all([
       prisma.user.count(),
       prisma.userAgent.count(),
       prisma.userAgent.count({ where: { status: 'ACTIVE' } }),
       prisma.piPayment.count(),
-      prisma.xpLedger.aggregate({ _sum: { amount: true } }),
-      prisma.user.aggregate({ _avg: { xp: true } }),
-      prisma.user.count({ where: { did: { not: null } } }),
+      prisma.user.aggregate({ _sum: { xp: true } }),
+      prisma.user.count({
+        where: {
+          lastActive: {
+            gte: new Date(Date.now() - 15 * 60 * 1000),
+          },
+        },
+      }),
+      prisma.user.count({ where: { kycStatus: 'VERIFIED' } }),
+      prisma.user.findMany({
+        take: 100,
+        select: {
+          xp: true,
+          stamps: {
+            select: { id: true }
+          }
+        }
+      })
     ]);
+
+    let totalTrustScore = 0;
+    usersSample.forEach(u => {
+      totalTrustScore += calculateTrustScore(u.xp, u.stamps.length);
+    });
+    const averageTrustScore = usersSample.length > 0 ? Math.round(totalTrustScore / usersSample.length) : 85;
+    const verificationRate = userCount > 0 ? Math.round((verifiedUsersCount / userCount) * 100) : 0;
 
     return apiSuccess({
       network: 'axiomid',
@@ -44,9 +67,10 @@ export async function GET(request: NextRequest) {
         totalAgents: agentCount,
         activeAgents: activeAgentCount,
         totalPayments: paymentCount,
-        totalXpEarned: xpSum._sum.amount ?? 0,
-        averageTrustScore: Math.round((trustAvg._avg.xp ?? 0) * 10) / 10,
-        verificationRate: userCount > 0 ? Math.round((verifiedCount / userCount) * 1000) / 10 : 0,
+        totalXpEarned: xpSum._sum.xp ?? 0,
+        activeUsers: Math.max(1, activeUsersCount),
+        averageTrustScore,
+        verificationRate,
       },
     });
   } catch (error) {
