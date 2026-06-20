@@ -64,8 +64,7 @@ export async function POST(request: NextRequest) {
     process.env.NODE_ENV !== "production" ||
     process.env.NEXT_PUBLIC_PI_SANDBOX === "true" ||
     host.includes("localhost") ||
-    host.includes("127.0.0.1") ||
-    host.includes("vercel.app");
+    host.includes("127.0.0.1");
 
   try {
     if (isSandboxOrDev && accessToken === "sandbox-dev-token-abc-123") {
