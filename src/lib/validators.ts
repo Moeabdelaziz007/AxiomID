@@ -85,6 +85,10 @@ export const SkillReviewCreateSchema = z.object({
   review: z.string().optional().nullable(),
 });
 
+export const SkillTagsUpdateSchema = z.object({
+  tags: z.array(z.string().min(1, 'tag name is required').max(100)).max(10, 'maximum 10 tags per skill'),
+});
+
 export const PresenceHeartbeatSchema = z.object({
   agentId: z.string().uuid('agentId must be a valid UUID'),
 });
@@ -129,6 +133,7 @@ export type SkillsListQueryInput = z.infer<typeof SkillsListQuerySchema>;
 export type SkillPublishInput = z.infer<typeof SkillPublishSchema>;
 export type SkillUpdateInput = z.infer<typeof SkillUpdateSchema>;
 export type SkillReviewCreateInput = z.infer<typeof SkillReviewCreateSchema>;
+export type SkillTagsUpdateInput = z.infer<typeof SkillTagsUpdateSchema>;
 export type PresenceHeartbeatInput = z.infer<typeof PresenceHeartbeatSchema>;
 export type OrderCreateInput = z.infer<typeof OrderCreateSchema>;
 export type OrderActionInput = z.infer<typeof OrderActionSchema>;
