@@ -71,8 +71,10 @@ export function verifyClaimToken(token: string): ClaimRecord | null {
 /**
  * Marks a claim token as confirmed and associates it with a user ID.
  *
- * @throws Error if the token does not exist.
- * @throws Error if the token has expired.
+ * `@param` token - The claim token to confirm
+ * `@param` userId - The user ID to associate with the claim
+ * `@throws` Error if the token does not exist.
+ * `@throws` Error if the token has expired.
  */
 export function confirmClaimToken(token: string, userId: string): void {
   const record = claimStore.get(token);
