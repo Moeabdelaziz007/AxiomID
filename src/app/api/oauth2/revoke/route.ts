@@ -26,7 +26,3 @@ export async function POST(request: NextRequest) {
     return apiError("INTERNAL_ERROR", "Failed to revoke token");
   }
 }
-
-function isTokenRevoked(token: string): boolean {
-  return revokedTokens.has(token);
-}
