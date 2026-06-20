@@ -48,9 +48,17 @@ export const AgentMainSchema = z.object({
   params: z.record(z.string(), z.unknown()).optional(),
 });
 
+export const SkillsListSortSchema = z.enum([
+  'newest', 'popular', 'rating', 'price_asc', 'price_desc',
+]).optional().nullable();
+
 export const SkillsListQuerySchema = z.object({
   tier: z.string().optional().nullable(),
   q: z.string().optional().nullable(),
+  tags: z.string().optional().nullable(),
+  sort: SkillsListSortSchema,
+  minPrice: z.coerce.number().nonnegative().optional().nullable(),
+  maxPrice: z.coerce.number().nonnegative().optional().nullable(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
   offset: z.coerce.number().int().min(0).default(0),
 });
