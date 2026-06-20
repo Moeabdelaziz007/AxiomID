@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useWallet } from "../context/wallet-context";
-import skillsData from "@/data/skills.json";
 import { StampBoard } from "@/components/StampBoard";
 import { AgentCard } from "@/components/AgentCard";
 import { OnboardingModal } from "@/components/dashboard/OnboardingModal";
@@ -173,7 +172,7 @@ export default function Dashboard() {
                   agentStatus={agentStatus}
                   trustScore={user.trustScore}
                 />
-                <SkillsCard skills={skillsData.skills.slice(0, 3)} />
+                <SkillsCard skills={[]} />
                 <QuickLinksCard passportSlug={user.piUsername || user.walletAddress || "user"} did={user.did || undefined} />
               </div>
               <KYAVerificationCard
@@ -201,18 +200,20 @@ export default function Dashboard() {
                   </Link>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {skillsData.skills.slice(0, 6).map((skill: { name: string; description: string; tier?: string }) => (
+                  {[
+                    { name: "agent-memory", description: "Redis-backed agent memory and context persistence", tier: "BASIC_TOOL" },
+                    { name: "voice-wizard", description: "Voice-first agent creation flow (STT→LLM→TTS)", tier: "BASIC_TOOL" },
+                    { name: "sovereign-constitution", description: "Constitutional AI governance for agent swarms", tier: "SOVEREIGN" },
+                  ].map((skill) => (
                     <div
                       key={skill.name}
                       className="p-3 rounded-xl border border-white/5 bg-white/[0.02] hover:border-axiom-purple/30 transition-colors cursor-default"
                     >
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-surface font-mono">{skill.name}</span>
-                        {skill.tier && (
-                          <span className="text-[9px] font-mono text-axiom-purple bg-axiom-purple/10 px-1.5 py-0.5 rounded">
-                            {skill.tier}
-                          </span>
-                        )}
+                        <span className="text-[9px] font-mono text-axiom-purple bg-axiom-purple/10 px-1.5 py-0.5 rounded">
+                          {skill.tier}
+                        </span>
                       </div>
                       <p className="text-xs text-faint line-clamp-2">{skill.description}</p>
                     </div>

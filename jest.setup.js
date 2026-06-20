@@ -200,6 +200,10 @@ jest.mock("@/app/context/language-context", () => {
           create_agent_create: "CREATE",
           create_your_passport: "CREATE YOUR PASSPORT",
           passport_load_error: "Failed to load passport",
+          visitor: "Visitor",
+          citizen: "Citizen",
+          validator: "Validator",
+          sovereign: "Sovereign",
         };
         return mockDict[key] || key;
       },

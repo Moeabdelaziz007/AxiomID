@@ -25,12 +25,14 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const [userCount, agentCount, activeAgentCount, paymentCount, xpSum] = await Promise.all([
+    const [userCount, agentCount, activeAgentCount, paymentCount, xpSum, trustAvg, verifiedCount] = await Promise.all([
       prisma.user.count(),
       prisma.userAgent.count(),
       prisma.userAgent.count({ where: { status: 'ACTIVE' } }),
       prisma.piPayment.count(),
       prisma.xpLedger.aggregate({ _sum: { amount: true } }),
+      prisma.user.aggregate({ _avg: { xp: true } }),
+      prisma.user.count({ where: { did: { not: null } } }),
     ]);
 
     return apiSuccess({
@@ -43,6 +45,8 @@ export async function GET(request: NextRequest) {
         activeAgents: activeAgentCount,
         totalPayments: paymentCount,
         totalXpEarned: xpSum._sum.amount ?? 0,
+        averageTrustScore: Math.round((trustAvg._avg.xp ?? 0) * 10) / 10,
+        verificationRate: userCount > 0 ? Math.round((verifiedCount / userCount) * 1000) / 10 : 0,
       },
     });
   } catch (error) {

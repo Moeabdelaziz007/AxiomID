@@ -185,7 +185,7 @@ export default function StatusPage() {
               </p>
               <div className="bg-black/80 border border-white/5 rounded-xl p-4 font-mono text-[11px]">
                 <span className="text-faint">GET</span> {" "}
-                <span className="text-neon-green">https://axiomid.app/api/agent/manifest</span>
+                <span className="text-neon-green">{process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/agent/manifest</span>
                 <span className="text-faint">?userId=</span>
                 <span className="text-electric-blue">your-username</span>
               </div>

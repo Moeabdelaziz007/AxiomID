@@ -112,12 +112,12 @@ export default function MarketplacePage() {
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
-    if (selectedSkill && !dialog.open) {
+    if ((selectedSkill || detailLoading) && !dialog.open) {
       dialog.showModal();
-    } else if (!selectedSkill && dialog.open) {
+    } else if (!selectedSkill && !detailLoading && dialog.open) {
       dialog.close();
     }
-  }, [selectedSkill]);
+  }, [selectedSkill, detailLoading]);
 
   const openDetail = async (slug: string) => {
     previousFocusRef.current = document.activeElement as HTMLElement;
@@ -129,21 +129,25 @@ export default function MarketplacePage() {
       const res = await fetch(`/api/skills/${slug}`, { signal: controller.signal });
       if (!res.ok) {
         setError(`Failed to load skill (${res.status})`);
+        setDetailLoading(false); // Ensure loading is reset on error
         return;
       }
       const data = await res.json();
       setSelectedSkill(data);
+      setDetailLoading(false);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
       setError("Failed to load skill details");
-    } finally {
       setDetailLoading(false);
+    } finally {
+      // Clean up
     }
   };
 
   const closeModal = useCallback(() => {
     fetchAbortRef.current?.abort();
     setSelectedSkill(null);
+    setDetailLoading(false); // Ensure loading is cleared
     previousFocusRef.current?.focus();
   }, []);
 
@@ -429,7 +433,7 @@ export default function MarketplacePage() {
                     onClick={() => handleInstall(selectedSkill.slug)}
                     disabled={installing || isConnecting}
                     aria-busy={installing}
-                    aria-label={installing ? "Installing" : isConnecting ? "Connecting" : "Install Skill"}
+                    aria-label={installing ? "Installing" : isConnecting ? "Connecting" : !user ? "Connect Wallet to Install" : "Install Skill"}
                     className="flex-1 btn-primary py-2.5 text-xs font-mono"
                   >
                     {installing ? "INSTALLING..." : isConnecting ? "CONNECTING..." : !user ? "CONNECT WALLET TO INSTALL" : "INSTALL SKILL → AGENT"}

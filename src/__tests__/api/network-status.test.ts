@@ -7,6 +7,7 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     user: {
       count: jest.fn(),
+      aggregate: jest.fn(),
     },
     userAgent: {
       count: jest.fn(),
@@ -51,6 +52,10 @@ describe('GET /api/status', () => {
       .mockResolvedValueOnce(312); // active agents
     mockPrisma.piPayment.count.mockResolvedValue(8934);
     mockPrisma.xpLedger.aggregate.mockResolvedValue({ _sum: { amount: 456789 } } as any);
+    (mockPrisma.user.aggregate as jest.Mock).mockResolvedValue({ _avg: { xp: 245.7 } });
+    (mockPrisma.user.count as jest.Mock)
+      .mockResolvedValueOnce(1247) // total users
+      .mockResolvedValueOnce(890); // verified users (with DID)
 
     const req = mockGetRequest();
     const res = await GET(req);
@@ -65,6 +70,8 @@ describe('GET /api/status', () => {
     expect(data.stats.activeAgents).toBe(312);
     expect(data.stats.totalPayments).toBe(8934);
     expect(data.stats.totalXpEarned).toBe(456789);
+    expect(data.stats.averageTrustScore).toBe(245.7);
+    expect(data.stats.verificationRate).toBe(71.4);
   });
 
   it('handles null xpLedger sum gracefully (defaults to 0)', async () => {
@@ -74,6 +81,10 @@ describe('GET /api/status', () => {
       .mockResolvedValueOnce(0);
     mockPrisma.piPayment.count.mockResolvedValue(0);
     mockPrisma.xpLedger.aggregate.mockResolvedValue({ _sum: { amount: null } } as any);
+    (mockPrisma.user.aggregate as jest.Mock).mockResolvedValue({ _avg: { xp: null } });
+    (mockPrisma.user.count as jest.Mock)
+      .mockResolvedValueOnce(0) // total users
+      .mockResolvedValueOnce(0); // verified users
 
     const req = mockGetRequest();
     const res = await GET(req);
@@ -82,6 +93,8 @@ describe('GET /api/status', () => {
     expect(res.status).toBe(200);
     expect(data.stats.totalXpEarned).toBe(0);
     expect(data.stats.registeredUsers).toBe(0);
+    expect(data.stats.averageTrustScore).toBe(0);
+    expect(data.stats.verificationRate).toBe(0);
   });
 
   it('returns 429 when rate limit is exceeded', async () => {
@@ -113,6 +126,10 @@ describe('GET /api/status', () => {
       .mockResolvedValueOnce(2);
     mockPrisma.piPayment.count.mockResolvedValue(0);
     mockPrisma.xpLedger.aggregate.mockResolvedValue({ _sum: { amount: 100 } } as any);
+    (mockPrisma.user.aggregate as jest.Mock).mockResolvedValue({ _avg: { xp: 50 } });
+    (mockPrisma.user.count as jest.Mock)
+      .mockResolvedValueOnce(10)
+      .mockResolvedValueOnce(5);
 
     const req = mockGetRequest();
     await GET(req);
@@ -130,6 +147,10 @@ describe('GET /api/status', () => {
       .mockResolvedValueOnce(1);
     mockPrisma.piPayment.count.mockResolvedValue(2);
     mockPrisma.xpLedger.aggregate.mockResolvedValue({ _sum: { amount: 500 } } as any);
+    (mockPrisma.user.aggregate as jest.Mock).mockResolvedValue({ _avg: { xp: 100 } });
+    (mockPrisma.user.count as jest.Mock)
+      .mockResolvedValueOnce(5)
+      .mockResolvedValueOnce(3);
 
     const req = mockGetRequest();
     const res = await GET(req);
