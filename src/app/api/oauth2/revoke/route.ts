@@ -26,7 +26,17 @@ export function isTokenRevoked(token: string): boolean {
  * @param request - The incoming HTTP request with the token to revoke
  * @returns An API response with a success flag or error details
  */
+import { checkRateLimit, RATE_LIMITS } from "`@/lib/rate-limiter`";
+import { getClientIp } from "`@/lib/ip`";
+import { rateLimitHeaders } from "`@/lib/errors`";
+
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  const rateLimit = await checkRateLimit(`oauth2-revoke:${ip}`, RATE_LIMITS.authenticated);
+  if (!rateLimit.allowed) {
+    return apiError("RATE_LIMITED", "Too many requests.", undefined, rateLimitHeaders(rateLimit));
+  }
+
   let body: unknown;
   try {
     body = await request.json();
