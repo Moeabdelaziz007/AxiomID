@@ -38,9 +38,17 @@ jest.mock('@/lib/logger', () => ({
   logger: { error: jest.fn(), warn: jest.fn(), info: jest.fn() },
 }));
 
+jest.mock('@/lib/sovereign-keys', () => ({
+  deriveSovereignAgentKeypair: jest.fn(() => ({
+    publicKey: '-----BEGIN PUBLIC KEY-----\nmockPublicKey\n-----END PUBLIC KEY-----',
+    privateKey: '-----BEGIN PRIVATE KEY-----\nmockPrivateKey\n-----END PRIVATE KEY-----',
+  })),
+}));
+
 import { GET } from '@/app/api/passport/[slug]/route';
 import { prisma } from '@/lib/prisma';
 import { checkRateLimit } from '@/lib/rate-limiter';
+import { deriveSovereignAgentKeypair } from '@/lib/sovereign-keys';
 
 const mockCheckRateLimit = checkRateLimit as jest.Mock;
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
@@ -218,5 +226,102 @@ describe('GET /api/passport/[slug] — not found', () => {
 
     expect(res.status).toBe(404);
     expect(data.code).toBe('NOT_FOUND');
+  });
+});
+
+describe('GET /api/passport/[slug] — agentPublicKey derivation (PR change)', () => {
+  const mockDeriveSovereignAgentKeypair = deriveSovereignAgentKeypair as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 99, resetAt: Date.now() + 60000 });
+    mockPrisma.userAgent.findUnique.mockResolvedValue(null);
+    mockDeriveSovereignAgentKeypair.mockReturnValue({
+      publicKey: '-----BEGIN PUBLIC KEY-----\nmockPublicKey\n-----END PUBLIC KEY-----',
+      privateKey: '-----BEGIN PRIVATE KEY-----\nmockPrivateKey\n-----END PRIVATE KEY-----',
+    });
+  });
+
+  it('includes agentPublicKey in response when user has an agent and stellarAddress', async () => {
+    mockPrisma.user.findFirst.mockResolvedValue({
+      ...baseUser,
+      stellarAddress: 'GABC123DEF456',
+      agent: { publicId: 'agent-pub-001', name: 'AlphaAgent', status: 'ACTIVE' },
+    } as any);
+
+    const req = mockGetRequest();
+    const res = await GET(req, { params: Promise.resolve({ slug: 'alice' }) });
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.agentPublicKey).toContain('BEGIN PUBLIC KEY');
+    expect(mockDeriveSovereignAgentKeypair).toHaveBeenCalledWith('GABC123DEF456', 'agent-pub-001');
+  });
+
+  it('falls back to walletAddress when stellarAddress is null for agentPublicKey derivation', async () => {
+    mockPrisma.user.findFirst.mockResolvedValue({
+      ...baseUser,
+      stellarAddress: null,
+      walletAddress: 'pi:alice-wallet',
+      agent: { publicId: 'agent-pub-002', name: 'BetaAgent', status: 'ACTIVE' },
+    } as any);
+
+    const req = mockGetRequest();
+    await GET(req, { params: Promise.resolve({ slug: 'alice' }) });
+
+    expect(mockDeriveSovereignAgentKeypair).toHaveBeenCalledWith('pi:alice-wallet', 'agent-pub-002');
+  });
+
+  it('returns agentPublicKey as null when user has no agent', async () => {
+    mockPrisma.user.findFirst.mockResolvedValue({
+      ...baseUser,
+      stellarAddress: 'GABC123DEF456',
+      agent: null,
+    } as any);
+
+    const req = mockGetRequest();
+    const res = await GET(req, { params: Promise.resolve({ slug: 'alice' }) });
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.agentPublicKey).toBeNull();
+    expect(mockDeriveSovereignAgentKeypair).not.toHaveBeenCalled();
+  });
+
+  it('returns agentPublicKey as null when key derivation throws (graceful fallback)', async () => {
+    mockDeriveSovereignAgentKeypair.mockImplementation(() => {
+      throw new Error('SOVEREIGN_KEY_SALT is not configured');
+    });
+
+    mockPrisma.user.findFirst.mockResolvedValue({
+      ...baseUser,
+      stellarAddress: 'GABC123DEF456',
+      agent: { publicId: 'agent-pub-003', name: 'GammaAgent', status: 'ACTIVE' },
+    } as any);
+
+    const req = mockGetRequest();
+    const res = await GET(req, { params: Promise.resolve({ slug: 'alice' }) });
+    const data = await res.json();
+
+    // Should not fail the whole request — agentPublicKey silently becomes null
+    expect(res.status).toBe(200);
+    expect(data.agentPublicKey).toBeNull();
+  });
+
+  it('includes agentName and agentStatus alongside agentPublicKey', async () => {
+    mockPrisma.user.findFirst.mockResolvedValue({
+      ...baseUser,
+      stellarAddress: 'GABC123DEF456',
+      agent: { publicId: 'agent-pub-004', name: 'DeltaAgent', status: 'PAUSED' },
+    } as any);
+
+    const req = mockGetRequest();
+    const res = await GET(req, { params: Promise.resolve({ slug: 'alice' }) });
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.agentName).toBe('DeltaAgent');
+    expect(data.agentStatus).toBe('PAUSED');
+    expect(data.agentPublicKey).toBeDefined();
   });
 });
