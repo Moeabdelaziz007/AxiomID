@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useWallet } from "./context/wallet-context";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import Link from "next/link";
@@ -9,8 +9,14 @@ import LanguageToggle from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Users, Bot, Ticket, Zap, AlertTriangle, Shield, Fingerprint } from "lucide-react";
 import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
+
+const PiSvg = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 100 100" className={className} fill="currentColor" aria-hidden="true">
+    <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.3"/>
+    <text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text>
+  </svg>
+);
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -24,11 +30,6 @@ const fadeUp = {
 const staggerContainer = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.08 } },
-};
-
-const _cardHover = {
-  rest: { scale: 1, y: 0 },
-  hover: { scale: 1.02, y: -4, transition: { duration: 0.3, ease: "easeOut" } },
 };
 
 /**
@@ -61,7 +62,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-grid flex flex-col items-center relative overflow-hidden">
+    <main id="main-content" className="min-h-screen bg-grid flex flex-col items-center relative overflow-hidden">
       <div className="scanline" />
       <ErrorBanner />
 
@@ -70,24 +71,29 @@ export default function Home() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-6xl flex flex-wrap justify-between items-center gap-3 px-4 sm:px-6 py-4 sm:py-6 z-10"
+        className="sticky top-0 w-full max-w-6xl flex flex-wrap justify-between items-center gap-3 px-4 sm:px-6 py-4 sm:py-6 z-50 bg-grid/80 backdrop-blur-xl"
+        role="banner"
       >
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
-              <span className="text-blue-500 font-bold">A</span>
+          <Link href="/" className="flex items-center gap-2" aria-label="AxiomID Home">
+            <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: 'var(--color-primary)' }}>
+              <span className="text-white font-bold text-sm">A</span>
             </div>
             <span className="font-mono text-lg sm:text-xl tracking-tighter" style={{ color: 'var(--text-primary)' }}>AXIOM<span style={{ color: 'var(--text-muted)' }}>ID</span></span>
-          </div>
+          </Link>
           <div className="w-px h-6 bg-white/10 hidden sm:block" />
           <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded bg-white/5 border border-white/10">
-            <svg viewBox="0 0 100 100" className="w-4 h-4" fill="currentColor">
-              <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.3"/>
-              <text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text>
-            </svg>
+            <PiSvg className="w-4 h-4" />
             <span className="text-[9px] font-mono tracking-wider" style={{ color: 'var(--text-secondary)' }}>PI NETWORK</span>
           </div>
         </div>
+
+        {/* Nav links — hidden on small screens, visible md+ */}
+        <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
+          <Link href="/status" className="text-[11px] font-mono tracking-wider" style={{ color: 'var(--text-muted)' }}>{t("nav_status")}</Link>
+          <Link href="/privacy" className="text-[11px] font-mono tracking-wider" style={{ color: 'var(--text-muted)' }}>{t("nav_privacy")}</Link>
+          <Link href="/terms" className="text-[11px] font-mono tracking-wider" style={{ color: 'var(--text-muted)' }}>{t("nav_terms")}</Link>
+        </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
           <LanguageToggle />
@@ -102,8 +108,8 @@ export default function Home() {
               <Link href="/dashboard" prefetch={false} className="btn-primary text-xs px-3 sm:px-4 py-2">
                 {t("nav_dashboard")}
               </Link>
-              <button onClick={() => logout()} className="btn-ghost text-xs px-3 py-1.5 hidden sm:flex items-center gap-1.5">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <button onClick={() => logout()} aria-label={t("logout")} className="btn-ghost text-xs px-3 py-1.5 hidden sm:flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
                 {t("logout")}
@@ -130,10 +136,7 @@ export default function Home() {
             transition={{ delay: 0.1, duration: 0.4 }}
           >
             <span className="stitch-badge">
-              <svg viewBox="0 0 100 100" className="w-4 h-4" fill="currentColor">
-                <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.3"/>
-                <text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text>
-              </svg>
+              <PiSvg className="w-4 h-4" />
               {language === "en" ? "Live on Pi Network Mainnet" : "مباشر على شبكة Pi الرئيسية"}
             </span>
           </motion.div>
@@ -145,6 +148,7 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]"
             style={{ color: 'var(--text-primary)' }}
+            aria-label={language === "en" ? "Your Identity, Sovereign." : "هويتك، سيادية."}
           >
             {language === "en" ? (
               <>Your Identity, <span className="text-blue-500">Sovereign.</span></>
@@ -300,7 +304,7 @@ export default function Home() {
         <SectionHeader
           label={language === "en" ? "The Sovereign Advantage" : "الميزة السيادية"}
           title={language === "en" ? "Why Choose AxiomID?" : "لماذا تختار AxiomID؟"}
-          labelColor="text-white/60"
+          labelColor="text-subtle"
         />
         <motion.div
           variants={staggerContainer}
@@ -404,21 +408,148 @@ export default function Home() {
         </motion.div>
       </div>
 
+      {/* Trust Indicators */}
+      <div className="w-full max-w-6xl px-4 sm:px-6 mt-16 sm:mt-24 z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="bento-card p-6 sm:px-8 text-center"
+        >
+          <p className="text-[10px] font-mono uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>
+            {language === "en" ? "Built on Open Standards" : "مبني على معايير مفتوحة"}
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
+            {[
+              { label: "W3C DID", desc: "Decentralized Identifiers" },
+              { label: "W3C VC", desc: "Verifiable Credentials" },
+              { label: "Pi Network", desc: "Blockchain Layer" },
+              { label: "DIF", desc: "Interop Framework" },
+              { label: "ZK Proofs", desc: "Privacy Preserving" },
+            ].map(({ label, desc }) => (
+              <div key={label} className="flex flex-col items-center gap-1">
+                <span className="text-xs font-bold font-mono" style={{ color: 'var(--text-primary)' }}>{label}</span>
+                <span className="text-[9px] font-mono" style={{ color: 'var(--text-muted)' }}>{desc}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--card-border)' }}>
+            <span className="text-[9px] font-mono" style={{ color: 'var(--text-muted)' }}>
+              {language === "en"
+                ? "W3C Member — Contributing to the Decentralized Identity Working Group"
+                : "عضو في W3C — مساهم في مجموعة عمل الهوية اللامركزية"}
+            </span>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* FAQ Section */}
+      <div className="w-full max-w-6xl px-4 sm:px-6 mt-16 sm:mt-24 z-10">
+        <SectionHeader
+          label={language === "en" ? "FAQ" : "أسئلة شائعة"}
+          title={language === "en" ? "Common Questions" : "أسئلة متكررة"}
+          labelColor="text-blue-500"
+        />
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-60px" }}
+          className="max-w-3xl mx-auto space-y-4"
+        >
+          {[
+            {
+              q: language === "en" ? "What is a Decentralized Identifier (DID)?" : "ما هو المعرف اللامركزي (DID)؟",
+              a: language === "en"
+                ? "A DID is a globally unique, cryptographically verifiable identifier that you control entirely — no platform, no registrar, no central authority. Your AxiomID DID resolves to a signed document containing your public keys, service endpoints, and credential proofs."
+                : "المعرف اللامركزي (DID) هو معرف عالمي فريد يمكن التحقق منه تشفيرياً وتتحكم فيه أنت بالكامل — لا منصة ولا مسجل ولا سلطة مركزية.",
+            },
+            {
+              q: language === "en" ? "How does KYA differ from KYC?" : "ما الفرق بين KYA و KYC؟",
+              a: language === "en"
+                ? "KYA (Know Your Agent) extends KYC to the AI era. While KYC verifies human identity (passport, utility bill), KYA verifies what an AI agent is authorized to do on your behalf — its scope, spending limits, delegation chain, and revocation status. Both are required for full Sovereign tier access."
+                : "KYA (اعرف عميلك الآلي) يوسع مفهوم KYC لعصر الذكاء الاصطناعي. بينما يتحقق KYC من هوية الإنسان، يتحقق KYA من صلاحيات العميل الآلي.",
+            },
+            {
+              q: language === "en" ? "Can I use AxiomID without Pi Network?" : "هل يمكنني استخدام AxiomID بدون شبكة Pi؟",
+              a: language === "en"
+                ? "Currently, wallet connection requires the Pi Browser. However, our Stellar-based DID layer is designed for multi-chain support. Future releases will expand to other Stellar-compatible networks."
+                : "حالياً، يتطلب الاتصال بالمحفظة متصفح Pi. لكن طبقة DID الخاصة بنا مصممة لدعم سلاسل متعددة في المستقبل.",
+            },
+            {
+              q: language === "en" ? "What happens if I lose access to my wallet?" : "ماذا يحدث إذا فقدت الوصول إلى محفظتي؟",
+              a: language === "en"
+                ? "Your DID document and stamps are anchored on-chain and can be recovered through your Stellar recovery mechanism. We recommend setting up a recovery wallet and exporting your DID document for offline backup."
+                : "يمكن استعادة وثيقة DID والطوابع الخاصة بك من خلال آلية استرداد Stellar.",
+            },
+          ].map((item) => (
+            <motion.details
+              key={item.q}
+              variants={fadeUp}
+              className="bento-card p-4 cursor-pointer group"
+            >
+              <summary className="text-sm font-bold font-mono list-none flex items-center justify-between gap-3" style={{ color: 'var(--text-primary)' }}>
+                <span>{item.q}</span>
+                <span className="text-faint shrink-0 text-xs">+</span>
+              </summary>
+              <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{item.a}</p>
+            </motion.details>
+          ))}
+        </motion.div>
+      </div>
+
       {/* Footer */}
       <motion.footer
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-6xl flex flex-col md:flex-row justify-between items-center mt-16 sm:mt-24 py-8 border-t text-[10px] font-mono z-10 gap-4"
+        className="w-full max-w-6xl mt-16 sm:mt-24 py-8 border-t z-10"
         style={{ borderColor: 'var(--card-border)', color: 'var(--text-muted)' }}
       >
-        <div>&copy; 2026 AxiomID. All rights reserved.</div>
-        <div className="flex gap-4">
-          <Link href="/status" className="hover:text-surface transition-colors">{t("nav_status")}</Link>
-          <Link href="/privacy" className="hover:text-surface transition-colors">{t("nav_privacy")}</Link>
-          <Link href="/terms" className="hover:text-surface transition-colors">{t("nav_terms")}</Link>
-          <span className="text-faint">1.0.0</span>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 px-4 sm:px-6">
+          <div className="col-span-2 md:col-span-1">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded flex items-center justify-center" style={{ background: 'var(--color-primary)' }}>
+                <span className="text-white font-bold text-xs">A</span>
+              </div>
+              <span className="font-mono text-sm tracking-tighter" style={{ color: 'var(--text-primary)' }}>AXIOM<span style={{ color: 'var(--text-muted)' }}>ID</span></span>
+            </div>
+            <p className="text-[10px] font-mono leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+              {language === "en"
+                ? "Sovereign identity infrastructure for humans and AI agents."
+                : "بنية هوية سيادية للبشر والعملاء الآليين."}
+            </p>
+          </div>
+          <div>
+            <h4 className="text-[10px] font-bold font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--text-primary)' }}>{language === "en" ? "Protocol" : "البروتوكول"}</h4>
+            <div className="flex flex-col gap-2">
+              <Link href="/status" className="text-[10px] font-mono hover:text-surface transition-colors">{t("nav_status")}</Link>
+              <Link href="/privacy" className="text-[10px] font-mono hover:text-surface transition-colors">{t("nav_privacy")}</Link>
+              <Link href="/terms" className="text-[10px] font-mono hover:text-surface transition-colors">{t("nav_terms")}</Link>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-[10px] font-bold font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--text-primary)' }}>{language === "en" ? "Resources" : "المصادر"}</h4>
+            <div className="flex flex-col gap-2">
+              <Link href="/status" className="text-[10px] font-mono hover:text-surface transition-colors">{t("nav_status")}</Link>
+              <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{language === "en" ? "Developer Docs" : "توثيق المطورين"}</span>
+              <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{language === "en" ? "API Reference" : "مرجع API"}</span>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-[10px] font-bold font-mono uppercase tracking-widest mb-3" style={{ color: 'var(--text-primary)' }}>{language === "en" ? "Community" : "المجتمع"}</h4>
+            <div className="flex flex-col gap-2">
+              <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{language === "en" ? "GitHub" : "GitHub"}</span>
+              <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{language === "en" ? "Discord" : "Discord"}</span>
+              <span className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>{language === "en" ? "X / Twitter" : "X / Twitter"}</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-6 pt-4 border-t px-4 sm:px-6" style={{ borderColor: 'var(--card-border)' }}>
+          <div className="text-[9px] font-mono">&copy; 2026 AxiomID. {language === "en" ? "All rights reserved." : "جميع الحقوق محفوظة."}</div>
+          <div className="text-[9px] font-mono" style={{ color: 'var(--text-muted)' }}>v1.0.0</div>
         </div>
       </motion.footer>
     </main>
