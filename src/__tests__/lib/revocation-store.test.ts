@@ -8,8 +8,8 @@
  * module stores (token → expiresAt) in a Map and auto-cleans expired entries.
  */
 
-// Import the module under test. We re-import between groups that manipulate
-// Jest fake timers so the module-level setInterval is initialised correctly.
+// Import the module under test.
+import { revokeToken, isTokenRevoked } from "`@/lib/revocation-store`";
 import { revokeToken, isTokenRevoked } from "@/lib/revocation-store";
 
 describe("isTokenRevoked — basic behaviour", () => {
