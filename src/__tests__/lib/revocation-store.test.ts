@@ -98,8 +98,8 @@ describe("isTokenRevoked — TTL / expiry behaviour", () => {
     const token = "ttl-boundary-token";
     revokeToken(token);
 
-    // Advance exactly 24 hours — expiresAt is Date.now() + TTL at revocation time,
-    // so advancing exactly TTL puts us AT expiresAt, which is > Date.now() — still valid
+    // Advance to 1ms before the 24-hour TTL boundary — expiresAt is Date.now() + TTL at revocation time,
+    // so advancing by TTL - 1 keeps us just under expiresAt, token should still be valid
     jest.advanceTimersByTime(24 * 60 * 60 * 1000 - 1);
 
     expect(isTokenRevoked(token)).toBe(true);
