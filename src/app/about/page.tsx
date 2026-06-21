@@ -1,11 +1,10 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { useLanguage } from "../context/language-context";
-import LanguageToggle from "@/components/LanguageToggle";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { ArrowLeft, Shield, Globe, Cpu } from "lucide-react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { Shield, Globe, Cpu } from "lucide-react";
 import RoadmapTimeline from "@/components/ui/RoadmapTimeline";
 
 export default function AboutPage() {
@@ -16,24 +15,7 @@ export default function AboutPage() {
       <div className="scanline" />
 
       {/* Header */}
-      <header className="w-full flex justify-between items-center p-4 md:p-6 max-w-6xl mx-auto relative z-10 border-b border-white/5">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded bg-neon-green/20 flex items-center justify-center border border-neon-green/50 group-hover:bg-neon-green/30 transition-all">
-            <span className="text-neon-green font-bold text-sm">A</span>
-          </div>
-          <span className="font-mono text-lg tracking-tighter text-white">
-            AXIOM<span className="text-zinc-500">ID</span>
-          </span>
-        </Link>
-        <div className="flex items-center gap-3">
-          <LanguageToggle />
-          <ThemeToggle />
-          <Link href="/" className="btn-ghost text-xs font-mono px-3 py-1.5 flex items-center gap-1.5">
-            <ArrowLeft className="w-3.5 h-3.5" />
-            {language === "en" ? "BACK" : "عودة"}
-          </Link>
-        </div>
-      </header>
+      <Header showBack />
 
       {/* Hero Section */}
       <div className="max-w-4xl mx-auto px-4 mt-8 relative z-10 text-center">
@@ -93,6 +75,7 @@ export default function AboutPage() {
         </div>
 
       </div>
+      <Footer />
     </main>
   );
 }

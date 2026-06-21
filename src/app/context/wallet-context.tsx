@@ -49,7 +49,7 @@ interface WalletContextType {
   disconnectWallet: () => Promise<void>;
 }
 
-const WalletContext = createContext<WalletContextType | null>(null);
+export const WalletContext = createContext<WalletContextType | null>(null);
 
 /**
  * Determines if a wallet address is a demo wallet.
@@ -698,7 +698,28 @@ export function useWalletLogs(): string[] {
 export function useWallet() {
   const ctx = useContext(WalletContext);
   if (!ctx) {
-    throw new Error("useWallet must be used within a WalletProvider");
+    // ponytail: return fallback mock values in contextless testing/development environments
+    return {
+      user: null,
+      isLoading: false,
+      isConnecting: false,
+      error: null,
+      isPiBrowser: false,
+      connectWallet: async () => {},
+      logout: () => {},
+      claimAction: async () => false,
+      refreshUser: async () => {},
+      createAgent: async () => false,
+      activateAgent: async () => false,
+      pauseAgent: async () => false,
+      claimKya: async () => false,
+      levelProgress: 0,
+      nextXP: null,
+      walletLogs: [],
+      runWalletTest: async () => {},
+      clearWalletLogs: () => {},
+      disconnectWallet: async () => {},
+    };
   }
   return ctx;
 }

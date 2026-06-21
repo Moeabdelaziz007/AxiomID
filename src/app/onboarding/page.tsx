@@ -1,13 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useWallet } from "../context/wallet-context";
 import { useLanguage } from "../context/language-context";
-import LanguageToggle from "@/components/LanguageToggle";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { ArrowLeft, Wallet, ShieldCheck, CheckCircle2, ChevronRight, Zap } from "lucide-react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { Wallet, ShieldCheck, CheckCircle2, ChevronRight, Zap } from "lucide-react";
 import InteractivePassportCard from "@/components/ui/InteractivePassportCard";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -97,24 +96,7 @@ export default function OnboardingPage() {
       <div className="scanline" />
 
       {/* Header */}
-      <header className="w-full flex justify-between items-center p-4 md:p-6 max-w-6xl mx-auto relative z-10">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded bg-neon-green/20 flex items-center justify-center border border-neon-green/50 group-hover:bg-neon-green/30 transition-all">
-            <span className="text-neon-green font-bold text-sm">A</span>
-          </div>
-          <span className="font-mono text-lg tracking-tighter text-white">
-            AXIOM<span className="text-zinc-500">ID</span>
-          </span>
-        </Link>
-        <div className="flex items-center gap-3">
-          <LanguageToggle />
-          <ThemeToggle />
-          <Link href="/" className="btn-ghost text-xs font-mono px-3 py-1.5 flex items-center gap-1.5">
-            <ArrowLeft className="w-3.5 h-3.5" />
-            {language === "en" ? "BACK" : "عودة"}
-          </Link>
-        </div>
-      </header>
+      <Header showBack />
 
       {/* Main Content Area */}
       <div className="max-w-5xl w-full mx-auto px-4 relative z-10 flex-1 flex items-center justify-center py-6">
@@ -281,10 +263,7 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="w-full text-center text-[9px] font-mono text-zinc-600 relative z-10 mt-6">
-        &copy; 2026 AxiomID Protocol • Sovereign Onboarding wizard
-      </footer>
+      <Footer minimal copyright="© 2026 AxiomID Protocol • Sovereign Onboarding wizard" />
     </main>
   );
 }

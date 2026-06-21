@@ -1,27 +1,14 @@
-import Link from "next/link";
+"use client";
+
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export default function Terms() {
   return (
     <main className="min-h-screen bg-grid relative">
       <div className="scanline" />
 
-      {/* Header */}
-      <header className="w-full flex justify-between items-center p-4 md:p-8 max-w-4xl mx-auto relative z-10">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded bg-neon-green/20 flex items-center justify-center border border-neon-green/50 group-hover:bg-neon-green/30 transition-all">
-            <span className="text-neon-green font-bold text-sm">A</span>
-          </div>
-          <span className="font-mono text-lg tracking-tighter">
-            AXIOM<span className="text-faint">ID</span>
-          </span>
-        </Link>
-        <Link
-          href="/"
-          className="btn-ghost text-xs font-mono"
-        >
-          ← BACK
-        </Link>
-      </header>
+      <Header showBack />
 
       {/* Content */}
       <div className="max-w-3xl mx-auto px-4 pb-20 relative z-10">
@@ -93,12 +80,7 @@ export default function Terms() {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-xs font-mono text-faint">
-            &copy; 2026 AxiomID — Built on Pi Network
-          </p>
-        </div>
+        <Footer minimal copyright="© 2026 AxiomID — Built on Pi Network" />
       </div>
     </main>
   );

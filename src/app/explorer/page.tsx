@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { useLanguage } from "../context/language-context";
-import LanguageToggle from "@/components/LanguageToggle";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { Bot, Users, Ticket, Zap, ArrowLeft, Loader2 } from "lucide-react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { Bot, Users, Ticket, Zap, Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
 const NetworkGraph = dynamic(() => import("@/components/ui/NetworkGraph"), { ssr: false });
 import { AnimatedCounter } from "@/components/AnimatedCounter";
@@ -112,25 +111,7 @@ export default function ExplorerPage() {
     <main className="min-h-screen bg-grid relative pb-20">
       <div className="scanline" />
 
-      {/* Header */}
-      <header className="w-full flex justify-between items-center p-4 md:p-6 max-w-6xl mx-auto relative z-10">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded bg-neon-green/20 flex items-center justify-center border border-neon-green/50 group-hover:bg-neon-green/30 transition-all">
-            <span className="text-neon-green font-bold text-sm">A</span>
-          </div>
-          <span className="font-mono text-lg tracking-tighter text-white">
-            AXIOM<span className="text-zinc-500">ID</span>
-          </span>
-        </Link>
-        <div className="flex items-center gap-3">
-          <LanguageToggle />
-          <ThemeToggle />
-          <Link href="/" className="btn-ghost text-xs font-mono px-3 py-1.5 flex items-center gap-1.5">
-            <ArrowLeft className="w-3.5 h-3.5" />
-            {language === "en" ? "BACK" : "عودة"}
-          </Link>
-        </div>
-      </header>
+      <Header showBack />
 
       {/* Hero Banner */}
       <div className="max-w-6xl mx-auto px-4 mt-6 relative z-10">
@@ -261,6 +242,7 @@ export default function ExplorerPage() {
           </div>
         )}
       </div>
+      <Footer />
     </main>
   );
 }

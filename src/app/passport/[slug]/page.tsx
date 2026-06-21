@@ -1,6 +1,7 @@
 import { PassportView } from "./PassportView";
 import { PassportHeader } from "./PassportHeader";
 import { Metadata } from "next";
+import Footer from "@/components/Footer";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -39,9 +40,7 @@ export default function PassportPage() {
         <PassportView />
       </div>
 
-      <footer className="w-full border-t py-4 px-6 text-[9px] font-mono text-center" style={{ borderColor: 'var(--card-border)', color: 'var(--text-muted)' }}>
-        &copy; 2026 AxiomID. Agent Identity Protocol.
-      </footer>
+      <Footer minimal copyright="© 2026 AxiomID. Agent Identity Protocol." />
     </main>
   );
 }

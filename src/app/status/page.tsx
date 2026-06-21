@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useLanguage } from "../context/language-context";
-import LanguageToggle from "@/components/LanguageToggle";
-import Link from "next/link";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 interface NetworkStats {
   registeredAgents: number;
@@ -18,7 +17,7 @@ interface NetworkStats {
  * Displays a real-time network status dashboard with AxiomID protocol metrics and agent statistics.
  */
 export default function StatusPage() {
-  const { t, language } = useLanguage();
+
   const [stats, setStats] = useState<NetworkStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastFetchTime, setLastFetchTime] = useState<number | null>(null);
@@ -72,25 +71,7 @@ export default function StatusPage() {
     <main className="min-h-screen bg-grid">
       <div className="scanline" />
 
-      <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-green/20 to-electric-blue/20 flex items-center justify-center shrink-0">
-              <span className="text-neon-green font-bold text-xl">A</span>
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-lg sm:text-xl font-bold text-surface truncate">{t("status_title")}</h1>
-              <p className="text-xs text-subtle font-mono hidden sm:block">{t("status_desc")}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <LanguageToggle />
-            <Link href="/" className="btn-ghost text-xs px-3 py-1.5 hidden sm:flex items-center gap-1.5">
-              {language === "ar" ? "← الرئيسية" : "← LANDING"}
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header showBack />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
@@ -231,6 +212,7 @@ export default function StatusPage() {
           </div>
         )}
       </div>
+      <Footer />
     </main>
   );
 }

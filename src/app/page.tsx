@@ -5,8 +5,8 @@ import { useWallet } from "./context/wallet-context";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import Link from "next/link";
 import { useLanguage } from "./context/language-context";
-import LanguageToggle from "@/components/LanguageToggle";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { Users, Bot, Ticket, Zap, AlertTriangle, Shield, Fingerprint } from "lucide-react";
 import { motion, useInView } from "framer-motion";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
@@ -32,7 +32,7 @@ const staggerContainer = {
  * Renders the AxiomID public landing page with wallet integration, Agent Passport card, animated hero section, live network statistics, feature guides, and identity tier cards. Supports English and Arabic.
  */
 export default function Home() {
-  const { user, connectWallet, isConnecting, isPiBrowser, logout } = useWallet();
+  const { user, connectWallet, isConnecting, isPiBrowser } = useWallet();
   const { t, language } = useLanguage();
   const [networkStats, setNetworkStats] = useState<{ users: number; agents: number; xp: number; payments: number } | null>(null);
 
@@ -87,73 +87,7 @@ export default function Home() {
       />
 
       {/* Header */}
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="sticky top-0 w-full z-50 bg-[#0a0b10]/90 backdrop-blur-xl border-b border-white/5"
-      >
-        <div className="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3 px-4 sm:px-6 py-4 sm:py-6">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center border border-white/10 bg-black/40 relative group overflow-hidden transition-all duration-300 hover:border-electric-blue/40">
-              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 via-electric-blue/5 to-axiom-purple/5 opacity-50 group-hover:opacity-100 transition-opacity" />
-              <svg className="w-5.5 h-5.5 z-10 filter drop-shadow-[0_0_8px_rgba(0,212,255,0.4)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="42" stroke="url(#logoGrad)" strokeWidth="3" strokeDasharray="4 16 28 6" className="animate-spin" style={{ animationDuration: '24s' }} />
-                <path d="M50 24 L74 74 L62 74 L50 48 L38 74 L26 74 Z" fill="#ffffff" />
-                <path d="M40 64 H60 L58 68 H42 Z" fill="#39FF14" />
-                <defs>
-                  <linearGradient id="logoGrad" x1="0" y1="0" x2="100" y2="100">
-                    <stop offset="0%" stopColor="#39FF14"/>
-                    <stop offset="50%" stopColor="#00d4ff"/>
-                    <stop offset="100%" stopColor="#a855f7"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-            <span className="font-mono text-lg sm:text-xl tracking-tighter text-surface">AXIOM<span className="text-electric-blue">ID</span></span>
-            <div className="w-px h-6 bg-white/10 hidden sm:block" />
-            <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded bg-white/5 border border-white/10">
-              <svg viewBox="0 0 100 100" className="w-4 h-4" fill="currentColor">
-                <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.3"/>
-                <text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text>
-              </svg>
-              <span className="text-[9px] font-mono tracking-wider" style={{ color: 'var(--text-secondary)' }}>PI NETWORK</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <LanguageToggle />
-            <ThemeToggle />
-            {isPiBrowser && !user && (
-              <span className="hidden sm:inline text-[10px] font-mono px-2 py-1 rounded border" style={{ background: 'rgba(59, 130, 246, 0.1)', borderColor: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6' }}>
-                Pi Browser
-              </span>
-            )}
-            {user ? (
-              <div className="flex items-center gap-2">
-                <Link href="/dashboard" prefetch={false} className="btn-primary text-xs px-3 sm:px-4 py-2">
-                  {t("nav_dashboard")}
-                </Link>
-                <button onClick={() => logout()} className="btn-ghost text-xs px-3 py-1.5 hidden sm:flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  {t("logout")}
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link href="/dashboard" prefetch={false} className="btn-ghost text-xs px-3 sm:px-4 py-2">
-                  {t("nav_dashboard")}
-                </Link>
-                <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} aria-label={isConnecting ? t("connecting") : t("connect")} className="btn-primary text-xs px-3 sm:px-4 py-2">
-                  {isConnecting ? t("connecting") : t("connect")}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </motion.header>
+      <Header showWallet />
 
       {/* Hero Section */}
       <div className="relative w-full max-w-6xl px-4 sm:px-6 mt-6 md:mt-16 z-10 min-h-[70vh] flex items-center">
@@ -164,12 +98,16 @@ export default function Home() {
           
           {/* Left Column: Headline, Description, CTAs, Trust indicators */}
           <div className="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left space-y-5">
-            {/* Live badge */}
+            {/* Live badge & Secure Layer badge */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.4 }}
+              className="flex flex-wrap gap-2 justify-center md:justify-start items-center"
             >
+              <span className="px-3 py-1 rounded-full text-[10px] font-mono bg-neon-green/10 text-neon-green border border-neon-green/20 uppercase tracking-widest">
+                {t("hero_badge")}
+              </span>
               <span className="stitch-badge">
                 <svg viewBox="0 0 100 100" className="w-4 h-4 animate-spin" style={{ animationDuration: '6s' }} fill="currentColor">
                   <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.3"/>
@@ -184,7 +122,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="text-3.5xl sm:text-4.5xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] text-white"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] text-white"
             >
               {language === "en" ? (
                 <>Your Identity, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-electric-blue to-axiom-purple animate-pulse">Sovereign.</span></>
@@ -193,15 +131,28 @@ export default function Home() {
               )}
             </motion.h1>
 
-            {/* Description */}
-            <motion.p
+            {/* Sub-headline / Core Vision */}
+            <motion.h2
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight text-electric-blue"
+            >
+              {t("hero_heading")}
+            </motion.h2>
+
+            {/* Description & Protocol subtitle */}
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="max-w-xl text-sm sm:text-base md:text-lg leading-relaxed text-zinc-400"
+              className="max-w-xl text-sm sm:text-base md:text-lg leading-relaxed text-zinc-400 space-y-3"
             >
-              {t("hero_desc")}
-            </motion.p>
+              <p>{t("hero_desc")}</p>
+              <p className="text-xs font-mono text-zinc-500 border-l border-white/10 pl-3">
+                {t("hero_subtitle")}
+              </p>
+            </motion.div>
 
             {/* CTAs */}
             <motion.div
@@ -540,26 +491,7 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <motion.footer
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-6xl flex flex-col md:flex-row justify-between items-center mt-16 sm:mt-24 py-8 border-t text-xs font-mono z-10 gap-4 px-4 sm:px-6"
-        style={{ borderColor: 'var(--card-border)', color: 'var(--text-secondary)' }}
-      >
-        <div style={{ color: 'var(--text-muted)' }}>&copy; 2026 AxiomID. All rights reserved.</div>
-        <div className="flex flex-wrap gap-4 justify-center">
-          <Link href="/explorer" className="text-subtle hover:text-surface transition-colors">{t("nav_explorer")}</Link>
-          <Link href="/docs" className="text-subtle hover:text-surface transition-colors">{t("nav_docs")}</Link>
-          <Link href="/about" className="text-subtle hover:text-surface transition-colors">{t("nav_about")}</Link>
-          <Link href="/leaderboard" className="text-subtle hover:text-surface transition-colors">{t("nav_leaderboard")}</Link>
-          <Link href="/status" className="text-subtle hover:text-surface transition-colors">{t("nav_status")}</Link>
-          <Link href="/privacy" className="text-subtle hover:text-surface transition-colors">{t("nav_privacy")}</Link>
-          <Link href="/terms" className="text-subtle hover:text-surface transition-colors">{t("nav_terms")}</Link>
-          <span style={{ color: 'var(--text-muted)' }}>1.0.0</span>
-        </div>
-      </motion.footer>
+      <Footer />
     </main>
   );
 }
