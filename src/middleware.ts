@@ -5,6 +5,11 @@ const MAX_REQUEST_BODY_BYTES = 1024 * 1024; // 1MB
 
 const ROOT_DOMAIN = "axiomid.app";
 
+const RESERVED_SUBDOMAINS = new Set([
+  "www", "api", "mail", "app", "admin", "dashboard",
+  "docs", "blog", "status", "cdn", "assets", "static",
+]);
+
 const CORS_ALLOWED_ORIGINS = [
   "https://axiomid.app",
   "https://www.axiomid.app",
@@ -111,6 +116,10 @@ export function middleware(request: NextRequest) {
     // Sanitize subdomain: alphanumeric + hyphens only (reject leading/trailing hyphens)
     if (!/^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$/.test(subdomain) || subdomain.length > 63) {
       return withCors(new NextResponse("Invalid subdomain", { status: 400 }));
+    }
+    // Reject reserved subdomains
+    if (RESERVED_SUBDOMAINS.has(subdomain.toLowerCase())) {
+      return withCors(new NextResponse("Subdomain not available", { status: 404 }));
     }
     // Rewrite to passport page with the subdomain as slug
     url.pathname = `/passport/${subdomain}`;
