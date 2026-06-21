@@ -35,6 +35,13 @@ binding = "DB"
 database_name = "axiomid-edge"
 database_id = "64c6f62f-0df0-455f-ba4f-c63a572e6663"
 
+# --- IQRA D1 Database (Quran RAG pipeline) ---
+# TODO: Run `wrangler d1 create iqra-db` and paste the database_id here
+[[d1_databases]]
+binding = "IQRA_DB"
+database_name = "iqra-db"
+database_id = "PLACEHOLDER_IQRA_DB_ID"
+
 # --- Workers AI (for embeddings) ---
 [ai]
 binding = "AI"

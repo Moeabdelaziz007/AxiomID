@@ -13,6 +13,7 @@ import { SkillsMarketplace } from "./routes/skills";
 import { AgentDispatcher } from "./routes/agent-dispatch";
 import { handleMcp } from "./mcp/handler";
 import { handleSearch, handleSearchSimilar } from "./routes/search";
+import { handleIqraAsk, handleDailyAyah } from "./routes/iqra-rag";
 import { generateId } from "./lib/utils";
 
 export class Router {
@@ -81,6 +82,15 @@ export class Router {
 
     if (path === "/api/search/similar" && method === "GET") {
       return handleSearchSimilar(request, this.env);
+    }
+
+    // --- IQRA Quran RAG ---
+    if (path === "/api/iqra/ask" && method === "GET") {
+      return handleIqraAsk(request, this.env);
+    }
+
+    if (path === "/api/iqra/daily-ayah" && method === "GET") {
+      return handleDailyAyah(this.env);
     }
 
     // --- Health ---
