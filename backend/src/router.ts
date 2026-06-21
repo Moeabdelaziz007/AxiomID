@@ -60,7 +60,7 @@ export class Router {
     try {
       return await this.route(url, request);
     } catch (err) {
-      console.error("Router error:", err);
+      console.error("Router error:", err instanceof Error ? err.message : "Unknown error");
       return errorResponse("Internal server error", 500);
     }
   }
@@ -86,6 +86,11 @@ export class Router {
     // --- Health ---
     if (path === "/health" || path === "/") {
       return jsonResponse({ status: "ok", timestamp: Date.now() });
+    }
+
+    // --- Data Sync Status (public) ---
+    if (path === "/api/sync" && method === "GET") {
+      return this.handleSyncStatus();
     }
 
     // --- Auth check for protected routes ---
@@ -130,11 +135,7 @@ export class Router {
       return this.handleHarvestGet(id);
     }
 
-    // --- Data Sync ---
-    if (path === "/api/sync" && method === "GET") {
-      return this.handleSyncStatus();
-    }
-
+    // --- Data Sync (POST requires auth) ---
     if (path === "/api/sync" && method === "POST") {
       return this.handleSync(request);
     }
