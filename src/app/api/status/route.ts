@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     usersSample.forEach(u => {
       totalTrustScore += calculateTrustScore(u.xp, u.stamps.length);
     });
-    const averageTrustScore = usersSample.length > 0 ? Math.round(totalTrustScore / usersSample.length) : 85;
+    const averageTrustScore = usersSample.length > 0 ? Math.round(totalTrustScore / usersSample.length) : 0;
     const verificationRate = userCount > 0 ? Math.round((verifiedUsersCount / userCount) * 100) : 0;
 
     return apiSuccess({

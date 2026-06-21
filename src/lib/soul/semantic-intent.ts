@@ -48,7 +48,7 @@ export async function semanticIntentAnalysis(
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 100);
+    const timeout = setTimeout(() => controller.abort(), 5000);
 
     const res = await fetch(
       `${CLOUDFLARE_AI_URL}/${accountId}/ai/run/@cf/meta/llama-3.1-8b-instruct`,
