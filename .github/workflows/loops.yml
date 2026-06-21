@@ -32,7 +32,7 @@ jobs:
   sub-50ms:
     name: Sub-50ms Page Load
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'sub-50ms' }}
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.loop == 'all' || github.event.inputs.loop == 'sub-50ms' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
