@@ -90,7 +90,7 @@ export class Router {
     }
 
     if (path === "/api/iqra/daily-ayah" && method === "GET") {
-      return handleDailyAyah(this.env);
+      return handleDailyAyah(request, this.env);
     }
 
     // --- Health ---
