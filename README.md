@@ -182,7 +182,7 @@ CI runs on every PR: **type-check → lint → tests**. Zero tolerance for red C
 | `/mcp` | POST | MCP Server — 11 tools |
 | `/api/trust/:did` | GET | Trust chain resolution |
 | `/api/search` | GET | Semantic search (Vectorize) |
-| `/api/iqra/ask` | POST | Quran RAG — ask a question |
+| `/api/iqra/ask` | GET | Quran RAG — ask a question |
 
 Full docs: [`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md) · [`STRATEGY.md`](./STRATEGY.md)
 
