@@ -3,6 +3,8 @@ import { PassportHeader } from "./PassportHeader";
 import { Metadata } from "next";
 import Footer from "@/components/Footer";
 
+export const dynamic = "force-static";
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const title = `Passport: ${slug} | AxiomID`;

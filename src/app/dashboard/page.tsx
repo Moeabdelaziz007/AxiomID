@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useWallet } from "../context/wallet-context";
 import skillsData from "@/data/skills.json";
-import { StampBoard } from "@/components/StampBoard";
 import { AgentCard } from "@/components/AgentCard";
 import { OnboardingModal } from "@/components/dashboard/OnboardingModal";
 import { useLanguage } from "../context/language-context";
@@ -20,10 +19,11 @@ import { QuickLinksCard } from "@/components/dashboard/QuickLinksCard";
 import { KYAVerificationCard } from "@/components/dashboard/KYAVerificationCard";
 import { AgentControlsCard } from "@/components/dashboard/AgentControlsCard";
 import { CreateAgentCard } from "@/components/dashboard/CreateAgentCard";
-import { TerminalOverlay } from "@/components/dashboard/TerminalOverlay";
 import { PiBrowserGuard, PiBrowserBanner } from "@/components/PiBrowserGuard";
 import dynamic from "next/dynamic";
 const InteractivePassportCard = dynamic(() => import("@/components/ui/InteractivePassportCard"), { ssr: false });
+const StampBoard = dynamic(() => import("@/components/StampBoard").then(m => m.StampBoard), { ssr: false });
+const TerminalOverlay = dynamic(() => import("@/components/dashboard/TerminalOverlay").then(m => m.TerminalOverlay), { ssr: false });
 
 type TabId = "passport" | "actions" | "terminal" | "marketplace" | "agent";
 

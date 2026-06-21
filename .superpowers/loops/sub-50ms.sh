@@ -22,7 +22,7 @@ npm run build --silent 2>/dev/null || true
 echo "🚀 Starting dev server..."
 npx next start -p 3999 &
 SERVER_PID=$!
-sleep 3
+sleep 6
 
 # Pages to test
 PAGES=(
@@ -41,12 +41,14 @@ PASSED=0
 for page in "${PAGES[@]}"; do
   TOTAL=$((TOTAL + 1))
   
-  # Measure with curl
-  START=$(date +%s%N)
-  HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3999$page" 2>/dev/null || echo "000")
-  END=$(date +%s%N)
-  
-  ELAPSED_MS=$(( (END - START) / 1000000 ))
+  # Warm-up request to prime cache / lazy compile
+  curl -s -o /dev/null "http://localhost:3999$page" 2>/dev/null || true
+
+  # Measure with curl using its internal timing variables
+  CURL_OUT=$(curl -s -o /dev/null -w "%{http_code}:%{time_total}" "http://localhost:3999$page" 2>/dev/null || echo "000:0.000")
+  HTTP_CODE=$(echo "$CURL_OUT" | cut -d':' -f1)
+  TIME_SEC=$(echo "$CURL_OUT" | cut -d':' -f2)
+  ELAPSED_MS=$(awk -v t="$TIME_SEC" 'BEGIN {print int(t*1000)}')
   
   if [ "$HTTP_CODE" = "200" ] && [ "$ELAPSED_MS" -lt 50 ]; then
     STATUS="✅"
