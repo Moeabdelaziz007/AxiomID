@@ -26,8 +26,14 @@
 - /api/did-document — W3C DID resolution (public, no auth)
 - /auth.md — Protocol discovery
 - /.well-known/jwks.json — Public key verification
+- /.well-known/oauth-authorization-server — OAuth2/OIDC metadata
+- /.well-known/oauth-protected-resource — Protected resource metadata
+- /api/route.ts — API root discovery (JSON catalog)
+- /api/skills — Skills marketplace search
+- /api/passport/[slug] — Public passport viewer
 
 ## Agentic Endpoints
 - OpenAPI: /api (JSON endpoint catalog)
-- MCP: Coming soon
-- OAuth2: /.well-known/oauth-authorization-server (not yet deployed)
+- MCP: /mcp (JSON-RPC, 11 tools: did_resolve, did_create, trust_score, trust_delegate, trust_chain, presence_heartbeat, presence_status, skill_list, skill_install, harvest_query, harvest_result)
+- OAuth2: /.well-known/oauth-authorization-server (deployed)
+- Protected Resource: /.well-known/oauth-protected-resource (deployed)
