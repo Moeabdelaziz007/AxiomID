@@ -54,8 +54,6 @@
     "@json-render/react": "^0.19.0",
     "@nostics/unplugin": "^1.1.0",
     "@prisma/client": "^6.0.0",
-    "@supabase/ssr": "^0.12.0",
-    "@supabase/supabase-js": "^2.108.2",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
     "@vercel/analytics": "^2.0.1",
@@ -87,7 +85,6 @@
     "prisma": "^6.0.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
-    "typescript": "^5",
-    "undici": "^8.4.1"
+    "typescript": "^5"
   }
 }
