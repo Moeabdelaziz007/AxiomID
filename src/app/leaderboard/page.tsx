@@ -79,6 +79,21 @@ export default function LeaderboardPage() {
           <Loader2 className="w-8 h-8 text-electric-blue animate-spin" />
           <p className="text-xs text-zinc-500 font-mono mt-3">Fetching global standings...</p>
         </div>
+      ) : users.length === 0 ? (
+        <div className="max-w-4xl mx-auto px-4 mt-10 relative z-10">
+          <div className="bento-card p-12 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4 border border-white/10">
+              <Trophy className="w-8 h-8 text-zinc-500" />
+            </div>
+            <h2 className="text-xl font-bold text-white mb-2">Be the First Pioneer</h2>
+            <p className="text-sm text-zinc-400 max-w-md mx-auto mb-6">
+              The leaderboard is empty. Connect your wallet and start earning XP to claim the #1 spot.
+            </p>
+            <Link href="/dashboard" className="btn-primary inline-block px-6 py-2 text-sm font-mono">
+              ENTER DASHBOARD
+            </Link>
+          </div>
+        </div>
       ) : (
         <div className="max-w-4xl mx-auto px-4 mt-8 relative z-10 space-y-8">
           

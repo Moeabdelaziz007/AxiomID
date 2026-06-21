@@ -37,7 +37,7 @@ const staggerContainer = {
 export default function Home() {
   const { user, connectWallet, isConnecting, isPiBrowser, logout } = useWallet();
   const { t, language } = useLanguage();
-  const [networkStats, setNetworkStats] = useState<{ users: number; agents: number; xp: number; payments: number } | null>(null);
+  const [networkStats, setNetworkStats] = useState<{ users: number; agents: number; xp: number; payments: number }>({ users: 0, agents: 0, xp: 0, payments: 0 });
   const [isPageLoaded, setIsPageLoaded] = useState(false);
 
   const statsRef = useRef<HTMLDivElement>(null);
@@ -50,20 +50,24 @@ export default function Home() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/status").then(async (res) => {
-      if (!res.ok || cancelled) return;
-      const data = await res.json();
-      const s = data.stats || {};
-      if (!cancelled) {
-        setNetworkStats({
-          users: s.registeredUsers ?? 0,
-          agents: s.totalAgents ?? 0,
-          xp: s.totalXpEarned ?? 0,
-          payments: s.totalPayments ?? 0,
-        });
-      }
-    }).catch(() => {});
-    return () => { cancelled = true; };
+    const fetchStats = () => {
+      fetch("/api/status").then(async (res) => {
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        const s = data.stats || {};
+        if (!cancelled) {
+          setNetworkStats({
+            users: s.registeredUsers ?? 0,
+            agents: s.totalAgents ?? 0,
+            xp: s.totalXpEarned ?? 0,
+            payments: s.totalPayments ?? 0,
+          });
+        }
+      }).catch(() => {});
+    };
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000);
+    return () => { cancelled = true; clearInterval(interval); };
   }, []);
 
   return (
@@ -365,10 +369,10 @@ export default function Home() {
           className="grid grid-cols-2 md:grid-cols-4 gap-px p-4 sm:p-5 bg-white/[0.03] rounded-2xl border border-white/[0.05]"
         >
           {[
-            { label: t("stat_users"), value: networkStats?.users ?? 0, icon: <Users className="w-4 h-4" /> },
-            { label: t("stat_agents"), value: networkStats?.agents ?? 0, icon: <Bot className="w-4 h-4" /> },
-            { label: t("total_xp"), value: networkStats?.xp ?? 0, icon: <Ticket className="w-4 h-4" /> },
-            { label: t("stat_tx"), value: networkStats?.payments ?? 0, icon: <Zap className="w-4 h-4" /> },
+            { label: t("stat_users"), value: networkStats.users, icon: <Users className="w-4 h-4" /> },
+            { label: t("stat_agents"), value: networkStats.agents, icon: <Bot className="w-4 h-4" /> },
+            { label: t("total_xp"), value: networkStats.xp, icon: <Ticket className="w-4 h-4" /> },
+            { label: t("stat_tx"), value: networkStats.payments, icon: <Zap className="w-4 h-4" /> },
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -382,7 +386,7 @@ export default function Home() {
               <div>
                 <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">{stat.label}</p>
                 <h4 className="text-lg md:text-xl font-bold font-mono mt-0.5 text-zinc-100">
-                  {statsInView ? <AnimatedCounter target={stat.value} duration={1200} /> : "—"}
+                  <AnimatedCounter target={stat.value} duration={1200} />
                 </h4>
               </div>
             </motion.div>

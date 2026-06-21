@@ -53,11 +53,13 @@ export default function ExplorerPage() {
   const { t, language } = useLanguage();
   const [data, setData] = useState<ExplorerData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
     const fetchData = async () => {
       try {
+        setError(null);
         const res = await fetch("/api/explorer");
         if (!res.ok) throw new Error("Failed to fetch explorer datasets");
         const json = await res.json();
@@ -65,7 +67,7 @@ export default function ExplorerPage() {
           setData(json);
         }
       } catch (err) {
-        console.error("Failed to load explorer data:", err);
+        if (active) setError(err instanceof Error ? err.message : "Unable to fetch explorer data");
       } finally {
         if (active) setLoading(false);
       }
@@ -134,6 +136,33 @@ export default function ExplorerPage() {
           <div className="flex flex-col items-center justify-center min-h-[400px] mt-10">
             <Loader2 className="w-8 h-8 text-electric-blue animate-spin" />
             <p className="text-xs text-zinc-500 font-mono mt-3">Loading live protocol states...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-20 mt-10 bento-card">
+            <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+              <Zap className="w-7 h-7 text-red-400" />
+            </div>
+            <h3 className="text-sm font-bold text-white mb-1">Unable to Fetch Explorer Data</h3>
+            <p className="text-xs text-zinc-500 font-mono mb-4">{error}</p>
+            <button
+              onClick={() => { setLoading(true); setError(null); fetch("/api/explorer").then(async (res) => { if (!res.ok) throw new Error("Failed"); const json = await res.json(); setData(json); }).catch((err) => setError(err.message)).finally(() => setLoading(false)); }}
+              className="btn-primary px-4 py-2 text-xs font-mono"
+            >
+              RETRY
+            </button>
+          </div>
+        ) : data && data.stats.registeredUsers === 0 ? (
+          <div className="text-center py-20 mt-10 bento-card">
+            <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4 border border-white/10">
+              <Bot className="w-7 h-7 text-zinc-500" />
+            </div>
+            <h3 className="text-sm font-bold text-white mb-1">No Agents Registered Yet</h3>
+            <p className="text-xs text-zinc-500 font-mono max-w-sm mx-auto">
+              The protocol is live. Be the first pioneer to register an agent and appear on the explorer.
+            </p>
+            <a href="/dashboard" className="btn-primary inline-block mt-4 px-4 py-2 text-xs font-mono">
+              ENTER DASHBOARD
+            </a>
           </div>
         ) : data ? (
           <>
@@ -236,11 +265,7 @@ export default function ExplorerPage() {
               </div>
             </div>
           </>
-        ) : (
-          <div className="text-center py-20 text-xs font-mono text-zinc-500 mt-10 bento-card">
-            Failed to retrieve real-time network states.
-          </div>
-        )}
+        ) : null}
       </div>
       <Footer />
     </main>
