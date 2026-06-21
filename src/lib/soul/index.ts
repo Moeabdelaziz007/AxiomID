@@ -29,8 +29,10 @@ export type { BarakahCheck, BarakahConfig } from './barakah';
 export { tawbahProcess, createTawbahLog } from './tawbah';
 export type { TawbahResult, TawbahConfig, ErrorType } from './tawbah';
 
-export { ethicalCheck, createEthicalCheckLog } from './ethical-check';
+export { ethicalCheck, semanticIntentCheck, createEthicalCheckLog } from './ethical-check';
 export type { EthicalCheckResult, EthicalCheckConfig, EthicalVerdict } from './ethical-check';
+
+export { semanticIntentAnalysis } from './semantic-intent';
 
 export { SoulLoop, createSoulLoopLog } from './soul-loop';
 export type { SoulLoopConfig, SoulLoopState, SoulLoopDecision, SoulLoopAuditEntry } from './soul-loop';

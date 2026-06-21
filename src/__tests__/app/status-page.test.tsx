@@ -5,6 +5,7 @@
  * - averageTrustScore falls back to "—" when the API omits the field
  * - verificationRate falls back to "—" when the API omits the field
  * - Other fields still default to 0 when omitted
+ * - Health endpoint provides service-level checks
  */
 
 import React from "react";
@@ -27,7 +28,7 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
-function makeApiResponse(overrides: Record<string, unknown> = {}) {
+function makeStatusResponse(overrides: Record<string, unknown> = {}) {
   return {
     ok: true,
     text: async () => "",
@@ -35,11 +36,33 @@ function makeApiResponse(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function makeHealthResponse() {
+  return {
+    ok: true,
+    text: async () => "",
+    json: async () => ({
+      status: "healthy",
+      uptime: 100,
+      services: [
+        { name: "Database", status: "ONLINE", latencyMs: 12 },
+        { name: "Stellar Network", status: "ONLINE", latencyMs: 200 },
+        { name: "Pi Network", status: "ONLINE", latencyMs: 150 },
+        { name: "Workers AI", status: "DEGRADED", latencyMs: 0 },
+      ],
+      timestamp: new Date().toISOString(),
+    }),
+  };
+}
+
+function mockBothCalls(statusOverrides: Record<string, unknown> = {}) {
+  mockFetch
+    .mockResolvedValueOnce(makeStatusResponse(statusOverrides))
+    .mockResolvedValueOnce(makeHealthResponse());
+}
+
 describe("StatusPage — fallback default values (PR change)", () => {
   it("shows em-dash when API returns null for averageTrustScore", async () => {
-    mockFetch.mockResolvedValueOnce(
-      makeApiResponse({ averageTrustScore: null })
-    );
+    mockBothCalls({ averageTrustScore: null });
 
     render(<StatusPage />);
 
@@ -49,7 +72,7 @@ describe("StatusPage — fallback default values (PR change)", () => {
   });
 
   it("shows em-dash when API omits averageTrustScore entirely", async () => {
-    mockFetch.mockResolvedValueOnce(makeApiResponse({}));
+    mockBothCalls({});
 
     render(<StatusPage />);
 
@@ -59,9 +82,7 @@ describe("StatusPage — fallback default values (PR change)", () => {
   });
 
   it("shows em-dash when API returns null for verificationRate", async () => {
-    mockFetch.mockResolvedValueOnce(
-      makeApiResponse({ verificationRate: null })
-    );
+    mockBothCalls({ verificationRate: null });
 
     render(<StatusPage />);
 
@@ -71,7 +92,7 @@ describe("StatusPage — fallback default values (PR change)", () => {
   });
 
   it("shows em-dash when API omits verificationRate entirely", async () => {
-    mockFetch.mockResolvedValueOnce(makeApiResponse({}));
+    mockBothCalls({});
 
     render(<StatusPage />);
 
@@ -81,9 +102,7 @@ describe("StatusPage — fallback default values (PR change)", () => {
   });
 
   it("uses the real averageTrustScore from API when provided", async () => {
-    mockFetch.mockResolvedValueOnce(
-      makeApiResponse({ averageTrustScore: 72.5 })
-    );
+    mockBothCalls({ averageTrustScore: 72.5 });
 
     render(<StatusPage />);
 
@@ -93,9 +112,7 @@ describe("StatusPage — fallback default values (PR change)", () => {
   });
 
   it("uses the real verificationRate from API when provided", async () => {
-    mockFetch.mockResolvedValueOnce(
-      makeApiResponse({ verificationRate: 88.1 })
-    );
+    mockBothCalls({ verificationRate: 88.1 });
 
     render(<StatusPage />);
 
@@ -105,7 +122,7 @@ describe("StatusPage — fallback default values (PR change)", () => {
   });
 
   it("defaults totalAgents, totalPayments, activeAgents, totalXpEarned to 0 when omitted", async () => {
-    mockFetch.mockResolvedValueOnce(makeApiResponse({}));
+    mockBothCalls({});
 
     render(<StatusPage />);
 
@@ -116,12 +133,14 @@ describe("StatusPage — fallback default values (PR change)", () => {
     });
   });
 
-  it("renders the error state when fetch fails (no stats shown)", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      text: async () => "Internal Server Error",
-      json: async () => ({}),
-    });
+  it("renders the error state when status fetch fails", async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: false,
+        text: async () => "Internal Server Error",
+        json: async () => ({}),
+      })
+      .mockResolvedValueOnce(makeHealthResponse());
 
     render(<StatusPage />);
 
@@ -131,7 +150,9 @@ describe("StatusPage — fallback default values (PR change)", () => {
   });
 
   it("renders the error state when fetch throws a network error", async () => {
-    mockFetch.mockRejectedValueOnce(new Error("Network failure"));
+    mockFetch
+      .mockRejectedValueOnce(new Error("Network failure"))
+      .mockResolvedValueOnce(makeHealthResponse());
 
     render(<StatusPage />);
 
@@ -140,11 +161,12 @@ describe("StatusPage — fallback default values (PR change)", () => {
     });
   });
 
-  it("polls for updated stats every 30 seconds", async () => {
-    // First call returns partial data, second call returns updated data
+  it("polls for updated stats every 60 seconds", async () => {
     mockFetch
-      .mockResolvedValueOnce(makeApiResponse({ averageTrustScore: 50.0 }))
-      .mockResolvedValueOnce(makeApiResponse({ averageTrustScore: 55.0 }));
+      .mockResolvedValueOnce(makeStatusResponse({ averageTrustScore: 50.0 }))
+      .mockResolvedValueOnce(makeHealthResponse())
+      .mockResolvedValueOnce(makeStatusResponse({ averageTrustScore: 55.0 }))
+      .mockResolvedValueOnce(makeHealthResponse());
 
     render(<StatusPage />);
 
@@ -152,13 +174,31 @@ describe("StatusPage — fallback default values (PR change)", () => {
       expect(screen.getByText("50%")).toBeInTheDocument();
     });
 
-    // Advance past the 30-second polling interval
+    // Advance past the 60-second polling interval
     act(() => {
-      jest.advanceTimersByTime(30001);
+      jest.advanceTimersByTime(60001);
     });
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenCalledTimes(4);
+    });
+  });
+
+  it("displays service health checks from /api/health", async () => {
+    mockBothCalls({});
+
+    await act(async () => {
+      render(<StatusPage />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("SERVICE HEALTH")).toBeInTheDocument();
+      expect(screen.getByText("Database")).toBeInTheDocument();
+      expect(screen.getByText("Stellar Network")).toBeInTheDocument();
+      expect(screen.getByText("Pi Network")).toBeInTheDocument();
+      expect(screen.getByText("Workers AI")).toBeInTheDocument();
+      // Multiple ONLINE badges exist (hero + health cards), just verify health section renders
+      expect(screen.getAllByText("ONLINE").length).toBeGreaterThanOrEqual(3);
     });
   });
 });

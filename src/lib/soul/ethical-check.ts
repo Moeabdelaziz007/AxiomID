@@ -14,6 +14,8 @@
  * 6. Is this the best I can do? (الإتقان)
  */
 
+import { semanticIntentAnalysis } from './semantic-intent';
+
 export type EthicalVerdict = 'PROCEED' | 'REVISE' | 'ABORT';
 
 export interface EthicalCheckResult {
@@ -75,15 +77,15 @@ const HARAM_PATTERNS = [
  * Run the 6-step ethical verification before each action.
  * "أَنْ تَعْبُدَ اللَّهَ كَأَنَّكَ تَرَاهُ" — Worship Allah as if you see Him
  */
-export function ethicalCheck(
+export async function ethicalCheck(
   action: string,
   config: Partial<EthicalCheckConfig> = {},
-): EthicalCheckResult {
+): Promise<EthicalCheckResult> {
   const cfg = { ...DEFAULT_CONFIG, ...config };
   const timestamp = Date.now();
 
   for (const step of cfg.enabledChecks) {
-    const result = runCheckStep(step, action);
+    const result = await runCheckStep(step, action);
     if (result !== 'PROCEED') {
       return {
         verdict: result,
@@ -107,7 +109,7 @@ export function ethicalCheck(
 /**
  * Run a single check step.
  */
-function runCheckStep(step: number, action: string): EthicalVerdict {
+async function runCheckStep(step: number, action: string): Promise<EthicalVerdict> {
   switch (step) {
     case 1: return checkAllahApproves(action);
     case 2: return checkHonest(action);
@@ -143,6 +145,23 @@ function checkAllahApproves(action: string): EthicalVerdict {
   if (isLegitDelete) return 'PROCEED';
 
   return 'ABORT';
+}
+
+/**
+ * Semantic intent analysis step — uses Cloudflare Workers AI to analyze
+ * whether a keyword-flagged action is genuinely harmful.
+ * Called after keywords flag REVISE, to reduce false positives.
+ */
+export async function semanticIntentCheck(
+  action: string,
+  keywordVerdict: EthicalVerdict,
+): Promise<EthicalVerdict> {
+  if (keywordVerdict === 'ABORT') return 'ABORT'; // Never override ABORT
+  if (keywordVerdict === 'PROCEED') return 'PROCEED';
+
+  // Keywords said REVISE — consult Workers AI
+  const aiVerdict = await semanticIntentAnalysis(action, true);
+  return aiVerdict === 'YES' ? 'REVISE' : 'PROCEED';
 }
 
 /**

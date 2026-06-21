@@ -4,6 +4,19 @@ import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
+interface ServiceCheck {
+  name: string;
+  status: "ONLINE" | "DEGRADED" | "OFFLINE";
+  latencyMs: number;
+}
+
+interface HealthData {
+  status: string;
+  uptime: number;
+  services: ServiceCheck[];
+  timestamp: string;
+}
+
 interface NetworkStats {
   registeredAgents: number;
   totalTransactions: number;
@@ -13,39 +26,59 @@ interface NetworkStats {
   verificationRate: number | null;
 }
 
+const STATUS_COLORS: Record<string, string> = {
+  ONLINE: "text-neon-green",
+  DEGRADED: "text-amber-400",
+  OFFLINE: "text-red-400",
+};
+
+const STATUS_BG: Record<string, string> = {
+  ONLINE: "bg-neon-green/10 border-neon-green/20",
+  DEGRADED: "bg-amber-400/10 border-amber-400/20",
+  OFFLINE: "bg-red-400/10 border-red-400/20",
+};
+
 /**
- * Displays a real-time network status dashboard with AxiomID protocol metrics and agent statistics.
+ * Displays a real-time network status dashboard with AxiomID protocol metrics and service health.
  */
 export default function StatusPage() {
-
   const [stats, setStats] = useState<NetworkStats | null>(null);
+  const [health, setHealth] = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastFetchTime, setLastFetchTime] = useState<number | null>(null);
   const [timeSince, setTimeSince] = useState<number>(0);
   const network = process.env.NEXT_PUBLIC_NETWORK || "Testnet";
 
-  const fetchStats = async () => {
+  const fetchAll = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/status");
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || `Failed to fetch status: ${res.status}`);
+      const [statusRes, healthRes] = await Promise.all([
+        fetch("/api/status"),
+        fetch("/api/health"),
+      ]);
+
+      if (statusRes.ok) {
+        const statusData = await statusRes.json();
+        const s = statusData.stats || {};
+        setStats({
+          registeredAgents: s.totalAgents ?? 0,
+          totalTransactions: s.totalPayments ?? 0,
+          averageTrustScore: s.averageTrustScore ?? null,
+          activeAgents: s.activeAgents ?? 0,
+          totalXpEarned: s.totalXpEarned ?? 0,
+          verificationRate: s.verificationRate ?? null,
+        });
       }
-      const data = await res.json();
-      const apiStats = data.stats || {};
-      setStats({
-        registeredAgents: apiStats.totalAgents ?? 0,
-        totalTransactions: apiStats.totalPayments ?? 0,
-        averageTrustScore: apiStats.averageTrustScore ?? null,
-        activeAgents: apiStats.activeAgents ?? 0,
-        totalXpEarned: apiStats.totalXpEarned ?? 0,
-        verificationRate: apiStats.verificationRate ?? null,
-      });
+
+      if (healthRes.ok) {
+        const healthData = await healthRes.json();
+        setHealth(healthData);
+      }
+
       setLastFetchTime(Date.now());
       setTimeSince(0);
     } catch (err) {
-      console.error("Failed to fetch network stats:", err);
+      console.error("Failed to fetch status:", err);
     } finally {
       setLoading(false);
     }
@@ -53,8 +86,8 @@ export default function StatusPage() {
 
   useEffect(() => {
     // eslint-disable-next-line
-    fetchStats();
-    const interval = setInterval(fetchStats, 30000);
+    fetchAll();
+    const interval = setInterval(fetchAll, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -79,7 +112,7 @@ export default function StatusPage() {
                 <h2 className="text-3xl font-bold text-surface mb-2">Network Status</h2>
                 <p className="text-subtle">Real-time monitoring of AxiomID protocol and agent network</p>
             </div>
-            <button onClick={fetchStats} className="btn-primary px-4 py-2 text-sm font-mono">RETRY</button>
+            <button onClick={fetchAll} className="btn-primary px-4 py-2 text-sm font-mono">RETRY</button>
         </div>
 
         {loading ? (
@@ -187,6 +220,37 @@ export default function StatusPage() {
               </div>
             </div>
 
+            {/* Service Health */}
+            {health && (
+              <div className="bento-card p-6 mt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-bold text-surface font-mono">SERVICE HEALTH</h3>
+                  <div className="flex items-center gap-2 text-[10px] font-mono">
+                    <span className="text-faint">UPTIME</span>
+                    <span className="text-neon-green font-bold">{health.uptime}%</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {health.services.map((service) => (
+                    <div
+                      key={service.name}
+                      className={`p-3 rounded-xl border ${STATUS_BG[service.status]}`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-mono font-bold text-surface">{service.name}</span>
+                        <span className={`text-[9px] font-mono font-bold ${STATUS_COLORS[service.status]}`}>
+                          {service.status}
+                        </span>
+                      </div>
+                      <div className="text-[10px] font-mono text-zinc-500">
+                        {service.latencyMs > 0 ? `${service.latencyMs}ms` : "—"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* API Endpoint */}
             <div className="bento-card p-6 mt-6">
               <h3 className="text-sm font-bold text-surface font-mono mb-4">AGENT MANIFEST API</h3>
@@ -208,7 +272,7 @@ export default function StatusPage() {
             </div>
             <h2 className="text-xl font-bold text-surface mb-2">Unable to Load Status</h2>
             <p className="text-subtle">Could not fetch network statistics. Please try again later.</p>
-            <button onClick={fetchStats} className="btn-primary mt-4 px-6 py-2 text-sm font-mono">RETRY</button>
+            <button onClick={fetchAll} className="btn-primary mt-4 px-6 py-2 text-sm font-mono">RETRY</button>
           </div>
         )}
       </div>

@@ -34,6 +34,12 @@ model User {
   kycUidHash    String? // privacy-preserving hash
   kycVerifiedAt DateTime?
 
+  // Passport Publishing
+  passportUrl String? @db.VarChar(500) // published passport URL (here.now)
+
+  // Subdomain
+  subdomain String? @unique @db.VarChar(50) // user.axiomid.app
+
   // Agent
   agent UserAgent?
 
@@ -96,6 +102,7 @@ model UserAgent {
   description String? @db.VarChar(500)
   avatarUrl   String? @db.VarChar(500)
   did         String? @db.VarChar(255)
+  subdomain   String? @unique @db.VarChar(50) // agent.axiomid.app
 
   // State
   status AgentStatus @default(INACTIVE) // inactive | active | paused | sleeping

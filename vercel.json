@@ -48,6 +48,10 @@
     {
       "path": "/api/sync",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/daily-review",
+      "schedule": "0 3 * * *"
     }
   ]
 }

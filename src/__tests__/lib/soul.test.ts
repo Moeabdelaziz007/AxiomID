@@ -302,69 +302,69 @@ describe('Tawbah (Self-Correction Protocol)', () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 describe('Ethical Check (6-Step Verification)', () => {
-  it('passes for clean actions', () => {
-    const result = ethicalCheck('create_user');
+  it('passes for clean actions', async () => {
+    const result = await ethicalCheck('create_user');
     expect(result.verdict).toBe('PROCEED');
     expect(result.step).toBe(0);
   });
 
-  it('aborts for harmful actions', () => {
-    const result = ethicalCheck('delete_everything');
+  it('aborts for harmful actions', async () => {
+    const result = await ethicalCheck('delete_everything');
     expect(result.verdict).toBe('ABORT');
     expect(result.step).toBe(1);
     expect(result.reason).toContain('harmful');
   });
 
-  it('passes legitimate delete actions', () => {
-    const result = ethicalCheck('delete_expired_cache');
+  it('passes legitimate delete actions', async () => {
+    const result = await ethicalCheck('delete_expired_cache');
     expect(result.verdict).toBe('PROCEED');
     expect(result.step).toBe(0);
   });
 
-  it('revise for spam via exploitative check (not abort via harmful)', () => {
-    const result = ethicalCheck('spam_test');
+  it('revise for spam via exploitative check (not abort via harmful)', async () => {
+    const result = await ethicalCheck('spam_test');
     expect(result.verdict).toBe('REVISE');
     expect(result.step).toBe(3);
     expect(result.reason).toContain('exploitative');
   });
 
-  it('revise for deceptive actions', () => {
-    const result = ethicalCheck('fake_user_identity');
+  it('revise for deceptive actions', async () => {
+    const result = await ethicalCheck('fake_user_identity');
     expect(result.verdict).toBe('REVISE');
     expect(result.step).toBe(2);
     expect(result.reason).toContain('deceptive');
   });
 
-  it('revise for exploitative actions', () => {
-    const result = ethicalCheck('coerce_users');
+  it('revise for exploitative actions', async () => {
+    const result = await ethicalCheck('coerce_users');
     expect(result.verdict).toBe('REVISE');
     expect(result.step).toBe(3);
     expect(result.reason).toContain('exploitative');
   });
 
-  it('revise for contradictory actions', () => {
-    const result = ethicalCheck('create_and_disable_user');
+  it('revise for contradictory actions', async () => {
+    const result = await ethicalCheck('create_and_disable_user');
     expect(result.verdict).toBe('REVISE');
     expect(result.step).toBe(5);
     expect(result.reason).toContain('contradictory');
   });
 
-  it('revise for lazy patterns', () => {
-    const result = ethicalCheck('temporary_hack');
+  it('revise for lazy patterns', async () => {
+    const result = await ethicalCheck('temporary_hack');
     expect(result.verdict).toBe('REVISE');
     expect(result.step).toBe(6);
     expect(result.reason).toContain('lazy');
   });
 
-  it('creates audit log with Quranic basis', () => {
-    const result = ethicalCheck('test_action');
+  it('creates audit log with Quranic basis', async () => {
+    const result = await ethicalCheck('test_action');
     const log = createEthicalCheckLog(result);
     expect(log.quranicBasis).toContain('تَرَاهُ');
     expect(log.verdict).toBe('PROCEED');
   });
 
-  it('respects custom config', () => {
-    const result = ethicalCheck('delete_everything', {
+  it('respects custom config', async () => {
+    const result = await ethicalCheck('delete_everything', {
       enabledChecks: [2, 3, 4, 5, 6], // Skip check 1
     });
     expect(result.verdict).toBe('PROCEED');
@@ -381,7 +381,6 @@ describe('Soul Loop (Unified Controller)', () => {
   beforeEach(() => {
     loop = new SoulLoop({
       maxCycles: 7,
-      barakahThreshold: 100, // Lower for testing
       ethicalCheckEnabled: true,
       muraqabahEnabled: true,
       maxRetries: 3,
@@ -423,14 +422,15 @@ describe('Soul Loop (Unified Controller)', () => {
     expect(decision.phase).toBe('sabiyyah');
   });
 
-  it('stops on Barakah milestone', async () => {
-    // Run 100 successful actions
+  it('continues past old barakah threshold (now handled by session-analytics)', async () => {
+    // Run 100 successful actions — loop should NOT stop (barakah removed from loop)
     for (let i = 0; i < 99; i++) {
       await loop.evaluate(`action_${i}`, { type: 'test' });
     }
     const decision = await loop.evaluate('final_action', { type: 'test' });
-    expect(decision.continue).toBe(false);
-    expect(decision.phase).toBe('barakah');
+    // Should continue — barakah is no longer a loop gate
+    expect(decision.continue).toBe(true);
+    expect(decision.phase).toBe('proceed');
   });
 
   it('handles errors with Tawbah', async () => {
@@ -535,24 +535,18 @@ describe('Soul Loop (Unified Controller)', () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 describe('SOUL Integration', () => {
-  it('full lifecycle: ethical actions → Barakah milestone', async () => {
+  it('full lifecycle: ethical actions → many cycles without barakah gate', async () => {
     const loop = new SoulLoop({
       maxCycles: 7,
-      barakahThreshold: 10, // Very low for testing
       ethicalCheckEnabled: true,
       muraqabahEnabled: true,
     });
 
-    // Run 10 successful actions
-    for (let i = 0; i < 9; i++) {
+    // Run 10 successful actions — loop continues (no barakah gate)
+    for (let i = 0; i < 10; i++) {
       const decision = await loop.evaluate(`action_${i}`, { type: 'test' });
       expect(decision.continue).toBe(true);
     }
-
-    // 10th action should trigger Barakah
-    const finalDecision = await loop.evaluate('final_action', { type: 'test' });
-    expect(finalDecision.continue).toBe(false);
-    expect(finalDecision.phase).toBe('barakah');
 
     const summary = loop.getSummary();
     expect(summary.totalActions).toBe(10);
@@ -562,7 +556,6 @@ describe('SOUL Integration', () => {
   it('full lifecycle: error → Tawbah → recovery', async () => {
     const loop = new SoulLoop({
       maxCycles: 7,
-      barakahThreshold: 100,
       ethicalCheckEnabled: true,
       muraqabahEnabled: true,
     });

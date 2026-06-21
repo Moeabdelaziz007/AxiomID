@@ -323,7 +323,7 @@ export default function Dashboard() {
                       agentStatus={agentStatus}
                       trustScore={user.trustScore}
                     />
-                    <QuickLinksCard passportSlug={user.piUsername || user.walletAddress || "user"} did={user.did || undefined} />
+                    <QuickLinksCard passportSlug={user.piUsername || user.walletAddress || "user"} did={user.did || undefined} passportUrl={user.passportUrl} />
                   </div>
                   
                   {/* Pi Network Ads Reward Card */}
