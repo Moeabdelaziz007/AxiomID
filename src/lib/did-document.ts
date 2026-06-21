@@ -48,11 +48,6 @@ export function buildDidDocument(
     doc.authentication = [keyRef];
     doc.assertionMethod = [keyRef];
   }
-  const der = key.export({ format: "der", type: "spki" });
-  const rawPublicKey = der.subarray(-32);
-  const multicodecKey = Buffer.concat([Buffer.from([0xed, 0x01]), rawPublicKey]);
-  return "z" + encodeBase58(multicodecKey);
-}
 
   return doc;
 }

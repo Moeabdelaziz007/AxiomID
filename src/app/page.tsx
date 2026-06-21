@@ -5,13 +5,14 @@ import { useWallet } from "./context/wallet-context";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import Link from "next/link";
 import { useLanguage } from "./context/language-context";
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Users, Bot, Ticket, Zap, AlertTriangle, Shield, Fingerprint } from "lucide-react";
 import { motion, useInView } from "framer-motion";
 import Script from "next/script";
 import { useRef } from "react";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
+import LanguageToggle from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import dynamic from "next/dynamic";
 
 const InteractivePassportCard = dynamic(() => import("@/components/ui/InteractivePassportCard"), { ssr: false });
@@ -34,25 +35,13 @@ const staggerContainer = {
  * Renders the AxiomID public landing page with wallet integration, Agent Passport card, animated hero section, live network statistics, feature guides, and identity tier cards. Supports English and Arabic.
  */
 export default function Home() {
-  const { user, connectWallet, isConnecting, isPiBrowser } = useWallet();
+  const { user, connectWallet, isConnecting, isPiBrowser, logout } = useWallet();
   const { t, language } = useLanguage();
   const [networkStats, setNetworkStats] = useState<{ users: number; agents: number; xp: number; payments: number } | null>(null);
   const [isPageLoaded, setIsPageLoaded] = useState(false);
 
   const statsRef = useRef<HTMLDivElement>(null);
   const statsInView = useInView(statsRef, { once: true, margin: "-80px" });
-
-  const mainRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const main = mainRef.current;
-    if (!main) return;
-    const rect = main.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    main.style.setProperty("--mouse-x", `${x}px`);
-    main.style.setProperty("--mouse-y", `${y}px`);
-  };
 
   useEffect(() => {
     const timer = setTimeout(() => setIsPageLoaded(true), 100);

@@ -18,6 +18,11 @@ jest.mock("@/components/ThemeToggle", () => ({
   ThemeToggle: () => <button />,
 }));
 
+jest.mock("@/components/LanguageToggle", () => {
+  const React = require("react");
+  return function LangToggle() { return React.createElement("button"); };
+});
+
 jest.mock("next/link", () => {
   const Link = ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) => (
     <a href={href} className={className}>
