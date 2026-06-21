@@ -51,11 +51,12 @@ export async function POST(request: NextRequest) {
 
   try {
     // 1. Check for double claiming
+    // 1. Check for double claiming
     const duplicate = await prisma.xpLedger.findFirst({
       where: {
         reason: "watch_ad",
         reference: {
-          contains: adId,
+          contains: `"adId":"${adId}"`,
         },
       },
     });
