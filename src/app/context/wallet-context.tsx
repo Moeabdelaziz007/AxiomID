@@ -13,6 +13,7 @@ export interface User {
   piUsername?: string | null;
   kycStatus?: string | null;
   did?: string | null;
+  passportUrl?: string | null;
   xp: number;
   tier: Tier;
   trustScore: number;
@@ -136,6 +137,7 @@ interface ApiResponse {
   kycStatus?: string | null;
   piUsername?: string | null;
   stellarAddress?: string | null;
+  passportUrl?: string | null;
   trustScore?: number;
   createdAt?: string;
   agent?: User['agent'];
@@ -163,6 +165,7 @@ function mapApiUser(data: ApiResponse, fallback?: { stellarAddress?: string | nu
     piUsername: data.piUsername,
     kycStatus: data.kycStatus || null,
     did: data.did || null,
+    passportUrl: data.passportUrl || null,
     actions: data.actions || fallback?.actions || [],
     stamps,
     agent: data.agent || null,

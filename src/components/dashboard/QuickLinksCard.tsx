@@ -7,6 +7,7 @@ import { AxiomRenderer } from "../ui/AxiomRenderer";
 interface QuickLinksCardProps {
   passportSlug: string;
   did?: string;
+  passportUrl?: string | null;
 }
 
 /**
@@ -16,7 +17,7 @@ interface QuickLinksCardProps {
  * @param did - Optional decentralized identifier to pass to the DID document endpoint
  * @returns A card component with quick navigation links
  */
-export function QuickLinksCard({ passportSlug, did }: QuickLinksCardProps) {
+export function QuickLinksCard({ passportSlug, did, passportUrl }: QuickLinksCardProps) {
   const { t } = useLanguage();
   
   const spec = useMemo(() => ({
@@ -25,7 +26,7 @@ export function QuickLinksCard({ passportSlug, did }: QuickLinksCardProps) {
       card: {
         type: "Card",
         props: { title: t("quick_links"), variant: "bento", animate: true },
-        children: ["link1", "link2"],
+        children: passportUrl ? ["link1", "link2", "link3"] : ["link1", "link2"],
       },
       link1: {
         type: "LinkItem",
@@ -45,8 +46,20 @@ export function QuickLinksCard({ passportSlug, did }: QuickLinksCardProps) {
           color: "default",
         },
       },
+      ...(passportUrl ? {
+        link3: {
+          type: "LinkItem",
+          props: {
+            label: "Published Passport",
+            href: passportUrl,
+            icon: "globe",
+            color: "accent",
+            external: true,
+          },
+        },
+      } : {}),
     },
-  }), [t, passportSlug, did]);
+  }), [t, passportSlug, did, passportUrl]);
 
   return <AxiomRenderer spec={spec} />;
 }
