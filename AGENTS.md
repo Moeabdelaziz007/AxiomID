@@ -93,11 +93,12 @@ Use nostics for stable error codes with actionable fixes.
 - **Pi SDK is browser-only** — never import `window.Pi` or SDK calls in Server Components or API routes. Gate all SDK access behind `typeof window !== 'undefined'`.
 - `PiUser` type must remain wide (`string` fields, no strict enums) — Pi Network SDK response shape evolves without semver notice.
 - Pi Browser compliance requires HTTPS (`portless` for local dev) — plain HTTP triggers payment SDK failures silently.
-- `window.Pi` typing is unified in `src/types/pi.d.ts` — never redeclare it locally in components.
+- `window.Pi` typing is unified in `src/types/global.d.ts` — never redeclare it locally in components.
 - **Dynamic Sandbox Detection (never hardcode):** Use `determineSandboxMode()` from `src/lib/pi-sdk.ts` which cascades through: env var override → hostname check (localhost/LAN/vercel.app) → iframe referrer (`sandbox.minepi.com`) → query param (`?sandbox=true`). Never hardcode `sandbox: true/false` in `Pi.init()`.
 - **Authentication timeout:** Pi Browser popup interactions on mobile are slow — use `≥45s` timeout for `authenticateWithTimeout()`, not the default 15s.
 - **Server-Side Cryptography Isolation:** Cryptographic key derivations (`deriveSovereignAgentKeypair`) and payload signing rely on Node's native `crypto` module. This execution must reside strictly in Next.js API routes or Server Components, never in Client Components due to browser environment incompatibility.
 - **SOVEREIGN_KEY_SALT Required:** `deriveSovereignAgentKeypair` MUST incorporate `process.env.SOVEREIGN_KEY_SALT` as HMAC key material. Never use public inputs alone.
+- **Pi Ads Integration & Verification:** Always verify rewarded ads server-side. Use `window.Pi.Ads` client-side API (`isAdReady`, `requestAd`, `showAd`) which resolves to `{ result, adId }`. Always verify `adId` server-side via `GET https://api.minepi.com/v2/ads_network/status/:adId` with the `Authorization: Key <PI_API_KEY>` header. Verify ledger records (e.g. `xpLedger` matching `adId` reference) to prevent double-claiming.
 
 ### 🏗️ Next.js 16 / App Router Patterns
 
@@ -150,7 +151,7 @@ src/
     pi-sdk.ts      ← Pi SDK loader + determineSandboxMode() + authenticateWithTimeout()
     registry.tsx   ← LinkItem registry with colorClass mapping
   types/
-    pi.d.ts        ← Pi SDK type declarations (window.Pi unified here)
+    global.d.ts    ← Pi SDK type declarations (window.Pi unified here)
 ```
 
 ### 🔄 Continuous Improvement Loops
@@ -206,6 +207,7 @@ All loops run automatically via `.github/workflows/loops.yml`. Manual dispatch a
 - Don't call `console.log` in production route handlers — use nostics diagnostics.
 - Don't duplicate global IQRA conscience rules here — they live in `~/.gemini/config/AGENTS.md`.
 - **Synchronous Multi-DB Coupling:** Do not rely on direct database-to-database replication or sync loops triggered via simple cron scripts (like SQLite-D1-PostgreSQL synchronization via Vercel Cron). This creates a high point of failure and eventual consistency splits. Instead, implement a **Transactional Outbox** pattern where data updates are stored locally as log events and dispatched reliably using queue relays.
+- **Unauthenticated D1 SQLite Exports:** Never expose Cloudflare D1 export endpoints (like `/api/sync/export`) without timing-safe `X-Shared-Secret` verification and strict URL path matching. Always use Prisma `upsert` in Next.js sync jobs to ensure edge data is merged into PostgreSQL without causing key conflicts or duplicate records.
 
 # Ponytail — lazy senior dev mode
 
