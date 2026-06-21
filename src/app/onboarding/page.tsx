@@ -174,7 +174,14 @@ export default function OnboardingPage() {
                       </div>
                     ) : (
                       <button onClick={connectWallet} disabled={isConnecting} className="btn-primary w-full py-3 text-xs font-mono font-bold flex items-center justify-center gap-2">
-                        {isConnecting ? "CONNECTING..." : "CONNECT WALLET"}
+                        {isConnecting ? (
+                          <span className="flex items-center gap-2">
+                            <span className="animate-spin">⟳</span>
+                            <span>Requesting Pi Browser access...</span>
+                          </span>
+                        ) : (
+                          "CONNECT WALLET"
+                        )}
                         <Wallet className="w-4 h-4" />
                       </button>
                     )}

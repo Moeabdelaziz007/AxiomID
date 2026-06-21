@@ -1,74 +1,59 @@
-import { logger } from '@/lib/logger';
-import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { apiError, apiSuccess, rateLimitHeaders } from '@/lib/errors';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
-import { getClientIp } from '@/lib/ip';
-import { requireAuth } from '@/lib/auth-middleware';
-import { z } from 'zod';
+import { NextRequest } from "next/server";
+import { apiError, apiSuccess, rateLimitHeaders } from "@/lib/errors";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
+import { getClientIp } from "@/lib/ip";
+import { logger } from "@/lib/logger";
+import { requireAuth } from "@/lib/auth-middleware";
+import { prisma } from "@/lib/prisma";
+import { z } from "zod";
 
-const AgentCreateSchema = z.object({
+const CreateAgentSchema = z.object({
   name: z.string().max(100).optional(),
   description: z.string().max(500).optional(),
 });
 
 /**
- * Create a new user agent for the authenticated user, enforcing rate limits and validating/sanitizing input.
+ * Creates a new agent for the authenticated user.
  *
- * @returns An API response: on success (HTTP 201) an object with `agentId`, `publicId`, `name`, and `status`; otherwise an error response with an error code and message (`RATE_LIMITED`, `VALIDATION_ERROR`, `CONFLICT`, or `INTERNAL_ERROR`).
+ * @param request - The incoming HTTP request
+ * @returns An HTTP response with the created agent details (status 201) on success, or an error response on failure.
  */
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if (auth.error) return auth.error;
+
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`agent-create:${ip}`, RATE_LIMITS.authenticated);
   if (!rateLimit.allowed) {
-    return apiError('RATE_LIMITED', 'Too many requests. Try again later.', undefined, rateLimitHeaders(rateLimit));
+    return apiError("RATE_LIMITED", "Too many requests.", undefined, rateLimitHeaders(rateLimit));
   }
 
-  const auth = await requireAuth(request);
-  if (auth.error) return auth.error;
-  const { user } = auth;
+  const user = auth.user;
 
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return apiError('VALIDATION_ERROR', 'Invalid JSON body');
+    return apiError("VALIDATION_ERROR", "Invalid JSON body");
   }
 
-  const parsed = AgentCreateSchema.safeParse(body);
+  const parsed = CreateAgentSchema.safeParse(body);
   if (!parsed.success) {
-    return apiError('VALIDATION_ERROR', parsed.error.issues[0].message, parsed.error.issues);
+    return apiError("VALIDATION_ERROR", parsed.error.issues[0].message, parsed.error.issues);
   }
-
-  const { name, description } = parsed.data;
-
-  // Sanitize: strip all HTML tags (loop to catch nested), enforce length limits
-  const stripHtml = (s: string): string => {
-    let prev = s;
-    while (true) {
-      const cleaned = prev.replace(/<[^>]*>/g, '');
-      if (cleaned === prev) return cleaned;
-      prev = cleaned;
-    }
-  };
-  const sanitizedName = stripHtml(name ?? 'My Agent').trim().slice(0, 100) || 'My Agent';
-  const sanitizedDesc = description
-    ? stripHtml(description).trim().slice(0, 500)
-    : null;
 
   try {
     const existing = await prisma.userAgent.findUnique({ where: { userId: user.id } });
     if (existing) {
-      return apiError('CONFLICT', 'User already has an agent');
+      return apiError("CONFLICT", "User already has an agent");
     }
 
     const agent = await prisma.userAgent.create({
       data: {
         userId: user.id,
-        name: sanitizedName,
-        description: sanitizedDesc,
-        status: 'INACTIVE',
-        mode: 'AUTONOMOUS',
+        name: parsed.data.name || "My Agent",
+        description: parsed.data.description || null,
+        status: "INACTIVE",
       },
     });
 
@@ -79,7 +64,7 @@ export async function POST(request: NextRequest) {
       status: agent.status,
     }, 201);
   } catch (error) {
-    logger.error('[AGENT-CREATE] Database error:', error);
-    return apiError('INTERNAL_ERROR', 'Failed to create agent');
+    logger.error("[AGENT-CREATE] Error:", error);
+    return apiError("INTERNAL_ERROR", "Failed to create agent");
   }
 }

@@ -9,6 +9,7 @@ import { calculateTrustScore } from "@/lib/trust";
 import { signPassportCredential } from "@/lib/vc";
 import { publishToMockGateway } from "@/lib/storage/ipfs-sync";
 import { PassportSlugParamSchema } from "@/lib/validators";
+import { logger } from "@/lib/logger";
 import { getKyaStatus, getKycStatus } from "../_utils";
 
 const AGENT_SELECT = {
@@ -105,7 +106,8 @@ export async function POST(
       mock: ipfsResult.mock,
       verifiableCredential: vc,
     }, 200);
-  } catch {
+  } catch (err) {
+    logger.error("Failed to publish passport", { error: err, slug });
     return apiError("INTERNAL_ERROR", "Failed to publish passport to IPFS");
   }
 }

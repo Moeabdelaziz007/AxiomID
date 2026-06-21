@@ -1,0 +1,324 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AxiomID API",
+    "description": "W3C DID-based identity layer for humans delegating authority to AI agents on Pi Network and Stellar.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "AxiomID",
+      "url": "https://axiomid.app"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://axiomid.app",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/api": {
+      "get": {
+        "summary": "API Root Discovery",
+        "description": "Returns list of all available endpoints and discovery information.",
+        "tags": ["Discovery"],
+        "responses": {
+          "200": {
+            "description": "API catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "version": { "type": "string" },
+                    "endpoints": { "type": "object" },
+                    "discovery": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/did-document": {
+      "get": {
+        "summary": "DID Document Resolution",
+        "description": "Returns W3C DID document for a given DID or the issuer DID.",
+        "tags": ["Identity"],
+        "parameters": [
+          {
+            "name": "did",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "DID to resolve (e.g., did:axiom:username)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "DID Document",
+            "content": {
+              "application/did+ld+json": {
+                "schema": { "$ref": "#/components/schemas/DidDocument" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/.well-known/jwks.json": {
+      "get": {
+        "summary": "JSON Web Key Set",
+        "description": "Returns Ed25519 public keys for signature verification.",
+        "tags": ["Discovery"],
+        "responses": {
+          "200": {
+            "description": "JWKS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "keys": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/JsonWebKey" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agent/identity": {
+      "post": {
+        "summary": "Verify Agent Identity",
+        "description": "Verify Pi ID-JAG token and create/update agent identity.",
+        "tags": ["Agent"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["idToken"],
+                "properties": {
+                  "idToken": { "type": "string", "description": "Pi Network ID-JAG token" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Identity verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": { "$ref": "#/components/schemas/User" },
+                    "agent": { "$ref": "#/components/schemas/Agent" },
+                    "did": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/agent/sign": {
+      "post": {
+        "summary": "Sign Payload",
+        "description": "Sign a payload with the agent's sovereign Ed25519 key.",
+        "tags": ["Agent"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["payload", "did"],
+                "properties": {
+                  "payload": { "type": "string", "description": "Base64-encoded payload to sign" },
+                  "did": { "type": "string", "description": "DID to sign with" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signature created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "signature": { "type": "string" },
+                    "kid": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/oauth2/token": {
+      "post": {
+        "summary": "Token Exchange",
+        "description": "Exchange Pi token for AxiomID access token via JWT bearer grant.",
+        "tags": ["OAuth2"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["grant_type", "assertion"],
+                "properties": {
+                  "grant_type": { "type": "string", "enum": ["urn:ietf:params:oauth:grant-type:jwt-bearer"] },
+                  "assertion": { "type": "string", "description": "Pi Network JWT token" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": { "type": "string" },
+                    "token_type": { "type": "string" },
+                    "expires_in": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/oauth2/revoke": {
+      "post": {
+        "summary": "Revoke Token",
+        "description": "Revoke an access or refresh token.",
+        "tags": ["OAuth2"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["token"],
+                "properties": {
+                  "token": { "type": "string" },
+                  "token_type_hint": { "type": "string", "enum": ["access_token", "refresh_token"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Token revoked" }
+        }
+      }
+    },
+    "/api/skills": {
+      "get": {
+        "summary": "Search Skills",
+        "description": "Search and list available skills in the marketplace.",
+        "tags": ["Marketplace"],
+        "parameters": [
+          { "name": "q", "in": "query", "schema": { "type": "string" }, "description": "Search query" },
+          { "name": "tag", "in": "query", "schema": { "type": "string" }, "description": "Filter by tag" },
+          { "name": "sort", "in": "query", "schema": { "type": "string", "enum": ["price", "name", "created"] } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Skills list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Skill" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "DidDocument": {
+        "type": "object",
+        "properties": {
+          "@context": { "type": "array", "items": { "type": "string" } },
+          "id": { "type": "string" },
+          "controller": { "type": "string" },
+          "verificationMethod": { "type": "array" },
+          "authentication": { "type": "array" },
+          "service": { "type": "array" }
+        }
+      },
+      "JsonWebKey": {
+        "type": "object",
+        "properties": {
+          "kty": { "type": "string" },
+          "crv": { "type": "string" },
+          "x": { "type": "string" },
+          "kid": { "type": "string" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "piUsername": { "type": "string" },
+          "walletAddress": { "type": "string" },
+          "tier": { "type": "string", "enum": ["Visitor", "Citizen", "Validator", "Sovereign"] },
+          "xp": { "type": "integer" },
+          "trustScore": { "type": "integer" }
+        }
+      },
+      "Agent": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE", "PAUSED"] },
+          "lastActive": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Skill": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "price": { "type": "number" },
+          "tag": { "type": "string" }
+        }
+      }
+    }
+  }
+}

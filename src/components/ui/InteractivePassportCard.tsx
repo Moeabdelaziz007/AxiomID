@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import { Tier, getTierColor } from "@/lib/tiers";
 import { useLanguage } from "@/app/context/language-context";
 import { Fingerprint, Award, CheckCircle, Lock } from "lucide-react";
+import PassportKeyManager from "./PassportKeyManager";
 
 interface InteractivePassportCardProps {
   user: {
@@ -17,9 +18,20 @@ interface InteractivePassportCardProps {
   } | null;
   readonly?: boolean;
   locked?: boolean;
+  onSign?: (payload: string) => Promise<string>;
 }
 
-export default function InteractivePassportCard({ user, readonly = false, locked = false }: InteractivePassportCardProps) {
+/**
+ * Displays an interactive passport card with user identity and verification information.
+ *
+ * Presents identity details including username, wallet address, XP balance, trust score, and verification statuses (KYA/KYC). In locked mode, the card obscures information and displays a locked preview state. Supports pointer and touch interactions when unlocked and not in readonly mode. Includes a `PassportKeyManager` child component for signing when a user is present.
+ *
+ * @param user - User data object containing identity and verification details.
+ * @param readonly - When `true`, disables card interactions. Defaults to `false`.
+ * @param locked - When `true`, displays the card in locked preview state with obscured information. Defaults to `false`.
+ * @param onSign - Optional async callback for signing operations, passed to `PassportKeyManager`.
+ */
+export default function InteractivePassportCard({ user, readonly = false, locked = false, onSign }: InteractivePassportCardProps) {
   const { t, language } = useLanguage();
   const cardRef = useRef<HTMLDivElement>(null);
   const [rotateX, setRotateX] = useState(0);
@@ -38,6 +50,7 @@ export default function InteractivePassportCard({ user, readonly = false, locked
   const trustScore = locked ? 0 : (user?.trustScore ?? 0);
   const isKya = !locked && user?.kyaStatus === "verified";
   const isKyc = !locked && user?.kycStatus === "verified";
+  const did = locked ? "did:axiom:locked_credential" : (user?.walletAddress || "did:axiom:unconnected");
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (readonly || locked || !cardRef.current) return;
@@ -233,6 +246,7 @@ export default function InteractivePassportCard({ user, readonly = false, locked
           </div>
         </div>
       </div>
+      {hasUser && <PassportKeyManager did={did} onSign={onSign} />}
     </div>
   );
 }

@@ -5,7 +5,7 @@
 
 import type { Env } from "./types";
 
-export const PUBLIC_ROUTES = ["/health", "/status", "/api/trust/", "/api/skills", "/api/sync"];
+export const PUBLIC_ROUTES = ["/health", "/status", "/api/trust/", "/api/skills"];
 
 export function verifyAuth(request: Request, env: Env): { authorized: boolean; agentId?: string } {
   const url = new URL(request.url);

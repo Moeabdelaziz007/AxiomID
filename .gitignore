@@ -38,6 +38,9 @@ Desktop.ini
 .qoder/
 .opencode/
 
+# superpowers (local workflow scripts)
+.superpowers/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

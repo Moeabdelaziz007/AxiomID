@@ -12,42 +12,41 @@ datasource db {
 // ─────────────────────────────────────────────
 
 model User {
-  id            String   @id @default(uuid())
-  walletAddress String   @unique @db.VarChar(120)
-  stellarAddress String?  @db.VarChar(56)
-  piUid         String?  @unique @db.VarChar(100)
-  piUsername    String?  @db.VarChar(100)
-  piAccessToken String?  // encrypted at rest (AES-256-GCM)
-
+  id             String  @id @default(uuid())
+  walletAddress  String  @unique @db.VarChar(120)
+  stellarAddress String? @db.VarChar(56)
+  piUid          String? @unique @db.VarChar(100)
+  piUsername     String? @db.VarChar(100)
+  piAccessToken  String? // encrypted at rest (AES-256-GCM)
 
   // XP & Tier (denormalized from XpLedger for fast reads)
-  xp    Int    @default(0)
-  tier  String @default("Visitor") @db.VarChar(50)
+  xp   Int    @default(0)
+  tier String @default("Visitor") @db.VarChar(50)
 
   // Sovereign DID
-  did       String?  @unique @db.VarChar(255)
-  didMethod String?  @default("did:axiom") @db.VarChar(50)
+  did       String? @unique @db.VarChar(255)
+  didMethod String? @default("did:axiom") @db.VarChar(50)
 
   // KYC
-  kycStatus      KYCStatus @default(NONE)
-  kycProvider    String?   // "pi_network" | "world_id" | "gitcoin"
-  kycAssurance   String?   // "low" | "substantial" | "high"
-  kycUidHash     String?   // privacy-preserving hash
-  kycVerifiedAt  DateTime?
+  kycStatus     KYCStatus @default(NONE)
+  kycProvider   String? // "pi_network" | "world_id" | "gitcoin"
+  kycAssurance  String? // "low" | "substantial" | "high"
+  kycUidHash    String? // privacy-preserving hash
+  kycVerifiedAt DateTime?
 
   // Agent
-  agent      UserAgent?
+  agent UserAgent?
 
   // Actions
-  actions     Action[]
-  stamps      Stamp[]
-  xpLedger    XpLedger[]
+  actions  Action[]
+  stamps   Stamp[]
+  xpLedger XpLedger[]
 
   // Payments
-  payments       PiPayment[]
+  payments PiPayment[]
 
   // Agent Logs
-  agentLogs   AgentLog[]
+  agentLogs AgentLog[]
 
   // Skills (authored)
   authoredSkills Skill[]
@@ -55,18 +54,24 @@ model User {
   // Skill Reviews
   skillReviews SkillReview[]
 
+  // Skill Versions (authored)
+  skillVersions SkillVersion[]
+
+  // Skill Moderation (reviewed)
+  moderatedSkills SkillModeration[]
+
   // Delegated Trust
   delegatedTrustFrom DelegatedTrust[] @relation("DelegatedTrustFrom")
   delegatedTrustTo   DelegatedTrust[] @relation("DelegatedTrustTo")
 
   // Ephemeral DIDs
-  ephemeralDids      EphemeralDid[]
+  ephemeralDids EphemeralDid[]
 
   // Metadata
-  metadata   String? @db.Text // JSON: arbitrary user metadata (max ~10KB)
+  metadata   String?   @db.Text // JSON: arbitrary user metadata (max ~10KB)
   lastActive DateTime?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
 
 enum KYCStatus {
@@ -81,29 +86,29 @@ enum KYCStatus {
 // ─────────────────────────────────────────────
 
 model UserAgent {
-  id          String    @id @default(uuid())
-  userId      String    @unique
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  publicId    String    @unique @default(cuid()) // ag_xxx
+  id       String @id @default(uuid())
+  userId   String @unique
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  publicId String @unique @default(cuid()) // ag_xxx
 
   // Identity
-  name        String    @default("My Agent") @db.VarChar(100)
-  description String?   @db.VarChar(500)
-  avatarUrl   String?   @db.VarChar(500)
-  did         String?   @db.VarChar(255)
+  name        String  @default("My Agent") @db.VarChar(100)
+  description String? @db.VarChar(500)
+  avatarUrl   String? @db.VarChar(500)
+  did         String? @db.VarChar(255)
 
   // State
-  status      AgentStatus @default(INACTIVE) // inactive | active | paused | sleeping
-  mode        AgentMode   @default(AUTONOMOUS) // autonomous | supervised | manual
+  status AgentStatus @default(INACTIVE) // inactive | active | paused | sleeping
+  mode   AgentMode   @default(AUTONOMOUS) // autonomous | supervised | manual
 
   // Runtime
-  lastActive   DateTime?
+  lastActive    DateTime?
   lastHeartbeat DateTime?
-  activeUntil  DateTime?
-  memoryLimit  Int      @default(500) // max memory entries
+  activeUntil   DateTime?
+  memoryLimit   Int       @default(500) // max memory entries
 
   // Logs
-  agentLogs   AgentLog[]
+  agentLogs AgentLog[]
 
   // Skills (installed)
   installedSkills SkillInstallation[]
@@ -137,18 +142,18 @@ enum PaymentStatus {
 // ─────────────────────────────────────────────
 
 model PiPayment {
-  id            String   @id @default(uuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  paymentId     String   @unique // Pi Network payment ID
-  txid          String?  // blockchain transaction hash
-  amount        Float
-  memo          String?  @db.VarChar(500)
-  metadata      String?  @db.Text // JSON: { skillId, agentId, purpose }
-  status        PaymentStatus   @default(PENDING)
-  fromAddress   String?
-  toAddress     String?
-  network       String   @default("pi")
+  id          String        @id @default(uuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentId   String        @unique // Pi Network payment ID
+  txid        String? // blockchain transaction hash
+  amount      Float
+  memo        String?       @db.VarChar(500)
+  metadata    String?       @db.Text // JSON: { skillId, agentId, purpose }
+  status      PaymentStatus @default(PENDING)
+  fromAddress String?
+  toAddress   String?
+  network     String        @default("pi")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -181,10 +186,10 @@ model XpLedger {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount    Int      // positive = earned, negative = spent
+  amount    Int // positive = earned, negative = spent
   reason    String   @db.VarChar(50) // "action_claim" | "agent_create" | "admin_adjust"
   reference String?  @db.Text // JSON: { actionId, agentId }
-  balance   Int      // running balance after this entry
+  balance   Int // running balance after this entry
   createdAt DateTime @default(now())
 
   @@index([userId])
@@ -196,16 +201,16 @@ model XpLedger {
 // ─────────────────────────────────────────────
 
 model AgentLog {
-  id          String     @id @default(uuid())
-  userId      String
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  agentId     String?
-  agent       UserAgent? @relation(fields: [agentId], references: [id])
-  level       String     @default("info") @db.VarChar(20) // "debug" | "info" | "warn" | "error" | "critical"
-  source      String     @db.VarChar(50) // "system" | "agent" | "skill" | "tool" | "user" | "payment"
-  message     String     @db.VarChar(2000)
-  metadata    String?    @db.Text // JSON
-  createdAt   DateTime   @default(now())
+  id        String     @id @default(uuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentId   String?
+  agent     UserAgent? @relation(fields: [agentId], references: [id])
+  level     String     @default("info") @db.VarChar(20) // "debug" | "info" | "warn" | "error" | "critical"
+  source    String     @db.VarChar(50) // "system" | "agent" | "skill" | "tool" | "user" | "payment"
+  message   String     @db.VarChar(2000)
+  metadata  String?    @db.Text // JSON
+  createdAt DateTime   @default(now())
 
   @@index([userId])
   @@index([agentId])
@@ -218,14 +223,14 @@ model AgentLog {
 // ─────────────────────────────────────────────
 
 model Stamp {
-  id         String   @id @default(uuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type       String   @db.VarChar(50) // "connect_twitter" | "connect_discord" | "connect_google" | "daily_pow" | "wallet_age" | "verify_identity"
-  provider   String   @db.VarChar(50) // "twitter" | "discord" | "google" | "pi" | "system"
-  xpAwarded  Int      @default(0)
-  metadata   String?  @db.Text        // Stores the stringified W3C VC
-  createdAt  DateTime @default(now())
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   @db.VarChar(50) // "connect_twitter" | "connect_discord" | "connect_google" | "daily_pow" | "wallet_age" | "verify_identity"
+  provider  String   @db.VarChar(50) // "twitter" | "discord" | "google" | "pi" | "system"
+  xpAwarded Int      @default(0)
+  metadata  String?  @db.Text // Stores the stringified W3C VC
+  createdAt DateTime @default(now())
 
   @@unique([userId, type], name: "user_stamp_unique")
   @@index([userId])
@@ -250,36 +255,39 @@ enum SkillStatus {
 }
 
 model Skill {
-  id          String     @id @default(uuid())
-  slug        String     @unique @db.VarChar(100) // "agent-memory"
-  name        String     @db.VarChar(200) // "Agent Memory"
-  description String?    @db.VarChar(1000)
+  id          String  @id @default(uuid())
+  slug        String  @unique @db.VarChar(100) // "agent-memory"
+  name        String  @db.VarChar(200) // "Agent Memory"
+  description String? @db.VarChar(1000)
 
   // ── The Genomic Payload ──
-  manifestMd  String     @db.Text // Full SKILL.md content with XML tags
-  agentScript String?    @db.Text // Specialist agent TypeScript code
-  testSuite   String?    @db.Text // Test suite to verify skill integrity
+  manifestMd  String  @db.Text // Full SKILL.md content with XML tags
+  agentScript String? @db.Text // Specialist agent TypeScript code
+  testSuite   String? @db.Text // Test suite to verify skill integrity
 
   // ── Marketplace Metadata ──
-  tier        SkillTier  @default(BASIC_TOOL)
-  pricePi     Float      @default(0) // Price in Pi tokens (0 = free)
-  version     String     @default("1.0.0") @db.VarChar(20) // Semantic version
+  tier        SkillTier   @default(BASIC_TOOL)
+  pricePi     Float       @default(0) // Price in Pi tokens (0 = free)
+  version     String      @default("1.0.0") @db.VarChar(20) // Semantic version
   authorId    String?
-  author      User?      @relation(fields: [authorId], references: [id])
+  author      User?       @relation(fields: [authorId], references: [id])
   status      SkillStatus @default(DRAFT)
-  isPublished Boolean    @default(false)
+  isPublished Boolean     @default(false)
 
   // ── Analytics ──
-  installCount Int       @default(0)
-  avgRating    Float     @default(0) // 0-5 scale
-  ratingCount  Int       @default(0)
+  installCount Int   @default(0)
+  avgRating    Float @default(0) // 0-5 scale
+  ratingCount  Int   @default(0)
 
   // ── Relations ──
   installations SkillInstallation[]
   reviews       SkillReview[]
+  tags          SkillTagRelation[]
+  versions      SkillVersion[]
+  moderation    SkillModeration[]
 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([tier])
   @@index([status])
@@ -288,13 +296,13 @@ model Skill {
 }
 
 model SkillInstallation {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   skillId     String
-  skill       Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  skill       Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
   agentId     String
   agent       UserAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  installedAt DateTime @default(now())
-  status      String   @default("active") @db.VarChar(20) // "active" | "disabled" | "pending"
+  installedAt DateTime  @default(now())
+  status      String    @default("active") @db.VarChar(20) // "active" | "disabled" | "pending"
 
   @@unique([skillId, agentId], name: "skill_agent_unique")
   @@index([skillId])
@@ -307,7 +315,7 @@ model SkillReview {
   skill     Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rating    Int      // 1-5 stars
+  rating    Int // 1-5 stars
   review    String?  @db.Text
   createdAt DateTime @default(now())
 
@@ -317,30 +325,99 @@ model SkillReview {
 }
 
 // ─────────────────────────────────────────────
+// MARKETPLACE — TAGS, VERSIONS, MODERATION
+// ─────────────────────────────────────────────
+
+model SkillTag {
+  id          String   @id @default(uuid())
+  name        String   @unique @db.VarChar(100)
+  slug        String   @unique @db.VarChar(100)
+  description String?  @db.VarChar(500)
+  color       String?  @db.VarChar(7) // hex color e.g. "#3b82f6"
+  createdAt   DateTime @default(now())
+
+  skills SkillTagRelation[]
+}
+
+model SkillTagRelation {
+  id        String   @id @default(uuid())
+  skillId   String
+  skill     Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       SkillTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([skillId, tagId], name: "skill_tag_unique")
+  @@index([skillId])
+  @@index([tagId])
+}
+
+model SkillVersion {
+  id          String      @id @default(uuid())
+  skillId     String
+  skill       Skill       @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  version     String      @db.VarChar(20) // semver "1.2.3"
+  manifestMd  String      @db.Text
+  agentScript String?     @db.Text
+  testSuite   String?     @db.Text
+  changelog   String?     @db.Text
+  authorId    String?
+  author      User?       @relation(fields: [authorId], references: [id])
+  status      SkillStatus @default(DRAFT)
+  createdAt   DateTime    @default(now())
+
+  @@unique([skillId, version], name: "skill_version_unique")
+  @@index([skillId])
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model SkillModeration {
+  id         String           @id @default(uuid())
+  skillId    String
+  skill      Skill            @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  status     ModerationStatus @default(PENDING)
+  reviewerId String?
+  reviewer   User?            @relation(fields: [reviewerId], references: [id])
+  reason     String?          @db.VarChar(1000)
+  notes      String?          @db.Text
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@index([skillId])
+  @@index([status])
+  @@index([reviewerId])
+}
+
+// ─────────────────────────────────────────────
 // TRUST DELEGATION
 // ─────────────────────────────────────────────
 
 model DelegatedTrust {
-  id            String   @id @default(uuid())
-  fromDid       String   @db.VarChar(255) // The delegating DID
-  fromUser      User     @relation("DelegatedTrustFrom", fields: [fromDid], references: [did], onDelete: Cascade)
-  toDid         String   @db.VarChar(255) // The trusted DID
-  toUser        User     @relation("DelegatedTrustTo", fields: [toDid], references: [did], onDelete: Cascade)
-  weight        Float    @default(1.0)    // Trust weight (0.0 - 1.0)
-  createdAt     DateTime @default(now())
+  id        String   @id @default(uuid())
+  fromDid   String   @db.VarChar(255) // The delegating DID
+  fromUser  User     @relation("DelegatedTrustFrom", fields: [fromDid], references: [did], onDelete: Cascade)
+  toDid     String   @db.VarChar(255) // The trusted DID
+  toUser    User     @relation("DelegatedTrustTo", fields: [toDid], references: [did], onDelete: Cascade)
+  weight    Float    @default(1.0) // Trust weight (0.0 - 1.0)
+  createdAt DateTime @default(now())
 
   @@unique([fromDid, toDid], name: "delegation_unique")
 }
 
 model EphemeralDid {
-  id        String   @id @default(uuid())
-  did       String   @unique @db.VarChar(255)
-  parentDid String?  @db.VarChar(255)
+  id        String             @id @default(uuid())
+  did       String             @unique @db.VarChar(255)
+  parentDid String?            @db.VarChar(255)
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   status    EphemeralDidStatus @default(ACTIVE)
-  createdAt DateTime @default(now())
+  createdAt DateTime           @default(now())
 
   @@index([userId])
 }
@@ -356,12 +433,12 @@ enum EphemeralDidStatus {
 // ─────────────────────────────────────────────
 
 model SelfReviewLog {
-  id          String   @id @default(uuid())
-  actionName  String   @db.VarChar(255)
-  score       Float
-  critique    String   @db.Text
-  telemetry   String?  @db.Text
-  createdAt   DateTime @default(now())
+  id         String   @id @default(uuid())
+  actionName String   @db.VarChar(255)
+  score      Float
+  critique   String   @db.Text
+  telemetry  String?  @db.Text
+  createdAt  DateTime @default(now())
 
   @@index([actionName])
 }

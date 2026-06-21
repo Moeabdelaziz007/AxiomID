@@ -101,7 +101,7 @@ export async function PATCH(
     return apiError('VALIDATION_ERROR', parsedBody.error.issues[0].message, parsedBody.error.issues);
   }
 
-  const updateData = parsedBody.data;
+  const { changelog, ...updateData } = parsedBody.data;
 
   try {
     const existing = await prisma.skill.findUnique({ where: { slug } });
@@ -117,6 +117,39 @@ export async function PATCH(
       where: { slug },
       data: updateData,
     });
+
+    // Auto-create version snapshot when content-affecting fields change
+    const contentChanged =
+      (updateData.version && updateData.version !== existing.version) ||
+      (updateData.manifestMd && updateData.manifestMd !== existing.manifestMd) ||
+      (updateData.agentScript !== undefined && updateData.agentScript !== existing.agentScript) ||
+      (updateData.testSuite !== undefined && updateData.testSuite !== existing.testSuite);
+
+    if (contentChanged) {
+      const newVersion = updateData.version || existing.version;
+      try {
+        const existingVersion = await prisma.skillVersion.findFirst({
+          where: { skillId: existing.id, version: newVersion },
+        });
+
+        if (!existingVersion) {
+          await prisma.skillVersion.create({
+            data: {
+              skillId: existing.id,
+              version: newVersion,
+              manifestMd: (updateData.manifestMd as string) || existing.manifestMd,
+              agentScript: (updateData.agentScript as string) ?? existing.agentScript,
+              testSuite: (updateData.testSuite as string) ?? existing.testSuite,
+              changelog: changelog || null,
+              authorId: auth.user.id,
+              status: skill.status,
+            },
+          });
+        }
+      } catch (versionError) {
+        logger.error('[SKILL-UPDATE] Failed to create version snapshot:', versionError);
+      }
+    }
 
     return apiSuccess({
       slug: skill.slug,

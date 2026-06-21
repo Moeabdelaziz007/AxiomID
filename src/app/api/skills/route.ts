@@ -21,17 +21,21 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const parsedQuery = SkillsListQuerySchema.safeParse({
-    tier: searchParams.get('tier'),
-    q: searchParams.get('q'),
-    limit: searchParams.get('limit'),
-    offset: searchParams.get('offset'),
+    tier: searchParams.get('tier') ?? undefined,
+    q: searchParams.get('q') ?? undefined,
+    tags: searchParams.get('tags') ?? undefined,
+    sort: searchParams.get('sort') ?? undefined,
+    minPrice: searchParams.get('minPrice') ?? undefined,
+    maxPrice: searchParams.get('maxPrice') ?? undefined,
+    limit: searchParams.get('limit') ?? undefined,
+    offset: searchParams.get('offset') ?? undefined,
   });
 
   if (!parsedQuery.success) {
     return apiError('VALIDATION_ERROR', parsedQuery.error.issues[0].message, parsedQuery.error.issues);
   }
 
-  const { tier, q: search, limit, offset } = parsedQuery.data;
+  const { tier, q: search, tags, sort, minPrice, maxPrice, limit, offset } = parsedQuery.data;
 
   try {
     const where: Record<string, unknown> = {
@@ -50,6 +54,35 @@ export async function GET(request: NextRequest) {
       ];
     }
 
+    if (tags) {
+      const tagSlugs = tags.split(',').map(t => t.trim()).filter(Boolean);
+      if (tagSlugs.length === 1) {
+        where.tags = { some: { tag: { slug: tagSlugs[0] } } };
+      } else if (tagSlugs.length > 1) {
+        where.AND = tagSlugs.map(slug => ({
+          tags: { some: { tag: { slug } } },
+        }));
+      }
+    }
+
+    if (minPrice != null || maxPrice != null) {
+      const priceFilter: Record<string, number> = {};
+      if (minPrice != null) priceFilter.gte = minPrice;
+      if (maxPrice != null) priceFilter.lte = maxPrice;
+      where.pricePi = priceFilter;
+    }
+
+    const orderBy = (() => {
+      switch (sort) {
+        case 'newest': return [{ createdAt: 'desc' as const }];
+        case 'popular': return [{ installCount: 'desc' as const }];
+        case 'rating': return [{ avgRating: 'desc' as const }];
+        case 'price_asc': return [{ pricePi: 'asc' as const }];
+        case 'price_desc': return [{ pricePi: 'desc' as const }];
+        default: return [{ installCount: 'desc' as const }, { avgRating: 'desc' as const }];
+      }
+    })();
+
     const [skills, total] = await Promise.all([
       prisma.skill.findMany({
         where,
@@ -67,10 +100,7 @@ export async function GET(request: NextRequest) {
           authorId: true,
           createdAt: true,
         },
-        orderBy: [
-          { installCount: 'desc' },
-          { avgRating: 'desc' },
-        ],
+        orderBy,
         take: limit,
         skip: offset,
       }),

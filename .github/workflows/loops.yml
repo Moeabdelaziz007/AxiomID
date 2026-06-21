@@ -1,0 +1,168 @@
+name: Loops
+
+on:
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      loop:
+        description: 'Loop to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - sub-50ms
+          - coverage
+          - logging-coverage
+          - fresh-clone
+          - nightly-changelog
+      fix:
+        description: 'Attempt to fix issues'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sub-50ms:
+    name: Sub-50ms Page Load
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'sub-50ms' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+      - name: Measure page loads
+        run: |
+          npm start &
+          sleep 5
+          for page in "/" "/passport/axiomid" "/dashboard" "/dashboard/marketplace"; do
+            START=$(date +%s%N)
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000$page" || echo "000")
+            END=$(date +%s%N)
+            ELAPSED_MS=$(( (END - START) / 1000000 ))
+            echo "$page: ${ELAPSED_MS}ms (HTTP $HTTP_CODE)"
+            if [ "$ELAPSED_MS" -gt 50 ] && [ "$HTTP_CODE" = "200" ]; then
+              echo "⚠️ $page exceeded 50ms threshold"
+            fi
+          done
+          kill %1 || true
+
+  coverage:
+    name: Test Coverage
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'coverage' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - name: Run coverage
+        run: npx jest --coverage --silent
+      - name: Check coverage threshold
+        run: |
+          COVERAGE=$(npx jest --coverage --silent 2>&1 | grep "Lines" | grep -oE '[0-9]+\.[0-9]+' | head -1)
+          echo "Coverage: ${COVERAGE}%"
+          if [ "$(echo "$COVERAGE < 80" | bc -l)" -eq 1 ]; then
+            echo "⚠️ Coverage below 80% threshold"
+            exit 1
+          fi
+
+  logging-coverage:
+    name: Logging Coverage
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'logging-coverage' }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check logging coverage
+        run: |
+          ROUTES=$(find src/app/api -name "route.ts" -type f)
+          TOTAL=0
+          WITH_LOGGER=0
+          for route in $ROUTES; do
+            TOTAL=$((TOTAL + 1))
+            if grep -q "logger\." "$route" 2>/dev/null; then
+              WITH_LOGGER=$((WITH_LOGGER + 1))
+            fi
+          done
+          echo "Routes: $TOTAL, With logging: $WITH_LOGGER"
+          if [ "$WITH_LOGGER" -lt "$TOTAL" ]; then
+            echo "⚠️ Some routes missing logging"
+            find src/app/api -name "route.ts" -type f | while read route; do
+              if ! grep -q "logger\." "$route" 2>/dev/null; then
+                echo "  - $route"
+              fi
+            done
+          fi
+
+  fresh-clone:
+    name: Fresh Clone Test
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'fresh-clone' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Test fresh clone onboarding
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci
+          echo "🔨 Building project..."
+          npm run build
+          echo "🧪 Running tests..."
+          npm test
+          echo "🎉 Fresh clone test passed!"
+
+  nightly-changelog:
+    name: Nightly Changelog
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'nightly-changelog' }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      - name: Update changelog
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          COMMITS=$(git log --since="24 hours ago" --oneline --no-merges | head -20)
+          
+          if [ -z "$COMMITS" ]; then
+            echo "ℹ️ No changes in last 24 hours"
+            exit 0
+          fi
+          
+          echo "📝 Changes from last 24 hours:"
+          echo "$COMMITS"
+          
+          # Create or update CHANGELOG.md
+          ENTRY="## [$TODAY]\n\n"
+          while IFS= read -r line; do
+            ENTRY="$ENTRY- $line\n"
+          done <<< "$COMMITS"
+          ENTRY="$ENTRY\n"
+          
+          if [ ! -f "CHANGELOG.md" ]; then
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
+          
+          # Insert new entry after header
+          sed -i.bak "2a\\
+          $ENTRY" CHANGELOG.md
+          rm -f CHANGELOG.md.bak
+          
+          echo "✅ Changelog updated"

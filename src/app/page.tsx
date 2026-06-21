@@ -9,6 +9,7 @@ import LanguageToggle from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Users, Bot, Ticket, Zap, AlertTriangle, Shield, Fingerprint } from "lucide-react";
 import { motion, useInView } from "framer-motion";
+import Script from "next/script";
 import { useRef } from "react";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import dynamic from "next/dynamic";
@@ -40,9 +41,15 @@ export default function Home() {
   const { user, connectWallet, isConnecting, isPiBrowser, logout } = useWallet();
   const { t, language } = useLanguage();
   const [networkStats, setNetworkStats] = useState<{ users: number; agents: number; xp: number; payments: number } | null>(null);
+  const [isPageLoaded, setIsPageLoaded] = useState(false);
 
   const statsRef = useRef<HTMLDivElement>(null);
   const statsInView = useInView(statsRef, { once: true, margin: "-80px" });
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsPageLoaded(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -63,6 +70,47 @@ export default function Home() {
   }, []);
 
   return (
+    <>
+    <Script
+      id="axiomid-jsonld"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          name: "AxiomID",
+          url: "https://axiomid.app",
+          description: "W3C DID-based identity layer for humans delegating authority to AI agents on Pi Network and Stellar. Cryptographic proof that an AI agent is working with human authorization.",
+          applicationCategory: "Identity Application",
+          operatingSystem: "Web",
+          offers: {
+            "@type": "Offer",
+            price: "0",
+            priceCurrency: "XLM"
+          },
+          provider: {
+            "@type": "Organization",
+            name: "AxiomID",
+            url: "https://axiomid.app"
+          },
+          featureList: [
+            "W3C DID Document Generation",
+            "Ed25519 Key Pair Management",
+            "Verifiable Credential Issuance",
+            "Agent Identity Verification",
+            "Pi Network Integration",
+            "Stellar Blockchain Anchoring",
+            "AI Agent Delegation",
+            "Zero-Knowledge Proof Privacy"
+          ],
+          inLanguage: ["en", "ar"],
+          isAccessibleForFree: true
+        })
+      }}
+    />
+    {!isPageLoaded ? (
+      <SkeletonScreen />
+    ) : (
     <main className="min-h-screen bg-grid flex flex-col items-center relative overflow-hidden">
       <div className="scanline" />
       <ErrorBanner />
@@ -72,13 +120,13 @@ export default function Home() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="sticky top-0 w-full z-50 bg-[#0a0b10]/90 backdrop-blur-xl border-b border-white/5"
+        className="sticky top-0 w-full z-50 bg-[#0c0d14]/95 backdrop-blur-2xl border-b border-white/[0.04] shadow-[0_1px_0_0_rgba(255,255,255,0.02)_inset]"
       >
-        <div className="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3 px-4 sm:px-6 py-4 sm:py-6">
+        <div className="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3 px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center border border-white/10 bg-black/40 relative group overflow-hidden transition-all duration-300 hover:border-electric-blue/40">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center border border-white/[0.08] bg-black/40 relative group overflow-hidden transition-all duration-300 hover:border-electric-blue/40">
               <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 via-electric-blue/5 to-axiom-purple/5 opacity-50 group-hover:opacity-100 transition-opacity" />
-              <svg className="w-5.5 h-5.5 z-10 filter drop-shadow-[0_0_8px_rgba(0,212,255,0.4)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg className="w-5 h-5 z-10 filter drop-shadow-[0_0_8px_rgba(0,212,255,0.4)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="50" cy="50" r="42" stroke="url(#logoGrad)" strokeWidth="3" strokeDasharray="4 16 28 6" className="animate-spin" style={{ animationDuration: '24s' }} />
                 <path d="M50 24 L74 74 L62 74 L50 48 L38 74 L26 74 Z" fill="#ffffff" />
                 <path d="M40 64 H60 L58 68 H42 Z" fill="#39FF14" />
@@ -112,11 +160,11 @@ export default function Home() {
             )}
             {user ? (
               <div className="flex items-center gap-2">
-                <Link href="/dashboard" prefetch={false} className="btn-primary text-xs px-3 sm:px-4 py-2">
+                <Link href="/dashboard" prefetch={false} className="btn-primary text-xs px-3 sm:px-4 py-1.5">
                   {t("nav_dashboard")}
                 </Link>
                 <button onClick={() => logout()} className="btn-ghost text-xs px-3 py-1.5 hidden sm:flex items-center gap-1.5">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
                   {t("logout")}
@@ -124,10 +172,10 @@ export default function Home() {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Link href="/dashboard" prefetch={false} className="btn-ghost text-xs px-3 sm:px-4 py-2">
+                <Link href="/dashboard" prefetch={false} className="btn-ghost text-xs px-3 sm:px-4 py-1.5">
                   {t("nav_dashboard")}
                 </Link>
-                <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} aria-label={isConnecting ? t("connecting") : t("connect")} className="btn-primary text-xs px-3 sm:px-4 py-2">
+                <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} aria-label={isConnecting ? t("connecting") : t("connect")} className="btn-primary text-xs px-3 sm:px-4 py-1.5">
                   {isConnecting ? t("connecting") : t("connect")}
                 </button>
               </div>
@@ -137,14 +185,16 @@ export default function Home() {
       </motion.header>
 
       {/* Hero Section */}
-      <div className="relative w-full max-w-6xl px-4 sm:px-6 mt-6 md:mt-16 z-10 min-h-[70vh] flex items-center">
+      <div className="relative w-full max-w-6xl px-4 sm:px-6 mt-8 md:mt-20 z-10 min-h-[75vh] flex items-center">
         {/* Dot grid background */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: "radial-gradient(#424754 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+        <div className="absolute inset-0 opacity-[0.08] pointer-events-none" style={{ backgroundImage: "radial-gradient(#424754 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
+        {/* Ambient glow */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-gradient-to-r from-emerald-500/[0.03] via-electric-blue/[0.04] to-axiom-purple/[0.03] rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center py-8 relative z-10">
+        <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center py-12 relative z-10">
           
           {/* Left Column: Headline, Description, CTAs, Trust indicators */}
-          <div className="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left space-y-5">
+          <div className="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left space-y-6">
             {/* Live badge */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -165,12 +215,12 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="text-3.5xl sm:text-4.5xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] text-white"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] text-white"
             >
               {language === "en" ? (
-                <>Your Identity, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-electric-blue to-axiom-purple">Sovereign.</span></>
+                <>Your Identity, <br className="hidden sm:block" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-electric-blue to-axiom-purple">Sovereign.</span></>
               ) : (
-                <>هويتك، <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-electric-blue to-axiom-purple">سيادية.</span></>
+                <>هويتك، <br className="hidden sm:block" /><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-electric-blue to-axiom-purple">سيادية.</span></>
               )}
             </motion.h1>
 
@@ -179,7 +229,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.5 }}
-              className="max-w-xl text-sm sm:text-base md:text-lg leading-relaxed text-zinc-400"
+              className="max-w-xl text-base sm:text-lg md:text-xl leading-relaxed text-zinc-400"
             >
               {t("hero_desc")}
             </motion.p>
@@ -200,21 +250,21 @@ export default function Home() {
                       ) : (
                         <>
                           {t("connect_wallet")}
-                          <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                         </>
                       )}
                     </button>
                   ) : (
                     <Link href="/dashboard" prefetch={false} className="btn-primary flex items-center justify-center gap-2 text-xs sm:text-sm px-6 py-3 min-h-[48px]">
                       {t("enter_dashboard")}
-                      <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                     </Link>
                   )}
                 </>
               ) : (
                 <Link href="/dashboard" prefetch={false} className="btn-primary flex items-center justify-center gap-2 text-xs sm:text-sm px-6 py-3 min-h-[48px]">
                   {t("enter_dashboard")}
-                  <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                 </Link>
               )}
               <Link href="/docs" className="btn-ghost flex items-center justify-center text-xs sm:text-sm px-6 py-3 min-h-[48px]">
@@ -227,21 +277,21 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="flex flex-wrap gap-4 items-center justify-center md:justify-start pt-4 text-[10px] font-mono text-zinc-500"
+              className="flex flex-wrap gap-5 items-center justify-center md:justify-start pt-4 text-[11px] font-mono text-zinc-500"
             >
-              <div className="flex items-center gap-1">
-                <span className="text-emerald-400">✓</span>
-                <span>W3C DID COMPLIANT</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-emerald-400 text-xs">◆</span>
+                <span className="tracking-wider">W3C DID</span>
               </div>
-              <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
-              <div className="flex items-center gap-1">
-                <span className="text-emerald-400">✓</span>
-                <span>STELLAR SECURED</span>
+              <div className="w-1 h-1 rounded-full bg-zinc-700" />
+              <div className="flex items-center gap-1.5">
+                <span className="text-emerald-400 text-xs">◆</span>
+                <span className="tracking-wider">STELLAR</span>
               </div>
-              <div className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
-              <div className="flex items-center gap-1">
-                <span className="text-emerald-400">✓</span>
-                <span>PI NET INTEGRATION</span>
+              <div className="w-1 h-1 rounded-full bg-zinc-700" />
+              <div className="flex items-center gap-1.5">
+                <span className="text-emerald-400 text-xs">◆</span>
+                <span className="tracking-wider">PI NETWORK</span>
               </div>
             </motion.div>
           </div>
@@ -252,10 +302,11 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full relative"
+              className="w-full max-w-sm relative"
             >
               {/* Outer halo background decoration */}
-              <div className="absolute -inset-4 bg-gradient-to-tr from-emerald-500/10 via-electric-blue/10 to-axiom-purple/10 rounded-[36px] filter blur-xl opacity-70 animate-pulse pointer-events-none" style={{ animationDuration: '6s' }} />
+              <div className="absolute -inset-6 bg-gradient-to-tr from-emerald-500/15 via-electric-blue/15 to-axiom-purple/15 rounded-[48px] blur-2xl opacity-60 animate-pulse pointer-events-none" style={{ animationDuration: '6s' }} />
+              <div className="absolute -inset-3 bg-gradient-to-tr from-emerald-500/5 via-electric-blue/5 to-axiom-purple/5 rounded-[32px] blur-lg opacity-40 pointer-events-none" />
               
               <InteractivePassportCard 
                 user={user ? {
@@ -283,31 +334,31 @@ export default function Home() {
       </div>
 
       {/* Live Stats Bar */}
-      <div ref={statsRef} className="w-full max-w-6xl px-4 sm:px-6 mt-12 sm:mt-16 z-10">
+      <div ref={statsRef} className="w-full max-w-6xl px-4 sm:px-6 mt-12 sm:mt-16 mb-4 z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={statsInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 sm:px-6 bento-card"
+          className="grid grid-cols-2 md:grid-cols-4 gap-px p-4 sm:p-5 bg-white/[0.03] rounded-2xl border border-white/[0.05]"
         >
           {[
-            { label: t("stat_users"), value: networkStats?.users ?? 0, icon: <Users className="w-5 h-5" /> },
-            { label: t("stat_agents"), value: networkStats?.agents ?? 0, icon: <Bot className="w-5 h-5" /> },
-            { label: t("total_xp"), value: networkStats?.xp ?? 0, icon: <Ticket className="w-5 h-5" /> },
-            { label: t("stat_tx"), value: networkStats?.payments ?? 0, icon: <Zap className="w-5 h-5" /> },
+            { label: t("stat_users"), value: networkStats?.users ?? 0, icon: <Users className="w-4 h-4" /> },
+            { label: t("stat_agents"), value: networkStats?.agents ?? 0, icon: <Bot className="w-4 h-4" /> },
+            { label: t("total_xp"), value: networkStats?.xp ?? 0, icon: <Ticket className="w-4 h-4" /> },
+            { label: t("stat_tx"), value: networkStats?.payments ?? 0, icon: <Zap className="w-4 h-4" /> },
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, y: 15 }}
               animate={statsInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.1 + i * 0.08, duration: 0.5 }}
-              className="text-center md:text-left md:border-r last:border-0 md:px-4 flex flex-col md:flex-row md:items-center gap-3"
-              style={{ borderColor: 'var(--card-border)' }}
+              className="text-center md:text-left md:border-r last:border-0 md:px-5 flex flex-col md:flex-row md:items-center gap-3 py-3 md:py-2 bg-[#0d0e15] rounded-xl md:bg-transparent"
+              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
             >
-              <span className="hidden md:inline" style={{ color: 'var(--text-muted)' }}>{stat.icon}</span>
+              <span className="hidden md:inline text-zinc-500">{stat.icon}</span>
               <div>
-                <p className="text-[10px] font-mono uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{stat.label}</p>
-                <h4 className="text-lg md:text-xl font-bold font-mono mt-0.5" style={{ color: 'var(--text-primary)' }}>
+                <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">{stat.label}</p>
+                <h4 className="text-lg md:text-xl font-bold font-mono mt-0.5 text-zinc-100">
                   {statsInView ? <AnimatedCounter target={stat.value} duration={1200} /> : "—"}
                 </h4>
               </div>
@@ -513,6 +564,8 @@ export default function Home() {
         </div>
       </motion.footer>
     </main>
+    )}
+    </>
   );
 }
 
@@ -535,5 +588,54 @@ function SectionHeader({ label, title, labelColor }: { label: string; title: str
       <span className={`text-[10px] font-mono ${labelColor} tracking-widest uppercase`}>{label}</span>
       <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-surface mt-2">{title}</h2>
     </motion.div>
+  );
+}
+
+function SkeletonScreen() {
+  return (
+    <main className="min-h-screen bg-grid flex flex-col items-center relative overflow-hidden">
+      <div className="scanline" />
+      {/* Header skeleton */}
+      <header className="sticky top-0 w-full z-50 bg-[#0a0b10]/90 backdrop-blur-xl border-b border-white/5">
+        <div className="max-w-6xl mx-auto flex justify-between items-center px-4 sm:px-6 py-4 sm:py-6">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-white/5 animate-pulse" />
+            <div className="w-24 h-5 bg-white/5 rounded animate-pulse" />
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-white/5 rounded animate-pulse" />
+            <div className="w-20 h-8 bg-white/5 rounded animate-pulse" />
+          </div>
+        </div>
+      </header>
+      {/* Hero skeleton */}
+      <div className="relative w-full max-w-6xl px-4 sm:px-6 mt-6 md:mt-16 z-10 min-h-[70vh] flex items-center">
+        <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center py-8">
+          <div className="md:col-span-7 space-y-5">
+            <div className="w-48 h-6 bg-white/5 rounded animate-pulse" />
+            <div className="w-full max-w-lg h-12 bg-white/5 rounded animate-pulse" />
+            <div className="w-full max-w-md h-16 bg-white/5 rounded animate-pulse" />
+            <div className="flex gap-3">
+              <div className="w-32 h-12 bg-white/5 rounded animate-pulse" />
+              <div className="w-32 h-12 bg-white/5 rounded animate-pulse" />
+            </div>
+          </div>
+          <div className="md:col-span-5 flex justify-center">
+            <div className="w-64 h-80 bg-white/5 rounded-3xl animate-pulse" />
+          </div>
+        </div>
+      </div>
+      {/* Stats skeleton */}
+      <div className="w-full max-w-6xl px-4 sm:px-6 mt-12 sm:mt-16 z-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 sm:px-6 bento-card">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="text-center md:text-left md:border-r last:border-0 md:px-4">
+              <div className="w-20 h-3 bg-white/5 rounded animate-pulse mx-auto md:mx-0 mb-2" />
+              <div className="w-16 h-6 bg-white/5 rounded animate-pulse mx-auto md:mx-0" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </main>
   );
 }

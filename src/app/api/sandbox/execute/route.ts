@@ -4,6 +4,7 @@ import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { requireAuth } from "@/lib/auth-middleware";
 import { scanScript, validatePayloadSize } from "@/lib/sandbox/ast-scanner";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -93,6 +94,7 @@ export async function POST(request: NextRequest) {
         sendLine(`[SYSTEM] [5/5] Tearing down microVM sandbox and reclaiming ephemeral volumes.`);
         sendLine(`[SUCCESS] Execution finished successfully with Exit Code 0.`);
       } catch (err) {
+        logger.error("Sandbox execution crashed", { error: err, skillName });
         sendLine(`[ERROR] Sandbox execution crashed: ${err instanceof Error ? err.message : String(err)}`);
       } finally {
         controller.close();

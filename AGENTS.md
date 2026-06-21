@@ -153,6 +153,48 @@ src/
     pi.d.ts        ← Pi SDK type declarations (window.Pi unified here)
 ```
 
+### 🔄 Continuous Improvement Loops
+
+> Loops are automated workflows that maintain quality over time. Each loop has a trigger, a check, and a fix path.
+
+#### Sub-50ms Page Load Loop
+- **Trigger:** Every PR, nightly CI
+- **Check:** Measure page load times for all routes (`/`, `/passport/[slug]`, `/dashboard`, `/dashboard/marketplace`)
+- **Fix:** If any page exceeds 50ms, investigate: bundle size, DB queries, render blocking resources
+- **Script:** `.superpowers/loops/sub-50ms.sh`
+
+#### 100% Test Coverage Loop
+- **Trigger:** Weekly, after major features
+- **Check:** Run `npx jest --coverage`, identify files below 100%
+- **Fix:** Add tests for uncovered branches, error paths, edge cases
+- **Script:** `.superpowers/loops/coverage.sh`
+
+#### Logging Coverage Loop
+- **Trigger:** Every PR, weekly
+- **Check:** Verify all `src/app/api/**/route.ts` files have `logger.error()` in catch blocks
+- **Fix:** Add missing logger calls to routes without logging
+- **Script:** `.superpowers/loops/logging-coverage.sh`
+
+#### Ticket-to-PR-Ready Loop
+- **Trigger:** On demand (when fixing a bug from an issue)
+- **Check:** Reproduce → Root cause → Smallest fix → Regression test → Full suite → PR
+- **Script:** `.superpowers/loops/ticket-to-pr.sh <issue-number>`
+
+#### Fresh Clone Loop
+- **Trigger:** Monthly, before releases
+- **Check:** Clone repo fresh, follow README steps, verify install/build/test all pass
+- **Fix:** Update README if any step fails
+- **Script:** `.superpowers/loops/fresh-clone.sh`
+
+#### Nightly Changelog Loop
+- **Trigger:** Nightly CI (2 AM UTC)
+- **Check:** Collect commits from last 24 hours, categorize (Added/Fixed/Changed)
+- **Fix:** Update CHANGELOG.md with dated entries
+- **Script:** `.superpowers/loops/nightly-changelog.sh`
+
+#### CI Integration
+All loops run automatically via `.github/workflows/loops.yml`. Manual dispatch available via GitHub Actions UI.
+
 ### 🚫 Anti-Patterns (Never Do)
 
 - Don't hardcode data — all values must come from API responses or real ledger sources.

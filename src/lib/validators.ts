@@ -48,9 +48,17 @@ export const AgentMainSchema = z.object({
   params: z.record(z.string(), z.unknown()).optional(),
 });
 
+export const SkillsListSortSchema = z.enum([
+  'newest', 'popular', 'rating', 'price_asc', 'price_desc',
+]).optional().nullable();
+
 export const SkillsListQuerySchema = z.object({
   tier: z.string().optional().nullable(),
   q: z.string().optional().nullable(),
+  tags: z.string().optional().nullable(),
+  sort: SkillsListSortSchema,
+  minPrice: z.coerce.number().nonnegative().optional().nullable(),
+  maxPrice: z.coerce.number().nonnegative().optional().nullable(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
   offset: z.coerce.number().int().min(0).default(0),
 });
@@ -78,11 +86,16 @@ export const SkillUpdateSchema = z.object({
   version: z.string().optional(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'DEPRECATED']).optional(),
   isPublished: z.boolean().optional(),
+  changelog: z.string().max(2000).optional(),
 });
 
 export const SkillReviewCreateSchema = z.object({
   rating: z.number().int().min(1).max(5),
   review: z.string().optional().nullable(),
+});
+
+export const SkillTagsUpdateSchema = z.object({
+  tags: z.array(z.string().min(1, 'tag name is required').max(100)).max(10, 'maximum 10 tags per skill'),
 });
 
 export const PresenceHeartbeatSchema = z.object({
@@ -129,6 +142,7 @@ export type SkillsListQueryInput = z.infer<typeof SkillsListQuerySchema>;
 export type SkillPublishInput = z.infer<typeof SkillPublishSchema>;
 export type SkillUpdateInput = z.infer<typeof SkillUpdateSchema>;
 export type SkillReviewCreateInput = z.infer<typeof SkillReviewCreateSchema>;
+export type SkillTagsUpdateInput = z.infer<typeof SkillTagsUpdateSchema>;
 export type PresenceHeartbeatInput = z.infer<typeof PresenceHeartbeatSchema>;
 export type OrderCreateInput = z.infer<typeof OrderCreateSchema>;
 export type OrderActionInput = z.infer<typeof OrderActionSchema>;
@@ -136,3 +150,39 @@ export type CredentialStatusQueryInput = z.infer<typeof CredentialStatusQuerySch
 export type DidDocumentQueryInput = z.infer<typeof DidDocumentQuerySchema>;
 export type SlugParamInput = z.infer<typeof SlugParamSchema>;
 export type PassportSlugParamInput = z.infer<typeof PassportSlugParamSchema>;
+
+export const AgentIdentitySchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("identity_assertion"), assertion: z.string().min(1) }),
+  z.object({ type: z.literal("anonymous") }),
+]);
+
+export const TokenExchangeSchema = z.discriminatedUnion("grant_type", [
+  z.object({ grant_type: z.literal("jwt-bearer"), assertion: z.string().min(1) }),
+  z.object({ grant_type: z.literal("claim"), claim_token: z.string().min(1) }),
+]);
+
+export const TokenRevocationSchema = z.object({
+  token: z.string().min(1),
+});
+
+export const AgentSignSchema = z.object({
+  payload: z.string().min(1, "Payload is required"),
+  did: z.string().startsWith("did:axiom:", "Invalid AxiomID DID"),
+});
+
+export const ModerationActionSchema = z.object({
+  action: z.enum(["approve", "reject"], { message: "action must be 'approve' or 'reject'" }),
+  reason: z.string().max(1000).optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+export const ModerationIdParamSchema = z.object({
+  id: z.string().uuid("id must be a valid UUID"),
+});
+
+export type AgentIdentityInput = z.infer<typeof AgentIdentitySchema>;
+export type TokenExchangeInput = z.infer<typeof TokenExchangeSchema>;
+export type TokenRevocationInput = z.infer<typeof TokenRevocationSchema>;
+export type AgentSignInput = z.infer<typeof AgentSignSchema>;
+export type ModerationActionInput = z.infer<typeof ModerationActionSchema>;
+export type ModerationIdParamInput = z.infer<typeof ModerationIdParamSchema>;

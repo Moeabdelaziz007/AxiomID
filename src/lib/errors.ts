@@ -13,7 +13,14 @@ export type ErrorCode =
   | 'PAYMENT_VERIFICATION_FAILED'
   | 'PAYMENT_MISMATCH'
   | 'PAYMENT_INVALID'
-  | 'INTERNAL_ERROR';
+  | 'INTERNAL_ERROR'
+  | 'INVALID_ID_JAG'
+  | 'CLAIM_EXPIRED'
+  | 'CLAIM_NOT_FOUND'
+  | 'TOKEN_EXPIRED'
+  | 'TOKEN_REVOKED'
+  | 'INVALID_GRANT'
+  | 'UNSUPPORTED_GRANT_TYPE';
 
 interface ApiError {
   error: string;
@@ -34,6 +41,13 @@ const STATUS_MAP: Record<ErrorCode, number> = {
   PAYMENT_MISMATCH: 402,
   PAYMENT_INVALID: 402,
   INTERNAL_ERROR: 500,
+  INVALID_ID_JAG: 401,
+  CLAIM_EXPIRED: 410,
+  CLAIM_NOT_FOUND: 404,
+  TOKEN_EXPIRED: 401,
+  TOKEN_REVOKED: 401,
+  INVALID_GRANT: 400,
+  UNSUPPORTED_GRANT_TYPE: 400,
 };
 
 /**
@@ -58,6 +72,13 @@ const REPORT_DIAGNOSTIC: Record<ErrorCode, (message: string) => any> = {
   PAYMENT_MISMATCH:            (m) => diagnostics.AXIOMID_E023({ paymentId: 'unknown', piError: m }),
   PAYMENT_INVALID:             (m) => diagnostics.AXIOMID_E024({ paymentId: 'unknown', piError: m }),
   INTERNAL_ERROR:              (m) => diagnostics.AXIOMID_E040({ operation: 'unknown', error: m }),
+  INVALID_ID_JAG:              (m) => diagnostics.AXIOMID_E001({ field: 'id_jag', message: m }),
+  CLAIM_EXPIRED:               (m) => diagnostics.AXIOMID_E001({ field: 'claim', message: m }),
+  CLAIM_NOT_FOUND:             (m) => diagnostics.AXIOMID_E001({ field: 'claim', message: m }),
+  TOKEN_EXPIRED:               (m) => diagnostics.AXIOMID_E001({ field: 'token', message: m }),
+  TOKEN_REVOKED:               (m) => diagnostics.AXIOMID_E001({ field: 'token', message: m }),
+  INVALID_GRANT:               (m) => diagnostics.AXIOMID_E001({ field: 'grant', message: m }),
+  UNSUPPORTED_GRANT_TYPE:      (m) => diagnostics.AXIOMID_E001({ field: 'grant_type', message: m }),
 };
 
 /**

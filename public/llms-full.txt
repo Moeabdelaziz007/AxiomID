@@ -1,0 +1,176 @@
+# AxiomID — Full Documentation
+
+> W3C DID-based identity layer for humans delegating authority to AI agents on Pi Network and Stellar.
+
+## Overview
+
+AxiomID is a decentralized identity system that allows humans to delegate authority to AI agents using W3C DID standards, Ed25519 cryptographic keys, and Verifiable Credentials.
+
+### Architecture
+
+The system consists of:
+- **Frontend**: Next.js 16 App Router with Tailwind CSS
+- **Backend**: Cloudflare Workers (Edge) + Vercel Functions
+- **Database**: PostgreSQL (Prisma ORM) + Cloudflare D1 (SQLite)
+- **Blockchain**: Stellar (DID anchoring) + Pi Network (KYC/identity)
+- **Crypto**: Ed25519 keys (jose library), HMAC-SHA256 derivation
+
+### Identity Tiers
+
+| Tier | XP Required | Capabilities |
+|------|-------------|--------------|
+| Visitor | 0 | Basic access, rate-limited |
+| Citizen | 100 | Pi KYC verified, basic skills |
+| Validator | 500 | Community verified, advanced skills |
+| Sovereign | 1000 | Full delegation authority, premium skills |
+
+## API Reference
+
+### Public Endpoints (No Auth Required)
+
+#### GET /api
+API root discovery endpoint. Returns list of all available endpoints.
+
+#### GET /api/did-document
+W3C DID document resolution. Returns JSON-LD DID document.
+- Query param: `?did=did:axiom:username` (optional, returns issuer DID if omitted)
+- Content-Type: `application/did+ld+json`
+- Cache: `public, max-age=86400, stale-while-revalidate=3600`
+
+#### GET /.well-known/jwks.json
+JSON Web Key Set. Returns Ed25519 public keys for signature verification.
+- Cache: `public, s-maxage=3600, stale-while-revalidate=86400`
+
+#### GET /auth.md
+Protocol discovery document. Returns markdown with API documentation.
+
+### Protected Endpoints (Auth Required)
+
+#### POST /api/agent/identity
+Verify Pi ID-JAG token and create/update agent identity.
+- Body: `{ idToken: string }`
+- Returns: `{ user, agent, did }`
+
+#### POST /api/agent/sign
+Sign payload with sovereign Ed25519 key.
+- Body: `{ payload: string, did: string }`
+- Returns: `{ signature: string, kid: string }`
+
+#### GET /api/agent/manifest
+Verifiable Credential manifest. Returns available VC types.
+
+#### POST /api/oauth2/token
+JWT bearer grant exchange. Convert Pi token to AxiomID access token.
+- Body: `{ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: string }`
+- Returns: `{ access_token, token_type, expires_in }`
+
+#### POST /api/oauth2/revoke
+Revoke access or refresh token.
+- Body: `{ token: string, token_type_hint?: "access_token" | "refresh_token" }`
+
+### Marketplace Endpoints
+
+#### GET /api/skills
+Search and list available skills.
+- Query: `?q=search&tag=tag&sort=price`
+
+#### GET /api/skills/tags
+List all skill categories.
+
+#### POST /api/skills/[skillId]/purchase
+Purchase a skill with Pi Coin.
+- Body: `{ paymentId: string }`
+
+#### GET /api/agent/skills
+List skills owned by authenticated agent.
+
+## DID Document Format
+
+```json
+{
+  "@context": ["https://www.w3.org/ns/did/v1", "https://w3id.org/security/suites/ed25519-2020/v1"],
+  "id": "did:axiom:piUsername",
+  "controller": "did:axiom:axiom-root",
+  "verificationMethod": [{
+    "id": "did:axiom:piUsername#key-1",
+    "type": "Ed25519VerificationKey2020",
+    "controller": "did:axiom:piUsername",
+    "publicKeyMultibase": "z..."
+  }],
+  "authentication": ["did:axiom:piUsername#key-1"],
+  "capabilityDelegation": ["did:axiom:piUsername#key-1"],
+  "service": [{
+    "id": "did:axiom:piUsername#agent",
+    "type": "AgentService",
+    "serviceEndpoint": "https://axiomid.app/api/agent"
+  }]
+}
+```
+
+## Error Responses
+
+All API errors follow this envelope:
+```json
+{
+  "error": "Error message",
+  "code": "ERROR_CODE"
+}
+```
+
+Error codes: `VALIDATION_ERROR`, `NOT_FOUND`, `RATE_LIMITED`, `INTERNAL_ERROR`, `UNAUTHORIZED`, `FORBIDDEN`
+
+## Authentication
+
+1. User connects Pi wallet in Pi Browser
+2. Pi SDK returns ID-JAG token
+3. POST to `/api/agent/identity` with token
+4. Receive AxiomID access token
+5. Use token in `Authorization: Bearer <token>` header
+
+## Rate Limits
+
+- Public endpoints: 60 requests/minute per IP
+- Authenticated endpoints: 120 requests/minute per user
+- Signing endpoints: 10 requests/minute per user
+
+## For AI Agents
+
+### Quick Start
+```bash
+# 1. Get API catalog
+curl https://axiomid.app/api
+
+# 2. Get DID document
+curl https://axiomid.app/api/did-document?did=did:axiom:username
+
+# 3. Verify signature
+curl https://axiomid.app/.well-known/jwks.json
+```
+
+### DID Format
+- Format: `did:axiom:piUsername`
+- Example: `did:axiom:Pioneer.Axiom`
+
+### Signing
+- Algorithm: Ed25519
+- Library: jose (RFC 8037)
+- Key derivation: HMAC-SHA256 with SOVEREIGN_KEY_SALT
+
+### Sandbox Mode
+Add header: `X-Sandbox: true`
+
+## Security
+
+- Private keys never stored — derived deterministically
+- All auth endpoints rate-limited
+- Zod validation at all trust boundaries
+- Token revocation supported
+- W3C DID Document for key rotation
+
+## Links
+
+- Website: https://axiomid.app
+- Documentation: https://axiomid.app/docs
+- GitHub: https://github.com/Moeabdelaziz007/AxiomID
+- DID Resolution: https://axiomid.app/api/did-document
+- JWKS: https://axiomid.app/.well-known/jwks.json
