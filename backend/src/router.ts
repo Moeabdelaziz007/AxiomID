@@ -140,7 +140,7 @@ export class Router {
     }
 
     if (path === "/api/sync/export" && method === "GET") {
-      return this.handleSyncExport(url);
+      return this.handleSyncExport(request);
     }
 
     // --- Skills Marketplace ---
