@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { deriveSovereignAgentKeypair } from "@/lib/sovereign-keys";
+import { deriveSovereignAgentKeypair, ROOT_AGENT_ID } from "@/lib/sovereign-keys";
 
 interface Jwk {
   kty: string;
@@ -24,12 +24,7 @@ export function exportJwks(did: string): Jwks {
   const keys: Jwk[] = [];
 
   if (did && did !== "*") {
-    // Derive from the uid (last DID segment) to match the signing key
-    // derivation in /api/agent/sign, so the published public key verifies
-    // signatures produced there.
-    const didParts = did.split(":");
-    const uid = decodeURIComponent(didParts[didParts.length - 1]);
-    const keypair = deriveSovereignAgentKeypair(uid, "axiom-root");
+    const keypair = deriveSovereignAgentKeypair(did, ROOT_AGENT_ID);
     const kid = `${did}#key-1`;
     keys.push(pemToJwk(keypair.publicKey, kid));
   }
@@ -40,10 +35,8 @@ export function exportJwks(did: string): Jwks {
 /**
  * Converts a PEM-encoded public key to a JSON Web Key.
  *
- * `@param` publicKeyPem - The PEM-encoded public key string
- * `@param` kid - The key identifier to assign to the JWK
- * `@throws` Throws an error if the key type is not Ed25519.
- * `@returns` A JWK representation of the public key.
+ * @throws Throws an error if the key type is not Ed25519.
+ * @returns A JWK representation of the public key.
  */
 export function pemToJwk(publicKeyPem: string, kid: string): Jwk {
   const keyObject = crypto.createPublicKey(publicKeyPem);

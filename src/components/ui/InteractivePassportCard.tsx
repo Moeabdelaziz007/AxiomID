@@ -50,7 +50,7 @@ export default function InteractivePassportCard({ user, readonly = false, locked
   const trustScore = locked ? 0 : (user?.trustScore ?? 0);
   const isKya = !locked && user?.kyaStatus === "verified";
   const isKyc = !locked && user?.kycStatus === "verified";
-  const did = locked ? "did:axiom:locked_credential" : (user?.piUsername ? "did:axiom:axiomid.app:pi:" + user.piUsername : "did:axiom:unconnected");
+  const did = locked ? "did:axiom:locked_credential" : (user?.walletAddress || "did:axiom:unconnected");
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (readonly || locked || !cardRef.current) return;

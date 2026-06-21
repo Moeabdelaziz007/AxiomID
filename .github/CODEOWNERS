@@ -1,0 +1,20 @@
+# AxiomID CODEOWNERS
+# These owners will be automatically requested for review
+# when someone opens a pull request.
+
+# Default owner for everything
+* @Moeabdelaziz007
+
+# Security and auth
+/src/lib/auth*.ts @Moeabdelaziz007
+/src/lib/claim-ceremony.ts @Moeabdelaziz007
+/src/lib/sovereign-keys.ts @Moeabdelaziz007
+/src/app/api/oauth2/ @Moeabdelaziz007
+/src/app/api/agent/ @Moeabdelaziz007
+
+# CI/CD
+/.github/ @Moeabdelaziz007
+
+# Documentation
+/docs/ @Moeabdelaziz007
+*.md @Moeabdelaziz007

@@ -1,0 +1,24 @@
+User-agent: GPTBot
+Allow: /
+Allow: /llms.txt
+Allow: /api/did-document
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: *
+Allow: /llms.txt
+Allow: /.well-known/
+Allow: /api/did-document
+Disallow: /api/agent/sign
+Disallow: /api/oauth2/
+Disallow: /dashboard/

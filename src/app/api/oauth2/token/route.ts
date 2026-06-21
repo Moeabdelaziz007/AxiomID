@@ -5,8 +5,6 @@ import { getClientIp } from "@/lib/ip";
 import { TokenExchangeSchema } from "@/lib/validators";
 import { verifyIdentityAssertion, createAccessToken } from "@/lib/auth-tokens";
 import { verifyClaimToken } from "@/lib/claim-ceremony";
-import { isTokenRevoked } from "@/lib/revocation";
-import { createPiDid } from "@/lib/did";
 import { logger } from "@/lib/logger";
 
 /**
@@ -37,10 +35,6 @@ export async function POST(request: NextRequest) {
 
   try {
     if (parsed.data.grant_type === "jwt-bearer") {
-      if (isTokenRevoked(parsed.data.assertion)) {
-        return apiError("TOKEN_REVOKED", "Assertion has been revoked");
-      }
-
       const payload = await verifyIdentityAssertion(parsed.data.assertion);
       const accessToken = await createAccessToken(payload.sub, payload.scopes);
 
@@ -51,7 +45,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const claim = await verifyClaimToken(parsed.data.claim_token);
+    const claim = verifyClaimToken(parsed.data.claim_token);
 
     if (!claim) {
       return apiError("CLAIM_EXPIRED", "Claim token expired or invalid");
@@ -62,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (claim.status === "confirmed" && claim.userId) {
-      const accessToken = await createAccessToken(createPiDid(claim.userId), ["api.read", "api.write"]);
+      const accessToken = await createAccessToken(`did:axiom:axiomid.app:pi:${claim.userId}`, ["api.read", "api.write"]);
       return apiSuccess({
         access_token: accessToken,
         token_type: "Bearer",

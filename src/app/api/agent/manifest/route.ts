@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 import { apiError, apiSuccess } from "@/lib/errors";
 import { requireAuth } from "@/lib/auth-middleware";
 import { prisma } from "@/lib/prisma";
-import { logger } from "@/lib/logger";
 import { createPrivateKey, sign } from "crypto";
 
 /**
@@ -59,23 +58,13 @@ export async function GET(request: NextRequest) {
     },
   };
 
-  let proofValue: string;
-  try {
-    const privateKey = createPrivateKey(issuerPrivateKeyPem);
-    if (privateKey.asymmetricKeyType !== "ed25519") {
-      logger.error(`[AGENT-MANIFEST] ISSUER_PRIVATE_KEY must be Ed25519, got ${privateKey.asymmetricKeyType}`);
-      return apiError("INTERNAL_ERROR", "Issuer key misconfigured");
-    }
-    proofValue = sign(null, Buffer.from(JSON.stringify(credential)), privateKey).toString("hex");
-  } catch (error) {
-    logger.error("[AGENT-MANIFEST] Failed to sign credential:", error);
-    return apiError("INTERNAL_ERROR", "Failed to sign credential");
-  }
+  const privateKey = createPrivateKey(issuerPrivateKeyPem);
+  const proofValue = sign(null, Buffer.from(JSON.stringify(credential)), privateKey).toString("hex");
 
   const manifest = {
     ...credential,
     proof: {
-      type: "Ed25519Signature2020",
+      type: "Ed25519Signature2018",
       verificationMethod: "did:axiom:issuer#key-1",
       proofPurpose: "assertionMethod",
       created: issuanceDate,

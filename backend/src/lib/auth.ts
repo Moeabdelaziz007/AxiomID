@@ -5,13 +5,7 @@
 
 import type { Env } from "./types";
 
-// Routes matched by exact path (sub-paths require auth).
-const PUBLIC_EXACT = new Set(["/health", "/api/sync"]);
-// Routes matched by prefix (any sub-path is also public).
-const PUBLIC_PREFIXES = ["/status", "/api/trust/", "/api/skills"];
-
-/** @deprecated use PUBLIC_EXACT / PUBLIC_PREFIXES directly */
-export const PUBLIC_ROUTES = [...PUBLIC_EXACT, ...PUBLIC_PREFIXES];
+export const PUBLIC_ROUTES = ["/health", "/status", "/api/trust/", "/api/skills"];
 
 export function verifyAuth(request: Request, env: Env): { authorized: boolean; agentId?: string } {
   const url = new URL(request.url);

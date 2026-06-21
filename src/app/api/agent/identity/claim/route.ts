@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const claim = await findClaimByUserCode(parsed.data.user_code);
+    const claim = findClaimByUserCode(parsed.data.user_code);
     if (!claim) {
       return apiError("NOT_FOUND", "Claim not found for the given user_code");
     }

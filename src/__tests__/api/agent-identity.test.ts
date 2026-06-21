@@ -11,7 +11,6 @@ jest.mock("@/lib/logger", () => ({
 }));
 jest.mock("@/lib/auth-tokens", () => ({
   createIdentityAssertion: jest.fn(),
-  verifyIdentityAssertion: jest.fn().mockResolvedValue({ sub: "did:axiom:some-user", scopes: ["api.read", "api.write"] }),
 }));
 jest.mock("@/lib/claim-ceremony", () => ({
   createClaimToken: jest.fn(),
@@ -58,14 +57,13 @@ describe("POST /api/agent/identity", () => {
   });
 
   it("returns claim_token for anonymous registration", async () => {
-    mockCreateClaim.mockResolvedValue({
+    mockCreateClaim.mockReturnValue({
       token: "claim-abc",
       userCode: "AXIO-1234",
       verificationUri: "https://axiomid.app/claim",
       expiresAt: Date.now() + 600000,
       status: "pending",
     });
-
 
     const req = mockPostRequest({ type: "anonymous" });
     const res = await POST(req);
@@ -132,7 +130,7 @@ describe("POST /api/agent/identity", () => {
   });
 
   it("anonymous response includes verification_uri in claim", async () => {
-    mockCreateClaim.mockResolvedValue({
+    mockCreateClaim.mockReturnValue({
       token: "claim-xyz",
       userCode: "AXIO-ABCD",
       verificationUri: "https://axiomid.app/claim",
@@ -149,14 +147,13 @@ describe("POST /api/agent/identity", () => {
 
   it("anonymous response includes expires_in in claim", async () => {
     const futureExpiry = Date.now() + 600000;
-    mockCreateClaim.mockResolvedValue({
+    mockCreateClaim.mockReturnValue({
       token: "claim-xyz",
       userCode: "AXIO-ABCD",
       verificationUri: "https://axiomid.app/claim",
       expiresAt: futureExpiry,
       status: "pending",
     });
-
 
     const req = mockPostRequest({ type: "anonymous" });
     const res = await POST(req);

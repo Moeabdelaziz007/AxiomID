@@ -4,6 +4,7 @@
 
 jest.mock("@/lib/sovereign-keys", () => ({
   deriveSovereignAgentKeypair: jest.fn(),
+  ROOT_AGENT_ID: "axiom-root",
 }));
 
 import { exportJwks } from "@/lib/jwks";
@@ -59,12 +60,11 @@ describe("JWKS", () => {
     expect(mockDerive).not.toHaveBeenCalled();
   });
 
-  it("calls deriveSovereignAgentKeypair with the DID's uid and 'axiom-root'", () => {
+  it("calls deriveSovereignAgentKeypair with the DID and ROOT_AGENT_ID", () => {
     const did = "did:axiom:axiomid.app:pi:abc123";
     exportJwks(did);
 
-    // Must use the uid (last DID segment) to match /api/agent/sign derivation
-    expect(mockDerive).toHaveBeenCalledWith("abc123", "axiom-root");
+    expect(mockDerive).toHaveBeenCalledWith(did, "axiom-root");
   });
 
   it("x field is a base64url string", () => {

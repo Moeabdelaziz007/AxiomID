@@ -7,7 +7,6 @@ import {
   verifyIdentityAssertion,
   createAccessToken,
   verifyAccessToken,
-  verifyPiTokenWithJwks,
 } from "@/lib/auth-tokens";
 
 describe("Auth Tokens", () => {
@@ -32,8 +31,7 @@ describe("Auth Tokens", () => {
   });
 
   it("rejects expired tokens", async () => {
-    const token = await createIdentityAssertion(TEST_DID, [...TEST_SCOPES], 1);
-    await new Promise(resolve => setTimeout(resolve, 1100));
+    const token = await createIdentityAssertion(TEST_DID, [...TEST_SCOPES], 0);
     await expect(verifyIdentityAssertion(token)).rejects.toThrow("Token has expired");
   });
 
@@ -129,22 +127,3 @@ describe("createAccessToken / verifyAccessToken", () => {
     expect(accessPayload.scopes).toEqual(identityPayload.scopes);
   });
 });
-
-describe("verifyPiTokenWithJwks", () => {
-  it("bypasses signature check and returns decoded payload in test environment", async () => {
-    const testPayload = { sub: "pi-user-123", iss: "https://key.minepi.com" };
-    const token = "header." + Buffer.from(JSON.stringify(testPayload)).toString("base64url") + ".signature";
-
-    const payload = await verifyPiTokenWithJwks(token);
-    expect(payload.sub).toBe("pi-user-123");
-    expect(payload.iss).toBe("https://key.minepi.com");
-  });
-
-  it("throws an error if issuer is missing", async () => {
-    const testPayload = { sub: "pi-user-123" };
-    const token = "header." + Buffer.from(JSON.stringify(testPayload)).toString("base64url") + ".signature";
-
-    await expect(verifyPiTokenWithJwks(token)).rejects.toThrow("Missing issuer in Pi JWT");
-  });
-});
-

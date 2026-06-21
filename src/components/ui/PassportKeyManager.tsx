@@ -83,7 +83,6 @@ export default function PassportKeyManager({ did, onSign }: PassportKeyManagerPr
             value={payload}
             onChange={(e) => setPayload(e.target.value)}
             placeholder="Payload to sign..."
-            aria-label="Payload to sign with your DID key"
             className="flex-1 text-[11px] font-mono bg-white/5 border border-white/10 rounded px-2 py-1 text-zinc-300 placeholder:text-zinc-600"
           />
           <button

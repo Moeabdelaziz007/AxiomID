@@ -39,7 +39,7 @@ describe("POST /api/agent/identity/claim", () => {
   });
 
   it("returns claim status when user_code is valid", async () => {
-    mockFindClaim.mockResolvedValue({
+    mockFindClaim.mockReturnValue({
       token: "claim-abc",
       userCode: "AXIO-1234",
       status: "pending",
@@ -57,7 +57,7 @@ describe("POST /api/agent/identity/claim", () => {
   });
 
   it("returns 404 for invalid user_code", async () => {
-    mockFindClaim.mockResolvedValue(null);
+    mockFindClaim.mockReturnValue(null);
 
     const req = mockPostRequest({ user_code: "INVALID" });
     const res = await POST(req);
@@ -88,7 +88,9 @@ describe("POST /api/agent/identity/claim", () => {
   });
 
   it("returns 500 on internal error", async () => {
-    mockFindClaim.mockRejectedValue(new Error("Unexpected failure"));
+    mockFindClaim.mockImplementation(() => {
+      throw new Error("Unexpected failure");
+    });
 
     const req = mockPostRequest({ user_code: "AXIO-1234" });
     const res = await POST(req);
@@ -99,7 +101,7 @@ describe("POST /api/agent/identity/claim", () => {
   });
 
   it("response includes user_code in body", async () => {
-    mockFindClaim.mockResolvedValue({
+    mockFindClaim.mockReturnValue({
       token: "claim-abc",
       userCode: "AXIO-1234",
       status: "pending",
@@ -116,7 +118,7 @@ describe("POST /api/agent/identity/claim", () => {
   });
 
   it("response includes verification_uri", async () => {
-    mockFindClaim.mockResolvedValue({
+    mockFindClaim.mockReturnValue({
       token: "claim-abc",
       userCode: "AXIO-5678",
       status: "pending",
@@ -134,7 +136,7 @@ describe("POST /api/agent/identity/claim", () => {
 
   it("response includes expires_at", async () => {
     const expiresAt = Date.now() + 600000;
-    mockFindClaim.mockResolvedValue({
+    mockFindClaim.mockReturnValue({
       token: "claim-abc",
       userCode: "AXIO-ABCD",
       status: "pending",
@@ -151,7 +153,7 @@ describe("POST /api/agent/identity/claim", () => {
   });
 
   it("returns NOT_FOUND error code for 404", async () => {
-    mockFindClaim.mockResolvedValue(null);
+    mockFindClaim.mockReturnValue(null);
 
     const req = mockPostRequest({ user_code: "AXIO-XXXX" });
     const res = await POST(req);

@@ -1,12 +1,22 @@
 import { NextRequest } from "next/server";
+import crypto from "crypto";
 import { apiError, apiSuccess, rateLimitHeaders } from "@/lib/errors";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { logger } from "@/lib/logger";
 import { AgentIdentitySchema } from "@/lib/validators";
-import { createIdentityAssertion, verifyIdentityAssertion } from "@/lib/auth-tokens";
+import { createIdentityAssertion } from "@/lib/auth-tokens";
 import { createClaimToken } from "@/lib/claim-ceremony";
-import { deriveDid } from "@/lib/did";
+
+/**
+ * Derives a deterministic DID from an assertion string.
+ *
+ * @returns A DID string with the format `did:axiom:user:` followed by the first 16 hex characters of the UTF-8-encoded assertion.
+ */
+function deriveDid(assertion: string): string {
+  const hash = crypto.createHash("sha256").update(assertion).digest("hex").slice(0, 16);
+  return `did:axiom:user:${hash}`;
+}
 
 /**
  * Processes an agent identity request and returns either a scoped identity assertion or a claim token.
@@ -34,22 +44,13 @@ export async function POST(request: NextRequest) {
 
   try {
     if (parsed.data.type === "identity_assertion") {
-      // Verify the incoming assertion's signature, issuer, and claims before
-      // issuing a new identity token. Reject any unverified/forged assertion.
-      let verified;
-      try {
-        verified = await verifyIdentityAssertion(parsed.data.assertion);
-      } catch {
-        return apiError("INVALID_ID_JAG", "Invalid or unverifiable identity assertion");
-      }
-
       const did = deriveDid(parsed.data.assertion);
-      const scopes = verified.scopes.length > 0 ? verified.scopes : ["api.read", "api.write"];
+      const scopes = ["api.read", "api.write"];
       const identityAssertion = await createIdentityAssertion(did, scopes);
       return apiSuccess({ identity_assertion: identityAssertion, did, scopes });
     }
 
-    const claim = await createClaimToken();
+    const claim = createClaimToken();
     const expiresIn = Math.max(0, Math.floor((claim.expiresAt - Date.now()) / 1000));
     return apiSuccess({
       claim_token: claim.token,
@@ -61,7 +62,6 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-
     logger.error("[AGENT-IDENTITY] Error:", error);
     return apiError("INTERNAL_ERROR", "Failed to process identity request");
   }

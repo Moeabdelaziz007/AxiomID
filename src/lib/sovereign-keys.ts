@@ -1,5 +1,7 @@
 import crypto from "crypto";
 
+export const ROOT_AGENT_ID = "axiom-root";
+
 /**
  * Deterministically derives an agent keypair from a Stellar address and agent ID.
  *
@@ -67,23 +69,23 @@ export function signPayloadWithAgentKey(payload: string, privateKeyPem: string):
  * @throws If `SOVEREIGN_KEY_SALT` is not configured in a production environment
  */
 export function deriveUserRootKey(piUid: string): { publicKey: string; privateKey: string } {
-  return deriveSovereignAgentKeypair(piUid, "axiom-root");
+  const salt = process.env.SOVEREIGN_KEY_SALT || (process.env.NODE_ENV === "production" ? undefined : "development_fallback_salt_3f43ec47");
+  if (!salt) {
+    throw new Error("SOVEREIGN_KEY_SALT is not configured in production environment");
+  }
+  return deriveSovereignAgentKeypair(piUid, ROOT_AGENT_ID);
 }
 
 /**
-
+ * Verifies that a signature is valid for a payload.
  *
  * @returns `true` if the signature is valid, `false` otherwise.
  */
 export function verifyAgentSignature(payload: string, signatureHex: string, publicKeyPem: string): boolean {
-  try {
-    const publicKeyObj = crypto.createPublicKey({
-      key: publicKeyPem,
-      format: "pem",
-      type: "spki"
-    });
-    return crypto.verify(null, Buffer.from(payload, "utf8"), publicKeyObj, Buffer.from(signatureHex, "hex"));
-  } catch {
-    return false;
-  }
+  const publicKeyObj = crypto.createPublicKey({
+    key: publicKeyPem,
+    format: "pem",
+    type: "spki"
+  });
+  return crypto.verify(null, Buffer.from(payload, "utf8"), publicKeyObj, Buffer.from(signatureHex, "hex"));
 }

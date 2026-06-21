@@ -66,6 +66,10 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://axiomid.app'),
   alternates: {
     canonical: '/',
+    languages: {
+      'en': '/',
+      'ar': '/',
+    },
   },
   openGraph: {
     title: "AxiomID - The Human Authorization Protocol",

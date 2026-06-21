@@ -63,7 +63,7 @@ curl -X POST https://axiomid.app/api/oauth2/token \\
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
 | \`/api/agent/identity\` | POST | Register agent |
-| \`/api/agent/identity/claim\` | POST | Check claim status |
+| \`/api/agent/identity/claim\` | POST | Start claim ceremony |
 | \`/api/oauth2/token\` | POST | Exchange for access token |
 | \`/api/oauth2/revoke\` | POST | Revoke access token |
 | \`/.well-known/jwks.json\` | GET | Public keys |

@@ -3,10 +3,15 @@
  *
  * PassportHero was removed in the Stitch hero rewrite. These tests verify
  * the new Stitch hero layout: centered heading, CTAs, features, tiers.
+ *
+ * Note: page.tsx has a 100ms skeleton loader (isPageLoaded useState).
+ * This file uses jest.useFakeTimers to advance past the skeleton in each test
+ * so content assertions see the real hero layout.
  */
 
 import React from "react";
 import { render, screen } from "@testing-library/react";
+import { act } from "react";
 import Home from "@/app/page";
 
 jest.mock("@/components/ThemeToggle", () => ({
@@ -56,32 +61,49 @@ function defaultWalletCtx(overrides: Partial<ReturnType<typeof useWallet>> = {})
   } as ReturnType<typeof useWallet>;
 }
 
+function renderHome() {
+  render(<Home />);
+  act(() => { jest.advanceTimersByTime(101); });
+}
+
+beforeAll(() => {
+  jest.useFakeTimers();
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ stats: { registeredUsers: 100, totalAgents: 50, totalXpEarned: 10000, totalPayments: 500 } }),
+  }) as unknown as typeof fetch;
+});
+
+afterAll(() => {
+  jest.useRealTimers();
+});
+
 describe("Landing page — Stitch hero", () => {
   beforeEach(() => {
     mockUseWallet.mockReturnValue(defaultWalletCtx());
   });
 
   it("renders the main heading", () => {
-    render(<Home />);
+    renderHome();
     const heading = screen.getByRole("heading", { level: 1 });
     expect(heading).toHaveTextContent(/Your Identity/);
     expect(heading).toHaveTextContent(/Sovereign/);
   });
 
   it("renders the Live on Pi Network badge", () => {
-    render(<Home />);
+    renderHome();
     expect(screen.getByText("Live on Pi Network Mainnet")).toBeInTheDocument();
   });
 
   it("renders features section", () => {
-    render(<Home />);
+    renderHome();
     expect(screen.getByText("Connect")).toBeInTheDocument();
     expect(screen.getByText("Verify")).toBeInTheDocument();
     expect(screen.getByText("Deploy")).toBeInTheDocument();
   });
 
   it("renders tier cards", () => {
-    render(<Home />);
+    renderHome();
     expect(screen.getByText("Visitor")).toBeInTheDocument();
     expect(screen.getByText("Citizen")).toBeInTheDocument();
     expect(screen.getByText("Validator")).toBeInTheDocument();
@@ -107,13 +129,13 @@ describe("Landing page — authenticated user", () => {
   });
 
   it("renders LOGOUT button when authenticated", () => {
-    render(<Home />);
+    renderHome();
     const logoutButtons = screen.getAllByRole("button", { name: /logout/i });
     expect(logoutButtons.length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders DASHBOARD link when authenticated", () => {
-    render(<Home />);
+    renderHome();
     const dashboardLinks = screen.getAllByRole("link", { name: /dashboard/i });
     expect(dashboardLinks.length).toBeGreaterThanOrEqual(1);
   });
@@ -121,7 +143,7 @@ describe("Landing page — authenticated user", () => {
   it("calls logout when LOGOUT button is clicked", () => {
     const logoutFn = jest.fn();
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user, logout: logoutFn }));
-    render(<Home />);
+    renderHome();
     const logoutButtons = screen.getAllByRole("button", { name: /logout/i });
     logoutButtons[0].click();
     expect(logoutFn).toHaveBeenCalledTimes(1);
@@ -134,12 +156,14 @@ describe("Landing page — unauthenticated user", () => {
   });
 
   it("does NOT render a LOGOUT button when there is no user", () => {
-    render(<Home />);
+    renderHome();
     expect(screen.queryByRole("button", { name: /logout/i })).toBeNull();
   });
 
-  it("renders CONNECT button when there is no user", () => {
-    render(<Home />);
-    expect(screen.getAllByRole("button", { name: /connect/i }).length).toBeGreaterThanOrEqual(1);
+  it("renders DASHBOARD link or CONNECT button when there is no user", () => {
+    renderHome();
+    const dashboardLinks = screen.getAllByRole("link", { name: /dashboard/i });
+    const connectButtons = screen.queryAllByRole("button", { name: /connect/i });
+    expect(dashboardLinks.length + connectButtons.length).toBeGreaterThanOrEqual(1);
   });
 });

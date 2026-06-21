@@ -32,10 +32,10 @@ jobs:
   sub-50ms:
     name: Sub-50ms Page Load
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'schedule' || github.event.inputs.loop == 'all' || github.event.inputs.loop == 'sub-50ms' }}
+    if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'sub-50ms' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'npm'
@@ -62,8 +62,8 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'coverage' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'npm'
@@ -84,7 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'logging-coverage' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Check logging coverage
         run: |
           ROUTES=$(find src/app/api -name "route.ts" -type f)
@@ -111,15 +111,15 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'fresh-clone' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'npm'
       - name: Test fresh clone onboarding
         run: |
           echo "📦 Installing dependencies..."
-          npm install
+          npm ci
           echo "🔨 Building project..."
           npm run build
           echo "🧪 Running tests..."
@@ -131,13 +131,14 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'nightly-changelog' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
       - name: Update changelog
         run: |
           TODAY=$(date +%Y-%m-%d)
-          COMMITS=$(git log --since="24 hours ago" --oneline | head -20)
+          COMMITS=$(git log --since="24 hours ago" --oneline --no-merges | head -20)
           
           if [ -z "$COMMITS" ]; then
             echo "ℹ️ No changes in last 24 hours"
@@ -147,10 +148,21 @@ jobs:
           echo "📝 Changes from last 24 hours:"
           echo "$COMMITS"
           
-          # Create changelog entry if CHANGELOG.md exists
-          if [ -f "CHANGELOG.md" ]; then
-            echo "📝 Updating CHANGELOG.md..."
-            # Add entry logic here
+          # Create or update CHANGELOG.md
+          ENTRY="## [$TODAY]\n\n"
+          while IFS= read -r line; do
+            ENTRY="$ENTRY- $line\n"
+          done <<< "$COMMITS"
+          ENTRY="$ENTRY\n"
+          
+          if [ ! -f "CHANGELOG.md" ]; then
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
           fi
           
-          echo "✅ Changelog check complete"
+          # Insert new entry after header
+          sed -i.bak "2a\\
+          $ENTRY" CHANGELOG.md
+          rm -f CHANGELOG.md.bak
+          
+          echo "✅ Changelog updated"

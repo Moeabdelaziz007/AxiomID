@@ -59,7 +59,7 @@ const STAMP_DEFS = [
  * @returns The StampBoard React element.
  */
 export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [activeVc, setActiveVc] = useState<any | null>(null);
   const [copied, setCopied] = useState(false);
@@ -197,6 +197,19 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
           <h3 className="text-sm font-bold text-surface font-mono uppercase tracking-wider">{t('live_stamps_collection')}</h3>
           <span className="text-[10px] font-mono text-faint">{t('stamps_collection_desc')}</span>
         </div>
+
+        {claimedCount === 0 && (
+          <div className="bento-card p-6 mb-4 border border-neon-green/20 bg-neon-green/5 text-center">
+            <p className="text-sm font-bold text-neon-green font-mono">
+              {language === "en" ? "Be the first Pioneer!" : "كن أول رائد!"}
+            </p>
+            <p className="text-xs text-zinc-400 mt-2">
+              {language === "en"
+                ? "Start earning stamps and XP by connecting your accounts and completing actions."
+                : "ابدأ في جني الطوابع والخبرة من خلال ربط حساباتك وإنجاز العمليات."}
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {STAMP_DEFS.map((stamp) => (

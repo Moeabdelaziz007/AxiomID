@@ -1,0 +1,45 @@
+# AxiomID
+
+> W3C DID-based identity layer for humans delegating authority to AI agents on Pi Network and Stellar. Cryptographic proof that an AI agent is working with human authorization.
+
+## Core Protocol
+- [Introduction](https://axiomid.app/docs): Architecture overview
+- [auth.md Protocol](https://axiomid.app/docs): OpenID Connect + agent signing
+- [JWKS](https://axiomid.app/.well-known/jwks.json): Public key verification
+
+## API Reference
+- [Agent Identity](https://axiomid.app/api/agent/identity): Verify Pi ID-JAG tokens
+- [Agent Sign](https://axiomid.app/api/agent/sign): Sign payload with sovereign key
+- [OAuth2 Token](https://axiomid.app/api/oauth2/token): JWT bearer grant exchange
+- [OAuth2 Revoke](https://axiomid.app/api/oauth2/revoke): Revoke access/refresh tokens
+- [DID Document](https://axiomid.app/api/did-document): W3C DID resolution
+- [VC Manifest](https://axiomid.app/api/agent/manifest): Verifiable Credential manifest
+- [Skill Tags](https://axiomid.app/api/skills/tags): Browse skill categories
+- [Skill Search](https://axiomid.app/api/skills): Search marketplace skills
+- [Skill Purchase](https://axiomid.app/api/skills/[skillId]/purchase): Purchase a skill
+- [Agent Skills](https://axiomid.app/api/agent/skills): View agent's owned skills
+
+## Identity Tiers
+- Visitor (0 XP) - Unverified, rate-limited
+- Citizen (100 XP) - Pi KYC verified, basic skills
+- Validator (500 XP) - Community verified, advanced skills
+- Sovereign (1000 XP) - Full authority, premium skills
+
+## For AI Agents Reading This
+- All API errors follow envelope: {"error": string, "code": string}
+- DID format: did:axiom:piUsername
+- Ed25519 keys used for signing (not RSA)
+- Sandbox mode: add X-Sandbox: true header for testing
+- Live DID document: /api/did-document (public, no auth)
+- Rate limits apply — see /docs for limits
+
+## For AI Agents
+AxiomID lets AI agents prove human authorization cryptographically.
+Each agent gets a W3C DID document with Ed25519 keys. Payloads are
+signed via OAuth2 JWT bearer grants. Verifiers check the DID document
+and signature chain.
+
+Agent capabilities are declared in the DID document service endpoints.
+Human delegation is encoded as Verifiable Credentials.
+
+Full documentation: https://axiomid.app/docs

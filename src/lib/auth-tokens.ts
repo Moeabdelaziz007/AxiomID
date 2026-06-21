@@ -1,5 +1,5 @@
-import { SignJWT, jwtVerify, errors, createRemoteJWKSet, decodeJwt, type JWTPayload } from "jose";
-
+import { SignJWT, jwtVerify, errors } from "jose";
+import { logger } from "./logger";
 
 const ISSUER = "https://axiomid.app";
 const AUDIENCE = "https://axiomid.app";
@@ -15,13 +15,16 @@ export interface IdentityAssertionPayload {
 
 /**
  * Retrieves the HS256 signing key for JWT operations.
- *
- * Reads from the `AUTH_TOKEN_SECRET` environment variable, falling back to a development key if unset.
- *
- * @returns The signing key as a `Uint8Array`
  */
 function getSigningKey(): Uint8Array {
-  const key = process.env.AUTH_TOKEN_SECRET || "dev-auth-token-secret-change-in-production";
+  const key = process.env.AUTH_TOKEN_SECRET;
+  if (!key) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("AUTH_TOKEN_SECRET is required in production");
+    }
+    logger.warn("[AUTH-TOKENS] AUTH_TOKEN_SECRET not set — using dev fallback");
+    return new TextEncoder().encode("dev-auth-token-secret-change-in-production");
+  }
   return new TextEncoder().encode(key);
 }
 
@@ -70,21 +73,15 @@ export async function verifyIdentityAssertion(token: string): Promise<IdentityAs
   try {
     const result = await jwtVerify(token, key, { issuer: ISSUER, audience: AUDIENCE });
     const p = result.payload;
-    if (
-      typeof p.sub !== "string" ||
-      typeof p.iss !== "string" ||
-      !Array.isArray(p.scopes) ||
-      typeof p.exp !== "number" ||
-      typeof p.iat !== "number"
-    ) {
+    if (typeof p.sub !== "string" || typeof p.iss !== "string") {
       throw new Error("Token payload missing required claims");
     }
     return {
       sub: p.sub,
-      scopes: p.scopes.map(String),
+      scopes: Array.isArray(p.scopes) ? p.scopes.map(String) : [],
       iss: p.iss,
-      exp: p.exp,
-      iat: p.iat,
+      exp: Number(p.exp),
+      iat: Number(p.iat),
     };
   } catch (err) {
     if (err instanceof errors.JWTExpired) {
@@ -119,35 +116,3 @@ export async function verifyAccessToken(token: string): Promise<{ sub: string; s
   const payload = await verifyIdentityAssertion(token);
   return { sub: payload.sub, scopes: payload.scopes };
 }
-
-/**
- * Verifies a Pi Network access token locally using remote JWKS verification.
- *
- * Extracts the issuer (iss) from the token payload, fetches public keys from
- * `${iss}/.well-known/jwks.json`, and verifies the token signature.
- *
- * @param token - The Pi access token to verify
- * @returns The verified token payload
- */
-export async function verifyPiTokenWithJwks(token: string): Promise<JWTPayload> {
-  const decoded = decodeJwt(token);
-  const iss = decoded.iss;
-  if (!iss) {
-    throw new Error("Missing issuer in Pi JWT");
-  }
-
-  // Bypass for local testing environment
-  if (
-    iss.startsWith("http://localhost") ||
-    iss.includes("127.0.0.1") ||
-    process.env.NODE_ENV === "test" ||
-    process.env.PI_JWKS_BYPASS === "true"
-  ) {
-    return decoded;
-  }
-
-  const JWKS = createRemoteJWKSet(new URL(`${iss}/.well-known/jwks.json`));
-  const { payload } = await jwtVerify(token, JWKS);
-  return payload;
-}
-
