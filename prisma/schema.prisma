@@ -34,6 +34,9 @@ model User {
   kycUidHash    String? // privacy-preserving hash
   kycVerifiedAt DateTime?
 
+  // Passport Publishing
+  passportUrl String? @db.VarChar(500) // published passport URL (here.now)
+
   // Agent
   agent UserAgent?
 
