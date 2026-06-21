@@ -157,7 +157,6 @@ const AUDIT_ITEMS: AuditItem[] = [
 ];
 
 export default function SandboxPage() {
-  const [piAccessToken] = useState(() => typeof window !== "undefined" ? localStorage.getItem("pi_access_token") : null);
   const [manifest, setManifest] = useState(DEFAULT_MANIFEST);
   const [inputData, setInputData] = useState(`{"prompt": "Calculate prime sequence to 10"}`);
   const [logs, setLogs] = useState<string[]>([]);
@@ -245,9 +244,10 @@ export default function SandboxPage() {
     try {
       flushTimer = setInterval(flushPending, 30);
 
+      const piAccessToken = typeof window !== "undefined" ? localStorage.getItem("pi_access_token") : null;
       const res = await fetch("/api/sandbox/execute", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           ...(piAccessToken ? { "Authorization": `Bearer ${piAccessToken}` } : {}),
         },
