@@ -4,7 +4,7 @@
  */
 
 import type { Env } from "./lib/types";
-import { verifyAuth, jsonResponse, errorResponse, PUBLIC_ROUTES, rateLimitHeaders } from "./lib/auth";
+import { verifyAuth, jsonResponse, errorResponse, isPublicRoute, rateLimitHeaders } from "./lib/auth";
 import { KVHelper } from "./db/kv";
 import { D1Helper } from "./db/d1";
 import { RateLimiter } from "./lib/rate-limiter";
@@ -183,7 +183,7 @@ export class Router {
   }
 
   private isPublicRoute(path: string): boolean {
-    return PUBLIC_ROUTES.some((p) => path.startsWith(p));
+    return isPublicRoute(path);
   }
 
   private async handleHeartbeat(agentId: string): Promise<Response> {

@@ -5,7 +5,12 @@
 
 import type { Env } from "./types";
 
-export const PUBLIC_ROUTES = ["/health", "/status", "/api/trust/", "/api/skills"];
+const PUBLIC_EXACT = new Set(["/health", "/status", "/api/skills"]);
+const PUBLIC_PREFIXES = ["/api/trust/"];
+
+export function isPublicRoute(path: string): boolean {
+  return PUBLIC_EXACT.has(path) || PUBLIC_PREFIXES.some((p) => path.startsWith(p));
+}
 
 export function verifyAuth(request: Request, env: Env): { authorized: boolean; agentId?: string } {
   const url = new URL(request.url);
