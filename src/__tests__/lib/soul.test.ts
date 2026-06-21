@@ -381,7 +381,6 @@ describe('Soul Loop (Unified Controller)', () => {
   beforeEach(() => {
     loop = new SoulLoop({
       maxCycles: 7,
-      barakahThreshold: 100, // Lower for testing
       ethicalCheckEnabled: true,
       muraqabahEnabled: true,
       maxRetries: 3,
@@ -423,14 +422,15 @@ describe('Soul Loop (Unified Controller)', () => {
     expect(decision.phase).toBe('sabiyyah');
   });
 
-  it('stops on Barakah milestone', async () => {
-    // Run 100 successful actions
+  it('continues past old barakah threshold (now handled by session-analytics)', async () => {
+    // Run 100 successful actions — loop should NOT stop (barakah removed from loop)
     for (let i = 0; i < 99; i++) {
       await loop.evaluate(`action_${i}`, { type: 'test' });
     }
     const decision = await loop.evaluate('final_action', { type: 'test' });
-    expect(decision.continue).toBe(false);
-    expect(decision.phase).toBe('barakah');
+    // Should continue — barakah is no longer a loop gate
+    expect(decision.continue).toBe(true);
+    expect(decision.phase).toBe('proceed');
   });
 
   it('handles errors with Tawbah', async () => {
@@ -535,24 +535,18 @@ describe('Soul Loop (Unified Controller)', () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 describe('SOUL Integration', () => {
-  it('full lifecycle: ethical actions → Barakah milestone', async () => {
+  it('full lifecycle: ethical actions → many cycles without barakah gate', async () => {
     const loop = new SoulLoop({
       maxCycles: 7,
-      barakahThreshold: 10, // Very low for testing
       ethicalCheckEnabled: true,
       muraqabahEnabled: true,
     });
 
-    // Run 10 successful actions
-    for (let i = 0; i < 9; i++) {
+    // Run 10 successful actions — loop continues (no barakah gate)
+    for (let i = 0; i < 10; i++) {
       const decision = await loop.evaluate(`action_${i}`, { type: 'test' });
       expect(decision.continue).toBe(true);
     }
-
-    // 10th action should trigger Barakah
-    const finalDecision = await loop.evaluate('final_action', { type: 'test' });
-    expect(finalDecision.continue).toBe(false);
-    expect(finalDecision.phase).toBe('barakah');
 
     const summary = loop.getSummary();
     expect(summary.totalActions).toBe(10);
@@ -562,7 +556,6 @@ describe('SOUL Integration', () => {
   it('full lifecycle: error → Tawbah → recovery', async () => {
     const loop = new SoulLoop({
       maxCycles: 7,
-      barakahThreshold: 100,
       ethicalCheckEnabled: true,
       muraqabahEnabled: true,
     });

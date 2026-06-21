@@ -4,7 +4,6 @@
  * Combines all SOUL modules into a unified loop control system:
  * - Muraqabah (Divine Surveillance)
  * - Sabiyyah (Pattern synthesis every 7 cycles)
- * - Barakah (Impact amplification at 700 successes)
  * - Tawbah (Self-correction on error)
  * - Ethical Check (6-step verification)
  *
@@ -16,7 +15,6 @@
 
 import { muraqabahEvaluate, type MuraqabahCheck } from './muraqabah';
 import { sabiyyahReflect, type SabiyyahResult, type LoopState } from './sabiyyah';
-import { barakahCheck, type BarakahCheck } from './barakah';
 import { tawbahProcess, type TawbahResult } from './tawbah';
 import { ethicalCheck, type EthicalCheckResult } from './ethical-check';
 
@@ -26,7 +24,6 @@ import { ethicalCheck, type EthicalCheckResult } from './ethical-check';
 
 export interface SoulLoopConfig {
   maxCycles: number;           // Sab'iyyah: default 7
-  barakahThreshold: number;    // Barakah: default 50
   ethicalCheckEnabled: boolean;
   muraqabahEnabled: boolean;
   maxRetries: number;          // Tawbah: default 3
@@ -45,7 +42,7 @@ export interface SoulLoopState extends LoopState {
 export interface SoulLoopDecision {
   continue: boolean;
   reason: string;
-  phase: 'muraqabah' | 'ethical' | 'sabiyyah' | 'barakah' | 'tawbah' | 'proceed';
+  phase: 'muraqabah' | 'ethical' | 'sabiyyah' | 'tawbah' | 'proceed';
   state: SoulLoopState;
 }
 
@@ -56,7 +53,6 @@ export interface SoulLoopAuditEntry {
   muraqabah?: MuraqabahCheck;
   ethical?: EthicalCheckResult;
   sabiyyah?: SabiyyahResult;
-  barakah?: BarakahCheck;
   tawbah?: TawbahResult;
 }
 
@@ -66,7 +62,6 @@ export interface SoulLoopAuditEntry {
 
 const DEFAULT_CONFIG: SoulLoopConfig = {
   maxCycles: 7,
-  barakahThreshold: 50,
   ethicalCheckEnabled: true,
   muraqabahEnabled: true,
   maxRetries: 3,
@@ -255,27 +250,7 @@ export class SoulLoop {
       this.config.onSelfReview(action).catch(() => {});
     }
 
-    // Phase 6: Barakah — Impact amplification at milestone (check AFTER incrementing)
-    const barakahResult = barakahCheck(this.state.successCount, {
-      threshold: this.config.barakahThreshold,
-    });
-    if (barakahResult.milestoneReached) {
-      const decision: SoulLoopDecision = {
-        continue: false,
-        reason: barakahResult.message,
-        phase: 'barakah',
-        state: { ...this.state },
-      };
-      this.auditLog.push({
-        timestamp: Date.now(),
-        action,
-        decision,
-        barakah: barakahResult,
-      });
-      return decision;
-    }
-
-    // All checks passed
+    // All checks passed — 5 gates only (Muraqabah + Ethical + Sab'iyyah + Stuck + Tawbah)
     const decision: SoulLoopDecision = {
       continue: true,
       reason: 'All SOUL checks passed — proceed with awareness',
