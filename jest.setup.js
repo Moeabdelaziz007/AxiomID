@@ -217,7 +217,7 @@ jest.mock("@upstash/redis", () => {
   return {
     Redis: {
       fromEnv: jest.fn().mockReturnValue({
-        set: jest.fn().mockImplementation(async (key, value, options) => {
+        set: jest.fn().mockImplementation(async (key, value, _options) => {
           globalRedisStore.set(key, value);
           return "OK";
         }),
