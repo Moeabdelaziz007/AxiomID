@@ -126,11 +126,7 @@ interface SkillListItem {
   tier: string;
 }
 
-interface AuditItem {
-  id: string;
-  labelKey: string;
-  descKey: string;
-}
+
 
 const DEFAULT_MANIFEST = `---
 name: my-first-custom-skill

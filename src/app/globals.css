@@ -947,4 +947,9 @@ a:focus-visible {
 .activity-dot.pending { background: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); }
 .activity-dot.error { background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
 
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 

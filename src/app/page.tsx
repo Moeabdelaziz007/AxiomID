@@ -7,7 +7,6 @@ import Link from "next/link";
 import { useLanguage } from "./context/language-context";
 import Footer from "@/components/Footer";
 import { Users, Bot, Ticket, Zap, AlertTriangle, Shield, Fingerprint } from "lucide-react";
-import { motion, useInView } from "framer-motion";
 import Script from "next/script";
 import { useRef } from "react";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
@@ -16,20 +15,6 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import dynamic from "next/dynamic";
 
 const InteractivePassportCard = dynamic(() => import("@/components/ui/InteractivePassportCard"), { ssr: false });
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] as const },
-  }),
-};
-
-const staggerContainer = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
-};
 
 /**
  * Renders the AxiomID public landing page with wallet integration, Agent Passport card, animated hero section, live network statistics, feature guides, and identity tier cards. Supports English and Arabic.
@@ -41,7 +26,6 @@ export default function Home() {
   const [isPageLoaded, setIsPageLoaded] = useState(false);
 
   const statsRef = useRef<HTMLDivElement>(null);
-  const statsInView = useInView(statsRef, { once: true, margin: "-80px" });
 
   useEffect(() => {
     const timer = setTimeout(() => setIsPageLoaded(true), 100);
@@ -116,12 +100,9 @@ export default function Home() {
       <div className="scanline" />
       <ErrorBanner />
 
-      {/* Header */}
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="sticky top-0 w-full z-50 bg-[#0c0d14]/95 backdrop-blur-2xl border-b border-white/[0.04] shadow-[0_1px_0_0_rgba(255,255,255,0.02)_inset]"
+      {/* Header — no animation for fast INP */}
+      <header
+        className="sticky top-0 w-full z-50 bg-[#0c0d14]/95 backdrop-blur-lg border-b border-white/[0.04] shadow-[0_1px_0_0_rgba(255,255,255,0.02)_inset]"
       >
         <div className="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3 px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center gap-2 sm:gap-3">
@@ -183,41 +164,29 @@ export default function Home() {
             )}
           </div>
         </div>
-      </motion.header>
+      </header>
 
       {/* Hero Section — 2026 Redesign */}
       <div className="relative w-full max-w-6xl px-4 sm:px-6 mt-8 md:mt-16 z-10 min-h-[80vh] flex items-center hero-mesh-bg">
-        {/* Floating particles background */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(25)].map((_, i) => (
-            <div
-              key={i}
-              className="particle"
-              style={{
-                left: `${(i * 37 + 13) % 100}%`,
-                top: `${(i * 53 + 7) % 100}%`,
-                animationDelay: `${(i * 0.7) % 5}s`,
-                animationDuration: `${6 + (i % 4)}s`,
-                width: `${2 + (i % 3)}px`,
-                height: `${2 + (i % 3)}px`,
-                background: i % 3 === 0 ? 'rgba(34, 197, 94, 0.12)' : i % 3 === 1 ? 'rgba(59, 130, 246, 0.12)' : 'rgba(99, 102, 241, 0.12)'
-              }}
-            />
-          ))}
+        {/* Floating particles — CSS-only, no JS overhead */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+          <div className="particle" style={{ left: '15%', top: '20%', animationDelay: '0s', animationDuration: '7s', background: 'rgba(34,197,94,0.12)' }} />
+          <div className="particle" style={{ left: '75%', top: '30%', animationDelay: '1.5s', animationDuration: '8s', background: 'rgba(59,130,246,0.12)' }} />
+          <div className="particle" style={{ left: '45%', top: '70%', animationDelay: '3s', animationDuration: '6s', background: 'rgba(99,102,241,0.12)' }} />
+          <div className="particle" style={{ left: '85%', top: '60%', animationDelay: '2s', animationDuration: '9s', background: 'rgba(34,197,94,0.12)' }} />
+          <div className="particle" style={{ left: '30%', top: '85%', animationDelay: '4s', animationDuration: '7s', background: 'rgba(59,130,246,0.12)' }} />
+          <div className="particle" style={{ left: '60%', top: '15%', animationDelay: '0.5s', animationDuration: '8s', background: 'rgba(99,102,241,0.12)' }} />
         </div>
-        {/* Dot grid background */}
+        {/* Dot grid background — static, no animation */}
         <div className="absolute inset-0 opacity-[0.06] pointer-events-none" style={{ backgroundImage: "radial-gradient(#424754 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
 
         <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center py-12 relative z-10">
           
           {/* Left Column: Headline, Description, CTAs, Trust indicators */}
           <div className="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left space-y-5">
-            {/* Live badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.4 }}
-              className="flex flex-wrap gap-2 justify-center md:justify-start items-center"
+            {/* Live badge — CSS transition */}
+            <div
+              className="flex flex-wrap gap-2 justify-center md:justify-start items-center animate-[fadeInUp_0.4s_ease-out_0.1s_both]"
             >
               <span className="px-3 py-1 rounded-full text-[10px] font-mono bg-neon-green/10 text-neon-green border border-neon-green/20 uppercase tracking-widest">
                 {t("hero_badge")}
@@ -229,51 +198,40 @@ export default function Home() {
                 </svg>
                 {language === "en" ? "Live on Pi Network Testnet" : "مباشر على شبكة Pi التجريبية"}
               </span>
-            </motion.div>
+            </div>
 
-            {/* Headline — Max 8 words for instant comprehension */}
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] text-white"
+            {/* Headline — CSS transition, no framer-motion */}
+            <h1
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] text-white animate-[fadeInUp_0.6s_ease-out_0.2s_both]"
             >
               {language === "en" ? (
                 <>The Human<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-electric-blue to-axiom-purple">Authorization Protocol</span></>
               ) : (
                 <>بروتوكول<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-electric-blue to-axiom-purple">تفويض البشر</span></>
               )}
-            </motion.h1>
+            </h1>
 
-            {/* Sub-headline — Clear value prop */}
-            <motion.p
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="text-lg sm:text-xl md:text-2xl font-medium tracking-tight text-zinc-300 max-w-xl"
+            {/* Sub-headline */}
+            <p
+              className="text-lg sm:text-xl md:text-2xl font-medium tracking-tight text-zinc-300 max-w-xl animate-[fadeInUp_0.5s_ease-out_0.3s_both]"
             >
               {language === "en" 
                 ? "Prove human intent behind AI actions. One identity. Infinite agents."
                 : "أثبت نية البشر وراء إجراءات الذكاء الاصطناعي. هوية واحدة. عملاء لا نهائية."}
-            </motion.p>
+            </p>
 
-            {/* CTAs — Single primary CTA for maximum conversion */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto pt-2"
+            {/* CTAs — CSS transition, no framer-motion */}
+            <div
+              className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto pt-2 animate-[fadeInUp_0.5s_ease-out_0.4s_both]"
             >
               {!user ? (
                 <>
                   {isPiBrowser ? (
-                    <motion.button 
-                      whileHover={{ scale: 1.02, boxShadow: "0 0 30px rgba(34, 197, 94, 0.3)" }}
-                      whileTap={{ scale: 0.98 }}
+                    <button 
                       onClick={connectWallet} 
                       disabled={isConnecting} 
                       aria-busy={isConnecting} 
-                      className="flex items-center justify-center gap-2 text-sm font-semibold px-8 py-4 min-h-[52px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all"
+                      className="flex items-center justify-center gap-2 text-sm font-semibold px-8 py-4 min-h-[52px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all"
                     >
                       {isConnecting ? (
                         <><span className="animate-spin">⟳</span> {t("connecting")}</>
@@ -283,33 +241,30 @@ export default function Home() {
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                         </>
                       )}
-                    </motion.button>
+                    </button>
                   ) : (
-                    <Link href="/dashboard" prefetch={false} className="flex items-center justify-center gap-2 text-sm font-semibold px-8 py-4 min-h-[52px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all">
+                    <Link href="/dashboard" prefetch={false} className="flex items-center justify-center gap-2 text-sm font-semibold px-8 py-4 min-h-[52px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
                       {language === "en" ? "Launch App" : "ابدأ الآن"}
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                     </Link>
                   )}
                 </>
               ) : (
-                <Link href="/dashboard" prefetch={false} className="flex items-center justify-center gap-2 text-sm font-semibold px-8 py-4 min-h-[52px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all">
+                <Link href="/dashboard" prefetch={false} className="flex items-center justify-center gap-2 text-sm font-semibold px-8 py-4 min-h-[52px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
                   {language === "en" ? "Launch App" : "ابدأ الآن"}
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                 </Link>
               )}
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Link href="/docs" className="flex items-center justify-center text-sm font-medium px-8 py-4 min-h-[52px] w-full rounded-xl border border-white/10 text-zinc-300 hover:bg-white/5 hover:border-white/20 transition-all">
+              <div>
+                <Link href="/docs" className="flex items-center justify-center text-sm font-medium px-8 py-4 min-h-[52px] w-full rounded-xl border border-white/10 text-zinc-300 hover:bg-white/5 hover:border-white/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                   {language === "en" ? "Read Docs" : "الوثائق التقنية"}
                 </Link>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
 
-            {/* Trust Bar — Bottom of hero */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-              className="flex flex-wrap gap-4 items-center justify-center md:justify-start pt-6 text-[11px] font-mono text-zinc-500"
+            {/* Trust Bar — Bottom of hero, CSS transition */}
+            <div
+              className="flex flex-wrap gap-4 items-center justify-center md:justify-start pt-6 text-[11px] font-mono text-zinc-500 animate-[fadeInUp_0.6s_ease-out_0.5s_both]"
             >
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
@@ -325,16 +280,13 @@ export default function Home() {
                 <span className="w-1.5 h-1.5 rounded-full bg-axiom-purple" />
                 <span className="tracking-wider">W3C DID</span>
               </div>
-            </motion.div>
+            </div>
           </div>
 
           {/* Right Column: Interactive Passport Card Showcase — Hero element */}
           <div className="md:col-span-5 flex items-center justify-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full max-w-sm relative"
+            <div
+              className="w-full max-w-sm relative animate-[fadeInUp_0.6s_ease-out_0.3s_both]"
             >
               {/* Outer halo background decoration */}
               <div className="absolute -inset-8 bg-gradient-to-tr from-emerald-500/15 via-electric-blue/15 to-axiom-purple/15 rounded-[48px] blur-3xl opacity-50 animate-pulse pointer-events-none" style={{ animationDuration: '6s' }} />
@@ -359,18 +311,15 @@ export default function Home() {
                   kycStatus: "verified"
                 }}
               />
-            </motion.div>
+            </div>
           </div>
 
         </div>
       </div>
 
-      {/* Live Stats Bar — Glassmorphism 2026 */}
+      {/* Live Stats Bar — Glassmorphism 2026, CSS transitions */}
       <div ref={statsRef} className="w-full max-w-6xl px-4 sm:px-6 mt-12 sm:mt-16 mb-4 z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={statsInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
+        <div
           className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 sm:p-6 glass-card rounded-2xl"
         >
           {[
@@ -378,12 +327,9 @@ export default function Home() {
             { label: t("stat_agents"), value: networkStats.agents, icon: <Bot className="w-4 h-4" />, color: "purple" as const },
             { label: t("total_xp"), value: networkStats.xp, icon: <Ticket className="w-4 h-4" />, color: "green" as const },
             { label: t("stat_tx"), value: networkStats.payments, icon: <Zap className="w-4 h-4" />, color: "amber" as const },
-          ].map((stat, i) => (
-            <motion.div
+          ].map((stat) => (
+            <div
               key={stat.label}
-              initial={{ opacity: 0, y: 15 }}
-              animate={statsInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.1 + i * 0.08, duration: 0.5 }}
               className={`stat-card-glow ${stat.color} text-center md:text-left p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-white/[0.08] transition-all`}
             >
               <div className="flex items-center gap-2 mb-2">
@@ -393,9 +339,9 @@ export default function Home() {
               <h4 className="text-2xl md:text-3xl font-bold font-mono text-zinc-100">
                 <AnimatedCounter target={stat.value} duration={1200} />
               </h4>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
 
       {/* Features Section */}
@@ -405,11 +351,7 @@ export default function Home() {
           title={language === "en" ? "Three Steps to Agent Identity" : "ثلاث خطوات لبناء هوية العميل"}
           labelColor="text-electric-blue"
         />
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
+        <div
           className="grid grid-cols-1 md:grid-cols-3 gap-6 relative"
         >
           {/* Connector line behind cards in desktop layout */}
@@ -437,11 +379,9 @@ export default function Home() {
               icon: <Zap className="w-6 h-6 text-emerald-400" />,
               badge: "Pi Network Compatible",
             },
-          ].map((item, i) => (
-            <motion.div
+          ].map((item) => (
+            <div
               key={item.step}
-              variants={fadeUp}
-              custom={i}
               className="stitch-feature-card flex flex-col gap-4 cursor-default group relative z-10"
             >
               {/* Highlight number */}
@@ -465,9 +405,9 @@ export default function Home() {
                 <span className="w-1.5 h-1.5 rounded-full bg-electric-blue animate-pulse" />
                 <span className="text-[11px] font-mono text-zinc-500">{item.badge}</span>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
 
       {/* Why AxiomID? Section */}
@@ -477,17 +417,11 @@ export default function Home() {
           title={language === "en" ? "Why Choose AxiomID?" : "لماذا تختار AxiomID؟"}
           labelColor="text-zinc-500"
         />
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
+        <div
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           {/* Traditional Identity — Glassmorphism */}
-          <motion.div 
-            variants={fadeUp} 
-            custom={0} 
+          <div
             className="p-6 rounded-3xl border border-red-500/10 glass-card flex flex-col justify-between min-h-[300px]"
           >
             <div>
@@ -512,12 +446,10 @@ export default function Home() {
             <div className="border-t border-red-500/5 pt-4 mt-6 text-[10px] text-zinc-600 font-mono">
               {language === "en" ? "Result: Fragile security, high friction, no agent trust." : "النتيجة: أمان هش، خطوات معقدة، غياب للثقة."}
             </div>
-          </motion.div>
+          </div>
 
           {/* AxiomID — Glassmorphism */}
-          <motion.div 
-            variants={fadeUp} 
-            custom={1} 
+          <div
             className="p-6 rounded-3xl border border-emerald-500/20 glass-card flex flex-col justify-between min-h-[300px] shadow-lg shadow-emerald-500/[0.01]"
           >
             <div>
@@ -542,8 +474,8 @@ export default function Home() {
             <div className="border-t border-emerald-500/10 pt-4 mt-6 text-[10px] text-zinc-400 font-mono">
               {language === "en" ? "Result: Frictionless auth, resilient trust, delegation-ready." : "النتيجة: مصادقة خالية من الاحتكاك، ثقة مرنة، تفويض آمن."}
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
 
       {/* Tiers Section */}
@@ -553,11 +485,7 @@ export default function Home() {
           title={language === "en" ? "Level Up Your Identity" : "ارفع مستوى هويتك الرقمية"}
           labelColor="text-electric-blue"
         />
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
+        <div
           className="grid grid-cols-2 md:grid-cols-4 gap-4"
         >
           {[
@@ -565,11 +493,9 @@ export default function Home() {
             { name: t("citizen"), xp: "100", desc: language === "en" ? "Social + actions" : "تأكيدات وحسابات اجتماعية", tier: "C" },
             { name: t("validator"), xp: "500", desc: language === "en" ? "KYC verified" : "توثيق الهوية KYC", tier: "V" },
             { name: t("sovereign"), xp: "1000", desc: language === "en" ? "Full delegation" : "تفويض كامل للذكاء الاصطناعي", tier: "S" },
-          ].map((tier, i) => (
-            <motion.div
+          ].map((tier) => (
+            <div
               key={tier.name}
-              variants={fadeUp}
-              custom={i}
               className="stitch-feature-card text-center cursor-default group"
             >
               {/* Icon */}
@@ -582,9 +508,9 @@ export default function Home() {
               <p className="text-[11px] mt-1 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{tier.desc}</p>
               {/* XP */}
               <span className="text-[11px] font-mono mt-2 block" style={{ color: 'var(--color-primary)' }}>{tier.xp} XP</span>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
 
       {/* Footer */}
@@ -604,16 +530,12 @@ export default function Home() {
  */
 function SectionHeader({ label, title, labelColor }: { label: string; title: string; labelColor: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.5 }}
+    <div
       className="text-center mb-10 sm:mb-12"
     >
       <span className={`text-[10px] font-mono ${labelColor} tracking-widest uppercase`}>{label}</span>
       <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-surface mt-2">{title}</h2>
-    </motion.div>
+    </div>
   );
 }
 
