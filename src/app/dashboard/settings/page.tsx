@@ -527,7 +527,6 @@ export default function SettingsPage() {
       {/* Modal 3: Disconnect Confirmation Dialog */}
       <dialog
         ref={disconnectDialogRef}
-        closedby="any"
         onClick={handleDialogBackdropClick}
         aria-labelledby="disconnect-dialog-title"
         className="bento-card max-w-sm w-full bg-black/90 border border-white/15 backdrop-blur-xl text-surface rounded-2xl p-0"
