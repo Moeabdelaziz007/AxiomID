@@ -437,9 +437,6 @@ body {
   background: rgba(0, 0, 0, 0.06);
 }
 
-[data-theme="light"] .btn-ghost:hover {
-}
-
 @media (max-width: 639px) {
 }
 
