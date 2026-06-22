@@ -37,17 +37,12 @@ jobs:
             EMOJI="🔄"
           fi
 
-          TITLE="${{ github.event.pull_request.title }}"
-          URL="${{ github.event.pull_request.html_url }}"
-          AUTHOR="${{ github.event.pull_request.user.login }}"
-          CHANGES="${{ github.event.pull_request.changed_files }} files"
-
           MESSAGE="$EMOJI *PR $STATUS*
 
-          *$TITLE*
-          by @$AUTHOR
-          $CHANGES
-          [View PR]($URL)"
+          *$PR_TITLE*
+          by @$PR_AUTHOR
+          $PR_CHANGES files
+          [View PR]($PR_URL)"
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -H "Content-Type: application/json" \
@@ -57,6 +52,10 @@ jobs:
               \"parse_mode\": \"Markdown\"
             }"
         env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_CHANGES: ${{ github.event.pull_request.changed_files }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 

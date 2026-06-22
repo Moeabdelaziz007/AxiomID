@@ -60,16 +60,18 @@ export const SEED_SKILLS: SkillDefinition[] = [
 ];
 
 export async function seedSkills(d1: D1Helper): Promise<void> {
+  const statements = [];
   for (const skill of SEED_SKILLS) {
     const id = `seed-${skill.slug}`;
-    await d1.db
+    const stmt = d1.db
       .prepare(
         `INSERT OR REPLACE INTO skill_installs (id, skill_slug, user_did, version)
          SELECT ?, ?, ?, ?
          WHERE NOT EXISTS (SELECT 1 FROM skill_installs WHERE skill_slug = ? AND user_did = 'system')`
       )
-      .bind(id, skill.slug, "system", skill.version, skill.slug)
-      .run();
+      .bind(id, skill.slug, "system", skill.version, skill.slug);
+    statements.push(stmt);
   }
+  await d1.db.batch(statements);
   console.log(`[Seed] Inserted ${SEED_SKILLS.length} skills`);
 }
