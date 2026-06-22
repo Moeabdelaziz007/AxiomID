@@ -85,7 +85,7 @@ class SoulAgent implements Player {
 
     // Gate 4: Tawbah (Correction/Repentance)
     let tawbah = 'No correction needed.';
-    if (history.length >= 2) {
+    if (history.length >= 1) {
         const lastMe = history[history.length - 1].me;
         const lastOpp = history[history.length - 1].opp;
         if (lastMe === 'D' && lastOpp === 'C') {
