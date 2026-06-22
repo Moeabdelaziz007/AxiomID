@@ -77,6 +77,7 @@ Use nostics for stable error codes with actionable fixes.
 - The only permitted `eslint-disable @typescript-eslint/no-explicit-any` is on the `REPORT_DIAGNOSTIC` map return type in `src/lib/errors.ts`, which uses `any` as the heterogeneous nostics call return envelope (not an escape hatch from type safety).
 - Use `unknown` instead of `any` for external data boundaries (API responses, SDK callbacks).
 - **Strict API Error Codes:** Only use pre-registered error categories defined in the `ErrorCode` union inside `src/lib/errors.ts`. Never pass ad-hoc strings.
+- **Dynamic PWA Manifest (`manifest.ts`):** When generating metadata routes using Next.js `MetadataRoute.Manifest`, the `purpose` property inside icon objects strictly accepts `'any' | 'maskable' | 'monochrome'` individual literals. Do not use standard PWA space-separated `"any maskable"` values as they will trigger compile-time TypeScript errors.
 
 ### 🩺 Nostics Diagnostic Catalog Rules (`src/diagnostics/catalog.ts`)
 
@@ -130,6 +131,7 @@ Use nostics for stable error codes with actionable fixes.
 - **Zero Tolerance for Red CI:** Never merge a Pull Request with failing CI checks (Red X status). If a check fails on GitHub Actions/Vercel, the developer/agent must fix it and verify locally first before requesting a merge.
 - **Git History Cleanliness & Squashing:** Bloating git history with repetitive, low-value commits (e.g. "fix: remove unused public asset" repeated 10+ times) is prohibited. Use selective staging (`git add -p`), commit amending (`git commit --amend`), or interactive rebasing (`git rebase -i`) to squash minor adjustments into cohesive, atomic commits before pushing.
 - **Regression & Test Stability:** The test suite status must remain stable. The number of passing tests must never decrease across PRs. Disabling or skipping active tests to bypass coverage requirements is strictly forbidden.
+- **Shell Quoting for Dynamic Routes:** Always wrap or escape path arguments containing brackets (e.g. `[slug]`) in double quotes (like `git add "src/app/api/passport/[slug]/publish/route.ts"`) when running git or terminal operations in zsh to avoid pattern matching expansion failures.
 
 ### 📁 Architecture Map
 
