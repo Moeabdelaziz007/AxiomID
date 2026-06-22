@@ -23,7 +23,7 @@ export default function Terms() {
           </div>
 
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
-            {t("terms_title").split(" ").slice(0, -1).join(" ")} <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-electric-blue">{t("terms_title").split(" ").slice(-1)}</span>
+            {t("terms_title_main")} <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-electric-blue">{t("terms_title_highlight")}</span>
           </h1>
           <p className="text-subtle text-sm mb-8 font-mono">
             {t("terms_subtitle")}
