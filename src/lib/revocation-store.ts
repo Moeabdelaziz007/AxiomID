@@ -1,19 +1,15 @@
-// TTL-based revocation store — tokens evict after 24 hours.
-// ponytail: no setInterval — Vercel Functions are stateless. Lazy eviction in
-// isTokenRevoked handles cleanup on access; stale entries are harmless.
-const REVOKED_TOKENS_TTL_MS = 24 * 60 * 60 * 1000;
-const revokedTokens = new Map<string, number>();
+import { Redis } from '@upstash/redis';
 
-export function revokeToken(token: string): void {
-  revokedTokens.set(token, Date.now() + REVOKED_TOKENS_TTL_MS);
+// TTL-based revocation store — tokens evict after 24 hours.
+// ponytail: Upstash Redis handles TTL natively. 
+const redis = Redis.fromEnv();
+const REVOKED_TOKENS_TTL_SECONDS = 24 * 60 * 60;
+
+export async function revokeToken(token: string): Promise<void> {
+  await redis.set(`revoked:${token}`, '1', { ex: REVOKED_TOKENS_TTL_SECONDS });
 }
 
-export function isTokenRevoked(token: string): boolean {
-  const expiresAt = revokedTokens.get(token);
-  if (!expiresAt) return false;
-  if (Date.now() > expiresAt) {
-    revokedTokens.delete(token);
-    return false;
-  }
-  return true;
+export async function isTokenRevoked(token: string): Promise<boolean> {
+  const result = await redis.get(`revoked:${token}`);
+  return result !== null;
 }

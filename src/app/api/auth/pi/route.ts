@@ -8,6 +8,7 @@ import { getClientIp } from '@/lib/ip';
 import { calculateTier } from '@/lib/tiers';
 import { encryptToken } from '@/lib/crypto';
 import { createPiDid } from '@/lib/did';
+import { getSandboxDevToken } from '@/lib/sandbox-token';
 
 interface PiApiUser {
   uid: string;
@@ -67,7 +68,11 @@ export async function POST(request: NextRequest) {
     host.includes("127.0.0.1");
 
   try {
-    if (isSandboxOrDev && accessToken === "sandbox-dev-token-abc-123") {
+    const sandboxToken = getSandboxDevToken();
+    if (process.env.NODE_ENV === 'test' && sandboxToken) {
+      process.stdout.write(`[DEBUG:ROUTE] sandboxToken='${sandboxToken}' accessToken='${accessToken}' match=${sandboxToken === accessToken}\n`);
+    }
+    if (isSandboxOrDev && sandboxToken && accessToken === sandboxToken) {
       verifiedStellarAddress = "GD5TJZNKPNFSSXN7XF26NNDAOVDN57S7LNJ6FSL2X5D62N676572N4Y2";
     } else {
       const piResponse = await fetch('https://api.minepi.com/v2/me', {

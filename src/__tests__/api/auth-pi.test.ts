@@ -20,6 +20,7 @@ jest.mock('@/lib/rate-limiter', () => ({
 import { POST } from '@/app/api/auth/pi/route';
 import { prisma } from '@/lib/prisma';
 
+
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
 function mockRequest(body: unknown) {
@@ -50,10 +51,6 @@ describe('POST /api/auth/pi', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.fetch = jest.fn();
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 
   it('creates new user on valid Pi auth', async () => {
@@ -225,19 +222,22 @@ describe('POST /api/auth/pi', () => {
   });
 });
 
+const SANDBOX_TEST_TOKEN = 'sandbox-dev-token-abc-123';
+
 describe('POST /api/auth/pi — sandbox dev token bypass (PR change)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.fetch = jest.fn();
+    process.env.SANDBOX_DEV_TOKEN = SANDBOX_TEST_TOKEN;
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    delete process.env.SANDBOX_DEV_TOKEN;
   });
 
   // In test environment, NODE_ENV === 'test' which is !== 'production',
   // so isSandboxOrDev is true and the bypass is active.
-  it('skips Pi API call and uses hardcoded stellar address for sandbox-dev-token', async () => {
+  it('skips Pi API call and uses env-driven stellar address for sandbox-dev-token', async () => {
     mockPrisma.user.findUnique.mockResolvedValue(null);
     mockPrisma.user.create.mockResolvedValue({
       id: 'sandbox-user-1',
@@ -253,7 +253,7 @@ describe('POST /api/auth/pi — sandbox dev token bypass (PR change)', () => {
     } as any);
 
     const req = mockRequest({
-      accessToken: 'sandbox-dev-token-abc-123',
+      accessToken: SANDBOX_TEST_TOKEN,
       uid: 'sandbox-developer',
       username: 'developer',
     });
@@ -329,7 +329,7 @@ describe('POST /api/auth/pi — sandbox dev token bypass (PR change)', () => {
     }));
 
     const req = mockRequest({
-      accessToken: 'sandbox-dev-token-abc-123',
+      accessToken: SANDBOX_TEST_TOKEN,
       uid: 'sandbox-developer',
       username: 'developer',
     });
@@ -371,7 +371,7 @@ describe('POST /api/auth/pi — sandbox dev token bypass (PR change)', () => {
     } as any);
 
     const req = mockRequest({
-      accessToken: 'sandbox-dev-token-abc-123',
+      accessToken: SANDBOX_TEST_TOKEN,
       uid: 'sandbox-developer',
       username: 'developer',
     });

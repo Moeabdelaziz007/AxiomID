@@ -325,7 +325,7 @@ describe('requireAuth', () => {
 describe('requireAuth — revocation check (PR change: uses revocation-store)', () => {
   // Import the real revokeToken from revocation-store so we can seed state.
   // revocation-store is not globally mocked, so the real TTL store is used.
-  let revokeToken: (token: string) => void;
+  let revokeToken: (token: string) => Promise<void>;
 
   beforeAll(async () => {
     const store = await import('@/lib/revocation-store');
@@ -340,7 +340,7 @@ describe('requireAuth — revocation check (PR change: uses revocation-store)', 
 
   it('returns UNAUTHORIZED error for a revoked token without calling Pi API', async () => {
     const revokedToken = 'revocation-store-test-token-unique-abc';
-    revokeToken(revokedToken);
+    await revokeToken(revokedToken);
 
     const req = mockRequestWithHeader({ authorization: `Bearer ${revokedToken}` });
     const result = await requireAuth(req);
@@ -400,7 +400,7 @@ describe('requireAuth — revocation check (PR change: uses revocation-store)', 
     expect(mockFetch).toHaveBeenCalledTimes(1);
 
     // Now revoke the token — even though it's cached, it should be blocked
-    revokeToken(token);
+    await revokeToken(token);
     mockFetch.mockReset();
 
     const result2 = await requireAuth(req);

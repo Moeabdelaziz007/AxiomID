@@ -4,6 +4,7 @@ import { apiError } from '@/lib/errors';
 import { createHash } from 'crypto';
 import { isTokenRevoked } from '@/lib/revocation-store';
 import { verifyPiTokenWithJwks } from '@/lib/auth-tokens';
+import { getSandboxDevToken } from '@/lib/sandbox-token';
 
 export interface AuthenticatedUser {
   id: string;
@@ -116,7 +117,7 @@ export async function requireAuth(request: NextRequest): Promise<
   }
 
   // Check if token has been revoked
-  if (isTokenRevoked(accessToken)) {
+  if (await isTokenRevoked(accessToken)) {
     return { error: apiError('UNAUTHORIZED', 'Token has been revoked'), user: null };
   }
 
@@ -133,7 +134,8 @@ export async function requireAuth(request: NextRequest): Promise<
     host.includes("localhost") ||
     host.includes("127.0.0.1");
 
-  if (isSandboxOrDev && accessToken === "sandbox-dev-token-abc-123") {
+  const sandboxToken = getSandboxDevToken();
+  if (isSandboxOrDev && sandboxToken && accessToken === sandboxToken) {
     const sandboxUser = await prisma.user.findUnique({
       where: { piUid: "sandbox-developer" },
       select: {

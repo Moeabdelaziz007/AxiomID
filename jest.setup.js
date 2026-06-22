@@ -211,3 +211,26 @@ jest.mock("@/app/context/language-context", () => {
   };
 });
 
+// Global mock for @upstash/redis
+const globalRedisStore = new Map();
+jest.mock("@upstash/redis", () => {
+  return {
+    Redis: {
+      fromEnv: jest.fn().mockReturnValue({
+        set: jest.fn().mockImplementation(async (key, value, options) => {
+          globalRedisStore.set(key, value);
+          return "OK";
+        }),
+        get: jest.fn().mockImplementation(async (key) => {
+          return globalRedisStore.get(key) || null;
+        }),
+        del: jest.fn().mockImplementation(async (key) => {
+          globalRedisStore.delete(key);
+          return 1;
+        }),
+      }),
+    },
+  };
+});
+
+
