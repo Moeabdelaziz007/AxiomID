@@ -127,6 +127,15 @@ export default function StatusPage() {
               </div>
             ))}
           </div>
+        ) : stats && stats.registeredAgents === 0 ? (
+          <div className="glass-card p-12 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-electric-blue/10 flex items-center justify-center mx-auto mb-4 border border-electric-blue/20">
+              <span className="text-2xl">📡</span>
+            </div>
+            <h2 className="text-xl font-bold text-surface mb-2">{t("status_no_data")}</h2>
+            <p className="text-subtle">{t("status_no_data_desc")}</p>
+            <button onClick={fetchAll} className="btn-primary mt-4 px-6 py-2 text-sm font-mono">{t("status_retry")}</button>
+          </div>
         ) : stats ? (
           <>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">

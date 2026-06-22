@@ -149,7 +149,7 @@ export default function SettingsPage() {
       navigator.clipboard.writeText(JSON.stringify(activeVc, null, 2));
     }
     setCopied(true);
-    toast.success("VC payload copied to clipboard");
+    toast.success(t('settings_vc_copied'));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -179,7 +179,7 @@ export default function SettingsPage() {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        toast.error(err.error || "Failed to disconnect account");
+        toast.error(err.error || t('settings_disconnect_failed'));
         return;
       }
 
@@ -188,7 +188,7 @@ export default function SettingsPage() {
       setDisconnectPlatform(null);
       await Promise.all([fetchStatusDetails(), refreshUser()]);
     } catch {
-      toast.error("Failed to disconnect account");
+      toast.error(t('settings_disconnect_failed'));
     } finally {
       setDisconnecting(false);
     }
@@ -327,7 +327,7 @@ export default function SettingsPage() {
               </svg>
               <div className="absolute flex flex-col items-center justify-center">
                 <span className="text-xl font-bold font-mono text-white">{progressPercent.toFixed(0)}%</span>
-                <span className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest">Progress</span>
+                <span className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest">{t('settings_progress_label')}</span>
               </div>
             </div>
 
@@ -338,7 +338,7 @@ export default function SettingsPage() {
                   <p className="text-xl font-black tracking-wider text-white">{tier.toUpperCase()}</p>
                 </div>
                 <div className="text-end text-[10px] font-mono text-zinc-400">
-                  {xp >= 1000 ? "MAX LEVEL ACHIEVED" : `${(range.max - xp).toLocaleString()} XP NEEDED`}
+                  {xp >= 1000 ? t('settings_max_level') : `${(range.max - xp).toLocaleString()} ${t('settings_xp_needed')}`}
                 </div>
               </div>
               <div className="flex justify-between text-[10px] font-mono text-zinc-600 border-t border-white/5 pt-2">
@@ -570,7 +570,7 @@ export default function SettingsPage() {
               disabled={disconnecting}
               className="text-xs px-4 py-2 rounded-lg font-mono font-bold bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors disabled:opacity-50"
             >
-              {disconnecting ? t('settings_signing') : t('settings_confirm_action')}
+              {disconnecting ? t('settings_disconnecting') : t('settings_confirm_action')}
             </button>
           </div>
         </div>

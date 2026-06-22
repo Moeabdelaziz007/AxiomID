@@ -164,7 +164,7 @@ export default function MarketplacePage() {
       // this user. The install route's payment gate then allows the install.
       if (skill.pricePi > 0) {
         if (!user.agent?.id) {
-          throw new Error("Create an agent before purchasing skills");
+          throw new Error(t("marketplace_need_agent"));
         }
 
         const txid = await createPiPayment(
@@ -195,7 +195,7 @@ export default function MarketplacePage() {
         const data = await res.json();
         throw new Error(data.error || `Install failed (${res.status})`);
       }
-      toast.success("Skill installed successfully");
+      toast.success(t("marketplace_install_success"));
       openDetail(skill.slug);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to install skill");

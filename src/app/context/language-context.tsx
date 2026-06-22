@@ -209,6 +209,15 @@ export const translations = {
     settings_confirm_disconnect: "This will disconnect your {platform} account. You'll lose the XP from this connection.",
     settings_confirm_action: "Confirm",
     settings_confirm_cancel: "Cancel",
+    settings_disconnecting: "Disconnecting...",
+    settings_vc_copied: "VC payload copied to clipboard",
+    settings_disconnect_failed: "Failed to disconnect account",
+    settings_progress_label: "Progress",
+    settings_max_level: "MAX LEVEL ACHIEVED",
+    settings_xp_needed: "XP NEEDED",
+    // Marketplace toasts / errors
+    marketplace_install_success: "Skill installed successfully",
+    marketplace_need_agent: "Create an agent before purchasing skills",
     // Dashboard Components
     welcome_back_name: "Welcome back, {username}",
     agent_identity_ready: "Your agent identity is ready. Level",
@@ -602,6 +611,15 @@ export const translations = {
     settings_confirm_disconnect: "سيؤدي هذا إلى قطع اتصال حساب {platform} الخاص بك. ستفقد نقاط XP من هذا الاتصال.",
     settings_confirm_action: "تأكيد",
     settings_confirm_cancel: "إلغاء",
+    settings_disconnecting: "جاري قطع الاتصال...",
+    settings_vc_copied: "تم نسخ بيانات الوثيقة إلى الحافظة",
+    settings_disconnect_failed: "فشل قطع اتصال الحساب",
+    settings_progress_label: "التقدم",
+    settings_max_level: "تم بلوغ المستوى الأقصى",
+    settings_xp_needed: "نقاط XP مطلوبة",
+    // Marketplace toasts / errors
+    marketplace_install_success: "تم تثبيت المهارة بنجاح",
+    marketplace_need_agent: "أنشئ عميلاً قبل شراء المهارات",
     // Dashboard Components
     welcome_back_name: "مرحباً بك مجدداً، {username}",
     agent_identity_ready: "هوية عميلك جاهزة. المستوى",
