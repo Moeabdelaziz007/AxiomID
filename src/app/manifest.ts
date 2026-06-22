@@ -15,7 +15,19 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/icon-192x192.svg",
         sizes: "192x192",
         type: "image/svg+xml",
+        purpose: "any",
+      },
+      {
+        src: "/icon-192x192.svg",
+        sizes: "192x192",
+        type: "image/svg+xml",
         purpose: "maskable",
+      },
+      {
+        src: "/icon-512x512.svg",
+        sizes: "512x512",
+        type: "image/svg+xml",
+        purpose: "any",
       },
       {
         src: "/icon-512x512.svg",
@@ -27,7 +39,19 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/icon-192x192.png",
         sizes: "192x192",
         type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icon-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
         purpose: "maskable",
+      },
+      {
+        src: "/icon-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
       },
       {
         src: "/icon-512x512.png",
@@ -35,6 +59,7 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
         purpose: "maskable",
       },
+    ],
     ],
     categories: ["identity", "utilities", "finance"],
     lang: "en-US",
