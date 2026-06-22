@@ -119,7 +119,7 @@ describe("Dashboard page — authenticated user content", () => {
   it("renders a welcome message that includes the user's piUsername", () => {
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user: authenticatedUser }));
     renderWithProvider(<Dashboard />);
-    expect(screen.getByText(/welcome back, dashuser/i)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`hello.*${authenticatedUser.piUsername}`, "i"))).toBeInTheDocument();
   });
 
   it("shows the user's tier in the Agent Stats section", () => {

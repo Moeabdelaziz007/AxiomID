@@ -354,6 +354,236 @@ describe("SettingsPage — unauthenticated", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Disconnect confirmation dialog (PR change)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("SettingsPage — disconnect confirmation dialog (PR change)", () => {
+  it("renders a disconnect button for each connected platform", () => {
+    const user = makeUser({
+      stamps: [
+        makeStamp("connect_twitter", '{"vc":"twitter"}'),
+        makeStamp("connect_discord", '{"vc":"discord"}'),
+      ],
+    });
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
+    render(<SettingsPage />);
+
+    const disconnectButtons = screen.getAllByRole("button", { name: /settings_disconnect_btn/i });
+    expect(disconnectButtons).toHaveLength(2);
+  });
+
+  it("does NOT render a disconnect button for platforms that are not connected", () => {
+    const user = makeUser({ stamps: [] });
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
+    render(<SettingsPage />);
+
+    expect(screen.queryByRole("button", { name: /settings_disconnect_btn/i })).toBeNull();
+  });
+
+  it("clicking disconnect calls showModal on the disconnect dialog", async () => {
+    const showModalSpy = jest.spyOn(HTMLDialogElement.prototype, "showModal");
+    const user = makeUser({
+      stamps: [makeStamp("connect_twitter", '{"vc":"twitter"}')],
+    });
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
+    render(<SettingsPage />);
+
+    await act(async () => {
+      screen.getByRole("button", { name: /settings_disconnect_btn/i }).click();
+    });
+
+    expect(showModalSpy).toHaveBeenCalled();
+  });
+
+  it("clicking disconnect for twitter shows the disconnect confirmation dialog title", async () => {
+    const user = makeUser({
+      stamps: [makeStamp("connect_twitter", '{"vc":"twitter"}')],
+    });
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
+    render(<SettingsPage />);
+
+    await act(async () => {
+      screen.getByRole("button", { name: /settings_disconnect_btn/i }).click();
+    });
+
+    // The dialog heading id is "disconnect-dialog-title"
+    expect(document.getElementById("disconnect-dialog-title")).not.toBeNull();
+  });
+
+  it("clicking 'Confirm' in the disconnect dialog calls the disconnect API", async () => {
+    const claimActionMock = jest.fn().mockResolvedValue(true);
+    const refreshUserMock = jest.fn().mockResolvedValue(undefined);
+    const user = makeUser({
+      stamps: [makeStamp("connect_twitter", '{"vc":"twitter"}')],
+    });
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user, claimAction: claimActionMock, refreshUser: refreshUserMock }));
+    
+    // Mock fetch for the disconnect API
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ disconnected: true }) });
+    
+    render(<SettingsPage />);
+
+    // Open disconnect dialog
+    await act(async () => {
+      screen.getByRole("button", { name: /settings_disconnect_btn/i }).click();
+    });
+
+    // Click confirm — the button text comes from t('settings_confirm_action') which
+    // the global mock returns as the key string "settings_confirm_action"
+    const confirmBtn = screen.getByRole("button", { name: /settings_confirm_action/i });
+    await act(async () => {
+      confirmBtn.click();
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith("/api/social/disconnect", expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({ platform: "twitter" }),
+    }));
+  });
+
+  it("clicking 'Cancel' in the disconnect dialog closes the dialog without calling claimAction", async () => {
+    const claimActionMock = jest.fn().mockResolvedValue(true);
+    const closeSpy = jest.spyOn(HTMLDialogElement.prototype, "close");
+    const user = makeUser({
+      stamps: [makeStamp("connect_twitter", '{"vc":"twitter"}')],
+    });
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user, claimAction: claimActionMock }));
+    render(<SettingsPage />);
+
+    // Open disconnect dialog
+    await act(async () => {
+      screen.getByRole("button", { name: /settings_disconnect_btn/i }).click();
+    });
+
+    // Click cancel — the button text comes from t('settings_confirm_cancel')
+    const cancelBtn = screen.getByRole("button", { name: /settings_confirm_cancel/i });
+    await act(async () => {
+      cancelBtn.click();
+    });
+
+    expect(claimActionMock).not.toHaveBeenCalled();
+    expect(closeSpy).toHaveBeenCalled();
+  });
+
+  it("disconnect API is called with the correct platform for discord", async () => {
+    const claimActionMock = jest.fn().mockResolvedValue(true);
+    const refreshUserMock = jest.fn().mockResolvedValue(undefined);
+    const user = makeUser({
+      stamps: [makeStamp("connect_discord", '{"vc":"discord"}')],
+    });
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user, claimAction: claimActionMock, refreshUser: refreshUserMock }));
+    
+    // Mock fetch for the disconnect API
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ disconnected: true }) });
+    
+    render(<SettingsPage />);
+
+    await act(async () => {
+      screen.getByRole("button", { name: /settings_disconnect_btn/i }).click();
+    });
+
+    const confirmBtn = screen.getByRole("button", { name: /settings_confirm_action/i });
+    await act(async () => {
+      confirmBtn.click();
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith("/api/social/disconnect", expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({ platform: "discord" }),
+    }));
+  });
+
+  it("disconnect dialog has correct aria-labelledby attribute", () => {
+    const user = makeUser({
+      stamps: [makeStamp("connect_twitter", '{"vc":"twitter"}')],
+    });
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
+    render(<SettingsPage />);
+
+    const dialog = document.querySelector("dialog[aria-labelledby='disconnect-dialog-title']");
+    expect(dialog).not.toBeNull();
+  });
+
+  it("after successful disconnect, dialog is closed and user is refreshed", async () => {
+    const claimActionMock = jest.fn().mockResolvedValue(true);
+    const refreshUserMock = jest.fn().mockResolvedValue(undefined);
+    const closeSpy = jest.spyOn(HTMLDialogElement.prototype, "close");
+    const user = makeUser({
+      stamps: [makeStamp("connect_twitter", '{"vc":"twitter"}')],
+    });
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user, claimAction: claimActionMock, refreshUser: refreshUserMock }));
+    
+    // Mock fetch for the disconnect API
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ disconnected: true }) });
+    
+    render(<SettingsPage />);
+
+    await act(async () => {
+      screen.getByRole("button", { name: /settings_disconnect_btn/i }).click();
+    });
+
+    await act(async () => {
+      screen.getByRole("button", { name: /settings_confirm_action/i }).click();
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith("/api/social/disconnect", expect.objectContaining({
+      method: "POST",
+    }));
+    expect(closeSpy).toHaveBeenCalled();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper text sections (PR change: beginner-friendly UX)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("SettingsPage — helper text sections (PR change)", () => {
+  it("renders settings_profile_helper text in the profile section", () => {
+    const user = makeUser();
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
+    render(<SettingsPage />);
+
+    // Global mock returns the key string for unknown keys
+    expect(screen.getByText("settings_profile_helper")).toBeInTheDocument();
+  });
+
+  it("renders settings_progression_helper text in the progression section", () => {
+    const user = makeUser();
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
+    render(<SettingsPage />);
+
+    expect(screen.getByText("settings_progression_helper")).toBeInTheDocument();
+  });
+
+  it("renders settings_social_helper text in the social section", () => {
+    const user = makeUser();
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
+    render(<SettingsPage />);
+
+    expect(screen.getByText("settings_social_helper")).toBeInTheDocument();
+  });
+
+  it("renders settings_ledger_helper text in the ledger section", () => {
+    const user = makeUser();
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
+    render(<SettingsPage />);
+
+    expect(screen.getByText("settings_ledger_helper")).toBeInTheDocument();
+  });
+
+  it("renders a guidance message in the empty ledger state", () => {
+    const user = makeUser({ stamps: [] });
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
+    render(<SettingsPage />);
+
+    // The empty ledger helper text uses t() — global mock returns key string
+    expect(
+      screen.getByText("settings_ledger_empty_helper")
+    ).toBeInTheDocument();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // PLATFORMS icon change (PR change: emoji string → React.ReactNode JSX element)
 // PLATFORMS array: { id, icon: React.ReactNode, label, xp }
 // Previously: { id, emoji: string, label, xp }

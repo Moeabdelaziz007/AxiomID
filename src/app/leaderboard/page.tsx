@@ -21,11 +21,14 @@ interface LeaderboardUser {
   createdAt: string;
 }
 
+const TIER_FILTERS = ["All", "Sovereign", "Validator", "Citizen", "Visitor"];
+
 export default function LeaderboardPage() {
   const { language } = useLanguage();
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [tierFilter, setTierFilter] = useState("All");
 
   useEffect(() => {
     const active = true;
@@ -50,7 +53,8 @@ export default function LeaderboardPage() {
     const q = search.toLowerCase();
     const usernameMatch = u.piUsername?.toLowerCase().includes(q);
     const walletMatch = u.walletAddress.toLowerCase().includes(q);
-    return usernameMatch || walletMatch;
+    const tierMatch = tierFilter === "All" || u.tier === tierFilter;
+    return (usernameMatch || walletMatch) && tierMatch;
   });
 
   const topThree = users.slice(0, 3);
@@ -108,16 +112,20 @@ export default function LeaderboardPage() {
         </div>
       ) : users.length === 0 ? (
         <div className="max-w-4xl mx-auto px-4 mt-10 relative z-10">
-          <div className="bento-card p-12 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4 border border-white/10">
-              <Trophy className="w-8 h-8 text-zinc-500" />
+          <div className="glass-card p-12 text-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-full blur-3xl opacity-60 pointer-events-none" />
+            <div className="w-16 h-16 rounded-2xl glass-card flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
+              <Trophy className="w-8 h-8 text-amber-400" />
             </div>
-            <h2 className="text-xl font-bold text-white mb-2">Be the First Pioneer</h2>
+            <h2 className="text-xl font-bold text-white mb-2">{language === "en" ? "Be the First Sovereign" : "كن السيادي الأول"}</h2>
             <p className="text-sm text-zinc-400 max-w-md mx-auto mb-6">
-              The leaderboard is empty. Connect your wallet and start earning XP to claim the #1 spot.
+              {language === "en" 
+                ? "The leaderboard is empty. Connect your wallet and start earning XP to claim the #1 spot and become the first Sovereign."
+                : "لوحة الصدارة فارغة. اربط محفظتك وابدأ في كسب نقاط الخبرة لاحتلال المرتبة الأولى وتصبح السيادي الأول."}
             </p>
-            <Link href="/dashboard" className="btn-primary inline-block px-6 py-2 text-sm font-mono">
-              ENTER DASHBOARD
+            <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all">
+              {language === "en" ? "Launch App" : "ابدأ الآن"}
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
             </Link>
           </div>
         </div>
@@ -137,8 +145,25 @@ export default function LeaderboardPage() {
               placeholder={language === "en" ? "Search handle or address..." : "ابحث عن اسم مستخدم أو عنوان..."}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#15171e]/60 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-xs text-white font-mono placeholder-zinc-500 focus:outline-none focus:border-electric-blue/30 transition-colors"
+              className="w-full glass-card border border-white/[0.06] rounded-xl py-3 pl-10 pr-4 text-xs text-white font-mono placeholder-zinc-500 focus:outline-none focus:border-electric-blue/30 transition-colors"
             />
+          </div>
+
+          {/* Tier Filter Tabs */}
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            {TIER_FILTERS.map((tier) => (
+              <button
+                key={tier}
+                onClick={() => setTierFilter(tier)}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-mono uppercase tracking-wider transition-all ${
+                  tierFilter === tier
+                    ? "bg-electric-blue/20 text-electric-blue border border-electric-blue/30"
+                    : "text-zinc-500 border border-white/[0.04] hover:border-white/[0.08] hover:text-zinc-300"
+                }`}
+              >
+                {tier}
+              </button>
+            ))}
           </div>
 
           {/* Remaining Ranks Table */}

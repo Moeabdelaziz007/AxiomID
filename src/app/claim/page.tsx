@@ -491,7 +491,7 @@ export default function ClaimPage() {
                                     {t("Network", "الشبكة")}
                                   </span>
                                   <span className="font-mono text-xs text-white/60">
-                                    Pi Mainnet
+                                    Pi Testnet
                                   </span>
                                 </div>
                               </div>

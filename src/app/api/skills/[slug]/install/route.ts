@@ -33,6 +33,28 @@ export async function POST(
       return apiError('FORBIDDEN', 'Skill is not available for installation');
     }
 
+    // Payment gate: for paid skills, require a verified (non-refunded) payment
+    // for this skill belonging to the authenticated user. Verified payments are
+    // created by /api/marketplace/order/create after Pi Network verification and
+    // land in ESCROWED/RELEASED status; REFUNDED payments do not grant access.
+    if (skill.pricePi > 0) {
+      const payments = await prisma.piPayment.findMany({
+        where: { userId: user.id, status: { not: 'REFUNDED' } },
+        select: { metadata: true },
+      });
+      const hasPaid = payments.some((p) => {
+        if (!p.metadata) return false;
+        try {
+          return (JSON.parse(p.metadata) as { skillId?: string }).skillId === skill.id;
+        } catch {
+          return false;
+        }
+      });
+      if (!hasPaid) {
+        return apiError('PAYMENT_INVALID', 'Purchase required before installing this skill');
+      }
+    }
+
     const agent = await prisma.userAgent.findUnique({ where: { userId: user.id } });
     if (!agent) {
       return apiError('NOT_FOUND', 'No agent found. Create one first via POST /api/agent');

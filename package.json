@@ -48,7 +48,8 @@
     "test:watch": "jest --watch",
     "type-check": "tsc --noEmit",
     "memory:build": "ts-node --compiler-options '{\\\"module\\\":\\\"commonjs\\\"}' scripts/build-memory.ts",
-    "dead-code": "knip"
+    "dead-code": "knip",
+    "prepare": "husky"
   },
   "dependencies": {
     "@json-render/core": "^0.19.0",
@@ -82,14 +83,25 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "husky": "^9.1.7",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "jest-location-mock": "^4.0.1",
     "knip": "^6.17.1",
+    "lint-staged": "^17.0.8",
+    "prettier": "^3.8.4",
     "prisma": "^6.0.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5",
     "undici": "^8.5.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --max-warnings 0 --fix"
+    ],
+    "*.{json,md,yml,yaml,css}": [
+      "prettier --write"
+    ]
   }
 }

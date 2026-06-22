@@ -16,6 +16,46 @@ import MarketplacePage from "@/app/dashboard/marketplace/page";
 import { useWallet } from "@/app/context/wallet-context";
 import { defaultWalletCtx } from "./wallet-test-helpers";
 
+// Mock useLanguage
+jest.mock("@/app/context/language-context", () => ({
+  useLanguage: () => ({
+    language: "en",
+    setLanguage: jest.fn(),
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        marketplace_dismiss: "DISMISS",
+        marketplace_title: "Agentic Marketplace",
+        marketplace_browse: "BROWSE",
+        marketplace_publish: "PUBLISH",
+        marketplace_search: "Search skills... (agent-memory, voice-wizard, sovereign-constitution)",
+        marketplace_all: "ALL",
+        marketplace_published: "Published Skills",
+        marketplace_installs: "Total Installs",
+        marketplace_pro_skills: "Pro+ Skills",
+        marketplace_free_skills: "Free Skills",
+        marketplace_no_skills: "No Skills Available",
+        marketplace_publish_first: "Publish the first skill to the marketplace.",
+        marketplace_publish_btn: "PUBLISH FIRST SKILL",
+        marketplace_no_desc: "No description",
+        marketplace_signed: "AxiomID Signed & Signed Attestation",
+        marketplace_free: "FREE",
+        marketplace_load_more: "LOAD MORE",
+        marketplace_close: "CLOSE",
+        marketplace_installs_label: "installs",
+        marketplace_manifest: "SKILL MANIFEST (SKILL.md)",
+        marketplace_script: "SPECIALIST AGENT SCRIPT",
+        marketplace_test_suite: "TEST SUITE",
+        marketplace_installing: "Installing...",
+        marketplace_connecting: "Connecting...",
+        marketplace_connect_install: "Connect Wallet to Install",
+        marketplace_install_skill: "Install Skill",
+        marketplace_copy_payload: "COPY PAYLOAD",
+      };
+      return translations[key] || key;
+    },
+  }),
+}));
+
 // Mock useWallet
 jest.mock("@/app/context/wallet-context", () => ({
   useWallet: jest.fn(),
@@ -426,7 +466,7 @@ describe("MarketplacePage — install button aria-label states (PR change)", () 
     await openSkillDetail();
 
     const btn = screen.getByRole("button", { name: /connecting/i });
-    expect(btn).toHaveAttribute("aria-label", "Connecting");
+    expect(btn).toHaveAttribute("aria-label", "Connecting...");
   });
 
   it("'Connect Wallet to Install' aria-label takes lower priority than 'Connecting' when isConnecting (PR change)", async () => {
@@ -441,7 +481,7 @@ describe("MarketplacePage — install button aria-label states (PR change)", () 
 
     const btn = screen.getByRole("button", { name: /connecting/i });
     expect(btn).not.toHaveAttribute("aria-label", "Connect Wallet to Install");
-    expect(btn).toHaveAttribute("aria-label", "Connecting");
+    expect(btn).toHaveAttribute("aria-label", "Connecting...");
   });
 });
 
@@ -461,6 +501,242 @@ describe("MarketplacePage — empty state", () => {
 
     await waitFor(() => {
       expect(screen.getByText("No Skills Available")).toBeInTheDocument();
+    });
+  });
+});
+
+describe("MarketplacePage — Welcome Banner (PR change)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null }));
+  });
+
+  it("renders the marketplace_welcome_banner key when not showing publish form", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ skills: [] }),
+    });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("marketplace_welcome_banner")).toBeInTheDocument();
+    });
+  });
+
+  it("renders the marketplace_welcome_desc key under the welcome banner", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ skills: [] }),
+    });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("marketplace_welcome_desc")).toBeInTheDocument();
+    });
+  });
+
+  it("does NOT render the welcome banner when showing the publish form", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ skills: [] }),
+    });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("marketplace_welcome_banner")).toBeInTheDocument();
+    });
+
+    // Click PUBLISH toggle to switch to publish form (first match is the toggle button)
+    const publishButtons = screen.getAllByRole("button", { name: /PUBLISH/i });
+    fireEvent.click(publishButtons[0]);
+
+    // Welcome banner should disappear when in publish mode
+    expect(screen.queryByText("marketplace_welcome_banner")).toBeNull();
+  });
+
+  it("Welcome Banner reappears when switching back from publish to browse", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ skills: [] }),
+    });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("marketplace_welcome_banner")).toBeInTheDocument();
+    });
+
+    // Toggle to publish (first match is the toggle button)
+    const publishButtons = screen.getAllByRole("button", { name: /PUBLISH/i });
+    fireEvent.click(publishButtons[0]);
+    expect(screen.queryByText("marketplace_welcome_banner")).toBeNull();
+
+    // Toggle back to browse
+    fireEvent.click(screen.getByRole("button", { name: /BROWSE/i }));
+    expect(screen.getByText("marketplace_welcome_banner")).toBeInTheDocument();
+  });
+});
+
+describe("MarketplacePage — stats description labels (PR change)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null }));
+  });
+
+  it("renders marketplace_published_desc key under Published Skills stat", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ skills: [mockSkill] }),
+    });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("marketplace_published_desc")).toBeInTheDocument();
+    });
+  });
+
+  it("renders marketplace_installs_desc key under Total Installs stat", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ skills: [mockSkill] }),
+    });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("marketplace_installs_desc")).toBeInTheDocument();
+    });
+  });
+
+  it("renders marketplace_pro_skills_desc key under Pro+ Skills stat", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ skills: [mockSkill] }),
+    });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("marketplace_pro_skills_desc")).toBeInTheDocument();
+    });
+  });
+
+  it("renders marketplace_free_skills_desc key under Free Skills stat", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ skills: [mockSkill] }),
+    });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("marketplace_free_skills_desc")).toBeInTheDocument();
+    });
+  });
+});
+
+describe("MarketplacePage — i18n text changes (PR change)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null }));
+  });
+
+  it("renders 'Agentic Marketplace' as the page title from t(marketplace_title)", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ skills: [] }),
+    });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Agentic Marketplace")).toBeInTheDocument();
+    });
+  });
+
+  it("renders marketplace_signed key for skill attestation badge", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ skills: [mockSkill] }),
+    });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("AxiomID Signed & Signed Attestation")
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("renders 'FREE' for zero-price skills from t(marketplace_free)", async () => {
+    // mockSkill has pricePi: 0
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ skills: [mockSkill] }),
+    });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("FREE")).toBeInTheDocument();
+    });
+  });
+
+  it("renders marketplace_publish_first key in empty state", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ skills: [] }),
+    });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Publish the first skill to the marketplace.")
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("renders 'PUBLISH FIRST SKILL' button in empty state from t(marketplace_publish_btn)", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ skills: [] }),
+    });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /PUBLISH FIRST SKILL/i })
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("renders marketplace_manifest_desc key in skill detail modal", async () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: null }));
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ skills: [mockSkill] }),
+      })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockSkillDetail });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Test Skill")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Test Skill"));
+
+    await waitFor(() => {
+      // marketplace_manifest_desc is a new PR key rendered under the manifest section
+      expect(screen.getByText("marketplace_manifest_desc")).toBeInTheDocument();
     });
   });
 });
