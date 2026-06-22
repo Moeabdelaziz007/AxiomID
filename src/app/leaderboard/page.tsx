@@ -121,7 +121,7 @@ export default function LeaderboardPage() {
             <p className="text-sm text-zinc-400 max-w-md mx-auto mb-6">
               {language === "en" 
                 ? "The leaderboard is empty. Connect your wallet and start earning XP to claim the #1 spot and become the first Sovereign."
-                : "لوحة الصدارة فارغة. اربط محفظتك وابدأ في كسب نقاط الخبرة لاحتلال المرتبة الأولى وال成为 السيادي الأول."}
+                : "لوحة الصدارة فارغة. اربط محفظتك وابدأ في كسب نقاط الخبرة لاحتلال المرتبة الأولى وتصبح السيادي الأول."}
             </p>
             <Link href="/dashboard" className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all">
               {language === "en" ? "Launch App" : "ابدأ الآن"}
