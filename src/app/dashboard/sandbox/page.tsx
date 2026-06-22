@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Play, ShieldAlert, Cpu, Dna, Terminal, Copy, Check, ShieldCheck, Loader2 } from "lucide-react";
+import { useLanguage } from "../../context/language-context";
 
 interface AstNode {
   type: string;
@@ -127,8 +128,8 @@ interface SkillListItem {
 
 interface AuditItem {
   id: string;
-  label: string;
-  desc: string;
+  labelKey: string;
+  descKey: string;
 }
 
 const DEFAULT_MANIFEST = `---
@@ -145,18 +146,19 @@ Write custom rules or prompts for the agent here.
 - The creator agent will simulate execution.
 `;
 
-const AUDIT_ITEMS: AuditItem[] = [
-  { id: "sandbox", label: "Sandbox Isolation", desc: "Isolated microVM container instance." },
-  { id: "ast", label: "Static AST Analysis", desc: "Parse structure for malicious imports." },
-  { id: "injection", label: "Injection Guard", desc: "Frontmatter and prompt boundary verification." },
-  { id: "signature", label: "Signature Anchor", desc: "Verified did:axiom creator signatures." },
-  { id: "exfil", label: "Exfiltration Scan", desc: "No unauthorized outbound network connections." },
-  { id: "dangerous", label: "Command Block", desc: "No raw shell executions (e.g. rm, chmod)." },
-  { id: "privilege", label: "Privilege Guard", desc: "No host credentials or environment variables." },
-  { id: "provenance", label: "Provenance Check", desc: "Valid author historical rating >= 4.0." },
+const AUDIT_ITEMS: { id: string; labelKey: string; descKey: string }[] = [
+  { id: "sandbox", labelKey: "sandbox_sandbox_isolation", descKey: "sandbox_sandbox_desc" },
+  { id: "ast", labelKey: "sandbox_ast_analysis", descKey: "sandbox_ast_desc" },
+  { id: "injection", labelKey: "sandbox_injection_guard", descKey: "sandbox_injection_desc" },
+  { id: "signature", labelKey: "sandbox_signature_anchor", descKey: "sandbox_signature_desc" },
+  { id: "exfil", labelKey: "sandbox_exfil_scan", descKey: "sandbox_exfil_desc" },
+  { id: "dangerous", labelKey: "sandbox_command_block", descKey: "sandbox_command_desc" },
+  { id: "privilege", labelKey: "sandbox_privilege_guard", descKey: "sandbox_privilege_desc" },
+  { id: "provenance", labelKey: "sandbox_provenance_check", descKey: "sandbox_provenance_desc" },
 ];
 
 export default function SandboxPage() {
+  const { t } = useLanguage();
   const [manifest, setManifest] = useState(DEFAULT_MANIFEST);
   const [inputData, setInputData] = useState(`{"prompt": "Calculate prime sequence to 10"}`);
   const [logs, setLogs] = useState<string[]>([]);
@@ -343,7 +345,7 @@ export default function SandboxPage() {
           className="text-lg font-bold truncate flex items-center"
           style={{ color: "var(--text-primary)" }}
         >
-          <Cpu className="w-5 h-5 text-electric-blue inline me-2" /> Developer Sandbox
+          <Cpu className="w-5 h-5 text-electric-blue inline me-2" /> {t("sandbox_title")}
         </h1>
         <div className="ms-auto flex items-center gap-2">
           <span
@@ -352,8 +354,19 @@ export default function SandboxPage() {
             }`}
           />
           <span className="text-[10px] font-mono text-faint">
-            {executing ? "SANDBOX ACTIVE" : "ENGINE IDLE"}
+            {executing ? t("sandbox_active") : t("sandbox_idle")}
           </span>
+        </div>
+      </div>
+
+      {/* Beginner-friendly intro */}
+      <div className="bento-card p-4 md:p-5 border-l-4 border-l-electric-blue">
+        <h2 className="text-sm font-bold text-surface mb-1">{t("sandbox_intro_title")}</h2>
+        <p className="text-xs text-subtle mb-3">{t("sandbox_intro_desc")}</p>
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 text-[10px] font-mono text-faint">
+          <span className="flex items-center gap-1.5"><span className="text-electric-blue font-bold">1.</span> {t("sandbox_step_1")}</span>
+          <span className="flex items-center gap-1.5"><span className="text-electric-blue font-bold">2.</span> {t("sandbox_step_2")}</span>
+          <span className="flex items-center gap-1.5"><span className="text-electric-blue font-bold">3.</span> {t("sandbox_step_3")}</span>
         </div>
       </div>
 
@@ -374,7 +387,7 @@ export default function SandboxPage() {
                         : "text-zinc-500 hover:text-zinc-300"
                     }`}
                   >
-                    EDIT MANIFEST
+                    {t("sandbox_edit_manifest")}
                   </button>
                   <button
                     type="button"
@@ -385,11 +398,11 @@ export default function SandboxPage() {
                         : "text-zinc-500 hover:text-zinc-300"
                     }`}
                   >
-                    AST PREVIEW
+                    {t("sandbox_ast_preview")}
                   </button>
                 </div>
                 <span className="text-[9px] font-mono text-electric-blue border border-electric-blue/20 px-1.5 py-0.5 rounded">
-                  {editorTab === "edit" ? "YAML + Markdown" : "Syntax Tree"}
+                  {editorTab === "edit" ? t("sandbox_yaml_md") : t("sandbox_syntax_tree")}
                 </span>
               </div>
               {editorTab === "edit" ? (
@@ -404,16 +417,17 @@ export default function SandboxPage() {
                   {renderAstJson(parseManifestToAst(manifest))}
                 </div>
               )}
+              <p className="text-[9px] text-faint mt-2 font-mono">{t("sandbox_manifest_hint")}</p>
             </div>
 
             {/* Input Parameters Editor */}
             <div className="bento-card p-4 flex flex-col min-h-[350px]">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-mono font-bold text-subtle">
-                  INPUT PAYLOAD (JSON)
+                  {t("sandbox_input_payload")}
                 </span>
                 <span className="text-[9px] font-mono text-axiom-purple border border-axiom-purple/20 px-1.5 py-0.5 rounded">
-                  Parameters
+                  {t("sandbox_parameters")}
                 </span>
               </div>
               <textarea
@@ -422,6 +436,7 @@ export default function SandboxPage() {
                 className="flex-1 w-full bg-black/40 border border-white/5 rounded-lg p-3 text-xs font-mono text-axiom-purple focus:outline-none focus:border-axiom-purple/40 resize-none"
                 placeholder='{"prompt": "Hello Agent!"}'
               />
+              <p className="text-[9px] text-faint mt-2 font-mono">{t("sandbox_input_hint")}</p>
             </div>
           </div>
 
@@ -433,14 +448,14 @@ export default function SandboxPage() {
               className="flex-1 btn-primary py-3 text-xs font-mono flex items-center justify-center gap-2"
             >
               <Play className="w-4 h-4" />
-              {executing ? "RUNNING SIMULATION..." : "RUN TEST IN VERCEL SANDBOX"}
+              {executing ? t("sandbox_running") : t("sandbox_run_test")}
             </button>
             <button
               onClick={handleCopyPayload}
               className="btn-ghost px-4 py-3 text-xs font-mono flex items-center gap-2"
             >
               {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-              COPY PAYLOAD
+              {t("sandbox_copy_payload")}
             </button>
           </div>
 
@@ -449,13 +464,13 @@ export default function SandboxPage() {
             <div className="flex items-center gap-2 mb-3 border-b border-emerald-500/10 pb-2">
               <Terminal className="w-4 h-4 text-emerald-400 animate-pulse" />
               <span className="text-xs font-mono font-bold text-surface">
-                Isolated VM Terminal Output
+                {t("sandbox_terminal_output")}
               </span>
             </div>
             <div className="font-mono text-[10px] space-y-1.5 max-h-60 overflow-y-auto scrollbar-thin p-1 min-h-[120px]">
               {logs.length === 0 ? (
                 <span className="text-gray-600 block">
-                  Waiting for execution triggers... (Click &quot;Run Test&quot; to start sandbox session)
+                  {t("sandbox_waiting")}
                 </span>
               ) : (
                 logs.map((log, idx) => {
@@ -490,8 +505,9 @@ export default function SandboxPage() {
           <div className="bento-card p-4">
             <h3 className="text-xs font-mono font-bold text-surface mb-3 flex items-center">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 inline me-1.5" />
-              Agensi Security Scan
+              {t("sandbox_security_scan")}
             </h3>
+            <p className="text-[9px] text-faint mb-3">{t("sandbox_security_desc")}</p>
             <div className="space-y-2.5">
               {AUDIT_ITEMS.map((item) => {
                 const state = auditStates[item.id];
@@ -517,7 +533,7 @@ export default function SandboxPage() {
                   <div key={item.id} className="border border-white/5 rounded-lg p-2 bg-white/5">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-mono font-bold text-surface">
-                        {item.label}
+                        {t(item.labelKey)}
                       </span>
                       <span className={`text-[8px] font-mono px-1.5 py-0.5 rounded border ${stateClass}`}>
                         {icon}
@@ -525,7 +541,7 @@ export default function SandboxPage() {
                       </span>
                     </div>
                     <p className="text-[9px] text-faint mt-1 leading-normal">
-                      {item.desc}
+                      {t(item.descKey)}
                     </p>
                   </div>
                 );
@@ -537,7 +553,7 @@ export default function SandboxPage() {
           <div className="bento-card p-4">
             <h3 className="text-xs font-mono font-bold text-surface mb-3 flex items-center">
               <Dna className="w-3.5 h-3.5 text-emerald-400 inline me-1.5" />
-              Available Templates
+              {t("sandbox_available_templates")}
             </h3>
             {loadingSkills ? (
               <div className="space-y-3">
@@ -547,7 +563,7 @@ export default function SandboxPage() {
               </div>
             ) : skills.length === 0 ? (
               <div className="text-center py-4">
-                <span className="text-[10px] font-mono text-faint">No templates seeded.</span>
+                <span className="text-[10px] font-mono text-faint">{t("sandbox_no_templates")}</span>
               </div>
             ) : (
               <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin">

@@ -12,6 +12,46 @@ import React from "react";
 import { render, waitFor, screen, act } from "@testing-library/react";
 import StatusPage from "@/app/status/page";
 
+// Mock useLanguage
+jest.mock("@/app/context/language-context", () => ({
+  useLanguage: () => ({
+    language: "en",
+    setLanguage: jest.fn(),
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        status_network_title: "Network Status",
+        status_network_desc: "Real-time monitoring of AxiomID protocol and agent network",
+        status_retry: "RETRY",
+        status_registered_agents: "REGISTERED AGENTS",
+        status_active_onchain: "Active on-chain",
+        status_total_transactions: "TOTAL TRANSACTIONS",
+        status_pi_payments: "Pi payments processed",
+        status_avg_trust: "AVG TRUST SCORE",
+        status_network_safety: "Network safety index",
+        status_active_agents: "ACTIVE AGENTS",
+        status_executing_loops: "Currently executing loops",
+        status_total_xp: "TOTAL XP EARNED",
+        status_accumulated: "Accumulated rewards",
+        status_verification_rate: "VERIFICATION RATE",
+        status_kyc_index: "KYC success index",
+        status_protocol_details: "PROTOCOL DETAILS",
+        status_network: "Network",
+        status_version: "Version",
+        status_refreshed: "Refreshed",
+        status_ago: "s ago",
+        status_service_health: "SERVICE HEALTH",
+        status_uptime: "UPTIME",
+        status_manifest_api: "AGENT MANIFEST API",
+        status_manifest_desc: "Access any agent's JSON-LD identity manifest via the public API.",
+        status_get: "GET",
+        status_unable_load: "Unable to Load Status",
+        status_could_not_fetch: "Could not fetch network statistics. Please try again later.",
+      };
+      return translations[key] || key;
+    },
+  }),
+}));
+
 // StatusPage is a client component that calls fetch internally
 let mockFetch: jest.Mock;
 

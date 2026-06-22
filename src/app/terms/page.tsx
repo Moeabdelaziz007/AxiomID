@@ -2,8 +2,10 @@
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useLanguage } from "../context/language-context";
 
 export default function Terms() {
+  const { t } = useLanguage();
   return (
     <main className="min-h-screen bg-grid relative">
       <div className="scanline" />
@@ -15,67 +17,57 @@ export default function Terms() {
         <div className="bento-card p-6 md:p-8">
           <div className="flex items-center gap-3 mb-6">
             <span className="px-3 py-1 rounded-full text-[10px] font-mono bg-neon-green/10 text-neon-green border border-neon-green/20">
-              LEGAL
+              {t("terms_legal")}
             </span>
-            <span className="text-xs font-mono text-faint">Last updated: May 17, 2026</span>
+            <span className="text-xs font-mono text-faint">{t("terms_last_updated")}</span>
           </div>
 
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
-            Terms of <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-electric-blue">Service</span>
+            {t("terms_title").split(" ").slice(0, -1).join(" ")} <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-electric-blue">{t("terms_title").split(" ").slice(-1)}</span>
           </h1>
           <p className="text-subtle text-sm mb-8 font-mono">
-            By using AxiomID, you agree to these terms.
+            {t("terms_subtitle")}
           </p>
 
           <div className="space-y-6 text-subtle text-sm leading-relaxed">
             <section>
               <h2 className="text-surface text-lg font-semibold mb-2 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
-                Use of Service
+                {t("terms_use")}
               </h2>
-              <p>
-                AxiomID provides decentralized identity verification and reputation tracking. You may use the service in compliance with all applicable laws and regulations. The service is provided for lawful purposes only.
-              </p>
+              <p>{t("terms_use_desc")}</p>
             </section>
 
             <section>
               <h2 className="text-surface text-lg font-semibold mb-2 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-electric-blue" />
-                Wallet Connection
+                {t("terms_wallet")}
               </h2>
-              <p>
-                Connecting your Pi wallet is required for authentication. You are solely responsible for maintaining the security of your wallet and private keys. AxiomID never has access to your private keys or seed phrases.
-              </p>
+              <p>{t("terms_wallet_desc")}</p>
             </section>
 
             <section>
               <h2 className="text-surface text-lg font-semibold mb-2 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-axiom-purple" />
-                AI Agent Verification
+                {t("terms_ai_agent")}
               </h2>
-              <p>
-                Each user may register one verified AI agent. The verified agent may interact with ecosystem products on your behalf. You are responsible for all actions taken by your agent. Agent verification is non-transferable.
-              </p>
+              <p>{t("terms_ai_agent_desc")}</p>
             </section>
 
             <section>
               <h2 className="text-surface text-lg font-semibold mb-2 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
-                Limitation of Liability
+                {t("terms_liability")}
               </h2>
-              <p>
-                The App is provided <strong className="text-subtle">&quot;as is&quot;</strong> without warranties of any kind, either express or implied. We are not liable for any damages arising from the use or inability to use the service, including but not limited to loss of reputation score, agent data, or Pi transactions.
-              </p>
+              <p>{t("terms_liability_desc")}</p>
             </section>
 
             <section>
               <h2 className="text-surface text-lg font-semibold mb-2 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-neon-green" />
-                Changes to Terms
+                {t("terms_changes")}
               </h2>
-              <p>
-                We may update these terms at any time. Continued use of the service after changes constitutes acceptance of the new terms. You will be notified of material changes via the app.
-              </p>
+              <p>{t("terms_changes_desc")}</p>
             </section>
           </div>
         </div>

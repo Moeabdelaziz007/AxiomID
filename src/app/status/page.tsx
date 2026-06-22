@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useLanguage } from "../context/language-context";
 
 interface ServiceCheck {
   name: string;
@@ -42,6 +43,7 @@ const STATUS_BG: Record<string, string> = {
  * Displays a real-time network status dashboard with AxiomID protocol metrics and service health.
  */
 export default function StatusPage() {
+  const { t } = useLanguage();
   const [stats, setStats] = useState<NetworkStats | null>(null);
   const [health, setHealth] = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -109,10 +111,10 @@ export default function StatusPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
             <div>
-                <h2 className="text-3xl font-bold text-surface mb-2">Network Status</h2>
-                <p className="text-subtle">Real-time monitoring of AxiomID protocol and agent network</p>
+                <h2 className="text-3xl font-bold text-surface mb-2">{t("status_network_title")}</h2>
+                <p className="text-subtle">{t("status_network_desc")}</p>
             </div>
-            <button onClick={fetchAll} className="btn-primary px-4 py-2 text-sm font-mono">RETRY</button>
+            <button onClick={fetchAll} className="btn-primary px-4 py-2 text-sm font-mono">{t("status_retry")}</button>
         </div>
 
         {loading ? (
@@ -128,21 +130,21 @@ export default function StatusPage() {
           <>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
               <div className="bento-card p-6 text-center flex flex-col justify-between min-h-[160px]">
-                <span className="text-[10px] font-mono text-faint block mb-2">REGISTERED AGENTS</span>
+                <span className="text-[10px] font-mono text-faint block mb-2">{t("status_registered_agents")}</span>
                 <span className="text-3xl font-bold font-mono text-neon-green">
                   {stats.registeredAgents.toLocaleString()}
                 </span>
-                <span className="text-[9px] font-mono text-zinc-500 mt-2">Active on-chain</span>
+                <span className="text-[9px] font-mono text-zinc-500 mt-2">{t("status_active_onchain")}</span>
               </div>
               <div className="bento-card p-6 text-center flex flex-col justify-between min-h-[160px]">
-                <span className="text-[10px] font-mono text-faint block mb-2">TOTAL TRANSACTIONS</span>
+                <span className="text-[10px] font-mono text-faint block mb-2">{t("status_total_transactions")}</span>
                 <span className="text-3xl font-bold font-mono text-electric-blue">
                   {stats.totalTransactions.toLocaleString()}
                 </span>
-                <span className="text-[9px] font-mono text-zinc-500 mt-2">Pi payments processed</span>
+                <span className="text-[9px] font-mono text-zinc-500 mt-2">{t("status_pi_payments")}</span>
               </div>
               <div className="bento-card p-6 text-center flex flex-col items-center justify-between min-h-[160px]">
-                <span className="text-[10px] font-mono text-faint block mb-2">AVG TRUST SCORE</span>
+                <span className="text-[10px] font-mono text-faint block mb-2">{t("status_avg_trust")}</span>
                 <div className="relative w-20 h-20 flex items-center justify-center">
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.03)" strokeWidth="6" fill="none" />
@@ -160,24 +162,24 @@ export default function StatusPage() {
                   </svg>
                   <span className="absolute text-sm font-bold font-mono text-white">{stats.averageTrustScore ?? "—"}%</span>
                 </div>
-                <span className="text-[9px] font-mono text-zinc-500 mt-2">Network safety index</span>
+                <span className="text-[9px] font-mono text-zinc-500 mt-2">{t("status_network_safety")}</span>
               </div>
               <div className="bento-card p-6 text-center flex flex-col justify-between min-h-[160px]">
-                <span className="text-[10px] font-mono text-faint block mb-2">ACTIVE AGENTS</span>
+                <span className="text-[10px] font-mono text-faint block mb-2">{t("status_active_agents")}</span>
                 <span className="text-3xl font-bold font-mono text-neon-green">
                   {stats.activeAgents.toLocaleString()}
                 </span>
-                <span className="text-[9px] font-mono text-zinc-500 mt-2">Currently executing loops</span>
+                <span className="text-[9px] font-mono text-zinc-500 mt-2">{t("status_executing_loops")}</span>
               </div>
               <div className="bento-card p-6 text-center flex flex-col justify-between min-h-[160px]">
-                <span className="text-[10px] font-mono text-faint block mb-2">TOTAL XP EARNED</span>
+                <span className="text-[10px] font-mono text-faint block mb-2">{t("status_total_xp")}</span>
                 <span className="text-3xl font-bold font-mono text-electric-blue">
                   {stats.totalXpEarned.toLocaleString()}
                 </span>
-                <span className="text-[9px] font-mono text-zinc-500 mt-2">Accumulated rewards</span>
+                <span className="text-[9px] font-mono text-zinc-500 mt-2">{t("status_accumulated")}</span>
               </div>
               <div className="bento-card p-6 text-center flex flex-col items-center justify-between min-h-[160px]">
-                <span className="text-[10px] font-mono text-faint block mb-2">VERIFICATION RATE</span>
+                <span className="text-[10px] font-mono text-faint block mb-2">{t("status_verification_rate")}</span>
                 <div className="relative w-20 h-20 flex items-center justify-center">
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.03)" strokeWidth="6" fill="none" />
@@ -195,26 +197,26 @@ export default function StatusPage() {
                   </svg>
                   <span className="absolute text-sm font-bold font-mono text-white">{stats.verificationRate ?? "—"}%</span>
                 </div>
-                <span className="text-[9px] font-mono text-zinc-500 mt-2">KYC success index</span>
+                <span className="text-[9px] font-mono text-zinc-500 mt-2">{t("status_kyc_index")}</span>
               </div>
             </div>
 
             {/* Protocol Details */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bento-card p-6 md:col-span-3">
-                <h3 className="text-sm font-bold text-surface font-mono mb-4">PROTOCOL DETAILS</h3>
+                <h3 className="text-sm font-bold text-surface font-mono mb-4">{t("status_protocol_details")}</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] font-mono">
                   <div className="flex justify-between p-2 border-b border-white/5">
-                    <span className="text-faint">Network</span>
+                    <span className="text-faint">{t("status_network")}</span>
                     <span className="text-surface">{network}</span>
                   </div>
                   <div className="flex justify-between p-2 border-b border-white/5">
-                    <span className="text-faint">Version</span>
+                    <span className="text-faint">{t("status_version")}</span>
                     <span className="text-surface">1.0.0</span>
                   </div>
                   <div className="flex justify-between p-2 border-b border-white/5">
-                    <span className="text-faint">Refreshed</span>
-                    <span className="text-neon-green">{timeSince}s ago</span>
+                    <span className="text-faint">{t("status_refreshed")}</span>
+                    <span className="text-neon-green">{timeSince}{t("status_ago")}</span>
                   </div>
                 </div>
               </div>
@@ -224,9 +226,9 @@ export default function StatusPage() {
             {health && (
               <div className="bento-card p-6 mt-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-surface font-mono">SERVICE HEALTH</h3>
+                  <h3 className="text-sm font-bold text-surface font-mono">{t("status_service_health")}</h3>
                   <div className="flex items-center gap-2 text-[10px] font-mono">
-                    <span className="text-faint">UPTIME</span>
+                    <span className="text-faint">{t("status_uptime")}</span>
                     <span className="text-neon-green font-bold">{health.uptime}%</span>
                   </div>
                 </div>
@@ -253,12 +255,12 @@ export default function StatusPage() {
 
             {/* API Endpoint */}
             <div className="bento-card p-6 mt-6">
-              <h3 className="text-sm font-bold text-surface font-mono mb-4">AGENT MANIFEST API</h3>
+              <h3 className="text-sm font-bold text-surface font-mono mb-4">{t("status_manifest_api")}</h3>
               <p className="text-xs text-subtle mb-4">
-                Access any agent&apos;s JSON-LD identity manifest via the public API.
+                {t("status_manifest_desc")}
               </p>
               <div className="bg-black/80 border border-white/5 rounded-xl p-4 font-mono text-[11px]">
-                <span className="text-faint">GET</span> {" "}
+                <span className="text-faint">{t("status_get")}</span> {" "}
                 <span className="text-neon-green">https://axiomid.app/api/agent/manifest</span>
                 <span className="text-faint">?userId=</span>
                 <span className="text-electric-blue">your-username</span>
@@ -270,9 +272,9 @@ export default function StatusPage() {
             <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center mx-auto mb-4">
               <span className="text-2xl">❌</span>
             </div>
-            <h2 className="text-xl font-bold text-surface mb-2">Unable to Load Status</h2>
-            <p className="text-subtle">Could not fetch network statistics. Please try again later.</p>
-            <button onClick={fetchAll} className="btn-primary mt-4 px-6 py-2 text-sm font-mono">RETRY</button>
+            <h2 className="text-xl font-bold text-surface mb-2">{t("status_unable_load")}</h2>
+            <p className="text-subtle">{t("status_could_not_fetch")}</p>
+            <button onClick={fetchAll} className="btn-primary mt-4 px-6 py-2 text-sm font-mono">{t("status_retry")}</button>
           </div>
         )}
       </div>

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useWallet } from "../../context/wallet-context";
 import { Dna, Download, Star, Coins } from "lucide-react";
 import { PublishSkillForm } from "@/components/dashboard/PublishSkillForm";
+import { useLanguage } from "../../context/language-context";
 
 interface Skill {
   id: string;
@@ -48,6 +49,7 @@ const TIER_LABELS: Record<string, string> = {
 };
 
 export default function MarketplacePage() {
+  const { t } = useLanguage();
   const { user, connectWallet, isConnecting } = useWallet();
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);
@@ -182,24 +184,35 @@ export default function MarketplacePage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
             <span className="text-sm font-mono text-red-300 flex-1">{error}</span>
-            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300 text-xs font-mono px-2 py-1">DISMISS</button>
+            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300 text-xs font-mono px-2 py-1">{t("marketplace_dismiss")}</button>
           </div>
         </div>
       )}
 
-      <div className="flex items-center gap-2 mb-6">
+      <div className="flex items-center gap-2 mb-2">
         <h1 className="text-lg font-bold truncate flex items-center" style={{ color: "var(--text-primary)" }}>
-          <Dna className="w-5 h-5 text-emerald-400 inline me-2" />Agentic Marketplace
+          <Dna className="w-5 h-5 text-emerald-400 inline me-2" />{t("marketplace_title")}
         </h1>
         <div className="ms-auto">
           <button
             onClick={() => setShowPublish(!showPublish)}
             className="btn-primary text-xs px-3 sm:px-4 py-2"
           >
-            {showPublish ? "BROWSE" : "PUBLISH"}
+            {showPublish ? t("marketplace_browse") : t("marketplace_publish")}
           </button>
         </div>
       </div>
+
+      {/* Welcome Banner */}
+      {!showPublish && (
+        <div className="bento-card p-4 mb-6 flex items-start gap-3" style={{ borderColor: "rgba(34, 197, 94, 0.15)" }}>
+          <Dna className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{t("marketplace_welcome_banner")}</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>{t("marketplace_welcome_desc")}</p>
+          </div>
+        </div>
+      )}
         {showPublish ? (
           <PublishSkillForm onPublished={() => setShowPublish(false)} />
         ) : (
@@ -212,7 +225,7 @@ export default function MarketplacePage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Search skills... (agent-memory, voice-wizard, sovereign-constitution)"
+                placeholder={t("marketplace_search")}
                 className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-surface placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
               />
               <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by tier">
@@ -226,7 +239,7 @@ export default function MarketplacePage() {
                         : "bg-white/5 text-faint border-white/10 hover:border-white/20"
                     }`}
                   >
-                    {tier ? TIER_LABELS[tier] || tier : "ALL"}
+                    {tier ? TIER_LABELS[tier] || tier : t("marketplace_all")}
                   </button>
                 ))}
               </div>
@@ -236,25 +249,29 @@ export default function MarketplacePage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               <div className="bento-card p-4 text-center">
                 <span className="text-2xl font-bold text-neon-green font-mono">{skills.length}</span>
-                <p className="text-[10px] font-mono mt-1" style={{ color: "var(--text-muted)" }}>Published Skills</p>
+                <p className="text-[10px] font-mono mt-1" style={{ color: "var(--text-muted)" }}>{t("marketplace_published")}</p>
+                <p className="text-[9px] font-mono mt-0.5" style={{ color: "var(--text-faint)" }}>{t("marketplace_published_desc")}</p>
               </div>
               <div className="bento-card p-4 text-center">
                 <span className="text-2xl font-bold text-electric-blue font-mono">
                   {skills.reduce((acc, s) => acc + s.installCount, 0)}
                 </span>
-                <p className="text-[10px] font-mono mt-1" style={{ color: "var(--text-muted)" }}>Total Installs</p>
+                <p className="text-[10px] font-mono mt-1" style={{ color: "var(--text-muted)" }}>{t("marketplace_installs")}</p>
+                <p className="text-[9px] font-mono mt-0.5" style={{ color: "var(--text-faint)" }}>{t("marketplace_installs_desc")}</p>
               </div>
               <div className="bento-card p-4 text-center">
                 <span className="text-2xl font-bold text-axiom-purple font-mono">
                   {skills.filter((s) => s.tier === "PRO" || s.tier === "SOVEREIGN").length}
                 </span>
-                <p className="text-[10px] font-mono mt-1" style={{ color: "var(--text-muted)" }}>Pro+ Skills</p>
+                <p className="text-[10px] font-mono mt-1" style={{ color: "var(--text-muted)" }}>{t("marketplace_pro_skills")}</p>
+                <p className="text-[9px] font-mono mt-0.5" style={{ color: "var(--text-faint)" }}>{t("marketplace_pro_skills_desc")}</p>
               </div>
               <div className="bento-card p-4 text-center">
                 <span className="text-2xl font-bold text-amber-400 font-mono">
                   {skills.filter((s) => s.pricePi === 0).length}
                 </span>
-                <p className="text-[10px] font-mono mt-1" style={{ color: "var(--text-muted)" }}>Free Skills</p>
+                <p className="text-[10px] font-mono mt-1" style={{ color: "var(--text-muted)" }}>{t("marketplace_free_skills")}</p>
+                <p className="text-[9px] font-mono mt-0.5" style={{ color: "var(--text-faint)" }}>{t("marketplace_free_skills_desc")}</p>
               </div>
             </div>
 
@@ -271,13 +288,13 @@ export default function MarketplacePage() {
               </div>
             ) : skills.length === 0 ? (
               <div className="bento-card p-12 text-center">
-                <span className="mb-4 block"><Dna className="w-12 h-12 text-emerald-400/40 mx-auto" /></span>
-                <h3 className="text-lg font-bold text-surface mb-2">No Skills Available</h3>
-                <p className="text-sm text-subtle mb-6">
-                  Publish the first skill to the marketplace.
+                <span className="mb-4 block"><Dna className="w-16 h-16 text-emerald-400/30 mx-auto" /></span>
+                <h3 className="text-xl font-bold text-surface mb-2">{t("marketplace_no_skills")}</h3>
+                <p className="text-sm text-subtle mb-6 max-w-md mx-auto">
+                  {t("marketplace_publish_first")}
                 </p>
-                <button onClick={() => setShowPublish(true)} className="btn-primary">
-                  PUBLISH FIRST SKILL
+                <button onClick={() => setShowPublish(true)} className="btn-primary px-6 py-2.5">
+                  {t("marketplace_publish_btn")}
                 </button>
               </div>
             ) : (
@@ -331,7 +348,7 @@ export default function MarketplacePage() {
                       </div>
 
                       <p className="text-xs text-subtle line-clamp-2 mb-4 min-h-[32px] relative z-10">
-                        {skill.description || "No description"}
+                        {skill.description || t("marketplace_no_desc")}
                       </p>
 
                       {/* Cryptographic L0 Authority Trust Stamp Indicator */}
@@ -339,7 +356,7 @@ export default function MarketplacePage() {
                         <svg className="w-3 h-3 text-emerald-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
-                        <span>AxiomID Signed & Signed Attestation</span>
+                        <span>{t("marketplace_signed")}</span>
                       </div>
 
                       <div className="flex items-center justify-between text-[9px] font-mono border-t border-white/5 pt-3 mt-1 relative z-10">
@@ -352,7 +369,7 @@ export default function MarketplacePage() {
                           </span>
                         </div>
                         <span className="text-neon-green">
-                          {skill.pricePi === 0 ? "FREE" : `${skill.pricePi} π`}
+                          {skill.pricePi === 0 ? t("marketplace_free") : `${skill.pricePi} π`}
                         </span>
                       </div>
                     </button>
@@ -367,7 +384,7 @@ export default function MarketplacePage() {
                   onClick={() => setOffset((prev) => prev + PAGE_SIZE)}
                   className="btn-ghost text-xs font-mono px-6 py-2"
                 >
-                  LOAD MORE
+                  {t("marketplace_load_more")}
                 </button>
               </div>
             )}
@@ -407,34 +424,40 @@ export default function MarketplacePage() {
                     onClick={closeModal}
                     className="text-faint hover:text-surface text-xs font-mono px-2 py-0.5 border border-white/5 rounded"
                   >
-                    CLOSE
+                    {t("marketplace_close")}
                   </button>
                 </div>
 
                 <p className="text-sm text-subtle mb-4">{selectedSkill.description}</p>
 
                 <div className="flex items-center gap-4 text-[10px] font-mono mb-6">
-                  <span className="text-neon-green"><Download className="w-3 h-3 inline me-1" />{selectedSkill.installCount} installs</span>
+                  <span className="text-neon-green"><Download className="w-3 h-3 inline me-1" />{selectedSkill.installCount} {t("marketplace_installs_label")}</span>
                   <span className="text-amber-400"><Star className="w-3 h-3 inline me-1" />{(selectedSkill.avgRating ?? 0).toFixed(1)} ({selectedSkill.ratingCount})</span>
-                  <span className="text-electric-blue"><Coins className="w-3 h-3 inline me-1" />{selectedSkill.pricePi === 0 ? "Free" : `${selectedSkill.pricePi} π`}</span>
+                  <span className="text-electric-blue"><Coins className="w-3 h-3 inline me-1" />{selectedSkill.pricePi === 0 ? t("marketplace_free") : `${selectedSkill.pricePi} π`}</span>
                 </div>
 
-                {/* Manifest */}
+                {/* What This Skill Does */}
                 <div className="mb-4">
-                  <h3 className="text-xs font-mono font-bold mb-2" style={{ color: "var(--text-secondary)" }}>
-                    SKILL MANIFEST (SKILL.md)
+                    <h3 className="text-xs font-mono font-bold mb-1" style={{ color: "var(--text-secondary)" }}>
+                      {t("marketplace_manifest")}
                   </h3>
+                  <p className="text-[10px] font-mono mb-2" style={{ color: "var(--text-muted)" }}>
+                    {t("marketplace_manifest_desc")}
+                  </p>
                   <pre className="bg-black/40 border border-white/5 rounded-lg p-3 text-[10px] font-mono text-neon-green overflow-x-auto max-h-48 scrollbar-thin whitespace-pre-wrap">
                     {selectedSkill.manifestMd}
                   </pre>
                 </div>
 
-                {/* Agent Script */}
+                {/* How To Use It */}
                 {selectedSkill.agentScript && (
                   <div className="mb-4">
-                    <h3 className="text-xs font-mono font-bold mb-2" style={{ color: "var(--text-secondary)" }}>
-                      SPECIALIST AGENT SCRIPT
+                    <h3 className="text-xs font-mono font-bold mb-1" style={{ color: "var(--text-secondary)" }}>
+                      {t("marketplace_script")}
                     </h3>
+                    <p className="text-[10px] font-mono mb-2" style={{ color: "var(--text-muted)" }}>
+                      {t("marketplace_script_desc")}
+                    </p>
                     <pre className="bg-black/40 border border-white/5 rounded-lg p-3 text-[10px] font-mono text-electric-blue overflow-x-auto max-h-48 scrollbar-thin whitespace-pre-wrap">
                       {selectedSkill.agentScript}
                     </pre>
@@ -445,7 +468,7 @@ export default function MarketplacePage() {
                 {selectedSkill.testSuite && (
                   <div className="mb-4">
                     <h3 className="text-xs font-mono font-bold mb-2" style={{ color: "var(--text-secondary)" }}>
-                      TEST SUITE
+                      {t("marketplace_test_suite")}
                     </h3>
                     <pre className="bg-black/40 border border-white/5 rounded-lg p-3 text-[10px] font-mono text-amber-400 overflow-x-auto max-h-48 scrollbar-thin whitespace-pre-wrap">
                       {selectedSkill.testSuite}
@@ -458,10 +481,10 @@ export default function MarketplacePage() {
                     onClick={() => handleInstall(selectedSkill.slug)}
                     disabled={installing || isConnecting}
                     aria-busy={installing}
-                    aria-label={installing ? "Installing" : isConnecting ? "Connecting" : !user ? "Connect Wallet to Install" : "Install Skill"}
+                    aria-label={installing ? t("marketplace_installing") : isConnecting ? t("marketplace_connecting") : !user ? t("marketplace_connect_install") : t("marketplace_install_skill")}
                     className="flex-1 btn-primary py-2.5 text-xs font-mono uppercase"
                   >
-                    {installing ? "Installing..." : isConnecting ? "Connecting..." : !user ? "Connect Wallet to Install" : "Install Skill → Agent"}
+                    {installing ? t("marketplace_installing") : isConnecting ? t("marketplace_connecting") : !user ? t("marketplace_connect_install") : t("marketplace_install_skill")}
                   </button>
                   <button
                     onClick={() => {
@@ -473,7 +496,7 @@ export default function MarketplacePage() {
                     }}
                     className="btn-ghost py-2.5 text-xs font-mono px-4"
                   >
-                    COPY PAYLOAD
+                    {t("marketplace_copy_payload")}
                   </button>
                 </div>
               </>

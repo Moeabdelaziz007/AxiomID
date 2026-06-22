@@ -47,6 +47,10 @@ export default function SettingsPage() {
   const [activeVc, setActiveVc] = useState<unknown>(null);
   const [copied, setCopied] = useState(false);
 
+  // Disconnect confirmation
+  const [disconnectPlatform, setDisconnectPlatform] = useState<"twitter" | "discord" | "google" | null>(null);
+  const disconnectDialogRef = useRef<HTMLDialogElement>(null);
+
   // Refs for dialogs (W3C standard dialog controls)
   const connectDialogRef = useRef<HTMLDialogElement>(null);
   const vcDialogRef = useRef<HTMLDialogElement>(null);
@@ -152,6 +156,22 @@ export default function SettingsPage() {
     return !!user?.stamps?.some((s) => s.type === `connect_${platform}`);
   };
 
+  const openDisconnectModal = (platform: "twitter" | "discord" | "google") => {
+    setDisconnectPlatform(platform);
+    disconnectDialogRef.current?.showModal();
+  };
+
+  const handleDisconnect = async () => {
+    if (!disconnectPlatform) return;
+    const actionType = `disconnect_${disconnectPlatform}`;
+    const success = await claimAction(actionType, {});
+    disconnectDialogRef.current?.close();
+    setDisconnectPlatform(null);
+    if (success) {
+      await fetchStatusDetails();
+    }
+  };
+
   const PLATFORMS: { id: "twitter" | "discord" | "google"; icon: React.ReactNode; label: string; xp: number }[] = [
     { id: "twitter", icon: <AtSign className="w-4 h-4" />, label: "Twitter / X", xp: 50 },
     { id: "discord", icon: <MessageCircle className="w-4 h-4" />, label: "Discord", xp: 50 },
@@ -188,9 +208,10 @@ export default function SettingsPage() {
     <div className="max-w-4xl mx-auto space-y-6">
         {/* Section 1: Profile Details */}
         <section className="bento-card p-6 backdrop-blur-md" style={{ border: '1px solid var(--card-border)', background: 'var(--bg-card)' }}>
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+          <h2 className="text-lg font-bold mb-1 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
             <span className="text-neon-green"><User className="w-5 h-5" /></span> {t('settings_profile_title')}
           </h2>
+          <p className="text-xs mb-4 font-mono" style={{ color: 'var(--text-muted)' }}>{t('settings_profile_helper')}</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-mono">
             <div className="space-y-1">
               <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('settings_pi_network_id')}</span>
@@ -243,12 +264,13 @@ export default function SettingsPage() {
 
         {/* Section 2: XP & Tiers */}
         <section className="bento-card p-6 backdrop-blur-md" style={{ border: '1px solid var(--card-border)', background: 'var(--bg-card)' }}>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-1">
             <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
               <span className="text-electric-blue"><Zap className="w-5 h-5" /></span> {t('settings_progression_title')}
             </h2>
             <span className="text-electric-blue font-mono text-sm">{xp} {t('total_xp')}</span>
           </div>
+          <p className="text-xs mb-4 font-mono" style={{ color: 'var(--text-muted)' }}>{t('settings_progression_helper')}</p>
           
           <div className="flex flex-col sm:flex-row items-center gap-6">
             {/* Circular SVG progress gauge */}
@@ -307,11 +329,11 @@ export default function SettingsPage() {
 
         {/* Section 3: Social Binding & Credentials */}
         <section className="bento-card p-6 backdrop-blur-md" style={{ border: '1px solid var(--card-border)', background: 'var(--bg-card)' }}>
-          <h2 className="text-lg font-bold mb-2 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+          <h2 className="text-lg font-bold mb-1 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
             <span className="text-axiom-purple">🔗</span> {t('settings_social_title')}
           </h2>
-          <p className="text-xs mb-6 font-mono text-zinc-400">
-            {t('settings_social_desc')}
+          <p className="text-xs mb-6 font-mono" style={{ color: 'var(--text-muted)' }}>
+            {t('settings_social_helper')}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -346,11 +368,16 @@ export default function SettingsPage() {
                     <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">{t('settings_xp_reward')} +{xp} XP</p>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-end">
+                  <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
                     {connected ? (
-                      <button onClick={() => openVcModal(`connect_${id}`)} className="btn-ghost text-[10px] font-mono w-full text-center py-1">
-                        {t('inspect_vc')}
-                      </button>
+                      <>
+                        <button onClick={() => openDisconnectModal(id)} className="btn-ghost text-[10px] font-mono text-red-400 hover:text-red-300 px-2 py-1">
+                          Disconnect
+                        </button>
+                        <button onClick={() => openVcModal(`connect_${id}`)} className="btn-ghost text-[10px] font-mono py-1">
+                          {t('inspect_vc')}
+                        </button>
+                      </>
                     ) : (
                       <button onClick={() => openConnectModal(id)} className="btn-primary text-[10px] font-mono w-full text-center py-1">
                         {t('settings_connect_btn')}
@@ -365,16 +392,20 @@ export default function SettingsPage() {
 
 
         <section className="bento-card p-6 backdrop-blur-md" style={{ border: '1px solid var(--card-border)', background: 'var(--bg-card)' }}>
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+          <h2 className="text-lg font-bold mb-1 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
             <span className="text-yellow-500">📜</span> {t('settings_ledger_title')}
           </h2>
+          <p className="text-xs mb-4 font-mono" style={{ color: 'var(--text-muted)' }}>{t('settings_ledger_helper')}</p>
           {detailsLoading ? (
             <div className="space-y-2 py-4">
               <div className="h-6 rounded animate-pulse" style={{ background: 'var(--bg-card)' }} />
               <div className="h-6 rounded animate-pulse w-5/6" style={{ background: 'var(--bg-card)' }} />
             </div>
           ) : !statusDetails || statusDetails.recentLedger.length === 0 ? (
-            <p className="text-sm font-mono py-4 text-center" style={{ color: 'var(--text-muted)' }}>{t('settings_no_tx')}</p>
+            <div className="py-8 text-center">
+              <p className="text-sm font-mono mb-2" style={{ color: 'var(--text-muted)' }}>{t('settings_no_tx')}</p>
+              <p className="text-xs font-mono" style={{ color: 'var(--text-faint)' }}>Connect accounts or claim stamps to see activity here.</p>
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-start font-mono text-xs">
@@ -488,6 +519,38 @@ export default function SettingsPage() {
               className="btn-ghost text-xs px-4 py-2"
             >
               {t('close')}
+            </button>
+          </div>
+        </div>
+      </dialog>
+
+      {/* Modal 3: Disconnect Confirmation Dialog */}
+      <dialog
+        ref={disconnectDialogRef}
+        closedby="any"
+        onClick={handleDialogBackdropClick}
+        aria-labelledby="disconnect-dialog-title"
+        className="bento-card max-w-sm w-full bg-black/90 border border-white/15 backdrop-blur-xl text-surface rounded-2xl p-0"
+      >
+        <div className="p-6">
+          <h3 id="disconnect-dialog-title" className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+            {t('settings_confirm_title')}
+          </h3>
+          <p className="text-sm font-mono mb-6" style={{ color: 'var(--text-secondary)' }}>
+            {t('settings_confirm_disconnect').replace('{platform}', (disconnectPlatform || "").toUpperCase())}
+          </p>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => { disconnectDialogRef.current?.close(); setDisconnectPlatform(null); }}
+              className="btn-ghost text-xs px-4 py-2"
+            >
+              {t('settings_confirm_cancel')}
+            </button>
+            <button
+              onClick={handleDisconnect}
+              className="text-xs px-4 py-2 rounded-lg font-mono font-bold bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+            >
+              {t('settings_confirm_action')}
             </button>
           </div>
         </div>
