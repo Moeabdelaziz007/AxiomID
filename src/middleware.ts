@@ -16,6 +16,8 @@ const CORS_ALLOWED_ORIGINS = [
   "http://localhost:3000",
   "http://localhost:3001",
   "https://axiomid.vercel.app",
+  "https://app.minepi.com",
+  "https://sandbox.minepi.com",
 ];
 
 /**

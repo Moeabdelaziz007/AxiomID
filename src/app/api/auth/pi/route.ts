@@ -76,18 +76,26 @@ export async function POST(request: NextRequest) {
       });
 
       if (!piResponse.ok) {
-        return apiError('PI_AUTH_FAILED', 'Invalid Pi access token');
+        const errorBody = await piResponse.text().catch(() => "unable to read body");
+        logger.error(`[PI-AUTH] Pi API returned ${piResponse.status}: ${errorBody}`);
+        return apiError('PI_AUTH_FAILED', `Pi API returned ${piResponse.status}: ${piResponse.statusText}`);
       }
 
       const piUser = (await piResponse.json()) as PiApiUser;
       if (piUser.uid !== uid) {
+        logger.error(`[PI-AUTH] UID mismatch: token uid=${uid}, pi api uid=${piUser.uid}`);
         return apiError('PI_AUTH_FAILED', 'Token UID mismatch');
       }
 
       verifiedStellarAddress = getVerifiedStellarAddress(piUser);
     }
-  } catch {
-    return apiError('PI_AUTH_FAILED', 'Failed to verify Pi token');
+  } catch (fetchError) {
+    const message = fetchError instanceof Error ? fetchError.message : String(fetchError);
+    logger.error(`[PI-AUTH] Pi API fetch failed: ${message}`);
+    if (message.includes("timeout") || message.includes("abort")) {
+      return apiError('PI_AUTH_FAILED', 'Pi API request timed out. Check your network connection.');
+    }
+    return apiError('PI_AUTH_FAILED', `Failed to verify Pi token: ${message}`);
   }
 
   try {

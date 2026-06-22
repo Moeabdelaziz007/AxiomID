@@ -431,7 +431,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
         if (!res.ok) {
           const err = await res.json();
-          throw new Error(err.error || "Authentication failed");
+          const details = err.details ? ` (${JSON.stringify(err.details)})` : "";
+          throw new Error(err.error || `Authentication failed [${err.code || "UNKNOWN"}]${details}`);
         }
 
         const data = await res.json();
