@@ -3,6 +3,7 @@
  * Wraps Cloudflare's KVNamespace.
  */
 
+interface KVKey { name: string; }
 export class KVHelper {
   constructor(private ns: KVNamespace) {}
 
@@ -34,9 +35,7 @@ export class KVHelper {
     let cursor: string | undefined;
     do {
       const result = await this.ns.list({ prefix, cursor, limit: 100 });
-      for (const key of result.keys) {
-        await this.ns.delete(key.name);
-      }
+      await Promise.all(result.keys.map((k: KVKey) => this.ns.delete(k.name)));
       cursor = result.list_complete ? undefined : result.cursor;
     } while (cursor);
   }
