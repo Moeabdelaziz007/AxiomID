@@ -227,9 +227,7 @@ src/
     soul/             ← Five-gate ethical loop
     trust.ts          ← Trust score algorithm
     daily-review.ts   ← Soul loop daily review
-    telegram.ts       ← Notification delivery
     herenow.ts        ← here.now API integration
-    passport-publisher.ts ← Passport HTML generation
     auth-middleware.ts ← Auth verification
     auth-tokens.ts    ← JWT/Pi token handling
     errors.ts         ← Structured error codes

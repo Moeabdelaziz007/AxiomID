@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/app/context/language-context";
+import { useWallet } from "@/app/context/wallet-context";
 import type { Route } from "next";
 
 interface NavItem {
@@ -19,6 +20,7 @@ interface HeaderProps {
 
 export function Header({ pathname, navItems }: HeaderProps) {
   const { t } = useLanguage();
+  const { user, connectWallet, isConnecting, isPiBrowser, logout } = useWallet();
 
   return (
     <header
@@ -65,7 +67,24 @@ export function Header({ pathname, navItems }: HeaderProps) {
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 font-mono">
+            {isPiBrowser && !user && (
+              <span className="hidden sm:inline text-[10px] font-mono px-2 py-1 rounded border" style={{ background: 'rgba(59, 130, 246, 0.1)', borderColor: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6' }}>
+                Pi Browser
+              </span>
+            )}
+            {user ? (
+              <button onClick={() => logout()} className="btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                {t("logout")}
+              </button>
+            ) : (
+              <button onClick={connectWallet} disabled={isConnecting} className="btn-primary text-xs px-3 sm:px-4 py-2">
+                {isConnecting ? t("connecting") : t("connect")}
+              </button>
+            )}
             <ThemeToggle />
             <LanguageToggle />
           </div>
