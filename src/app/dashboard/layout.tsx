@@ -3,8 +3,6 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ErrorBanner } from "@/components/ErrorBanner";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "../context/language-context";
 import type { Route } from "next";
 import { Fingerprint, Store, Settings, Cpu } from "lucide-react";
