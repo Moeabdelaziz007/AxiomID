@@ -404,7 +404,7 @@ export default function SettingsPage() {
           ) : !statusDetails || statusDetails.recentLedger.length === 0 ? (
             <div className="py-8 text-center">
               <p className="text-sm font-mono mb-2" style={{ color: 'var(--text-muted)' }}>{t('settings_no_tx')}</p>
-              <p className="text-xs font-mono" style={{ color: 'var(--text-faint)' }}>Connect accounts or claim stamps to see activity here.</p>
+              <p className="text-xs font-mono" style={{ color: 'var(--text-faint)' }}>{t('settings_ledger_empty_helper')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
