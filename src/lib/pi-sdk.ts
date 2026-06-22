@@ -1,7 +1,5 @@
 import { logger } from "@/lib/logger";
 
-
-
 export enum PiSdkErrorCode {
   NOT_IN_PI_BROWSER = "NOT_IN_PI_BROWSER",
   SDK_NOT_AVAILABLE = "SDK_NOT_AVAILABLE",
@@ -370,7 +368,6 @@ export async function createPiPayment(amount: number, memo: string, metadata?: R
       metadata: metadata || {},
     }, {
       onReadyForServerApproval: async (paymentId: string) => {
-        logger.info("[Pi Payment] Ready for server approval:", paymentId);
         try {
           const response = await fetch("/api/pi/payment/approve", {
             method: "POST",
@@ -456,5 +453,4 @@ export async function showRewardedAd(pushLog?: (msg: string) => void): Promise<{
     throw error;
   }
 }
-
 
