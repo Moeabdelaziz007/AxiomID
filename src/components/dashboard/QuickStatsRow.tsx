@@ -40,7 +40,7 @@ function CircularProgress({ value, size = 36 }: { value: number; size?: number }
 
 export function QuickStatsRow({ trustScore, xp, levelProgress, agentStatus, daysActive }: QuickStatsRowProps) {
   const { t } = useLanguage();
-  const nextLevelXp = Math.ceil((xp / Math.max(levelProgress, 1)) || 0);
+  const nextLevelXp = levelProgress > 0 ? Math.ceil((xp * 100) / levelProgress) : 0;
   const xpNeeded = Math.max(0, nextLevelXp - xp);
   const agentActive = agentStatus === "ACTIVE";
 

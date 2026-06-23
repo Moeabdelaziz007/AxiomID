@@ -463,7 +463,7 @@ export default function Dashboard() {
         <nav className="flex items-center gap-1.5 mb-6 overflow-x-auto no-scrollbar px-1" role="tablist" aria-label="Dashboard sections">
           {([
             { id: "passport" as TabId, icon: <Fingerprint className="w-4 h-4" />, label: language === "ar" ? "الجواز" : "Passport", badge: 0 },
-            { id: "actions" as TabId, icon: <Zap className="w-4 h-4" />, label: language === "ar" ? "العمليات" : "Actions", badge: 3 },
+            { id: "actions" as TabId, icon: <Zap className="w-4 h-4" />, label: language === "ar" ? "العمليات" : "Actions", badge: 0 },
             { id: "agent" as TabId, icon: <Bot className="w-4 h-4" />, label: language === "ar" ? "العميل" : "Agent", badge: 0 },
             { id: "terminal" as TabId, icon: <Terminal className="w-4 h-4" />, label: language === "ar" ? "الطرفية" : "Terminal", badge: 0 },
           ]).map((tab) => {

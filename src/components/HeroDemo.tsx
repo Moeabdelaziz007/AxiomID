@@ -55,6 +55,13 @@ export default function HeroDemo() {
         .group:hover * {
           animation-play-state: paused !important;
         }
+
+        @media (prefers-reduced-motion: reduce) {
+          .hero-step, .hero-pulse, .hero-spin, .hero-score-bar, .hero-card, .hero-trust {
+            animation: none !important;
+            opacity: 1 !important;
+          }
+        }
       `}</style>
 
       <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-b from-white/[0.03] to-transparent p-5 space-y-3 backdrop-blur-sm">

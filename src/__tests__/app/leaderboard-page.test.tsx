@@ -80,7 +80,7 @@ function makeUser(overrides: Partial<{
 function mockLeaderboardResponse(users: ReturnType<typeof makeUser>[]) {
   mockFetch.mockResolvedValue({
     ok: true,
-    json: async () => ({ success: true, data: { leaderboard: users } }),
+    json: async () => ({ leaderboard: users }),
   });
 }
 

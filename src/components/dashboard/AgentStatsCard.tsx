@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { useLanguage } from "@/app/context/language-context";
 
 interface AgentStatsCardProps {
@@ -11,6 +12,7 @@ interface AgentStatsCardProps {
 }
 
 function Sparkline({ xp }: { xp: number }) {
+  const gradientId = useId();
   const w = 120, h = 32;
   const points = [
     Math.max(0, xp * 0.1),
@@ -28,12 +30,12 @@ function Sparkline({ xp }: { xp: number }) {
   return (
     <svg width={w} height={h} className="w-full h-8" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
       <defs>
-        <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="rgba(34,197,94,0.3)" />
           <stop offset="100%" stopColor="rgba(34,197,94,0)" />
         </linearGradient>
       </defs>
-      <polygon points={fill} fill="url(#sparkFill)" />
+      <polygon points={fill} fill={`url(#${gradientId})`} />
       <polyline points={coords.join(" ")} fill="none" stroke="#22c55e" strokeWidth="1.5" strokeLinejoin="round" />
     </svg>
   );

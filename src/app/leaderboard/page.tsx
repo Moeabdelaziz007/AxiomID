@@ -42,8 +42,8 @@ export default function LeaderboardPage() {
         const res = await fetch("/api/leaderboard");
         if (!res.ok) throw new Error("Failed to load leaderboard");
         const json = await res.json();
-        if (active && json.success) {
-          setUsers(json.data.leaderboard);
+        if (active && Array.isArray(json?.leaderboard)) {
+          setUsers(json.leaderboard);
         }
       } catch (err) {
         console.error("Failed to query leaderboard:", err);
@@ -228,6 +228,7 @@ export default function LeaderboardPage() {
                     <th className="py-3 px-4 text-center">STAMPS</th>
                     <th className="py-3 px-4 text-center">TRUST</th>
                     <th className="py-3 px-4 text-right">XP</th>
+                    <th className="py-3 px-4 text-right sr-only">ACTION</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
