@@ -6,6 +6,7 @@ import { AgentPassport } from "@/components/AgentPassport";
 import { AgentQR } from "@/components/AgentQR";
 import Link from "next/link";
 import { useLanguage } from "../../context/language-context";
+import { sharePassport } from "@/lib/pi-native-features";
 import type { PassportStamp } from "@/components/passport/types";
 
 interface PassportData {
@@ -35,21 +36,13 @@ export function PassportView() {
   const [passport, setPassport] = useState<PassportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [shareCopied, setShareCopied] = useState(false);
 
-  const handleShare = () => {
-    const shareUrl = window.location.href;
-    if (navigator.share) {
-      navigator.share({
-        title: t('share_title'),
-        text: t('share_text'),
-        url: shareUrl,
-      }).catch(console.error);
-    } else {
-      navigator.clipboard.writeText(shareUrl);
-      setShareCopied(true);
-      setTimeout(() => setShareCopied(false), 2000);
-    }
+  const handleShare = async () => {
+    await sharePassport({
+      title: t("share_title"),
+      text: t("share_text"),
+      url: window.location.href,
+    });
   };
 
   useEffect(() => {
@@ -132,7 +125,7 @@ export function PassportView() {
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 10.742l4.639-2.32m0 0a3 3 0 114.12 4.119l-4.64 2.32m0 0a3 3 0 11-4.119-4.12l4.64-2.32z" />
               </svg>
-              {shareCopied ? t('link_copied') : t('share_passport')}
+              {t('share_passport')}
             </button>
           </div>
 

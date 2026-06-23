@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { Tier, getTierColor } from "@/lib/tiers";
 import { useLanguage } from "@/app/context/language-context";
+import { sharePassport } from "@/lib/pi-native-features";
 import { Fingerprint, Award, CheckCircle, Lock, Download, Coins, Share2 } from "lucide-react";
 import PassportKeyManager from "./PassportKeyManager";
 
@@ -105,19 +106,14 @@ export default function InteractivePassportCard({ user, readonly = false, locked
     }
   };
 
-  const handleShare = (e: React.MouseEvent) => {
+  const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const shareUrl = `${window.location.origin}/passport/${encodeURIComponent(did)}`;
-    if (navigator.share) {
-      navigator.share({
-        title: 'AxiomID Passport',
-        text: 'Check out my AxiomID Passport!',
-        url: shareUrl,
-      }).catch(console.error);
-    } else {
-      navigator.clipboard.writeText(shareUrl);
-      alert(t("link_copied") || "Link copied to clipboard!");
-    }
+    await sharePassport({
+      title: "AxiomID Passport",
+      text: "Check out my AxiomID Passport!",
+      url: shareUrl,
+    });
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {

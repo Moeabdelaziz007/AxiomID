@@ -46,6 +46,19 @@ declare global {
     }>;
   }
 
+  interface PiNativeFeatures {
+    openShareDialog: (data: {
+      title: string;
+      text: string;
+      url: string;
+    }) => Promise<void>;
+    openConsentDialog: (data: {
+      header: string;
+      description: string;
+      consentItems: { label: string; value: boolean }[];
+    }) => Promise<{ consentResult: Record<string, boolean> }>;
+  }
+
   interface PiInstance {
     init: (options: { version: string; sandbox?: boolean }) => void;
     authenticate: (
@@ -60,6 +73,7 @@ declare global {
       },
       callbacks: PiPaymentCallbacks
     ) => Promise<PiPaymentDTO>;
+    nativeFeature: PiNativeFeatures;
     Ads: PiAdsInstance;
   }
 

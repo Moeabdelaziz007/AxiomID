@@ -14,6 +14,12 @@ import React from "react";
 import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
 import ClaimPage from "@/app/claim/page";
 
+// Mock pi-native-features so handleVerify proceeds without Pi Browser
+jest.mock("@/lib/pi-native-features", () => ({
+  sharePassport: jest.fn().mockResolvedValue(undefined),
+  requestKycConsent: jest.fn().mockResolvedValue(null),
+}));
+
 // Mock Header and Footer to isolate test surface
 jest.mock("@/components/Header", () => {
   const Header = () => null;
@@ -182,8 +188,10 @@ describe("ClaimPage — step 3 (deploy — PR change: Pi Testnet)", () => {
     // Step 1 → Step 2
     fireEvent.click(screen.getByText("Continue"));
 
-    // Trigger verification
-    fireEvent.click(screen.getByText("START KYA VERIFICATION"));
+    // Trigger verification (async — requestKycConsent mock resolves immediately)
+    await act(async () => {
+      fireEvent.click(screen.getByText("START KYA VERIFICATION"));
+    });
 
     // Run interval: 50 ticks at 40ms each = 2000ms total to reach 100
     act(() => {
