@@ -7,7 +7,7 @@ import { requireAuth } from "@/lib/auth-middleware";
 import { createUserDid } from "@/lib/did";
 import { calculateTrustScore } from "@/lib/trust";
 import { signPassportCredential } from "@/lib/vc";
-import { publishToMockGateway } from "@/lib/storage/ipfs-sync";
+import { publishToIPFS } from "@/lib/storage/ipfs-sync";
 import { PassportSlugParamSchema } from "@/lib/validators";
 import { logger } from "@/lib/logger";
 import { getKyaStatus, getKycStatus } from "../_utils";
@@ -96,8 +96,8 @@ export async function POST(
     // Sign the credential using the issuer signature
     const vc = signPassportCredential(user.id, did, passportAttestation);
 
-    // Publish to the IPFS Mock Gateway
-    const ipfsResult = await publishToMockGateway(vc);
+    // Publish to the IPFS gateway
+    const ipfsResult = await publishToIPFS(vc);
 
     return apiSuccess({
       cid: ipfsResult.cid,

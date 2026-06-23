@@ -32,7 +32,12 @@ export async function POST(request: NextRequest) {
     return apiError("VALIDATION_ERROR", "Token is invalid or already expired");
   }
 
-  revokeToken(token);
+  try {
+    await revokeToken(token);
+  } catch (error) {
+    logger.error("[OAUTH2-REVOKE] Failed to revoke token", { did: authResult.user.did, error });
+    return apiError("INTERNAL_ERROR", "Failed to revoke token");
+  }
   logger.info("[OAUTH2-REVOKE] Token revoked", { did: authResult.user.did });
 
   return apiSuccess({ revoked: true });

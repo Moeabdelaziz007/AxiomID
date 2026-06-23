@@ -20,6 +20,9 @@ jest.mock("@/lib/revocation-store", () => ({
   revokeToken: jest.fn(),
 }));
 
+import { revokeToken } from "@/lib/revocation-store";
+const mockRevokeToken = revokeToken as jest.Mock;
+
 import { NextRequest } from "next/server";
 import { POST } from "@/app/api/oauth2/revoke/route";
 import { requireAuth } from "@/lib/auth-middleware";
@@ -41,6 +44,7 @@ describe("POST /api/oauth2/revoke", () => {
     jest.clearAllMocks();
     mockRequireAuth.mockResolvedValue({ error: null, user: { did: "did:axiom:axiomid.app:pi:user1" } });
     mockVerifyAccessToken.mockResolvedValue({ sub: "did:axiom:axiomid.app:pi:user1", scopes: ["api.write"] });
+    mockRevokeToken.mockResolvedValue(undefined);
   });
 
   it("returns 200 for valid revocation", async () => {
@@ -125,5 +129,30 @@ describe("POST /api/oauth2/revoke", () => {
     const res = await POST(req);
 
     expect(res.status).toBe(400);
+  });
+
+  // PR change: revokeToken is now async and wrapped in try/catch.
+  // If revokeToken throws (e.g. Redis is down), the route returns 500
+  // with INTERNAL_ERROR rather than letting the exception propagate.
+  it("returns 500 with INTERNAL_ERROR when revokeToken throws (PR change)", async () => {
+    mockRevokeToken.mockRejectedValue(new Error("Redis connection failed"));
+
+    const req = mockPostRequest({ token: "valid-token" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(data.code).toBe("INTERNAL_ERROR");
+  });
+
+  it("does not call revokeToken for requests that fail auth or validation", async () => {
+    mockRequireAuth.mockResolvedValue({
+      error: { status: 401, json: async () => ({ code: "UNAUTHORIZED" }) },
+      user: null,
+    });
+    const req = mockPostRequest({ token: "some-token" });
+    await POST(req);
+
+    expect(mockRevokeToken).not.toHaveBeenCalled();
   });
 });

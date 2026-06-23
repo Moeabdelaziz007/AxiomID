@@ -54,6 +54,15 @@ describe("calculateTrustScore", () => {
     // 0*0.7 + 100*0.3 = 30
     expect(calculateTrustScore(0, TOTAL_STAMPS)).toBe(30);
   });
+
+  it("calculates modern formula with tenure and semantic trust", () => {
+    // xp = 500 -> xpScore = 50 -> contribution = 50 * 0.5 = 25
+    // stamps = 3 -> stampScore = 50 -> contribution = 50 * 0.2 = 10
+    // tenureDays = 25 -> tenureScore = 50 -> contribution = 50 * 0.1 = 5
+    // semanticTrust = 80 -> contribution = 80 * 0.2 = 16
+    // total = 25 + 10 + 5 + 16 = 56
+    expect(calculateTrustScore(500, 3, 25, 80)).toBe(56);
+  });
 });
 
 describe("calculateTier", () => {

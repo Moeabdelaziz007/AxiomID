@@ -211,3 +211,37 @@ jest.mock("@/app/context/language-context", () => {
   };
 });
 
+// Global mock for @upstash/redis — honors the `ex` TTL option and avoids
+// coercing falsy stored values to null.
+const globalRedisStore = new Map();
+jest.mock("@upstash/redis", () => {
+  return {
+    Redis: {
+      fromEnv: jest.fn().mockReturnValue({
+        set: jest.fn().mockImplementation(async (key, value, options) => {
+          const ttl = options?.ex ?? 0;
+          globalRedisStore.set(key, {
+            value,
+            expiresAt: ttl > 0 ? Date.now() + ttl * 1000 : Infinity,
+          });
+          return "OK";
+        }),
+        get: jest.fn().mockImplementation(async (key) => {
+          const entry = globalRedisStore.get(key);
+          if (!entry) return null;
+          if (Date.now() > entry.expiresAt) {
+            globalRedisStore.delete(key);
+            return null;
+          }
+          return entry.value;
+        }),
+        del: jest.fn().mockImplementation(async (key) => {
+          globalRedisStore.delete(key);
+          return 1;
+        }),
+      }),
+    },
+  };
+});
+
+

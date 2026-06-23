@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo, u
 import { Tier, getLevelProgress, getNextLevelXP } from "@/lib/tiers";
 import { calculateTrustScore } from "@/lib/trust";
 import { connectPi, runWalletTest, checkPiBrowser, PiSdkError, PiSdkErrorCode, determineSandboxMode } from "@/lib/pi-sdk";
+import { getClientSandboxDevToken } from "@/lib/sandbox-token";
 import { logger } from "@/lib/logger";
 
 export interface User {
@@ -370,7 +371,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           pushLog("⚠️ Standard browser detected in Sandbox/Dev mode.");
           pushLog("Connecting with simulated credentials...");
           result = {
-            token: "sandbox-dev-token-abc-123",
+            token: getClientSandboxDevToken(),
             user: {
               uid: "sandbox-developer",
               username: "developer",
@@ -551,7 +552,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     };
 
     setLocalStorageItem("axiomid_wallet", "pi:demo_alice");
-    setLocalStorageItem("pi_access_token", "sandbox-dev-token-abc-123");
+    setLocalStorageItem("pi_access_token", getClientSandboxDevToken());
     setUser(demoUser);
     setIsConnecting(false);
     pushLog("Demo Mode initialized successfully!");

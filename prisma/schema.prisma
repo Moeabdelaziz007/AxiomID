@@ -73,6 +73,10 @@ model User {
   // Ephemeral DIDs
   ephemeralDids EphemeralDid[]
 
+  // Staking & Slashing
+  stakes         Stake[]
+  slashingEvents SlashingEvent[]
+
   // Metadata
   metadata   String?   @db.Text // JSON: arbitrary user metadata (max ~10KB)
   lastActive DateTime?
@@ -492,5 +496,31 @@ model Claim {
   @@index([token])
   @@index([userCode])
   @@index([status])
+}
+
+// ─────────────────────────────────────────────
+// STAKING & SLASHING (Phase 3)
+// ─────────────────────────────────────────────
+
+model Stake {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount     Float
+  status     String   @default("staked") // staked | unstaked
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model SlashingEvent {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Float
+  reason    String   @db.VarChar(500)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 

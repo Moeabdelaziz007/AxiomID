@@ -27,6 +27,8 @@ export function generateCIDv0(data: string): string {
   return encodeBase58(multihash);
 }
 
+import { logger } from "../logger";
+
 /**
  * Computes a deterministic CIDv0 for the payload and returns a gateway URL.
  *
@@ -45,3 +47,48 @@ export async function publishToMockGateway(payload: unknown): Promise<{ cid: str
     mock: true,
   };
 }
+
+/**
+ * Publishes the payload to a real IPFS pinning service (Pinata/Web3.Storage) if credentials are set,
+ * or falls back to the deterministic mock gateway if no credentials are configured.
+ */
+export async function publishToIPFS(payload: unknown): Promise<{ cid: string; url: string; mock?: boolean }> {
+  const pinataJwt = process.env.PINATA_JWT;
+
+  if (!pinataJwt) {
+    return publishToMockGateway(payload);
+  }
+
+  try {
+    const response = await fetch("https://api.pinata.cloud/pinning/pinJSONToIPFS", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${pinataJwt}`,
+      },
+      body: JSON.stringify({
+        pinataContent: payload,
+        pinataMetadata: {
+          name: `axiom-passport-${Date.now()}`,
+        },
+        pinataOptions: {
+          cidVersion: 0,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Pinata API response error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = (await response.json()) as { IpfsHash: string };
+    return {
+      cid: data.IpfsHash,
+      url: `https://ipfs.io/ipfs/${data.IpfsHash}`,
+    };
+  } catch (error) {
+    logger.error("[IPFS] Failed to publish JSON to Pinata, falling back to mock", error);
+    return publishToMockGateway(payload);
+  }
+}
+
