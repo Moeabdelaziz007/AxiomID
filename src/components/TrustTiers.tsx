@@ -14,9 +14,9 @@ interface TierInfo {
 
 const tiers: TierInfo[] = [
   {
-    name: "Explorer",
+    name: "Visitor",
     xp: "0",
-    letter: "E",
+    letter: "V",
     color: "#64748b",
     desc: "Connect your wallet to begin",
     perks: ["Basic DID Passport", "Community access", "Protocol explorer"],
@@ -30,9 +30,9 @@ const tiers: TierInfo[] = [
     perks: ["Marketplace access", "Agent deployment", "KYA verification", "XP rewards"],
   },
   {
-    name: "Guardian",
+    name: "Validator",
     xp: "500",
-    letter: "G",
+    letter: "V",
     color: "#00d4ff",
     desc: "KYC verified identity",
     perks: ["Revenue share", "Governance voting", "Priority support", "Custom stamps"],
@@ -56,53 +56,68 @@ export default function TrustTiers() {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {tiers.map((tier) => (
-        <button
-          key={tier.name}
-          onClick={() => setExpanded(expanded === tier.name ? null : tier.name)}
-          className="text-center group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 transition-all duration-300 hover:border-white/[0.12] hover:bg-white/[0.04] cursor-pointer text-left"
-          style={{
-            borderColor: expanded === tier.name ? `${tier.color}30` : undefined,
-            boxShadow: expanded === tier.name ? `0 0 20px ${tier.color}08` : undefined,
-          }}
-        >
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4" role="list">
+      {tiers.map((tier) => {
+        const isExpanded = expanded === tier.name;
+        return (
           <div
-            className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center border transition-all duration-300"
+            key={tier.name}
+            role="listitem"
+            className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 transition-all duration-300 hover:border-white/[0.12] hover:bg-white/[0.04] cursor-pointer text-left"
             style={{
-              borderColor: `${tier.color}20`,
-              background: `${tier.color}08`,
-              color: tier.color,
+              borderColor: isExpanded ? `${tier.color}30` : undefined,
+              boxShadow: isExpanded ? `0 0 20px ${tier.color}08` : undefined,
             }}
           >
-            <span className="font-bold text-lg font-mono">{tier.letter}</span>
+            <button
+              onClick={() => setExpanded(isExpanded ? null : tier.name)}
+              aria-expanded={isExpanded}
+              aria-controls={`tier-perks-${tier.name}`}
+              className="w-full text-left"
+            >
+              <div
+                className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center border transition-all duration-300"
+                style={{
+                  borderColor: `${tier.color}20`,
+                  background: `${tier.color}08`,
+                  color: tier.color,
+                }}
+              >
+                <span className="font-bold text-lg font-mono">{tier.letter}</span>
+              </div>
+
+              <h4 className="text-sm font-bold text-white mb-1">{tier.name}</h4>
+              <span className="text-[11px] font-mono block mb-2" style={{ color: tier.color }}>
+                {tier.xp} XP
+              </span>
+              <p className="text-[11px] text-zinc-500 leading-relaxed">{tier.desc}</p>
+
+              <div className="mt-3 flex justify-center">
+                <ChevronDown
+                  className="w-4 h-4 text-zinc-600 transition-transform duration-300"
+                  style={{ transform: isExpanded ? "rotate(180deg)" : undefined }}
+                />
+              </div>
+            </button>
+
+            {isExpanded && (
+              <div
+                id={`tier-perks-${tier.name}`}
+                className="mt-3 pt-3 border-t border-white/[0.06] space-y-1.5"
+                role="region"
+                aria-label={`${tier.name} perks`}
+              >
+                {tier.perks.map((perk) => (
+                  <div key={perk} className="flex items-center gap-2 text-[10px] font-mono text-zinc-400">
+                    <span className="w-1 h-1 rounded-full" style={{ backgroundColor: tier.color }} />
+                    {perk}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-
-          <h4 className="text-sm font-bold text-white mb-1">{tier.name}</h4>
-          <span className="text-[11px] font-mono block mb-2" style={{ color: tier.color }}>
-            {tier.xp} XP
-          </span>
-          <p className="text-[11px] text-zinc-500 leading-relaxed">{tier.desc}</p>
-
-          <div className="mt-3 flex justify-center">
-            <ChevronDown
-              className="w-4 h-4 text-zinc-600 transition-transform duration-300"
-              style={{ transform: expanded === tier.name ? "rotate(180deg)" : undefined }}
-            />
-          </div>
-
-          {expanded === tier.name && (
-            <div className="mt-3 pt-3 border-t border-white/[0.06] space-y-1.5">
-              {tier.perks.map((perk) => (
-                <div key={perk} className="flex items-center gap-2 text-[10px] font-mono text-zinc-400">
-                  <span className="w-1 h-1 rounded-full" style={{ backgroundColor: tier.color }} />
-                  {perk}
-                </div>
-              ))}
-            </div>
-          )}
-        </button>
-      ))}
+        );
+      })}
     </div>
   );
 }

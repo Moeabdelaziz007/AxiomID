@@ -95,6 +95,9 @@ export const translations = {
     logout: "LOGOUT",
     connecting: "CONNECTING...",
     connect: "CONNECT",
+    claim_passport: "Claim Your Passport",
+    open_dashboard: "Open Dashboard",
+    read_docs: "Read Docs",
     // Pi Browser prompts
     pi_browser_required: "Connect Pi Browser to unlock your identity",
     // Passport & Components
@@ -503,6 +506,9 @@ export const translations = {
     logout: "تسجيل الخروج",
     connecting: "جاري الاتصال...",
     connect: "اتصال",
+    claim_passport: "احصل على جوازك",
+    open_dashboard: "افتح لوحة التحكم",
+    read_docs: "الوثائق التقنية",
     // Pi Browser prompts
     pi_browser_required: "قم بالاتصال عبر متصفح Pi لفتح هويتك الرقمية",
     // Passport & Components

@@ -21,7 +21,9 @@ export default function StatsBar() {
     const fetchStats = async () => {
       try {
         const res = await fetch("/api/status");
-        if (!res.ok) return;
+        if (!res.ok) {
+          throw new Error(`Status fetch failed: ${res.status}`);
+        }
         const data = await res.json();
         const s = data.stats || {};
         setStats({
@@ -30,9 +32,9 @@ export default function StatsBar() {
           chapters: 114,
           vectors: 6236,
         });
-        requestAnimationFrame(() => setVisible(true));
       } catch {
         setStats({ users: 0, agents: 0, chapters: 114, vectors: 6236 });
+      } finally {
         requestAnimationFrame(() => setVisible(true));
       }
     };
