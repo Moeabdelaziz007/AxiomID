@@ -106,7 +106,7 @@ export default function InteractivePassportCard({ user, readonly = false, locked
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const shareUrl = `https://axiomid.app/passport/${encodeURIComponent(did)}`;
+    const shareUrl = `${window.location.origin}/passport/${encodeURIComponent(did)}`;
     if (navigator.share) {
       navigator.share({
         title: 'AxiomID Passport',
