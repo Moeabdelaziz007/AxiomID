@@ -598,7 +598,7 @@ export default function ClaimPage() {
         </div>
       </main>
 
-            <Footer />
+      <Footer />
     </div>
   );
 }
