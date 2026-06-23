@@ -3,11 +3,14 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLanguage } from "../context/language-context";
+import { useWallet } from "../context/wallet-context";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Trophy, Search } from "lucide-react";
+import { Trophy, Search, ChevronDown } from "lucide-react";
 import TopThreeCards from "@/components/ui/TopThreeCards";
 import { getTierColor, Tier } from "@/lib/tiers";
+
+const PAGE_SIZE = 20;
 
 interface LeaderboardUser {
   rank: number;
@@ -25,10 +28,12 @@ const TIER_FILTERS = ["All", "Sovereign", "Validator", "Citizen", "Visitor"];
 
 export default function LeaderboardPage() {
   const { language } = useLanguage();
+  const { user } = useWallet();
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState("All");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
     const active = true;
@@ -58,7 +63,19 @@ export default function LeaderboardPage() {
   });
 
   const topThree = users.slice(0, 3);
-  const tableUsers = filteredUsers.filter((u) => u.rank > 3 || search !== "");
+  const allTableUsers = filteredUsers.filter((u) => u.rank > 3 || search !== "");
+  const tableUsers = allTableUsers.slice(0, visibleCount);
+  const hasMore = visibleCount < allTableUsers.length;
+
+  const getTierBorderColor = (tier: string) => {
+    switch (tier) {
+      case "Visitor": return "#3b82f6";
+      case "Citizen": return "#22c55e";
+      case "Validator": return "#a855f7";
+      case "Sovereign": return "#f59e0b";
+      default: return "#64748b";
+    }
+  };
 
   return (
     <main className="min-h-screen bg-grid relative pb-20">
@@ -77,6 +94,34 @@ export default function LeaderboardPage() {
           Pioneers sorted by global Experience Points (XP) earned from social verifications, transaction validation activity, and oracle stamp binding.
         </p>
       </div>
+
+      {/* Your Rank Sticky Bar */}
+      {user && !loading && users.length > 0 && (() => {
+        const myRank = users.find((u) => u.id === user.id);
+        if (!myRank) return null;
+        const nextUser = users.find((u) => u.rank === myRank.rank - 1);
+        const xpToNext = nextUser ? nextUser.xp - myRank.xp : 0;
+        return (
+          <div className="max-w-4xl mx-auto px-4 mt-4 relative z-20">
+            <div className="sticky top-16 p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 backdrop-blur-sm flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-xs font-mono font-bold text-emerald-400">
+                  #{myRank.rank}
+                </span>
+                <span className="text-xs font-mono text-emerald-300 font-semibold">
+                  {language === "ar" ? "مرتبتك" : "Your Rank"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-[10px] font-mono text-emerald-400/70">
+                <span>{myRank.xp.toLocaleString()} XP</span>
+                {xpToNext > 0 && (
+                  <span className="text-emerald-500/50">• {xpToNext.toLocaleString()} XP {language === "ar" ? "للمرتبة التالية" : "to next rank"}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {loading ? (
         <div className="max-w-4xl mx-auto px-4 mt-10 space-y-6 animate-pulse">
@@ -188,8 +233,9 @@ export default function LeaderboardPage() {
                 <tbody className="divide-y divide-white/5">
                   {tableUsers.map((user) => {
                     const tierColor = getTierColor(user.tier as Tier);
+                    const borderColor = getTierBorderColor(user.tier);
                     return (
-                      <tr key={user.id} className="hover:bg-white/[0.01] transition-colors">
+                      <tr key={user.id} className="group relative hover:bg-white/[0.02] transition-all hover:scale-[1.005] hover:shadow-[0_2px_12px_rgba(0,0,0,0.2)]" style={{ borderLeft: `3px solid ${borderColor}` }}>
                         <td className="py-3 px-4 text-center font-bold text-zinc-400">
                           {user.rank}
                         </td>
@@ -221,12 +267,20 @@ export default function LeaderboardPage() {
                         <td className="py-3 px-4 text-right font-bold text-neon-green">
                           {user.xp.toLocaleString()}
                         </td>
+                        <td className="py-3 px-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Link
+                            href={`/passport/${user.piUsername || user.walletAddress}`}
+                            className="text-[9px] font-mono text-electric-blue hover:text-electric-blue/80 transition-colors"
+                          >
+                            {language === "ar" ? "عرض الجواز" : "View Passport"} →
+                          </Link>
+                        </td>
                       </tr>
                     );
                   })}
                   {tableUsers.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-10 text-center text-zinc-600 text-xs">
+                      <td colSpan={7} className="py-10 text-center text-zinc-600 text-xs">
                         No pioneers matched query search.
                       </td>
                     </tr>
@@ -234,6 +288,19 @@ export default function LeaderboardPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Load More */}
+            {hasMore && (
+              <div className="p-4 border-t border-white/5 flex justify-center">
+                <button
+                  onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-mono text-zinc-400 border border-white/10 hover:bg-white/5 hover:border-white/20 transition-all"
+                >
+                  {language === "ar" ? "عرض 20 المزيد" : "Show 20 more"}
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
           </div>
 
         </div>

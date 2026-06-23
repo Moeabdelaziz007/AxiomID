@@ -120,7 +120,7 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <div className="relative w-full max-w-6xl px-4 sm:px-6 mt-8 md:mt-16 z-10 min-h-[80vh] flex items-center hero-mesh-bg">
+      <div className="relative w-full max-w-6xl px-4 sm:px-6 mt-6 md:mt-10 z-10 min-h-[60vh] flex items-center hero-mesh-bg">
         {/* Floating particles — CSS-only */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
           <div className="particle" style={{ left: "15%", top: "20%", animationDelay: "0s", animationDuration: "7s", background: "rgba(34,197,94,0.12)" }} />
@@ -145,6 +145,13 @@ export default function Home() {
                   <text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text>
                 </svg>
                 {language === "en" ? "Live on Pi Network Testnet" : "مباشر على شبكة Pi التجريبية"}
+              </span>
+              <span className="px-3 py-1 rounded-full text-[10px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-widest">
+                <svg viewBox="0 0 100 100" className="w-3 h-3 inline mr-1 -mt-0.5 align-middle" fill="currentColor">
+                  <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.3" />
+                  <text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text>
+                </svg>
+                {t("backed_by_pi")}
               </span>
             </div>
 
@@ -217,6 +224,29 @@ export default function Home() {
       {/* Stats — fades in via CSS transition */}
       <div className="w-full max-w-6xl px-4 sm:px-6 mt-12 sm:mt-16 mb-4 z-10">
         <StatsBar />
+      </div>
+
+      {/* Video Demo Placeholder */}
+      <div className="w-full max-w-6xl px-4 sm:px-6 mt-16 sm:mt-24 z-10">
+        <SectionHeader
+          label={language === "en" ? "Watch the Demo" : "شاهد العرض"}
+          title={t("watch_demo_title")}
+          labelColor="text-electric-blue"
+        />
+        <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-transparent group cursor-pointer">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center group-hover:bg-white/20 group-hover:scale-110 transition-all duration-300">
+              <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+          </div>
+          <div className="absolute bottom-4 left-4 right-4 text-center">
+            <p className="text-sm text-zinc-400 font-mono">{t("watch_demo_desc")}</p>
+          </div>
+          {/* Subtle gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+        </div>
       </div>
 
       {/* Features Section */}
