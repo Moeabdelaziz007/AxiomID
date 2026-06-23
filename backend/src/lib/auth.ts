@@ -5,24 +5,10 @@
 
 import type { Env } from "./types";
 
-export const PUBLIC_ROUTES = ["/health", "/status", "/api/trust/", "/api/skills", "/api/truth/"];
+export const PUBLIC_ROUTES = ["/health", "/status", "/api/truth/", "/api/skills"];
 
 const PUBLIC_EXACT = new Set(["/health", "/status", "/api/skills"]);
-const PUBLIC_PREFIXES = ["/api/trust/", "/api/truth/"];
-
-/**
- * Constant-time string comparison to avoid leaking secrets via timing.
- */
-export function timingSafeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) {
-    return false;
-  }
-  let match = 0;
-  for (let i = 0; i < a.length; i++) {
-    match |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
-  return match === 0;
-}
+const PUBLIC_PREFIXES = ["/api/truth/"];
 
 export function verifyAuth(request: Request, env: Env): { authorized: boolean; agentId?: string } {
   const url = new URL(request.url);
@@ -40,7 +26,17 @@ export function verifyAuth(request: Request, env: Env): { authorized: boolean; a
     return { authorized: false };
   }
 
-  return { authorized: timingSafeEqual(authHeader, env.SHARED_SECRET_TOKEN_VERCEL_CF), agentId };
+  const secret = env.SHARED_SECRET_TOKEN_VERCEL_CF;
+  if (authHeader.length !== secret.length) {
+    return { authorized: false };
+  }
+
+  let match = 0;
+  for (let i = 0; i < authHeader.length; i++) {
+    match |= authHeader.charCodeAt(i) ^ secret.charCodeAt(i);
+  }
+
+  return { authorized: match === 0, agentId };
 }
 
 export function requireAuth(request: Request, env: Env): Response | null {

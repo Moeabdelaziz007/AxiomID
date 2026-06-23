@@ -166,9 +166,13 @@ TRANSLATION: [answer in translation]`;
 
   const response = (res && typeof res === "object" && "response" in res) ? (res as { response: string }).response : "";
 
-  // Parse ARABIC: and ENGLISH: from response
-  const arMatch = response.match(/(?:\*\*|)?SOURCE(?:\*\*|)?:\s*(.+?)(?=\n(?:\*\*|)?TRANSLATION(?:\*\*|)?:|$)/is);
-  const enMatch = response.match(/(?:\*\*|)?TRANSLATION(?:\*\*|)?:\s*(.+?)$/is);
+  // Parse response — try multiple delimiter patterns for model flexibility
+  const arMatch = response.match(/(?:SOURCE|ARABIC|النص):\s*(.+?)(?=\n(?:TRANSLATION|ENGLISH|الترجمة):|$)/si);
+  const enMatch = response.match(/(?:TRANSLATION|ENGLISH|الترجمة):\s*(.+?)$/si);
+
+  // Fallback: if no delimiters found, split roughly in half
+  const answerAr = arMatch?.[1]?.trim() || response.slice(0, Math.ceil(response.length / 2)).trim();
+  const answerEn = enMatch?.[1]?.trim() || response.slice(Math.ceil(response.length / 2)).trim();
 
   // Confidence based on vector similarity scores
   const avgScore =
@@ -176,8 +180,8 @@ TRANSLATION: [answer in translation]`;
   const confidence = Math.min(1, Math.max(0, avgScore));
 
   return {
-    answer_ar: arMatch?.[1]?.trim() || response.slice(0, 200),
-    answer_en: enMatch?.[1]?.trim() || response.slice(0, 200),
+    answer_ar: answerAr,
+    answer_en: answerEn,
     confidence,
   };
 }
@@ -199,10 +203,14 @@ export async function handleTruthAsk(
   const normalized = normalizeQuery(query);
   const cacheKey = hashQuery(normalized);
 
-  // Check KV cache
-  const cached = await env.CACHE_KV.get(cacheKey, "json").catch(() => null);
-  if (cached) {
-    return jsonResponse({ ...cached, source: "cache" }, 200, { "X-Cache": "HIT" });
+  // Check KV cache (wrapped in try-catch for resilience)
+  try {
+    const cached = await env.CACHE_KV.get(cacheKey, "json");
+    if (cached) {
+      return jsonResponse({ ...cached, source: "cache" }, 200, { "X-Cache": "HIT" });
+    }
+  } catch (kvErr) {
+    console.warn("[TRUTH-RAG] KV cache read failed, proceeding without cache:", kvErr);
   }
 
   try {
@@ -282,14 +290,19 @@ export async function handleDailyTruth(
       });
     }
 
-    // Pick a random verse for today (seeded by date for consistency)
-    const dateHash = today.split("").reduce((hash, char) => ((hash << 5) - hash + char.charCodeAt(0)) | 0, 0);
+    // Pick a deterministic verse for today (FNV-1a hash for uniform distribution)
+    let dateHash = 0x811c9dc5;
+    for (let i = 0; i < today.length; i++) {
+      dateHash ^= today.charCodeAt(i);
+      dateHash = Math.imul(dateHash, 0x01000193);
+    }
+    const verseIndex = (Math.abs(dateHash) % 6236) + 1;
     const randomVerse = await env.TRUTH_DB.prepare(
       `SELECT id, chapter_id, verse_number, text_ar, text_en
        FROM truth_verses
-       WHERE id = (ABS(?) % 6236) + 1`
+       WHERE id = ?`
     )
-      .bind(dateHash)
+      .bind(verseIndex)
       .first<{
         id: number;
         chapter_id: number;

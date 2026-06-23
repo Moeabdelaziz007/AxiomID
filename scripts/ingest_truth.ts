@@ -7,7 +7,7 @@
  * What it does:
  * 1. Fetches 6236 verses from quran.com API
  * 2. Writes batch SQL for D1 insertion
- * 3. Generates embeddings via Workers AI @cf/baai/bge-small-en-v1.5
+ * 3. Generates embeddings via Workers AI @cf/baai/bge-base-en-v1.5
  * 4. Stores vectors in Vectorize index: axiomid-truth
  *
  * Requires: CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN for embeddings
@@ -19,6 +19,7 @@ import { writeFileSync, unlinkSync, mkdirSync } from "fs";
 
 const TRUTH_API = "https://api.quran.com/api/v4";
 const WORKER_URL = "https://axiomid-backend.amrikyy.workers.dev";
+const SHARED_SECRET = process.env.SHARED_SECRET_TOKEN_VERCEL_CF || "";
 const BATCH_SIZE = 50;
 const VECTORIZE_INDEX = "axiomid-truth";
 const WORK_DIR = "/tmp/truth-ingest";
@@ -84,9 +85,8 @@ async function fetchTranslations(): Promise<string[]> {
   console.log("Fetching translations...");
   const res = await fetch(`${TRUTH_API}/quran/translations/19?page=1&per_page=7000`);
   if (!res.ok) throw new Error(`Failed to fetch translations: ${res.status}`);
-  const data = (await res.json()) as { translations: { text: string; verse_id: number }[] };
-  const sorted = [...data.translations].sort((a, b) => a.verse_id - b.verse_id);
-  const texts = sorted.map((t) => t.text);
+  const data = (await res.json()) as { translations: { text: string }[] };
+  const texts = data.translations.map((t) => t.text);
   console.log(`  OK ${texts.length} translations fetched`);
   return texts;
 }
@@ -102,7 +102,7 @@ async function generateEmbeddings(texts: string[]): Promise<number[][]> {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Shared-Secret": process.env.SHARED_SECRET_TOKEN_VERCEL_CF || "",
+        "X-Shared-Secret": SHARED_SECRET,
       },
       body: JSON.stringify({ texts: batch }),
     });

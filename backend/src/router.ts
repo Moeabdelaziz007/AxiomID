@@ -4,7 +4,7 @@
  */
 
 import type { Env } from "./lib/types";
-import { verifyAuth, jsonResponse, errorResponse, PUBLIC_ROUTES, rateLimitHeaders, timingSafeEqual } from "./lib/auth";
+import { verifyAuth, jsonResponse, errorResponse, PUBLIC_ROUTES, rateLimitHeaders } from "./lib/auth";
 import { KVHelper } from "./db/kv";
 import { D1Helper } from "./db/d1";
 import { RateLimiter } from "./lib/rate-limiter";
@@ -16,10 +16,6 @@ import { handleSearch, handleSearchSimilar } from "./routes/search";
 import { handleTruthAsk, handleDailyTruth } from "./routes/truth-rag";
 import { TrustEmbedder } from "./vectors/trust-embedder";
 import { generateId } from "./lib/utils";
-
-// Limits for the /api/embed utility endpoint to bound Workers AI cost.
-const EMBED_MAX_TEXTS = 100;
-const EMBED_MAX_TEXT_LENGTH = 4000;
 
 export class Router {
   private kv: KVHelper;
@@ -102,22 +98,28 @@ export class Router {
     // --- Embedding utility (shared-secret auth, for ingest script) ---
     if (path === "/api/embed" && method === "POST") {
       const embedSecret = request.headers.get("X-Shared-Secret");
-      if (
-        !embedSecret ||
-        !this.env.SHARED_SECRET_TOKEN_VERCEL_CF ||
-        !timingSafeEqual(embedSecret, this.env.SHARED_SECRET_TOKEN_VERCEL_CF)
-      ) {
+      const expected = this.env.SHARED_SECRET_TOKEN_VERCEL_CF;
+      if (!embedSecret || !expected || embedSecret.length !== expected.length) {
         return errorResponse("Unauthorized", 401);
       }
+      let match = 0;
+      for (let i = 0; i < embedSecret.length; i++) {
+        match |= embedSecret.charCodeAt(i) ^ expected.charCodeAt(i);
+      }
+      if (match !== 0) {
+        return errorResponse("Unauthorized", 401);
+      }
+
       const body = await request.json<{ texts: string[] }>();
-      if (!body.texts || !Array.isArray(body.texts)) {
-        return errorResponse("Missing texts array", 400);
+      if (!body.texts || !Array.isArray(body.texts) || body.texts.length === 0) {
+        return errorResponse("Missing non-empty texts array", 400);
       }
-      if (body.texts.length === 0 || body.texts.length > EMBED_MAX_TEXTS) {
-        return errorResponse(`texts must contain 1 to ${EMBED_MAX_TEXTS} items`, 400);
+      if (body.texts.length > 32) {
+        return errorResponse("Maximum 32 texts per request", 400);
       }
-      if (!body.texts.every((t) => typeof t === "string" && t.length <= EMBED_MAX_TEXT_LENGTH)) {
-        return errorResponse(`each text must be a string up to ${EMBED_MAX_TEXT_LENGTH} characters`, 400);
+      const oversized = body.texts.findIndex((t) => typeof t !== "string" || t.length > 1000);
+      if (oversized !== -1) {
+        return errorResponse(`Text at index ${oversized} exceeds 1000 character limit`, 400);
       }
       const res = await this.env.AI.run("@cf/baai/bge-base-en-v1.5", { text: body.texts }) as { data: number[][] };
       return jsonResponse({ embeddings: res.data });
@@ -161,13 +163,8 @@ export class Router {
       const did = path.split("/api/trust/")[1];
       if (!did) return errorResponse("Missing DID");
       const result = await this.trust.compute(did);
-      // Best-effort vector upsert — must not fail the trust response.
-      try {
-        const embedder = new TrustEmbedder(this.env);
-        await embedder.upsertVector(did, result.score, result.breakdown.delegation);
-      } catch (err) {
-        console.warn("[Trust] Vector upsert failed:", err instanceof Error ? err.message : err);
-      }
+      const embedder = new TrustEmbedder(this.env);
+      await embedder.upsertVector(did, result.score, result.breakdown.delegation);
       return jsonResponse({ success: true, data: result, timestamp: Date.now() });
     }
 
