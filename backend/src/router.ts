@@ -13,7 +13,8 @@ import { SkillsMarketplace } from "./routes/skills";
 import { AgentDispatcher } from "./routes/agent-dispatch";
 import { handleMcp } from "./mcp/handler";
 import { handleSearch, handleSearchSimilar } from "./routes/search";
-import { handleIqraAsk, handleDailyAyah } from "./routes/iqra-rag";
+import { handleTruthAsk, handleDailyTruth } from "./routes/truth-rag";
+import { TrustEmbedder } from "./vectors/trust-embedder";
 import { generateId } from "./lib/utils";
 
 export class Router {
@@ -94,6 +95,16 @@ export class Router {
       return this.handleSyncStatus();
     }
 
+    // --- Embedding utility (public, for ingest script) ---
+    if (path === "/api/embed" && method === "POST") {
+      const body = await request.json<{ texts: string[] }>();
+      if (!body.texts || !Array.isArray(body.texts)) {
+        return errorResponse("Missing texts array", 400);
+      }
+      const res = await this.env.AI.run("@cf/baai/bge-base-en-v1.5", { text: body.texts }) as { data: number[][] };
+      return jsonResponse({ embeddings: res.data });
+    }
+
     // --- Auth check for protected routes ---
     const { authorized, agentId } = verifyAuth(request, this.env);
     if (!authorized && !this.isPublicRoute(path)) {
@@ -108,13 +119,13 @@ export class Router {
       return errorResponse("Rate limit exceeded", 429, rateLimitHeaders(rl));
     }
 
-    // --- IQRA Quran RAG (after rate limiting — Workers AI is expensive) ---
-    if (path === "/api/iqra/ask" && method === "GET") {
-      return handleIqraAsk(request, this.env);
+    // --- TRUTH RAG (after rate limiting — Workers AI is expensive) ---
+    if (path === "/api/truth/ask" && method === "GET") {
+      return handleTruthAsk(request, this.env);
     }
 
-    if (path === "/api/iqra/daily-ayah" && method === "GET") {
-      return handleDailyAyah(request, this.env);
+    if (path === "/api/truth/daily-truth" && method === "GET") {
+      return handleDailyTruth(request, this.env);
     }
 
     // --- Presence ---
@@ -132,6 +143,8 @@ export class Router {
       const did = path.split("/api/trust/")[1];
       if (!did) return errorResponse("Missing DID");
       const result = await this.trust.compute(did);
+      const embedder = new TrustEmbedder(this.env);
+      await embedder.upsertVector(did, result.score, result.breakdown.delegation);
       return jsonResponse({ success: true, data: result, timestamp: Date.now() });
     }
 
