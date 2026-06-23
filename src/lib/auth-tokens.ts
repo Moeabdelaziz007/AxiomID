@@ -18,7 +18,7 @@ export interface IdentityAssertionPayload {
 function getSigningKey(): Uint8Array {
   const key = process.env.AUTH_TOKEN_SECRET;
   if (!key) {
-    throw new Error("AUTH_TOKEN_SECRET is required in production");
+    throw new Error("AUTH_TOKEN_SECRET is not configured");
   }
   return new TextEncoder().encode(key);
 }
