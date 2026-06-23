@@ -14,7 +14,7 @@
  * Requires: CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN in env
  */
 
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import { writeFileSync, unlinkSync } from "fs";
 
 const TRUTH_API = "https://api.quran.com/api/v4";
@@ -149,7 +149,6 @@ async function generateEmbeddings(
 }
 
 function insertD1(chapters: Chapter[], verses: VerseEntry[], translations: Map<number, string>, remote: boolean) {
-  const flag = remote ? "--remote" : "";
   const db = "truth-db";
 
   console.log("Inserting chapters into D1...");
@@ -169,7 +168,8 @@ function insertD1(chapters: Chapter[], verses: VerseEntry[], translations: Map<n
     const section = Math.ceil(chapterNum / 4);
 
     const sql = `INSERT OR IGNORE INTO truth_verses (id, chapter_id, verse_number, text_ar, text_en, section, embedding_id) VALUES (${v.id}, ${chapterNum}, ${verseNum}, '${text}', '${trans}', ${section}, NULL)`;
-    execSync(`wrangler d1 execute ${db} ${flag} --command "${sql}"`, { stdio: "pipe" });
+    const d1Args = ["d1", "execute", db, ...(remote ? ["--remote"] : []), "--command", sql];
+    execFileSync("wrangler", d1Args, { stdio: "pipe" });
     inserted++;
     if (inserted % 500 === 0) console.log(`  -> ${inserted}/${verses.length} verses`);
   }
@@ -181,8 +181,6 @@ function storeVectors(
   embeddings: number[][],
   remote: boolean
 ) {
-  const flag = remote ? "--remote" : "";
-
   console.log("Storing vectors in Vectorize...");
   const vectors = verses.map((v, i) => ({
     id: `verse-${v.id}`,
@@ -197,10 +195,15 @@ function storeVectors(
   const batchFile = "/tmp/vectorize-batch.json";
   writeFileSync(batchFile, JSON.stringify({ vectors }));
 
-  execSync(
-    `wrangler vectorize insert ${VECTORIZE_INDEX} ${flag} --file ${batchFile}`,
-    { stdio: "pipe" }
-  );
+  const vectorizeArgs = [
+    "vectorize",
+    "insert",
+    VECTORIZE_INDEX,
+    ...(remote ? ["--remote"] : []),
+    "--file",
+    batchFile,
+  ];
+  execFileSync("wrangler", vectorizeArgs, { stdio: "pipe" });
 
   unlinkSync(batchFile);
   console.log(`  OK ${vectors.length} vectors stored`);
