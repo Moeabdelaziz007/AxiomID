@@ -383,7 +383,6 @@ export async function createPiPayment(amount: number, memo: string, metadata?: R
         }
       },
       onReadyForServerCompletion: async (paymentId: string, txid: string) => {
-        logger.info("[Pi Payment] Completed:", paymentId, txid);
         try {
           const response = await fetch("/api/pi/payment/complete", {
             method: "POST",
