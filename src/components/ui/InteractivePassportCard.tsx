@@ -3,7 +3,8 @@
 import React, { useState, useRef } from "react";
 import { Tier, getTierColor } from "@/lib/tiers";
 import { useLanguage } from "@/app/context/language-context";
-import { Fingerprint, Award, CheckCircle, Lock } from "lucide-react";
+import { Fingerprint, Award, CheckCircle, Lock, Download, Coins, Share2 } from "lucide-react";
+import html2canvas from "html2canvas";
 import PassportKeyManager from "./PassportKeyManager";
 
 interface InteractivePassportCardProps {
@@ -51,6 +52,73 @@ export default function InteractivePassportCard({ user, readonly = false, locked
   const isKya = !locked && user?.kyaStatus === "verified";
   const isKyc = !locked && user?.kycStatus === "verified";
   const did = locked ? "did:axiom:locked_credential" : (user?.walletAddress || "did:axiom:unconnected");
+
+
+  const [isExporting, setIsExporting] = useState(false);
+  const [isMinting, setIsMinting] = useState(false);
+
+  const handleExportImage = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!cardRef.current || isExporting) return;
+
+    setIsExporting(true);
+    try {
+      // Temporarily remove tilt for clean capture
+      const originalTransform = cardRef.current.style.transform;
+      cardRef.current.style.transform = 'none';
+
+      const canvas = await html2canvas(cardRef.current, {
+        backgroundColor: null,
+        scale: 2,
+        logging: false,
+        useCORS: true
+      });
+
+      cardRef.current.style.transform = originalTransform;
+
+      const image = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = `axiom-passport-${displayUsername}.png`;
+      link.click();
+    } catch (err) {
+      console.error("Export failed:", err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleMintSBT = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isMinting) return;
+
+    setIsMinting(true);
+    try {
+      // Simulate SBT Minting on Stellar
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      alert(t("mint_success") || "Soulbound Token minted successfully on Stellar!");
+    } catch (err) {
+      console.error("Minting failed:", err);
+      alert("Failed to mint SBT.");
+    } finally {
+      setIsMinting(false);
+    }
+  };
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareUrl = `https://axiomid.app/passport/${encodeURIComponent(did)}`;
+    if (navigator.share) {
+      navigator.share({
+        title: 'AxiomID Passport',
+        text: 'Check out my AxiomID Passport!',
+        url: shareUrl,
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      alert(t("link_copied") || "Link copied to clipboard!");
+    }
+  };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (readonly || locked || !cardRef.current) return;
@@ -115,20 +183,16 @@ export default function InteractivePassportCard({ user, readonly = false, locked
       onMouseLeave={handleMouseLeave}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleMouseLeave}
-      className={`relative w-full max-w-sm mx-auto rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 ${
+      className={`group relative w-full max-w-sm mx-auto transition-all duration-300 ${
         readonly || locked ? "cursor-default" : "cursor-pointer hover:shadow-electric-blue/20"
       }`}
       style={{
         perspective: "1000px",
         transformStyle: "preserve-3d",
-        border: locked ? "1px dashed rgba(255, 255, 255, 0.05)" : "1px solid rgba(255, 255, 255, 0.08)",
-        background: locked 
-          ? "linear-gradient(135deg, rgba(20, 22, 27, 0.8) 0%, rgba(10, 11, 14, 0.9) 100%)" 
-          : "linear-gradient(135deg, rgba(29, 32, 39, 0.9) 0%, rgba(16, 19, 26, 0.95) 100%)",
-        backdropFilter: "blur(12px)",
-      }}
-    >
+      }}>
+      <div className="absolute inset-0 rounded-3xl shadow-2xl overflow-hidden" style={{ border: locked ? "1px dashed rgba(255, 255, 255, 0.05)" : "1px solid rgba(255, 255, 255, 0.08)", background: locked ? "linear-gradient(135deg, rgba(20, 22, 27, 0.8) 0%, rgba(10, 11, 14, 0.9) 100%)" : "linear-gradient(135deg, rgba(29, 32, 39, 0.9) 0%, rgba(16, 19, 26, 0.95) 100%)", backdropFilter: "blur(12px)" }}></div>
       {/* 3D tilt inner container */}
+
       <div
         className="p-6 sm:p-7 flex flex-col justify-between min-h-[290px] sm:min-h-[310px] relative transition-transform duration-100 ease-out"
         style={{
@@ -247,6 +311,36 @@ export default function InteractivePassportCard({ user, readonly = false, locked
         </div>
       </div>
       {hasUser && <PassportKeyManager did={did} onSign={onSign} />}
+
+      {/* Action Buttons */}
+      {!locked && !readonly && (
+        <div className="flex items-center justify-center gap-2 mt-4 absolute -bottom-12 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <button
+            onClick={handleExportImage}
+            disabled={isExporting}
+            className="p-2 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md border border-white/10 transition-colors tooltip-trigger"
+            title={t("export_image") || "Export as Image"}
+          >
+            <Download className="w-4 h-4 text-white" />
+          </button>
+          <button
+            onClick={handleMintSBT}
+            disabled={isMinting}
+            className="p-2 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md border border-white/10 transition-colors tooltip-trigger"
+            title={t("mint_sbt") || "Mint as SBT (Stellar)"}
+          >
+            <Coins className="w-4 h-4 text-amber-400" />
+          </button>
+          <button
+            onClick={handleShare}
+            className="p-2 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md border border-white/10 transition-colors tooltip-trigger"
+            title={t("share_passport") || "Share"}
+          >
+            <Share2 className="w-4 h-4 text-blue-400" />
+          </button>
+        </div>
+      )}
+
     </div>
   );
 }

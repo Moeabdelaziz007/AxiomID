@@ -7,8 +7,14 @@ export const dynamic = "force-static";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const title = `Passport: ${slug} | AxiomID`;
-  const description = `AxiomID sovereign identity passport for ${slug}. Verified agent identity, trust score, and decentralized identifier (DID).`;
+  const decodedSlug = decodeURIComponent(slug);
+  const title = `Passport: ${decodedSlug} | AxiomID`;
+  const description = `AxiomID sovereign identity passport for ${decodedSlug}. Verified agent identity, trust score, and decentralized identifier (DID).`;
+
+  // Here we would ideally fetch the user's tier and color from the DB, but for now we'll use defaults or derive from slug if possible.
+  // Assuming default values or passing the slug as DID.
+  const ogUrl = `https://axiomid.app/api/og/passport?title=${encodeURIComponent(title)}&did=${encodeURIComponent(decodedSlug)}`;
+
   return {
     title,
     description,
@@ -17,11 +23,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description,
       type: "profile",
       siteName: "AxiomID",
+      images: [
+        {
+          url: ogUrl,
+          width: 1200,
+          height: 630,
+          alt: `Passport for ${decodedSlug}`,
+        },
+      ],
     } as Metadata["openGraph"],
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: [ogUrl],
     },
   };
 }
