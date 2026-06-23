@@ -11,7 +11,8 @@ export async function GET(req: NextRequest) {
     const title = searchParams.get('title') || 'AxiomID Passport';
     const did = searchParams.get('did') || 'did:axiom:unknown';
     const tier = searchParams.get('tier') || 'Visitor';
-    const tierColor = searchParams.get('color') || '#ffffff';
+    const colorParam = searchParams.get('color') || '#ffffff';
+    const tierColor = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(colorParam) ? colorParam : '#ffffff';
 
     return new ImageResponse(
       (
