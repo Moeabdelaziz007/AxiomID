@@ -62,6 +62,7 @@ export default function InteractivePassportCard({ user, readonly = false, locked
 
     setIsExporting(true);
     try {
+      const html2canvas = (await import("html2canvas")).default;
       // Temporarily remove tilt for clean capture
       const originalTransform = cardRef.current.style.transform;
       cardRef.current.style.transform = 'none';
