@@ -59,8 +59,30 @@ export default {
   },
 
   async queue(batch: MessageBatch<any>, env: Env): Promise<void> {
-    for (const message of batch.messages) {
-      await processHarvestJob(message, env);
-    }
+    // Concurrency limit: prevent 1000 parallel API calls to Perplexity
+    const CONCURRENCY = 15;
+    let running = 0;
+    const queue: Array<() => void> = [];
+
+    const wait = () => new Promise<void>((resolve) => queue.push(resolve));
+    const release = () => {
+      running--;
+      if (queue.length > 0) queue.shift()!();
+    };
+
+    await Promise.allSettled(
+      batch.messages.map(async (message) => {
+        while (running >= CONCURRENCY) await wait();
+        running++;
+        try {
+          await processHarvestJob(message, env);
+        } catch (err) {
+          console.error(`Harvest job failed: ${message.id}`, err);
+          // Don't rethrow — individual failure doesn't kill the batch
+        } finally {
+          release();
+        }
+      })
+    );
   },
 };
