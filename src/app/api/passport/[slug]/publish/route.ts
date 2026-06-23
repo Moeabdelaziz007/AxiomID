@@ -99,12 +99,21 @@ export async function POST(
     // Publish to the IPFS gateway
     const ipfsResult = await publishToIPFS(vc);
 
+    // Publish to the IPFS gateway
+    const ipfsResult = await publishToIPFS(vc);
+
+    if (ipfsResult.mock) {
+      logger.error("[PASSPORT-PUBLISH] Mock IPFS URL returned; refusing to persist", {
+        userId: user.id,
+      });
+      return apiError("INTERNAL_ERROR", "Failed to publish passport to IPFS");
+    }
+
     // Persist the published URL to the database
     await prisma.user.update({
       where: { id: user.id },
       data: { passportUrl: ipfsResult.url },
     });
-
     return apiSuccess({
       cid: ipfsResult.cid,
       url: ipfsResult.url,
