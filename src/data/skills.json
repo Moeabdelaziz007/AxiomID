@@ -174,7 +174,7 @@
     },
     {
       "name": "multi-tool-exporter",
-      "description": "Exports IQRA personas to external platforms",
+      "description": "Exports agent personas to external platforms",
       "file": "skills/multi-tool-exporter.md",
       "tier": "ADVANCED_TOOL"
     },
@@ -257,9 +257,9 @@
       "tier": "PRO"
     },
     {
-      "name": "quran-resonance",
-      "description": "Explores mathematical and semantic patterns in sacred texts",
-      "file": "skills/quran-resonance.md",
+      "name": "truth-resonance",
+      "description": "Explores mathematical and semantic patterns in knowledge bases",
+      "file": "skills/truth-resonance.md",
       "tier": "SOVEREIGN"
     },
     {

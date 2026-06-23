@@ -127,7 +127,7 @@ Use nostics for stable error codes with actionable fixes.
 - **Merge order is sacred.** Always rebase onto latest `main` before merging.
 - **Build must pass locally** (`npm run build`) before any push or merge request.
 - **Lint must pass** (`npm run lint`) — no new lint warnings are acceptable.
-- **Storytelling commits:** Every commit message must follow the IQRA Chronicle format: `type(scope): description ۞` + narrative body.
+- **Storytelling commits:** Every commit message must follow the Truth Chronicle format: `type(scope): description ۞` + narrative body.
 - **Zero Tolerance for Red CI:** Never merge a Pull Request with failing CI checks (Red X status). If a check fails on GitHub Actions/Vercel, the developer/agent must fix it and verify locally first before requesting a merge.
 - **Git History Cleanliness & Squashing:** Bloating git history with repetitive, low-value commits (e.g. "fix: remove unused public asset" repeated 10+ times) is prohibited. Use selective staging (`git add -p`), commit amending (`git commit --amend`), or interactive rebasing (`git rebase -i`) to squash minor adjustments into cohesive, atomic commits before pushing.
 - **Regression & Test Stability:** The test suite status must remain stable. The number of passing tests must never decrease across PRs. Disabling or skipping active tests to bypass coverage requirements is strictly forbidden.
@@ -207,7 +207,7 @@ All loops run automatically via `.github/workflows/loops.yml`. Manual dispatch a
 - Don't use `vercel kv` or `vercel postgres` — both are discontinued; use Marketplace Redis/Postgres.
 - Don't store secrets in `NEXT_PUBLIC_*` — use Vercel Env Variables only.
 - Don't call `console.log` in production route handlers — use nostics diagnostics.
-- Don't duplicate global IQRA conscience rules here — they live in `~/.gemini/config/AGENTS.md`.
+- Don't duplicate global conscience rules here — they live in `~/.gemini/config/AGENTS.md`.
 - **Synchronous Multi-DB Coupling:** Do not rely on direct database-to-database replication or sync loops triggered via simple cron scripts (like SQLite-D1-PostgreSQL synchronization via Vercel Cron). This creates a high point of failure and eventual consistency splits. Instead, implement a **Transactional Outbox** pattern where data updates are stored locally as log events and dispatched reliably using queue relays.
 - **Unauthenticated D1 SQLite Exports:** Never expose Cloudflare D1 export endpoints (like `/api/sync/export`) without timing-safe `X-Shared-Secret` verification and strict URL path matching. Always use Prisma `upsert` in Next.js sync jobs to ensure edge data is merged into PostgreSQL without causing key conflicts or duplicate records.
 

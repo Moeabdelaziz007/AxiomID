@@ -1,5 +1,4 @@
 import { SignJWT, jwtVerify, errors, importJWK, JWTPayload } from "jose";
-import { logger } from "./logger";
 
 const ISSUER = "https://axiomid.app";
 const AUDIENCE = "https://axiomid.app";
@@ -19,11 +18,7 @@ export interface IdentityAssertionPayload {
 function getSigningKey(): Uint8Array {
   const key = process.env.AUTH_TOKEN_SECRET;
   if (!key) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("AUTH_TOKEN_SECRET is required in production");
-    }
-    logger.warn("[AUTH-TOKENS] AUTH_TOKEN_SECRET not set — using dev fallback");
-    return new TextEncoder().encode("dev-auth-token-secret-change-in-production");
+    throw new Error("AUTH_TOKEN_SECRET is required in production");
   }
   return new TextEncoder().encode(key);
 }

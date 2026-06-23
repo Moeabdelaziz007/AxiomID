@@ -35,7 +35,7 @@ model User {
   kycVerifiedAt DateTime?
 
   // Passport Publishing
-  passportUrl String? @db.VarChar(500) // published passport URL (here.now)
+  passportUrl String? @db.VarChar(500) // @IPFS URL
 
   // Subdomain
   subdomain String? @unique @db.VarChar(50) // user.axiomid.app

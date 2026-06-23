@@ -37,7 +37,7 @@ reviews:
   instructions: |
     Follow AxiomID engineering covenant (AGENTS.md).
     No `any` types. No eslint-disable. No setTimeout in API routes.
-    All commits use IQRA Chronicle format: type(scope): description ۞
+    All commits use Truth Chronicle format: type(scope): description ۞
   path_instructions:
     - path: "src/app/api/**"
       instructions: |
@@ -97,10 +97,10 @@ gemini login  # Uses Google account, free tier: 60 req/min, 1000/day
 - Pi Network SDK, Ed25519 sovereign keys, W3C DIDs
 
 ## Conventions
-- IQRA Chronicle commits: type(scope): description ۞
+- Truth Chronicle commits: type(scope): description ۞
 - No `any` types, no eslint-disable, no setTimeout in API routes
 - Trust score: XP (70%) + stamps (30%), range 0-100
-- Soul system: 5 gates (Muraqabah, Ethical, Sab'iyyah, Tawbah, Self-Review)
+- Soul system: 5 gates (Awareness, Ethical, Virtue, Correction, Self-Review)
 
 ## Key Files
 - src/lib/trust.ts — Trust score algorithm

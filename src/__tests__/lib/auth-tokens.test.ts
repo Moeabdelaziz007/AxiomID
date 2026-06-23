@@ -9,6 +9,10 @@ import {
   verifyAccessToken,
 } from "@/lib/auth-tokens";
 
+beforeAll(() => {
+  process.env.AUTH_TOKEN_SECRET = "test-auth-token-secret-for-jest";
+});
+
 describe("Auth Tokens", () => {
   const TEST_DID = "did:axiom:axiomid.app:pi:test123";
   const TEST_SCOPES = ["api.read", "api.write"] as const;

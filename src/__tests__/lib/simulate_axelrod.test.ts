@@ -342,10 +342,10 @@ describe('SoulAgent — reasoning summaries', () => {
 
   it('Soul Agent reasoning includes all five gate labels', () => {
     const firstEntry = results.reasoningSummaries['Agent_A'][0];
-    expect(firstEntry).toContain("Muraqabah:");
+    expect(firstEntry).toContain("Awareness:");
     expect(firstEntry).toContain("Ethical:");
-    expect(firstEntry).toContain("Sab'iyyah:");
-    expect(firstEntry).toContain("Tawbah:");
+    expect(firstEntry).toContain("Virtue:");
+    expect(firstEntry).toContain("Correction:");
     expect(firstEntry).toContain("Self-Review:");
   });
 

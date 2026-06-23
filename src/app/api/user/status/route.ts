@@ -89,6 +89,7 @@ export async function GET(request: NextRequest) {
       userId: user.id,
       walletAddress: user.walletAddress,
       piUsername: user.piUsername,
+      passportUrl: user.passportUrl,
       did: user.did,
       kycStatus: user.kycStatus,
       tier,

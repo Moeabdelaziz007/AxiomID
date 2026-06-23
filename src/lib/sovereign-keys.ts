@@ -12,9 +12,9 @@ export const ROOT_AGENT_ID = "axiom-root";
  */
 export function deriveSovereignAgentKeypair(stellarAddress: string, agentId: string): { publicKey: string; privateKey: string } {
   try {
-    const salt = process.env.SOVEREIGN_KEY_SALT || (process.env.NODE_ENV === "production" ? undefined : "development_fallback_salt_3f43ec47");
+    const salt = process.env.SOVEREIGN_KEY_SALT;
     if (!salt) {
-      throw new Error("SOVEREIGN_KEY_SALT is not configured in production environment");
+      throw new Error("SOVEREIGN_KEY_SALT is not configured");
     }
     const hmac = crypto.createHmac("sha256", salt);
     hmac.update(stellarAddress);
@@ -69,9 +69,9 @@ export function signPayloadWithAgentKey(payload: string, privateKeyPem: string):
  * @throws If `SOVEREIGN_KEY_SALT` is not configured in a production environment
  */
 export function deriveUserRootKey(piUid: string): { publicKey: string; privateKey: string } {
-  const salt = process.env.SOVEREIGN_KEY_SALT || (process.env.NODE_ENV === "production" ? undefined : "development_fallback_salt_3f43ec47");
+  const salt = process.env.SOVEREIGN_KEY_SALT;
   if (!salt) {
-    throw new Error("SOVEREIGN_KEY_SALT is not configured in production environment");
+    throw new Error("SOVEREIGN_KEY_SALT is not configured");
   }
   return deriveSovereignAgentKeypair(piUid, ROOT_AGENT_ID);
 }

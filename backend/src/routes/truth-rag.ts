@@ -1,10 +1,10 @@
 /**
- * iqra-rag.ts — Quran RAG (Retrieval-Augmented Generation) endpoint
+ * truth-rag.ts — Truth RAG (Retrieval-Augmented Generation) endpoint
  *
  * Full cycle: embed(query) → Vectorize.search → D1 fetch → AI generate → JSON
  * KV cache with 1-hour TTL per query.
  *
- * Response: { answer_ar, answer_en, ayat, confidence, source }
+ * Response: { answer_ar, answer_en, verses, confidence, source }
  */
 
 import type { Env } from "../lib/types";
@@ -18,8 +18,8 @@ const CACHE_TTL_SECONDS = 3600;
 interface RagResponse {
   answer_ar: string;
   answer_en: string;
-  ayat: Array<{
-    surah: number;
+  verses: Array<{
+    chapter: number;
     verse: number;
     text_ar: string;
     text_en: string;
@@ -61,7 +61,7 @@ function hashQuery(q: string): string {
  * Generate embedding for query using Workers AI.
  */
 async function embedQuery(env: Env, query: string): Promise<number[]> {
-  const res = await env.AI.run(EMBEDDING_MODEL, { text: [query] });
+  const res = await env.AI.run(EMBEDDING_MODEL, { text: [query] }) as { data: number[][] };
   return res.data[0];
 }
 
@@ -74,7 +74,7 @@ async function searchVerses(
 ): Promise<VectorMatch[]> {
   const results = await env.SEARCH_VECTORS.query(embedding, {
     topK: TOP_K,
-    namespace: "quran",
+    namespace: "truth",
   });
   return results.matches;
 }
@@ -85,7 +85,7 @@ async function searchVerses(
 async function fetchVerseDetails(
   env: Env,
   matches: VectorMatch[]
-): Promise<RagResponse["ayat"]> {
+): Promise<RagResponse["verses"]> {
   if (matches.length === 0) return [];
 
   const verseIds = matches
@@ -95,15 +95,15 @@ async function fetchVerseDetails(
   if (verseIds.length === 0) return [];
 
   const placeholders = verseIds.map(() => "?").join(",");
-  const stmt = env.IQRA_DB.prepare(
-    `SELECT id, surah_id, verse_number, text_ar, text_en
-     FROM quran_verses
+  const stmt = env.TRUTH_DB.prepare(
+    `SELECT id, chapter_id, verse_number, text_ar, text_en
+     FROM truth_verses
      WHERE id IN (${placeholders})`
   ).bind(...verseIds);
 
   const { results } = await stmt.all<{
     id: number;
-    surah_id: number;
+    chapter_id: number;
     verse_number: number;
     text_ar: string;
     text_en: string;
@@ -117,7 +117,7 @@ async function fetchVerseDetails(
     .map((m) => {
       const verse = verseMap.get(m.metadata!.verse_id!);
       return {
-        surah: verse?.surah_id || 0,
+        chapter: verse?.chapter_id || 0,
         verse: verse?.verse_number || 0,
         text_ar: verse?.text_ar || "",
         text_en: verse?.text_en || "",
@@ -132,16 +132,16 @@ async function fetchVerseDetails(
 async function generateAnswer(
   env: Env,
   query: string,
-  ayat: RagResponse["ayat"]
+  verses: RagResponse["verses"]
 ): Promise<{ answer_ar: string; answer_en: string; confidence: number }> {
-  const context = ayat
+  const context = verses
     .map(
       (a, i) =>
-        `[${i + 1}] Surah ${a.surah}, Verse ${a.verse}:\nArabic: ${a.text_ar}\nEnglish: ${a.text_en}`
+        `[${i + 1}] Chapter ${a.chapter}, Verse ${a.verse}:\nSource: ${a.text_ar}\nTranslation: ${a.text_en}`
     )
     .join("\n\n");
 
-  const prompt = `You are a Quranic knowledge assistant. Answer the user's question based ONLY on the provided verses. If the verses don't contain enough information, say so.
+  const prompt = `You are a knowledgeable assistant. Answer the user's question based ONLY on the provided verses. If the verses don't contain enough information, say so.
 
 User question: ${query}
 
@@ -149,14 +149,14 @@ Retrieved verses:
 ${context}
 
 Provide your answer in both Arabic and English. Format:
-ARABIC: [answer in Arabic]
-ENGLISH: [answer in English]`;
+SOURCE: [answer in source language]
+TRANSLATION: [answer in translation]`;
 
   const res = await env.AI.run(GENERATION_MODEL, {
     messages: [
       {
         role: "system",
-        content: "You are a knowledgeable Quranic scholar. Answer based on the provided verses.",
+        content: "You are a knowledgeable scholar. Answer based on the provided verses.",
       },
       { role: "user", content: prompt },
     ],
@@ -166,12 +166,12 @@ ENGLISH: [answer in English]`;
   const response = (res as { response?: string }).response || "";
 
   // Parse ARABIC: and ENGLISH: from response
-  const arMatch = response.match(/ARABIC:\s*(.+?)(?=\nENGLISH:|$)/s);
-  const enMatch = response.match(/ENGLISH:\s*(.+?)$/s);
+  const arMatch = response.match(/SOURCE:\s*(.+?)(?=\nTRANSLATION:|$)/s);
+  const enMatch = response.match(/TRANSLATION:\s*(.+?)$/s);
 
   // Confidence based on vector similarity scores
   const avgScore =
-    ayat.reduce((sum, a) => sum + a.score, 0) / (ayat.length || 1);
+    verses.reduce((sum, a) => sum + a.score, 0) / (verses.length || 1);
   const confidence = Math.min(1, Math.max(0, avgScore));
 
   return {
@@ -182,9 +182,9 @@ ENGLISH: [answer in English]`;
 }
 
 /**
- * Handle GET /api/iqra/ask?q={query}
+ * Handle GET /api/truth/ask
  */
-export async function handleIqraAsk(
+export async function handleTruthAsk(
   request: Request,
   env: Env
 ): Promise<Response> {
@@ -212,19 +212,19 @@ export async function handleIqraAsk(
     const matches = await searchVerses(env, embedding);
 
     // 3. Fetch verse details from D1
-    const ayat = await fetchVerseDetails(env, matches);
+    const verses = await fetchVerseDetails(env, matches);
 
     // 4. Generate AI answer
     const { answer_ar, answer_en, confidence } = await generateAnswer(
       env,
       query,
-      ayat
+      verses
     );
 
     const response: RagResponse = {
       answer_ar,
       answer_en,
-      ayat,
+      verses,
       confidence,
       source: "rag",
     };
@@ -236,7 +236,7 @@ export async function handleIqraAsk(
 
     return jsonResponse(response, 200, { "X-Cache": "MISS" });
   } catch (err) {
-    console.error("[IQRA-RAG] Error:", err);
+    console.error("[TRUTH-RAG] Error:", err);
     return errorResponse(
       err instanceof Error ? err.message : "RAG pipeline failed",
       500
@@ -245,27 +245,27 @@ export async function handleIqraAsk(
 }
 
 /**
- * Handle GET /api/iqra/daily-ayah
- * Returns a featured ayah for today.
+ * Handle GET /api/truth/daily-truth
+ * Returns a featured verse for today.
  */
-export async function handleDailyAyah(
+export async function handleDailyTruth(
   request: Request,
   env: Env
 ): Promise<Response> {
   const today = new Date().toISOString().slice(0, 10);
 
   try {
-    // Check if today's ayah exists
-    const existing = await env.IQRA_DB.prepare(
-      `SELECT da.id, da.verse_id, v.surah_id, v.verse_number, v.text_ar, v.text_en
-       FROM daily_ayah da
-       JOIN quran_verses v ON da.verse_id = v.id
+    // Check if today's verse exists
+    const existing = await env.TRUTH_DB.prepare(
+      `SELECT da.id, da.verse_id, v.chapter_id, v.verse_number, v.text_ar, v.text_en
+       FROM daily_truth da
+       JOIN truth_verses v ON da.verse_id = v.id
        WHERE da.date = ?`
     )
       .bind(today)
       .first<{
         verse_id: number;
-        surah_id: number;
+        chapter_id: number;
         verse_number: number;
         text_ar: string;
         text_en: string;
@@ -273,7 +273,7 @@ export async function handleDailyAyah(
 
     if (existing) {
       return jsonResponse({
-        surah: existing.surah_id,
+        chapter: existing.chapter_id,
         verse: existing.verse_number,
         text_ar: existing.text_ar,
         text_en: existing.text_en,
@@ -283,15 +283,15 @@ export async function handleDailyAyah(
 
     // Pick a random verse for today (seeded by date for consistency)
     const dateHash = today.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-    const randomVerse = await env.IQRA_DB.prepare(
-      `SELECT id, surah_id, verse_number, text_ar, text_en
-       FROM quran_verses
+    const randomVerse = await env.TRUTH_DB.prepare(
+      `SELECT id, chapter_id, verse_number, text_ar, text_en
+       FROM truth_verses
        WHERE id = (ABS(?) % 6236) + 1`
     )
       .bind(dateHash)
       .first<{
         id: number;
-        surah_id: number;
+        chapter_id: number;
         verse_number: number;
         text_ar: string;
         text_en: string;
@@ -302,21 +302,21 @@ export async function handleDailyAyah(
     }
 
     // Store for today
-    await env.IQRA_DB.prepare(
-      `INSERT OR IGNORE INTO daily_ayah (verse_id, date) VALUES (?, ?)`
+    await env.TRUTH_DB.prepare(
+      `INSERT OR IGNORE INTO daily_truth (verse_id, date) VALUES (?, ?)`
     )
       .bind(randomVerse.id, today)
       .run();
 
     return jsonResponse({
-      surah: randomVerse.surah_id,
+      chapter: randomVerse.chapter_id,
       verse: randomVerse.verse_number,
       text_ar: randomVerse.text_ar,
       text_en: randomVerse.text_en,
       date: today,
     });
   } catch (err) {
-    console.error("[IQRA] Daily ayah error:", err);
-    return errorResponse("Failed to fetch daily ayah", 500);
+    console.error("[TRUTH] Daily verse error:", err);
+    return errorResponse("Failed to fetch daily verse", 500);
   }
 }

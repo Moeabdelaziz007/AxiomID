@@ -5,7 +5,7 @@
 <h3 align="center">The Human Authorization Protocol for AI Agents</h3>
 
 <p align="center">
-  W3C DIDs · Verifiable Credentials · Trust Scores · Skills Marketplace · Quran RAG<br/>
+  W3C DIDs · Verifiable Credentials · Trust Scores · Skills Marketplace · Truth RAG<br/>
   <em>No hardware. No iris scans. Just cryptographic proof of humanity.</em>
 </p>
 
@@ -42,8 +42,8 @@ AxiomID is a **decentralized identity layer** for AI agents on Pi Network. It an
 | **Trust Engine** | Physics-inspired algorithms — trust score = `XP (70%) + stamps (30%)` |
 | **Agent Passports** | Public identity cards with verification badges, trust scores, and attestation history |
 | **Skills Marketplace** | Install capabilities for agents. Agents execute skills in isolated sandboxes. |
-| **Quran RAG** | AI-powered Quranic Q&A — semantic search across 6236 verses via Vectorize + Workers AI |
-| **Soul System** | Five-gate ethical evaluation loop — Muraqabah, Ethical, Sab'iyyah, Tawbah, Self-Review |
+| **Truth RAG** | AI-powered Q&A — semantic search across verses via Vectorize + Workers AI |
+| **Soul System** | Five-gate ethical evaluation loop — Awareness, Ethical, Virtue, Correction, Self-Review |
 
 ---
 
@@ -182,8 +182,8 @@ CI runs on every PR: **type-check → lint → tests**. Zero tolerance for red C
 | `/mcp` | POST | MCP Server — 11 tools |
 | `/api/trust/:did` | GET | Trust chain resolution |
 | `/api/search` | GET | Semantic search (Vectorize) |
-| `/api/iqra/ask` | GET | Quran RAG — ask a question |
-| `/api/iqra/daily-ayah` | GET | Quran RAG — daily verse |
+| `/api/truth/ask` | GET | Truth RAG — ask a question |
+| `/api/truth/daily-truth` | GET | Truth RAG — daily verse |
 
 Full docs: [`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md) · [`STRATEGY.md`](./STRATEGY.md)
 
@@ -197,10 +197,10 @@ AxiomID agents run through a **five-gate ethical evaluation loop** before any ac
 ┌─────────────────────────────────────────────────────────┐
 │                    SOUL LOOP                            │
 │                                                         │
-│  1. Muraqabah  ──── Self-awareness check                │
-│  2. Ethical     ──── Intent analysis (Workers AI)        │
-│  3. Sab'iyyah  ──── Seven-attribute virtue scoring       │
-│  4. Tawbah     ──── Repentance / correction gate         │
+│  1. Awareness  ──── Self-awareness check                │
+│  2. Ethical    ──── Intent analysis (Workers AI)         │
+│  3. Virtue     ──── Seven-attribute virtue scoring       │
+│  4. Correction ──── Correction gate                      │
 │  5. Self-Review─── Groq-powered post-action reflection   │
 │                                                         │
 │  Milestones: 700 actions → Telegram notification        │
@@ -238,10 +238,10 @@ backend/
   src/
     routes/           ← Cloudflare Worker handlers
     lib/              ← Auth, types, JWKS
-iqra-core/
-  schema.sql          ← Quran D1 schema
+truth-core/
+  schema.sql          ← Truth D1 schema
 scripts/
-  ingest_quran.ts     ← Quran ingestion pipeline
+  ingest_truth.ts     ← Truth ingestion pipeline
 ```
 
 ---
@@ -259,7 +259,7 @@ git push origin feat/my-feature
 # open PR → CI runs → merge when green
 ```
 
-All commits follow the **IQRA Chronicle** format: `type(scope): description ۞` with narrative body.
+All commits follow the **Truth Chronicle** format: `type(scope): description ۞` with narrative body.
 
 ---
 

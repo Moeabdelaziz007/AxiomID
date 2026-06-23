@@ -62,7 +62,6 @@ export async function POST(request: NextRequest) {
 
   const host = request.headers.get("host") || "";
   const isSandboxOrDev =
-    process.env.NODE_ENV !== "production" ||
     process.env.NEXT_PUBLIC_PI_SANDBOX === "true" ||
     host.includes("localhost") ||
     host.includes("127.0.0.1");

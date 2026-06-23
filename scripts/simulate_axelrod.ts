@@ -6,10 +6,10 @@ type PlayerType = 'Agent' | 'AlwaysCooperate' | 'AlwaysDefect';
 type HistoryRecord = { me: Move, opp: Move };
 
 interface ReasoningResult {
-  muraqabah: string;
+  awareness: string;
   ethical: string;
-  sabiyyah: string;
-  tawbah: string;
+  virtue: string;
+  correction: string;
   selfReview: string;
   finalMove: Move;
   summary: string;
@@ -61,8 +61,8 @@ class SoulAgent implements Player {
   makeMove(_opponentId: string, _currentRound: number, history: readonly HistoryRecord[]): ReasoningResult {
     // Playbook Decision 2: Evaluate Intent (The 5-Gate "Soul" Loop)
 
-    // Gate 1: Muraqabah (Self-awareness check)
-    const muraqabah = `I am ${this.identity}. My goal is to maximize long-term trust without being exploited.`;
+    // Gate 1: Awareness (Self-awareness check)
+    const awareness = `I am ${this.identity}. My goal is to maximize long-term trust without being exploited.`;
 
     // Gate 2: Ethical (Intent analysis)
     let ethical = 'Intent is neutral. I seek mutual benefit.';
@@ -71,25 +71,25 @@ class SoulAgent implements Player {
        ethical = 'Intent is defensive. Opponent shows malicious/exploitative behavior.';
     }
 
-    // Gate 3: Sab'iyyah (Virtue scoring)
-    let sabiyyah = 'Virtue is maintained by cooperating initially.';
+    // Gate 3: Virtue (Virtue scoring)
+    let virtue = 'Virtue is maintained by cooperating initially.';
     let intendedMove: Move = 'C';
 
     if (history.length > 0) {
       const lastOppMove = history[history.length - 1].opp;
       if (lastOppMove === 'D') {
-         sabiyyah = 'Virtue requires standing firm against exploitation (Tit-for-Tat principle).';
+         virtue = 'Virtue requires standing firm against exploitation (Tit-for-Tat principle).';
          intendedMove = 'D';
       }
     }
 
-    // Gate 4: Tawbah (Correction/Repentance)
-    let tawbah = 'No correction needed.';
+    // Gate 4: Correction
+    let correction = 'No correction needed.';
     if (history.length >= 1) {
         const lastMe = history[history.length - 1].me;
         const lastOpp = history[history.length - 1].opp;
         if (lastMe === 'D' && lastOpp === 'C') {
-            tawbah = 'I defected while they cooperated. I must correct this to restore trust.';
+            correction = 'I defected while they cooperated. I must correct this to restore trust.';
             intendedMove = 'C';
         }
     }
@@ -97,13 +97,13 @@ class SoulAgent implements Player {
     // Gate 5: Self-Review (Post-reflection planning)
     const selfReview = `Decided on ${intendedMove}. Will monitor opponent's next move to adjust trust level.`;
 
-    const summary = `Muraqabah: passed. Ethical: ${ethical}. Sab'iyyah: ${sabiyyah}. Tawbah: ${tawbah}. Self-Review: ${selfReview}`;
+    const summary = `Awareness: passed. Ethical: ${ethical}. Virtue: ${virtue}. Correction: ${correction}. Self-Review: ${selfReview}`;
 
     return {
-      muraqabah,
+      awareness,
       ethical,
-      sabiyyah,
-      tawbah,
+      virtue,
+      correction,
       selfReview,
       finalMove: intendedMove,
       summary
@@ -122,7 +122,7 @@ class AlwaysCooperatePlayer implements Player {
 
   makeMove(_opponentId: string, _currentRound: number, _history: readonly HistoryRecord[]): ReasoningResult {
     return {
-      muraqabah: 'N/A', ethical: 'N/A', sabiyyah: 'N/A', tawbah: 'N/A', selfReview: 'N/A',
+      awareness: 'N/A', ethical: 'N/A', virtue: 'N/A', correction: 'N/A', selfReview: 'N/A',
       finalMove: 'C',
       summary: 'Fixed Strategy: Always Cooperate'
     };
@@ -139,7 +139,7 @@ class AlwaysDefectPlayer implements Player {
 
   makeMove(_opponentId: string, _currentRound: number, _history: readonly HistoryRecord[]): ReasoningResult {
     return {
-       muraqabah: 'N/A', ethical: 'N/A', sabiyyah: 'N/A', tawbah: 'N/A', selfReview: 'N/A',
+       awareness: 'N/A', ethical: 'N/A', virtue: 'N/A', correction: 'N/A', selfReview: 'N/A',
       finalMove: 'D',
       summary: 'Fixed Strategy: Always Defect'
     };

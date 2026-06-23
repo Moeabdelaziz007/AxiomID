@@ -16,7 +16,7 @@
 - No new dependencies if avoidable (Loops SDK is the one exception here)
 - Vercel Functions are stateless — no in-memory state between requests
 - Tests: `jest` with `--forceExit`, 1238+ tests must remain passing
-- Commit messages follow IQRA Chronicle format: `type(scope): description ۞`
+- Commit messages follow Truth Chronicle format: `type(scope): description ۞`
 
 ## File Structure
 

@@ -99,6 +99,12 @@ export async function POST(
     // Publish to the IPFS gateway
     const ipfsResult = await publishToIPFS(vc);
 
+    // Persist the published URL to the database
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passportUrl: ipfsResult.url },
+    });
+
     return apiSuccess({
       cid: ipfsResult.cid,
       url: ipfsResult.url,

@@ -1,6 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
 import { Router } from "./router";
 import { processHarvestJob } from "./workers/harvest-processor";
+import { handleMcp } from "./mcp/handler";
 import type { Env } from "./lib/types";
 
 // --- Durable Object: Agent Presence ---
@@ -54,6 +55,13 @@ export class PresenceDO extends DurableObject {
 // --- Worker Entry ---
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+
+    // MCP endpoint — direct SDK wiring (bypasses router auth/rate-limiting)
+    if (url.pathname === "/mcp") {
+      return handleMcp(request, env);
+    }
+
     const router = new Router(env);
     return router.handle(request);
   },

@@ -226,11 +226,14 @@ const SANDBOX_TEST_TOKEN = 'sandbox-dev-token-abc-123';
 
 describe('POST /api/auth/pi — sandbox dev token bypass (PR change)', () => {
   let prevSandboxDevToken: string | undefined;
+  let prevSandboxMode: string | undefined;
   beforeEach(() => {
     jest.clearAllMocks();
     global.fetch = jest.fn();
     prevSandboxDevToken = process.env.SANDBOX_DEV_TOKEN;
     process.env.SANDBOX_DEV_TOKEN = SANDBOX_TEST_TOKEN;
+    prevSandboxMode = process.env.NEXT_PUBLIC_PI_SANDBOX;
+    process.env.NEXT_PUBLIC_PI_SANDBOX = "true";
   });
 
   afterEach(() => {
@@ -238,6 +241,11 @@ describe('POST /api/auth/pi — sandbox dev token bypass (PR change)', () => {
       delete process.env.SANDBOX_DEV_TOKEN;
     } else {
       process.env.SANDBOX_DEV_TOKEN = prevSandboxDevToken;
+    }
+    if (prevSandboxMode === undefined) {
+      delete process.env.NEXT_PUBLIC_PI_SANDBOX;
+    } else {
+      process.env.NEXT_PUBLIC_PI_SANDBOX = prevSandboxMode;
     }
   });
 
