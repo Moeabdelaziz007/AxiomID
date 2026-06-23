@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'sub-50ms' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'coverage' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -84,7 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'logging-coverage' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Check logging coverage
         run: |
           ROUTES=$(find src/app/api -name "route.ts" -type f)
@@ -111,7 +111,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'fresh-clone' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
@@ -131,7 +131,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.loop == 'all' || github.event.inputs.loop == 'nightly-changelog' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
