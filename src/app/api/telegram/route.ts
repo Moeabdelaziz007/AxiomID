@@ -8,7 +8,7 @@ if (!botToken) {
 }
 
 const bot = new Telegraf(botToken || "dummy_token_for_build");
-const webAppUrl = process.env.NEXT_PUBLIC_APP_URL || "https://axiomid.app";
+const webAppUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://axiomid.app";
 
 // /start command
 bot.start((ctx) => {
