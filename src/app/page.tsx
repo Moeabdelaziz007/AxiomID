@@ -168,7 +168,7 @@ export default function Home() {
               {!user ? (
                 isPiBrowser ? (
                   <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} className="flex items-center justify-center gap-2 text-sm font-semibold px-8 py-4 min-h-[52px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                    {isConnecting ? <><span className="animate-spin">⟳</span> {t("connecting")}</> : <>{language === "en" ? "Claim Your Passport" : "احصل على جوازك"}<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></>}
+                    {isConnecting ? <><span className="animate-spin">⟳</span> {t("connecting")}</> : <>{t("claim_passport")}<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></>}
                   </button>
                 ) : (
                   <Link href="/claim" prefetch={false} className="flex items-center justify-center gap-2 text-sm font-semibold px-8 py-4 min-h-[52px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
