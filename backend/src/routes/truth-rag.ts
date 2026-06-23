@@ -75,6 +75,7 @@ async function searchVerses(
   const results = await env.SEARCH_VECTORS.query(embedding, {
     topK: TOP_K,
     namespace: "truth",
+    returnMetadata: true,
   });
   return results.matches;
 }
