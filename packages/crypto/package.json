@@ -1,0 +1,26 @@
+{
+  "name": "@axiomid/crypto",
+  "version": "1.0.0",
+  "description": "Sovereign identity cryptography for AxiomID — Ed25519 key derivation, signing, and verification.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "jest --runInBand --forceExit",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "license": "MIT"
+}
