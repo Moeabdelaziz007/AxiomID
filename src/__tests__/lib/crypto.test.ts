@@ -2,15 +2,15 @@ import { encryptToken, getIssuerPrivateKey } from '../../lib/crypto';
 import crypto from 'crypto';
 
 describe('crypto.ts', () => {
-  const ORIGINAL_ENV = process.env;
+  const originalEnv = { ...process.env };
 
-  beforeEach(() => {
-    jest.resetModules();
-    process.env = { ...ORIGINAL_ENV };
-  });
-
-  afterAll(() => {
-    process.env = ORIGINAL_ENV;
+  afterEach(() => {
+    for (const key in process.env) {
+      if (!(key in originalEnv)) {
+        delete process.env[key];
+      }
+    }
+    Object.assign(process.env, originalEnv);
   });
 
   describe('encryptToken', () => {
