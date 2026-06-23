@@ -91,7 +91,7 @@ describe("Landing page — Stitch hero", () => {
   it("renders the main heading", () => {
     renderHome();
     const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent(/Authorization Protocol/);
+    expect(heading).toHaveTextContent(/Your Identity/);
   });
 
   it("renders the Live on Pi Network badge", () => {
@@ -108,9 +108,9 @@ describe("Landing page — Stitch hero", () => {
 
   it("renders tier cards", () => {
     renderHome();
-    expect(screen.getByText("Visitor")).toBeInTheDocument();
+    expect(screen.getByText("Explorer")).toBeInTheDocument();
     expect(screen.getByText("Citizen")).toBeInTheDocument();
-    expect(screen.getByText("Validator")).toBeInTheDocument();
+    expect(screen.getByText("Guardian")).toBeInTheDocument();
     expect(screen.getByText("Sovereign")).toBeInTheDocument();
   });
 });
