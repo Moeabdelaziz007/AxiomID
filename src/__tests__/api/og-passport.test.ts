@@ -3,9 +3,10 @@
  *
  * Tests for src/app/api/og/passport/route.tsx
  *
- * PR change: New OG image generation endpoint that accepts title, did, tier,
- * and color query parameters and returns a 1200×630 ImageResponse, or a 500
- * Response on failure.
+ * The OG image generation endpoint accepts title, did, tier, xp, and stamps
+ * query parameters and returns a 1200×630 ImageResponse, or a 500 Response on
+ * failure. The tier is taken from the `tier` param when present (any casing)
+ * and otherwise derived from `xp` via calculateTier (see @/lib/tiers).
  */
 
 // Mock @vercel/og before importing the route
@@ -40,6 +41,28 @@ function makeRequest(params: Record<string, string> = {}): NextRequest {
     url.searchParams.set(key, value);
   }
   return new NextRequest(url.toString());
+}
+
+/**
+ * Recursively flattens a React element tree (as captured by the ImageResponse
+ * mock) into a single string of its text nodes. Lets tests assert on what the
+ * card actually renders (tier label, XP, stamps, DID) rather than only status.
+ */
+function flattenText(node: unknown): string {
+  if (node == null || typeof node === 'boolean') return '';
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(flattenText).join(' ');
+  if (typeof node === 'object' && 'props' in (node as Record<string, unknown>)) {
+    const props = (node as { props?: { children?: unknown } }).props;
+    return flattenText(props?.children);
+  }
+  return '';
+}
+
+/** Returns the flattened text of the element passed to the latest ImageResponse call. */
+function renderedText(): string {
+  const element = MockedImageResponse.mock.calls[0][0];
+  return flattenText(element);
 }
 
 describe('GET /api/og/passport — default parameters', () => {
@@ -109,46 +132,56 @@ describe('GET /api/og/passport — custom query parameters', () => {
   });
 });
 
-describe('GET /api/og/passport — hex color validation', () => {
+describe('GET /api/og/passport — tier, xp, and stamps params', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('accepts a valid 6-digit hex color (#aabbcc)', async () => {
-    const req = makeRequest({ color: '#aabbcc' });
+  it('renders the explicit tier label, xp, and stamps in the card', async () => {
+    const req = makeRequest({ tier: 'Sovereign', xp: '1200', stamps: '5' });
     const res = await GET(req);
     expect(res.status).toBe(200);
+
+    const text = renderedText();
+    expect(text).toContain('SOVEREIGN');
+    expect(text).toContain('1200');
+    expect(text).toContain('5');
   });
 
-  it('accepts a valid 3-digit hex color (#abc)', async () => {
-    const req = makeRequest({ color: '#abc' });
-    const res = await GET(req);
-    expect(res.status).toBe(200);
+  it('normalizes a lowercase tier param to the canonical label', async () => {
+    const req = makeRequest({ tier: 'validator' });
+    await GET(req);
+    expect(renderedText()).toContain('VALIDATOR');
   });
 
-  it('falls back to #ffffff for an invalid color value', async () => {
-    // We validate that the route does not error on invalid colors
-    const req = makeRequest({ color: 'not-a-color' });
-    const res = await GET(req);
-    expect(res.status).toBe(200);
+  it('derives the tier from xp when the tier param is unknown', async () => {
+    // xp 600 → Validator (>= 500, < 1000) per @/lib/tiers thresholds
+    const req = makeRequest({ tier: 'not-a-tier', xp: '600' });
+    await GET(req);
+    expect(renderedText()).toContain('VALIDATOR');
   });
 
-  it('falls back to #ffffff for an empty color param', async () => {
-    const req = makeRequest({ color: '' });
-    const res = await GET(req);
-    expect(res.status).toBe(200);
+  it('derives the tier from xp when no tier param is provided', async () => {
+    // xp 1000 → Sovereign per @/lib/tiers thresholds
+    const req = makeRequest({ xp: '1000' });
+    await GET(req);
+    expect(renderedText()).toContain('SOVEREIGN');
   });
 
-  it('falls back to #ffffff for a color without # prefix', async () => {
-    const req = makeRequest({ color: 'ffffff' });
-    const res = await GET(req);
-    expect(res.status).toBe(200);
+  it('falls back to Visitor for non-numeric xp and no tier', async () => {
+    const req = makeRequest({ xp: 'abc' });
+    await GET(req);
+    const text = renderedText();
+    expect(text).toContain('VISITOR');
+    // Non-numeric xp is clamped to 0 and rendered as the trust score.
+    expect(text).toContain('0');
   });
 
-  it('falls back to #ffffff for an invalid hex color (#gggggg)', async () => {
-    const req = makeRequest({ color: '#gggggg' });
+  it('clamps a negative stamps value to 0', async () => {
+    const req = makeRequest({ stamps: '-5' });
     const res = await GET(req);
     expect(res.status).toBe(200);
+    expect(renderedText()).toContain('0');
   });
 });
 

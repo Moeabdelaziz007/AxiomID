@@ -1,23 +1,25 @@
 import { ImageResponse } from '@vercel/og';
 import { NextRequest } from 'next/server';
 import { logger } from '@/lib/logger';
+import { calculateTier, getTierColor, type Tier } from '@/lib/tiers';
 
 export const runtime = 'nodejs';
 export const maxDuration = 10;
 
-const TIER_COLORS: Record<string, string> = {
-  visitor: '#64748b',
-  citizen: '#00ff41',
-  validator: '#00d4ff',
-  sovereign: '#a855f7',
-};
-
-const TIER_LABELS: Record<string, string> = {
-  visitor: 'VISITOR',
-  citizen: 'CITIZEN',
-  validator: 'VALIDATOR',
-  sovereign: 'SOVEREIGN',
-};
+/**
+ * Normalizes an arbitrary tier query value to a canonical {@link Tier}.
+ *
+ * Accepts any casing (e.g. "sovereign", "SOVEREIGN") and returns the
+ * capitalized canonical form from `@/lib/tiers`. Unknown values resolve to
+ * `null` so the caller can fall back to XP-derived tier.
+ */
+function normalizeTier(value: string | null): Tier | null {
+  if (!value) return null;
+  const match = (['Visitor', 'Citizen', 'Validator', 'Sovereign'] as const).find(
+    (t) => t.toLowerCase() === value.toLowerCase(),
+  );
+  return match ?? null;
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -25,14 +27,16 @@ export async function GET(req: NextRequest) {
 
     const title = searchParams.get('title') || 'AxiomID Passport';
     const did = searchParams.get('did') || 'did:axiom:unknown';
-    const tierParam = (searchParams.get('tier') || 'visitor').toLowerCase();
-    const stampsParam = searchParams.get('stamps') || '0';
-    const xpParam = searchParams.get('xp') || '0';
 
-    const tierColor = TIER_COLORS[tierParam] || TIER_COLORS.visitor;
-    const tierLabel = TIER_LABELS[tierParam] || 'VISITOR';
-    const stamps = parseInt(stampsParam, 10) || 0;
-    const xp = parseInt(xpParam, 10) || 0;
+    // Clamp numeric params to non-negative integers.
+    const xp = Math.max(0, parseInt(searchParams.get('xp') || '0', 10) || 0);
+    const stamps = Math.max(0, parseInt(searchParams.get('stamps') || '0', 10) || 0);
+
+    // Prefer an explicit tier param (any casing); otherwise derive from XP so
+    // the badge stays consistent with the rest of the app (see @/lib/tiers).
+    const tier: Tier = normalizeTier(searchParams.get('tier')) ?? calculateTier(xp);
+    const tierColor = getTierColor(tier);
+    const tierLabel = tier.toUpperCase();
 
     // Extract short name from DID for avatar
     const didParts = did.split(':');
@@ -49,10 +53,7 @@ export async function GET(req: NextRequest) {
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: '#0a0b0e',
-            backgroundImage:
-              'radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 50%), ' +
-              'radial-gradient(circle at 80% 20%, rgba(34, 197, 94, 0.06) 0%, transparent 50%), ' +
-              'linear-gradient(135deg, #0a0b0e 0%, #10131a 50%, #0a0b0e 100%)',
+            backgroundImage: 'linear-gradient(135deg, #0a0b0e 0%, #10131a 50%, #0a0b0e 100%)',
             fontFamily: 'monospace',
             color: 'white',
             padding: 0,
@@ -107,11 +108,21 @@ export async function GET(req: NextRequest) {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: 18,
                     color: tierColor,
                   }}
                 >
-                  {' '}
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
                 </div>
                 <span style={{ fontSize: 22, fontWeight: 'bold', color: '#e4e4e7', letterSpacing: 2 }}>
                   AXIOMID
@@ -184,6 +195,19 @@ export async function GET(req: NextRequest) {
                   {shortName}
                 </div>
 
+                {/* Title */}
+                <span
+                  style={{
+                    fontSize: 24,
+                    fontWeight: 'bold',
+                    color: '#e4e4e7',
+                    textAlign: 'center',
+                    maxWidth: 260,
+                  }}
+                >
+                  {title}
+                </span>
+
                 {/* DID */}
                 <div
                   style={{
@@ -201,10 +225,9 @@ export async function GET(req: NextRequest) {
                       maxWidth: 260,
                       textAlign: 'center',
                       lineHeight: '1.4',
-                      wordBreak: 'break-all',
                     }}
                   >
-                    {did}
+                    {did.length > 28 ? `${did.slice(0, 14)}...${did.slice(-10)}` : did}
                   </span>
                 </div>
               </div>
@@ -282,12 +305,21 @@ export async function GET(req: NextRequest) {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: 12,
                       color: '#0a0b0e',
-                      fontWeight: 'bold',
                     }}
                   >
-                    {' '}
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
                   </div>
                   <span style={{ fontSize: 14, color: tierColor, letterSpacing: 1 }}>VERIFIED ON AXIOMID</span>
                 </div>
@@ -305,7 +337,7 @@ export async function GET(req: NextRequest) {
               }}
             >
               <span style={{ fontSize: 11, color: '#3f3f46', letterSpacing: 1 }}>
-                SOVERIGN IDENTITY PROTOCOL
+                SOVEREIGN IDENTITY PROTOCOL
               </span>
               <span style={{ fontSize: 11, color: '#3f3f46', letterSpacing: 1 }}>AXIOMID.APP</span>
             </div>
