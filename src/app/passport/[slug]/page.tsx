@@ -11,8 +11,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const title = `Passport: ${decodedSlug} | AxiomID`;
   const description = `AxiomID sovereign identity passport for ${decodedSlug}. Verified agent identity, trust score, and decentralized identifier (DID).`;
 
-  // Here we would ideally fetch the user's tier and color from the DB, but for now we'll use defaults or derive from slug if possible.
-  // Assuming default values or passing the slug as DID.
+  // NOTE: This page is `force-static` with no generateStaticParams, so we cannot
+  // fetch per-slug tier/xp/stamps here without converting it to dynamic/ISR.
+  // The OG endpoint accepts optional `tier`, `xp`, and `stamps` params and
+  // derives a coherent Visitor card from XP when they are omitted. Populating
+  // them with live data is deferred to a follow-up that addresses rendering mode.
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://axiomid.app";
   const ogUrl = `${baseUrl}/api/og/passport?title=${encodeURIComponent(title)}&did=${encodeURIComponent(decodedSlug)}`;
 
