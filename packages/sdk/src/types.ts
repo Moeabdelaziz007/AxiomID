@@ -50,7 +50,7 @@ export interface TrustScore {
   did: string;
   score: number;
   tier: string;
-  breakdown: TrustBreakdown;
+  breakdown?: TrustBreakdown;
 }
 
 export interface TrustBreakdown {
@@ -76,7 +76,7 @@ export interface Skill {
 }
 
 export interface SearchSkillsResponse {
-  skills: Skill[];
+  skills?: Skill[];
   total: number;
   limit: number;
   offset: number;

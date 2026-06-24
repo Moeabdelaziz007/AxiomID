@@ -182,23 +182,37 @@ describe("AxiomSDK – URL construction", () => {
   });
 
   describe("getTrustScore", () => {
-    const mockScore = {
+    const mockPassport = {
       did: "did:axiom:alice",
-      score: 75,
+      trustScore: 75,
       tier: "Pioneer",
-      breakdown: { kyc: 80, walletAge: 70, socialRecovery: 60, agentActivity: 90 },
+      username: "alice",
+      walletAddress: "GD5T...",
+      xp: 500,
+      stamps: [],
+      kyaStatus: "verified",
+      kycStatus: "VERIFIED",
+      issuedDate: "2026-01-01T00:00:00Z",
+      agentName: null,
+      agentStatus: null,
+      agentPublicKey: null,
     };
 
-    it("calls the correct endpoint with encoded DID", async () => {
-      fetchSpy.mockResolvedValueOnce(mockOk(mockScore));
+    it("calls passport endpoint and extracts trust score", async () => {
+      fetchSpy.mockResolvedValueOnce(mockOk(mockPassport));
       const sdk = new AxiomSDK({ network: "mainnet" });
 
-      await sdk.getTrustScore("did:axiom:alice");
+      const result = await sdk.getTrustScore("did:axiom:alice");
 
       expect(fetchSpy).toHaveBeenCalledWith(
-        `${MAINNET_BASE}/api/trust-score?did=did%3Aaxiom%3Aalice`,
+        `${MAINNET_BASE}/api/passport/did%3Aaxiom%3Aalice`,
         expect.any(Object)
       );
+      expect(result).toEqual({
+        did: "did:axiom:alice",
+        score: 75,
+        tier: "Pioneer",
+      });
     });
   });
 

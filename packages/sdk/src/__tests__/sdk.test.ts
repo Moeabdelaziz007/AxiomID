@@ -34,18 +34,6 @@ const mockDID = {
   authentication: ["did:axiom:pioneer.username#keys-1"],
 };
 
-const mockTrustScore = {
-  did: "did:axiom:pioneer.username",
-  score: 98,
-  tier: "Sovereign",
-  breakdown: {
-    kyc: 100,
-    walletAge: 90,
-    socialRecovery: 85,
-    agentActivity: 95,
-  },
-};
-
 const mockSkillsResponse = {
   skills: [
     {
@@ -200,16 +188,29 @@ describe("@axiomid/sdk", () => {
   });
 
   describe("getTrustScore", () => {
-    it("returns a trust score", async () => {
+    it("returns a trust score from passport endpoint", async () => {
       fetchSpy.mockResolvedValueOnce({
         ok: true,
-        json: async () => mockTrustScore,
+        json: async () => ({
+          did: "did:axiom:pioneer.username",
+          trustScore: 98,
+          tier: "Sovereign",
+          username: "pioneer.username",
+          xp: 1200,
+          stamps: [],
+          kyaStatus: "verified",
+          kycStatus: "VERIFIED",
+          issuedDate: "2026-01-01T00:00:00Z",
+          agentName: null,
+          agentStatus: null,
+          agentPublicKey: null,
+        }),
       });
 
       const score = await sdk.getTrustScore("did:axiom:pioneer.username");
       expect(score.score).toBe(98);
       expect(score.tier).toBe("Sovereign");
-      expect(score.breakdown.kyc).toBe(100);
+      expect(score.did).toBe("did:axiom:pioneer.username");
     });
   });
 

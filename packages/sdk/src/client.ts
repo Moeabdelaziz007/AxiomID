@@ -99,9 +99,14 @@ export class AxiomSDK {
   }
 
   async getTrustScore(did: string): Promise<TrustScore> {
-    return this.fetch<TrustScore>(
-      `/api/trust-score?did=${encodeURIComponent(did)}`
+    const passport = await this.fetch<Passport>(
+      `/api/passport/${encodeURIComponent(did)}`
     );
+    return {
+      did: passport.did,
+      score: passport.trustScore,
+      tier: passport.tier,
+    };
   }
 
   async searchSkills(query: string): Promise<Skill[]> {
