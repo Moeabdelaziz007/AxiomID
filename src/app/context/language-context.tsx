@@ -259,6 +259,9 @@ export const translations = {
     settings_progress_label: "Progress",
     settings_max_level: "MAX LEVEL ACHIEVED",
     settings_xp_needed: "XP NEEDED",
+    // Dashboard Showcase Mode
+    showcase_title: "Showcase Mode",
+    showcase_desc: "Establish a secure human-AI delegation link. Once authenticated inside the Pi Browser, this dashboard unlocks real-time transaction guards, live oracles, and social stamp bindings.",
     // Marketplace toasts / errors
     marketplace_install_success: "Skill installed successfully",
     marketplace_need_agent: "Create an agent before purchasing skills",
@@ -711,6 +714,9 @@ export const translations = {
     settings_progress_label: "التقدم",
     settings_max_level: "تم بلوغ المستوى الأقصى",
     settings_xp_needed: "نقاط XP مطلوبة",
+    // Dashboard Showcase Mode
+    showcase_title: "وضع العرض",
+    showcase_desc: "قم بإنشاء رابط تفويض آمن بين البشر والذكاء الاصطناعي. بمجرد المصادقة داخل متصفح Pi، يفتح لوحة التحكم هذه حماية المعاملات في الوقت الفعلي والأوراكلات المباشرة وربط الطوابع الاجتماعية.",
     // Marketplace toasts / errors
     marketplace_install_success: "تم تثبيت المهارة بنجاح",
     marketplace_need_agent: "أنشئ عميلاً قبل شراء المهارات",
