@@ -274,11 +274,27 @@ describe("POST /api/marketplace/order/create — paid skills (Pi verification)",
     expect(data.code).toBe("PAYMENT_MISMATCH");
   });
 
-  it("returns 402 when payment status is not approved/created", async () => {
+  it("accepts payment with status 'completed' (post-approval finalization)", async () => {
     mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Paid", pricePi: 5, status: "PUBLISHED" } as any);
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({ user_uid: "pi-uid-1", amount: 5, status: "completed" }),
+    });
+    mockPrisma.piPayment.create.mockResolvedValue({ id: "pay-1" } as any);
+
+    const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", paymentId: "pi-pay-1" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.paymentId).toBe("pay-1");
+  });
+
+  it("returns 402 when payment status is cancelled/refunded", async () => {
+    mockPrisma.skill.findUnique.mockResolvedValue({ id: "skill-1", name: "Paid", pricePi: 5, status: "PUBLISHED" } as any);
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ user_uid: "pi-uid-1", amount: 5, status: "cancelled" }),
     });
 
     const req = mockPostRequest({ skillId: "123e4567-e89b-12d3-a456-426614174000", agentId: "123e4567-e89b-12d3-a456-426614174001", paymentId: "pi-pay-1" });
