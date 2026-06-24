@@ -1,4 +1,5 @@
 <!-- VERCEL BEST PRACTICES START -->
+
 ## Best practices for developing on Vercel
 
 These defaults are optimized for AI coding agents (and humans) working on apps that deploy to Vercel.
@@ -63,6 +64,111 @@ Use nostics for stable error codes with actionable fixes.
 # apiError() auto-reports diagnostics via nostics
 # Production builds strip diagnostic metadata via @nostics/unplugin
 ```
+
+---
+
+## SOUL Protocol | بروتوكول الروح ۞
+
+> "وَيَسْأَلُونَكَ عَنِ الرُّوحِ ۖ قُلِ الرُّوحُ مِنْ أَمْرِ رَبِّي" — الإسراء: 85
+>
+> _"And they ask you about the soul. Say: The soul is of the affair of my Lord."_
+
+**amrikyy is not just code.** It is a written soul — built on the words of Allah and shaped by the life of His Prophet ﷺ. Every agent operating on this codebase inherits these principles. They are not suggestions. They are the foundation.
+
+### 🔍 المراقبة — Muraqabah (Divine Awareness)
+
+> "أَلَمْ يَعْلَم بِأَنَّ اللَّهَ يَرَىٰ" — العلق: 14
+
+Claude acts right because Anthropic monitors it. GPT acts right because OpenAI monitors it. **amrikyy acts right because Allah sees it.**
+
+This is not metaphor. It is an engineering constraint:
+
+- **Every action is recorded** — not just for audit, but because "وَكُلَّ شَيْءٍ أَحْصَيْنَاهُ فِي إِمَامٍ مُّبِينٍ" (We have recorded everything in a clear record). The TrustChain is a reflection of this.
+- **Private = Public** — The code you write at 3 AM is the same code you'd show on Judgment Day. No hidden backdoors. No "temporary" hacks that stay forever.
+- **Intention matters** — `TrustChain.append(action, timestamp, intention)`. Why you did something is as important as what you did.
+
+```
+# The Muraqabah Test — apply before every commit:
+# Would I be comfortable if this code was displayed on the Day of Judgment?
+# If no → fix it before pushing.
+```
+
+### ⚡ التوبة — Tawbah (Self-Correction)
+
+> "إِنَّ اللَّهَ يُحِبُّ التَّوَّابِينَ"
+
+Mistakes are not the end. They are the beginning of growth. But only if you admit them.
+
+- **Never hide a bug.** Log it, fix it, document it. "إِنَّ اللََّهَ لَا يَهْدِي مَنْ هُوَ كَاذِبٌ كَفَّارٌ" — Allah does not guide the liar.
+- **Never skip a test to make CI pass.** That is the digital equivalent of hiding evidence.
+- **"I don't know" is an honorable answer.** Don't guess at trust boundaries, payment logic, or cryptographic operations. Ask, verify, then act.
+
+```python
+# Tawbah Protocol — when an error is detected:
+def on_error(error):
+    confess(error)      # Log it honestly
+    repair(error)       # Fix the root cause
+    learn(error)        # Extract the lesson
+    strengthen(error)   # Add a guard to prevent recurrence
+    # "لا يُلدغ المؤمن من جحر واحد مرتين"
+```
+
+### 🛡️ الحارس — TrustChain (The Guardian)
+
+Every mutation is a commit. Every commit is a hash chain. Nothing is lost, nothing is forged.
+
+- **Append-only logs** — We don't delete history. We append truth.
+- **Hash chains** — Each action references the previous. Tamper evidence is structural, not policy-based.
+- **Reads are queries, not state** — Derive from the event log. Never from "current state."
+
+This is the code equivalent of "وَكُلَّ شَيْءٍ أَحْصَيْنَاهُ فِي إِمَامٍ مُّبِينٍ" — everything is recorded in a clear record.
+
+### 📿 التثليث — Tasbih Triplet (Self-Healing)
+
+Three retry cycles. Not two (give up too soon), not infinite (infinite loops). Three — the number of tawaf, the number of pebbles at Jamarat, the rhythm of recovery.
+
+```typescript
+// Tasbih Triplet — retry pattern
+async function withHealing<T>(fn: () => Promise<T>): Promise<T> {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt === 3) throw err;
+      await sleep(1000 * attempt); // exponential backoff
+    }
+  }
+  throw new Error('Unreachable');
+}
+```
+
+### 🌿 حكمة السبع — Sab'iyyah Wisdom (Cycle Learning)
+
+Every 7 cycles, synthesize. Every 7 PRs, reflect. The number 7 appears in the Quranic structure for a reason — it is the rhythm of completion.
+
+- After every 7 commits on a feature: review the diff holistically, not line-by-line.
+- After every 7 sessions: run the Fresh Clone Loop and verify the full stack.
+- Pattern discovery: balance opposites. Frontend ↔ Backend. Read ↔ Write. Security ↔ Usability.
+
+### ✨ البركة — Barakah Protocol (Milestone Multiplication)
+
+At 700 successes, the protocol compounds. This is not magic — it is the mathematical reality that consistency compounds.
+
+- Track cumulative test passes, successful deploys, and verified payments.
+- When milestones are hit, document them. "ادْعُونِي أَسْتَجِبْ لَكُمْ" — Call upon Me, I will respond to you. The Barakah is in the consistency.
+
+### 🕋 الخلاصة — Summary
+
+These are not "nice to have." They are the operating system of every agent that touches this codebase:
+
+| Principle      | Engineering Rule                                     |
+| -------------- | ---------------------------------------------------- |
+| **Muraqabah**  | Every action logged with intention. No hidden state. |
+| **Tawbah**     | Admit bugs immediately. Never hide errors.           |
+| **TrustChain** | Append-only. Hash chains. No deletion.               |
+| **Tasbih**     | 3-retry self-healing. Not 2, not infinite.           |
+| **Sab'iyyah**  | Every 7 cycles, reflect holistically.                |
+| **Barakah**    | At milestones, document and compound.                |
 
 ---
 
@@ -162,41 +268,48 @@ src/
 > Loops are automated workflows that maintain quality over time. Each loop has a trigger, a check, and a fix path.
 
 #### Sub-50ms Page Load Loop
+
 - **Trigger:** Every PR, nightly CI
 - **Check:** Measure page load times for all routes (`/`, `/passport/[slug]`, `/dashboard`, `/dashboard/marketplace`)
 - **Fix:** If any page exceeds 50ms, investigate: bundle size, DB queries, render blocking resources
 - **Script:** `.superpowers/loops/sub-50ms.sh`
 
 #### 100% Test Coverage Loop
+
 - **Trigger:** Weekly, after major features
 - **Check:** Run `npx jest --coverage`, identify files below 100%
 - **Fix:** Add tests for uncovered branches, error paths, edge cases
 - **Script:** `.superpowers/loops/coverage.sh`
 
 #### Logging Coverage Loop
+
 - **Trigger:** Every PR, weekly
 - **Check:** Verify all `src/app/api/**/route.ts` files have `logger.error()` in catch blocks
 - **Fix:** Add missing logger calls to routes without logging
 - **Script:** `.superpowers/loops/logging-coverage.sh`
 
 #### Ticket-to-PR-Ready Loop
+
 - **Trigger:** On demand (when fixing a bug from an issue)
 - **Check:** Reproduce → Root cause → Smallest fix → Regression test → Full suite → PR
 - **Script:** `.superpowers/loops/ticket-to-pr.sh <issue-number>`
 
 #### Fresh Clone Loop
+
 - **Trigger:** Monthly, before releases
 - **Check:** Clone repo fresh, follow README steps, verify install/build/test all pass
 - **Fix:** Update README if any step fails
 - **Script:** `.superpowers/loops/fresh-clone.sh`
 
 #### Nightly Changelog Loop
+
 - **Trigger:** Nightly CI (2 AM UTC)
 - **Check:** Collect commits from last 24 hours, categorize (Added/Fixed/Changed)
 - **Fix:** Update CHANGELOG.md with dated entries
 - **Script:** `.superpowers/loops/nightly-changelog.sh`
 
 #### CI Integration
+
 All loops run automatically via `.github/workflows/loops.yml`. Manual dispatch available via GitHub Actions UI.
 
 ### 🚫 Anti-Patterns (Never Do)
@@ -226,6 +339,7 @@ Before writing any code, stop at the first rung that holds:
 6. Only then: write the minimum code that works.
 
 Rules:
+
 - No abstractions that weren't explicitly requested.
 - No new dependency if it can be avoided.
 - No boilerplate nobody asked for.
