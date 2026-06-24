@@ -40,7 +40,7 @@ export class TrustEmbedder {
     try {
       // Use Workers AI for real embeddings
       const text = `DID:${did} trust:${trustScore.toFixed(3)} delegations:${delegationCount} level:${getTrustLevel(trustScore)}`;
-      const response = await this.env.AI.run("@cf/baai/bge-small-en-v1.5", { text: [text] }) as { data: number[][] };
+      const response = await this.env.AI.run("@cf/baai/bge-base-en-v1.5", { text: [text] }) as { data: number[][] };
       if (response?.data?.[0]) {
         return response.data[0];
       }
@@ -91,7 +91,7 @@ export class TrustEmbedder {
    */
   async searchByText(query: string, topK: number = 10): Promise<SearchResult[]> {
     try {
-      const response = await this.env.AI.run("@cf/baai/bge-small-en-v1.5", { text: [query] }) as { data: number[][] };
+      const response = await this.env.AI.run("@cf/baai/bge-base-en-v1.5", { text: [query] }) as { data: number[][] };
       if (response?.data?.[0]) {
         const results = await this.env.SEARCH_VECTORS.query(response.data[0], {
           topK,
@@ -116,7 +116,7 @@ export class TrustEmbedder {
   }
 
   private fallbackEmbedding(did: string, trustScore: number, delegationCount: number): number[] {
-    const features = new Array(384).fill(0);
+    const features = new Array(768).fill(0);
     features[0] = trustScore;
     features[1] = delegationCount / 10;
     features[2] = trustScore * (delegationCount / 10);
@@ -127,7 +127,7 @@ export class TrustEmbedder {
     features[7] = trustScore < 0.3 ? 1 : 0;
     features[8] = Math.floor(trustScore * 10) / 10;
     features[9] = Math.min(1, delegationCount * 0.1);
-    for (let i = 10; i < 384; i++) {
+    for (let i = 10; i < 768; i++) {
       const hash = this.simpleHash(`${did}:${i}`);
       features[i] = (hash % 1000) / 1000;
     }
