@@ -56,4 +56,3 @@ packages/sdk/dist
 .swc/
 stitch-*.html
 packages/crypto/node_modules/
-packages/sdk/node_modules/

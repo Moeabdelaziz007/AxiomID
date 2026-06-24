@@ -23,6 +23,31 @@ const SHARED_SECRET = process.env.SHARED_SECRET_TOKEN_VERCEL_CF || "";
 const BATCH_SIZE = 32;
 const VECTORIZE_INDEX = "axiomid-truth";
 const WORK_DIR = "/tmp/truth-ingest";
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
+
+async function fetchWithRetry(url: string, options?: RequestInit): Promise<Response> {
+  let lastError: Error | null = null;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const res = await fetch(url, options);
+      if (res.ok) return res;
+      // Don't retry on 4xx (client errors) — only 5xx and network errors
+      if (res.status >= 400 && res.status < 500) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
+      lastError = new Error(`HTTP ${res.status}: ${res.statusText}`);
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+    }
+    if (attempt < MAX_RETRIES) {
+      const delay = RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+      console.warn(`  Retry ${attempt}/${MAX_RETRIES} after ${delay}ms: ${lastError?.message}`);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  throw lastError ?? new Error("Fetch failed after retries");
+}
 
 interface Chapter {
   id: number;
@@ -40,7 +65,7 @@ interface VerseEntry {
 
 async function fetchChapters(): Promise<Chapter[]> {
   console.log("Fetching chapter list...");
-  const res = await fetch(`${TRUTH_API}/chapters`);
+  const res = await fetchWithRetry(`${TRUTH_API}/chapters`);
   if (!res.ok) throw new Error(`Failed to fetch chapters: ${res.status}`);
   const data = (await res.json()) as {
     chapters: {
@@ -66,7 +91,7 @@ async function fetchVerses(): Promise<VerseEntry[]> {
   const totalPages = 604;
 
   for (let page = 1; page <= totalPages; page++) {
-    const res = await fetch(
+    const res = await fetchWithRetry(
       `${TRUTH_API}/verses/by_page/${page}?per_page=20&fields=text_uthmani`
     );
     if (!res.ok) throw new Error(`Failed to fetch verses page ${page}: ${res.status}`);
@@ -83,7 +108,7 @@ async function fetchVerses(): Promise<VerseEntry[]> {
 
 async function fetchTranslations(): Promise<string[]> {
   console.log("Fetching translations...");
-  const res = await fetch(`${TRUTH_API}/quran/translations/19?page=1&per_page=7000`);
+  const res = await fetchWithRetry(`${TRUTH_API}/quran/translations/19?page=1&per_page=7000`);
   if (!res.ok) throw new Error(`Failed to fetch translations: ${res.status}`);
   const data = (await res.json()) as { translations: { text: string }[] };
   const texts = data.translations.map((t) => t.text);
@@ -98,7 +123,7 @@ async function generateEmbeddings(texts: string[]): Promise<number[][]> {
   for (let i = 0; i < texts.length; i += BATCH_SIZE) {
     const batch = texts.slice(i, i + BATCH_SIZE);
 
-    const res = await fetch(`${WORKER_URL}/api/embed`, {
+    const res = await fetchWithRetry(`${WORKER_URL}/api/embed`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

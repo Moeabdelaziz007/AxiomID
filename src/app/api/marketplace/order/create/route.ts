@@ -108,8 +108,9 @@ export async function POST(req: NextRequest) {
       return apiError("PAYMENT_MISMATCH", `Payment amount ${paidAmount} does not match skill price ${skill.pricePi}`);
     }
 
-    // 6. Check payment status — must be approved or created (not already completed/cancelled)
-    if (piPayment.status !== "approved" && piPayment.status !== "created") {
+    // 6. Check payment status — must be approved, created, or already completed (not cancelled/refunded)
+    const VALID_STATUSES = ["approved", "created", "completed"];
+    if (!VALID_STATUSES.includes(piPayment.status)) {
       return apiError("PAYMENT_INVALID", `Payment status "${piPayment.status}" is not valid for purchase`);
     }
 

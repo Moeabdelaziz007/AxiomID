@@ -239,9 +239,13 @@ export async function handleTruthAsk(
     };
 
     // 5. Cache in KV (1 hour TTL)
-    await env.CACHE_KV.put(cacheKey, JSON.stringify(response), {
-      expirationTtl: CACHE_TTL_SECONDS,
-    });
+    try {
+      await env.CACHE_KV.put(cacheKey, JSON.stringify(response), {
+        expirationTtl: CACHE_TTL_SECONDS,
+      });
+    } catch (kvErr) {
+      console.warn("[TRUTH-RAG] KV cache write failed:", kvErr);
+    }
 
     return jsonResponse(response, 200, { "X-Cache": "MISS" });
   } catch (err) {

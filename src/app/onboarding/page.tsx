@@ -9,10 +9,11 @@ import Footer from "@/components/Footer";
 import { Wallet, ShieldCheck, CheckCircle2, ChevronRight, Zap } from "lucide-react";
 import InteractivePassportCard from "@/components/ui/InteractivePassportCard";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { user, connectWallet, isConnecting, createAgent } = useWallet();
 
   const [step, setStep] = useState(1);
@@ -34,7 +35,7 @@ export default function OnboardingPage() {
       if (ok) {
         handleNextStep();
       } else {
-        alert(language === "en" ? "Failed to provision agent. Please try again." : "فشل في إعداد العميل. يرجى المحاولة مرة أخرى.");
+        toast.error(t("onboarding_agent_failed"));
       }
     } catch (err) {
       console.error(err);
@@ -107,7 +108,7 @@ export default function OnboardingPage() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-[10px] font-mono text-electric-blue uppercase tracking-widest font-bold">
-                  STEP {step} OF 4
+                  {t("onboarding_step_label").replace("{step}", String(step))}
                 </span>
                 <span className="text-zinc-700">•</span>
                 <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded border ${stateConfig.colorClass}`}>
@@ -147,22 +148,22 @@ export default function OnboardingPage() {
                     className="space-y-4"
                   >
                     <p className="text-xs text-zinc-500 font-mono">
-                      Authorize access to fetch metadata: user identifier, wallet keys, and active nodes settings.
+                      {t("onboarding_connect_desc")}
                     </p>
                     {user ? (
                       <div className="flex items-center gap-2 text-emerald-400 text-xs font-mono font-bold bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">
                         <CheckCircle2 className="w-4 h-4" />
-                        <span>Wallet connected successfully.</span>
+                        <span>{t("onboarding_wallet_connected")}</span>
                       </div>
                     ) : (
                       <button onClick={connectWallet} disabled={isConnecting} className="btn-primary w-full py-3 text-xs font-mono font-bold flex items-center justify-center gap-2">
                         {isConnecting ? (
                           <span className="flex items-center gap-2">
                             <span className="animate-spin">⟳</span>
-                            <span>Requesting Pi Browser access...</span>
+                            <span>{t("onboarding_requesting_access")}</span>
                           </span>
                         ) : (
-                          "CONNECT WALLET"
+                          <>{t("onboarding_connect_wallet_btn")}</>
                         )}
                         <Wallet className="w-4 h-4" />
                       </button>
@@ -179,10 +180,10 @@ export default function OnboardingPage() {
                     className="space-y-4"
                   >
                     <div className="space-y-2">
-                      <label className="text-[10px] font-mono text-zinc-500 uppercase block">Agent Representative Name</label>
+                      <label className="text-[10px] font-mono text-zinc-500 uppercase block">{t("onboarding_agent_name_label")}</label>
                       <input
                         type="text"
-                        placeholder="e.g. Sentinel-1"
+                        placeholder={t("onboarding_agent_name_placeholder")}
                         value={agentName}
                         onChange={(e) => setAgentName(e.target.value)}
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white focus:outline-none focus:border-electric-blue/30"
@@ -193,7 +194,7 @@ export default function OnboardingPage() {
                       disabled={creatingAgent || !agentName} 
                       className="btn-primary w-full py-3 text-xs font-mono font-bold flex items-center justify-center gap-2"
                     >
-                      {creatingAgent ? "PROVISIONING AGENT..." : "PROVISION AGENT"}
+                      {creatingAgent ? t("onboarding_provisioning") : t("onboarding_provision_btn")}
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </motion.div>
@@ -208,14 +209,14 @@ export default function OnboardingPage() {
                     className="space-y-4"
                   >
                     <p className="text-xs text-zinc-500 font-mono">
-                      Acquiring the basic credential stamp validates KYA parameters directly to secure trust delegation limits.
+                      {t("onboarding_seal_desc")}
                     </p>
                     <div className="flex items-center gap-2 text-amber-400 text-xs font-mono bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl">
                       <ShieldCheck className="w-4 h-4 animate-pulse" />
-                      <span>Sovereign DID resolution verified. ready to seal.</span>
+                      <span>{t("onboarding_seal_verified")}</span>
                     </div>
                     <button onClick={handleNextStep} className="btn-primary w-full py-3 text-xs font-mono font-bold flex items-center justify-center gap-2">
-                      SEAL PASSPORT DATA
+                      {t("onboarding_seal_btn")}
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </motion.div>
@@ -230,10 +231,10 @@ export default function OnboardingPage() {
                     className="space-y-4"
                   >
                     <p className="text-xs text-zinc-500 font-mono">
-                      Congratulation Pioneer! Your passport profile is verified, cryptographically signed, and portable as did:axiom standard metadata.
+                      {t("onboarding_congrats_desc")}
                     </p>
                     <button onClick={() => router.push("/dashboard")} className="btn-primary w-full py-3 text-xs font-mono font-bold flex items-center justify-center gap-2">
-                      ENTER DASHBOARD
+                      {t("onboarding_enter_dashboard")}
                       <Zap className="w-4 h-4 text-amber-400 fill-amber-400 animate-pulse" />
                     </button>
                   </motion.div>
@@ -243,7 +244,7 @@ export default function OnboardingPage() {
               {/* Back navigation */}
               {step > 1 && step < 4 && (
                 <button onClick={handleBackStep} className="text-zinc-500 hover:text-white transition-colors text-[10px] font-mono mt-4 flex items-center gap-1">
-                  ← BACK
+                  {t("onboarding_back")}
                 </button>
               )}
             </div>
@@ -270,7 +271,7 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      <Footer minimal copyright="© 2026 AxiomID Protocol • Sovereign Onboarding wizard" />
+      <Footer minimal copyright={t("onboarding_footer")} />
     </main>
   );
 }

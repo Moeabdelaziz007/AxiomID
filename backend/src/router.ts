@@ -110,7 +110,12 @@ export class Router {
         return errorResponse("Unauthorized", 401);
       }
 
-      const body = await request.json<{ texts: string[] }>();
+      let body: { texts: string[] };
+      try {
+        body = await request.json<{ texts: string[] }>();
+      } catch {
+        return errorResponse("Invalid JSON body", 400);
+      }
       if (!body.texts || !Array.isArray(body.texts) || body.texts.length === 0) {
         return errorResponse("Missing non-empty texts array", 400);
       }

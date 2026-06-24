@@ -261,9 +261,9 @@ export default function Dashboard() {
               </div>
               
               <div className="bento-card p-5 border border-white/5 bg-white/[0.01]">
-                <h4 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest mb-2">Showcase Mode</h4>
+                <h4 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest mb-2">{t("showcase_title")}</h4>
                 <p className="text-xs text-zinc-500 leading-relaxed">
-                  Establish a secure human-AI delegation link. Once authenticated inside the Pi Browser, this dashboard unlocks real-time transaction guards, live oracles, and social stamp bindings.
+                  {t("showcase_desc")}
                 </p>
               </div>
             </div>
@@ -461,38 +461,44 @@ export default function Dashboard() {
       {/* ── TAB NAVIGATION ── */}
       {user && (
         <nav className="flex items-center gap-1.5 mb-6 overflow-x-auto no-scrollbar px-1" role="tablist" aria-label="Dashboard sections">
-          {([
-            { id: "passport" as TabId, icon: <Fingerprint className="w-4 h-4" />, label: language === "ar" ? "الجواز" : "Passport", badge: 0 },
-            { id: "actions" as TabId, icon: <Zap className="w-4 h-4" />, label: language === "ar" ? "العمليات" : "Actions", badge: 0 },
-            { id: "agent" as TabId, icon: <Bot className="w-4 h-4" />, label: language === "ar" ? "العميل" : "Agent", badge: 0 },
-            { id: "terminal" as TabId, icon: <Terminal className="w-4 h-4" />, label: language === "ar" ? "الطرفية" : "Terminal", badge: 0 },
-          ]).map((tab) => {
-            const isActive = tab.id === "terminal" ? showTerminal : activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => handleTabClick(tab.id)}
-                className={`relative flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-xl text-xs font-mono transition-all flex-shrink-0 ${
-                  isActive
-                    ? "bg-neon-green/20 text-neon-green shadow-[0_0_12px_rgba(16,185,129,0.1)]"
-                    : "text-subtle hover:text-surface hover:bg-white/5"
-                }`}
-              >
-                {tab.icon}
-                {tab.label}
-                {tab.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 flex items-center justify-center px-1 rounded-full text-[8px] font-bold bg-emerald-500 text-white">
-                    {tab.badge}
-                  </span>
-                )}
-                {isActive && (
-                  <span className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full bg-gradient-to-r from-emerald-400 to-neon-green" />
-                )}
-              </button>
-            );
-          })}
+          {(() => {
+            const totalStamps = 6;
+            const claimedStamps = user.stamps?.length ?? 0;
+            const unclaimedStamps = Math.max(0, totalStamps - claimedStamps);
+            const tabs = [
+              { id: "passport" as TabId, icon: <Fingerprint className="w-4 h-4" />, label: language === "ar" ? "الجواز" : "Passport", badge: 0 },
+              { id: "actions" as TabId, icon: <Zap className="w-4 h-4" />, label: language === "ar" ? "العمليات" : "Actions", badge: unclaimedStamps },
+              { id: "agent" as TabId, icon: <Bot className="w-4 h-4" />, label: language === "ar" ? "العميل" : "Agent", badge: hasAgent ? 0 : 1 },
+              { id: "terminal" as TabId, icon: <Terminal className="w-4 h-4" />, label: language === "ar" ? "الطرفية" : "Terminal", badge: 0 },
+            ];
+            return tabs.map((tab) => {
+              const isActive = tab.id === "terminal" ? showTerminal : activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => handleTabClick(tab.id)}
+                  className={`relative flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-xl text-xs font-mono transition-all flex-shrink-0 ${
+                    isActive
+                      ? "bg-neon-green/20 text-neon-green shadow-[0_0_12px_rgba(16,185,129,0.1)]"
+                      : "text-subtle hover:text-surface hover:bg-white/5"
+                  }`}
+                >
+                  {tab.icon}
+                  {tab.label}
+                  {tab.badge > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 flex items-center justify-center px-1 rounded-full text-[8px] font-bold bg-emerald-500 text-white">
+                      {tab.badge}
+                    </span>
+                  )}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full bg-gradient-to-r from-emerald-400 to-neon-green" />
+                  )}
+                </button>
+              );
+            });
+          })()}
         </nav>
       )}
 

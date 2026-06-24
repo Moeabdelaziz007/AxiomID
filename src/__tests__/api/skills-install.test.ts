@@ -11,6 +11,7 @@ jest.mock("@/lib/auth-middleware", () => ({
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
+    $transaction: jest.fn((ops: unknown[]) => Promise.all(ops)),
     skill: {
       findUnique: jest.fn(),
       update: jest.fn(),
