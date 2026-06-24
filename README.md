@@ -26,52 +26,58 @@
   <img src="https://img.shields.io/badge/React-19-blue" alt="React" />
   <img src="https://img.shields.io/badge/Prisma-6-2D3748" alt="Prisma" />
   <img src="https://img.shields.io/badge/Cloudflare-Workers-orange" alt="Workers" />
+  <img src="https://img.shields.io/badge/Pi%20Network-App%20Platform-blueviolet" alt="Pi Network" />
   <img src="https://img.shields.io/badge/license-proprietary-red" alt="License" />
+</p>
+
+<p align="center">
+  <strong>Built on <a href="https://minepi.com">Pi Network</a></strong> — Auth, payments, and native features powered by the Pi App Platform SDK.<br/>
+  Requires <a href="https://minepi.com/download">Pi Browser</a> for authentication and in-app payments.
 </p>
 
 ---
 
 ## What It Does
 
-AxiomID is a **decentralized identity layer** for AI agents on Pi Network. It answers one question: *can this agent be trusted?*
+AxiomID is a **decentralized identity layer** for AI agents on Pi Network. It answers one question: _can this agent be trusted?_
 
-| Layer | What It Does |
-|:---|:---|
-| **DID** | `did:axiom:axiomid.app:pi:{uid}` — W3C-compliant, self-sovereign identity per user |
-| **Verifiable Credentials** | Cryptographically signed stamps (social, KYA, KYC). Each stamp is a VC. |
-| **Trust Engine** | Physics-inspired algorithms — trust score = `XP (70%) + stamps (30%)` |
-| **Agent Passports** | Public identity cards with verification badges, trust scores, and attestation history |
-| **Skills Marketplace** | Install capabilities for agents. Agents execute skills in isolated sandboxes. |
-| **Quran RAG** | AI-powered Quranic Q&A — semantic search across 6236 verses via Vectorize + Workers AI |
-| **Soul System** | Five-gate ethical evaluation loop — Muraqabah, Ethical, Sab'iyyah, Tawbah, Self-Review |
+| Layer                      | What It Does                                                                           |
+| :------------------------- | :------------------------------------------------------------------------------------- |
+| **DID**                    | `did:axiom:axiomid.app:pi:{uid}` — W3C-compliant, self-sovereign identity per user     |
+| **Verifiable Credentials** | Cryptographically signed stamps (social, KYA, KYC). Each stamp is a VC.                |
+| **Trust Engine**           | Physics-inspired algorithms — trust score = `XP (70%) + stamps (30%)`                  |
+| **Agent Passports**        | Public identity cards with verification badges, trust scores, and attestation history  |
+| **Skills Marketplace**     | Install capabilities for agents. Agents execute skills in isolated sandboxes.          |
+| **Quran RAG**              | AI-powered Quranic Q&A — semantic search across 6236 verses via Vectorize + Workers AI |
+| **Soul System**            | Five-gate ethical evaluation loop — Muraqabah, Ethical, Sab'iyyah, Tawbah, Self-Review |
 
 ---
 
 ## Pages
 
-| Route | Description |
-|:---|:---|
-| [`/`](https://axiomid.app) | Landing — live network stats, trust tiers, hero |
-| [`/passport/[slug]`](https://axiomid.app/passport/demo) | Public passport viewer with OG metadata |
-| [`/claim`](https://axiomid.app/claim) | 3-step onboarding wizard (Connect → Verify → Deploy) |
-| [`/dashboard`](https://axiomid.app/dashboard) | Authenticated dashboard with marketplace, settings |
-| [`/explorer`](https://axiomid.app/explorer) | Browse all registered agents |
-| [`/leaderboard`](https://axiomid.app/leaderboard) | Top 50 users ranked by XP |
-| [`/docs`](https://axiomid.app/docs) | Full docs — stamps, SDK, API reference |
-| [`/status`](https://axiomid.app/status) | Live service health (DB, Stellar, Pi, Workers AI) |
-| [`/about`](https://axiomid.app/about) | Project story and team |
-| [`/onboarding`](https://axiomid.app/onboarding) | Guided first-time setup |
+| Route                                                   | Description                                          |
+| :------------------------------------------------------ | :--------------------------------------------------- |
+| [`/`](https://axiomid.app)                              | Landing — live network stats, trust tiers, hero      |
+| [`/passport/[slug]`](https://axiomid.app/passport/demo) | Public passport viewer with OG metadata              |
+| [`/claim`](https://axiomid.app/claim)                   | 3-step onboarding wizard (Connect → Verify → Deploy) |
+| [`/dashboard`](https://axiomid.app/dashboard)           | Authenticated dashboard with marketplace, settings   |
+| [`/explorer`](https://axiomid.app/explorer)             | Browse all registered agents                         |
+| [`/leaderboard`](https://axiomid.app/leaderboard)       | Top 50 users ranked by XP                            |
+| [`/docs`](https://axiomid.app/docs)                     | Full docs — stamps, SDK, API reference               |
+| [`/status`](https://axiomid.app/status)                 | Live service health (DB, Stellar, Pi, Workers AI)    |
+| [`/about`](https://axiomid.app/about)                   | Project story and team                               |
+| [`/onboarding`](https://axiomid.app/onboarding)         | Guided first-time setup                              |
 
 ---
 
 ## Trust Tiers
 
-| Tier | XP | What It Means |
-|:---|:---|:---|
-| **Visitor** | 0 | Unverified. Limited access. |
-| **Citizen** | 100 | Basic proof of humanity. Social accounts connected. |
-| **Validator** | 500 | Active wallet, transaction history. |
-| **Sovereign** | 1000 | High reputation. Financial stake. Vouching power. |
+| Tier          | XP   | What It Means                                       |
+| :------------ | :--- | :-------------------------------------------------- |
+| **Visitor**   | 0    | Unverified. Limited access.                         |
+| **Citizen**   | 100  | Basic proof of humanity. Social accounts connected. |
+| **Validator** | 500  | Active wallet, transaction history.                 |
+| **Sovereign** | 1000 | High reputation. Financial stake. Vouching power.   |
 
 Trust is earned through actions, not purchases. The algorithm weighs contribution history, verification depth, and peer attestations.
 
@@ -79,15 +85,17 @@ Trust is earned through actions, not purchases. The algorithm weighs contributio
 
 ## Tech Stack
 
-| Layer | Technology |
-|:---|:---|
-| **Frontend** | Next.js 16 (App Router) · React 19 · Framer Motion 12 · Tailwind 4 |
-| **Backend** | Vercel Serverless · Cloudflare Workers (edge) |
-| **Database** | PostgreSQL (Prisma 6) · D1 (edge sync) · Vectorize (semantic search) |
-| **AI** | Workers AI — Llama 3.1 8B (intent analysis, RAG generation) · BGE-small-en-v1.5 (embeddings) |
-| **Auth** | Pi Network SDK · Ed25519 sovereign keys · W3C DID documents |
-| **Storage** | Cloudflare KV (cache) · Vercel Blob (uploads) |
-| **CI/CD** | GitHub Actions → Vercel (auto-deploy on push) · 99 test suites, 1260 tests |
+| Layer               | Technology                                                                                                                         |
+| :------------------ | :--------------------------------------------------------------------------------------------------------------------------------- |
+| **Frontend**        | Next.js 16 (App Router) · React 19 · Framer Motion 12 · Tailwind 4                                                                 |
+| **Backend**         | Vercel Serverless · Cloudflare Workers (edge)                                                                                      |
+| **Database**        | PostgreSQL (Prisma 6) · D1 (edge sync) · Vectorize (semantic search)                                                               |
+| **AI**              | Workers AI — Llama 3.1 8B (intent analysis, RAG generation) · BGE-small-en-v1.5 (embeddings)                                       |
+| **Auth**            | <a href="https://pi-apps.github.io/pi-sdk-docs/">Pi Network SDK v2.0</a> · Pi Browser · Ed25519 sovereign keys · W3C DID documents |
+| **Payments**        | <a href="https://pi-apps.github.io/pi-sdk-docs/platform/Payments">Pi Payments</a> — in-app purchases, escrow, marketplace          |
+| **Native Features** | <a href="https://pi-apps.github.io/pi-sdk-docs/">Pi Browser native</a> — share dialogs, KYC consent, wallet integration            |
+| **Storage**         | Cloudflare KV (cache) · Vercel Blob (uploads)                                                                                      |
+| **CI/CD**           | GitHub Actions → Vercel (auto-deploy on push) · 99 test suites, 1260 tests                                                         |
 
 ---
 
@@ -159,31 +167,31 @@ CI runs on every PR: **type-check → lint → tests**. Zero tolerance for red C
 
 ### Vercel (`axiomid.app`)
 
-| Route | Method | Description |
-|:---|:---|:---|
-| `/api/auth/connect` | POST | Wallet authentication |
-| `/api/auth/pi` | POST | Pi Network auth |
-| `/api/did-document` | GET | DID document |
-| `/api/passport/[slug]` | GET | Public passport |
-| `/api/skills/[slug]` | GET/POST | Skill details + reviews |
-| `/api/agent` | POST | Agent CRUD |
-| `/api/stamp/claim` | POST | Claim a stamp |
-| `/api/status` | GET | Network status |
-| `/api/health` | GET | Service health checks |
-| `/api/explorer` | GET | Agent explorer data |
-| `/api/leaderboard` | GET | Top 50 by XP |
-| `/api/daily-review` | POST | Soul loop daily review |
+| Route                  | Method   | Description             |
+| :--------------------- | :------- | :---------------------- |
+| `/api/auth/connect`    | POST     | Wallet authentication   |
+| `/api/auth/pi`         | POST     | Pi Network auth         |
+| `/api/did-document`    | GET      | DID document            |
+| `/api/passport/[slug]` | GET      | Public passport         |
+| `/api/skills/[slug]`   | GET/POST | Skill details + reviews |
+| `/api/agent`           | POST     | Agent CRUD              |
+| `/api/stamp/claim`     | POST     | Claim a stamp           |
+| `/api/status`          | GET      | Network status          |
+| `/api/health`          | GET      | Service health checks   |
+| `/api/explorer`        | GET      | Agent explorer data     |
+| `/api/leaderboard`     | GET      | Top 50 by XP            |
+| `/api/daily-review`    | POST     | Soul loop daily review  |
 
 ### Cloudflare (`axiomid-backend.workers.dev`)
 
-| Route | Method | Description |
-|:---|:---|:---|
-| `/status` | GET | Network status |
-| `/mcp` | POST | MCP Server — 11 tools |
-| `/api/trust/:did` | GET | Trust chain resolution |
-| `/api/search` | GET | Semantic search (Vectorize) |
-| `/api/iqra/ask` | GET | Quran RAG — ask a question |
-| `/api/iqra/daily-ayah` | GET | Quran RAG — daily verse |
+| Route                  | Method | Description                 |
+| :--------------------- | :----- | :-------------------------- |
+| `/status`              | GET    | Network status              |
+| `/mcp`                 | POST   | MCP Server — 11 tools       |
+| `/api/trust/:did`      | GET    | Trust chain resolution      |
+| `/api/search`          | GET    | Semantic search (Vectorize) |
+| `/api/iqra/ask`        | GET    | Quran RAG — ask a question  |
+| `/api/iqra/daily-ayah` | GET    | Quran RAG — daily verse     |
 
 Full docs: [`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md) · [`STRATEGY.md`](./STRATEGY.md)
 
@@ -243,6 +251,31 @@ iqra-core/
 scripts/
   ingest_quran.ts     ← Quran ingestion pipeline
 ```
+
+---
+
+## Built on Pi Network
+
+AxiomID is built on the **[Pi App Platform](https://pi-apps.github.io/pi-sdk-docs/)** and designed exclusively for **[Pi Browser](https://minepi.com/download)**.
+
+| Pi Feature                                                                 | How AxiomID Uses It                                                      |
+| :------------------------------------------------------------------------- | :----------------------------------------------------------------------- |
+| **[Pi Authentication](https://pi-apps.github.io/platform/Authentication)** | Passwordless login via `Pi.authenticate()` — no emails, no passwords     |
+| **[Pi Payments](https://pi-apps.github.io/pi-sdk-docs/platform/Payments)** | In-app purchases for skills marketplace — escrow, approve, complete flow |
+| **[Pi SDK v2.0](https://sdk.minepi.com/pi-sdk.js)**                        | Auto-detects sandbox/production, handles wallet connectivity             |
+| **[Pi Native Features](https://pi-apps.github.io/pi-sdk-docs/)**           | Share dialogs, KYC consent prompts, clipboard access                     |
+| **[Pi Developer Portal](https://pi-apps.github.io/pi-platform-docs/)**     | App registration, Backend URL validation, domain verification            |
+
+> **Requires Pi Browser** — Open [axiomid.app](https://axiomid.app) inside Pi Browser for full functionality including authentication, payments, and native features.
+
+### Pi Browser Setup
+
+1. Register your app at [pi://develop.pinet.com](pi://develop.pinet.com) in Pi Browser
+2. Set **Production URL** to `https://axiomid.app`
+3. Set **Development URL** to `https://axiomid8992.pinet.com`
+4. Set **Backend URL** to `https://axiomid.app/pi-manifest.json`
+5. Enable **Full Screen** support
+6. Open your app from Pi Browser — authentication works automatically
 
 ---
 

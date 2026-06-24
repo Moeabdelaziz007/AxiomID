@@ -3,6 +3,7 @@
  *
  * Tests for backend/src/lib/auth.ts
  * Covers the PR changes: PUBLIC_ROUTES/PUBLIC_PREFIXES updated from iqra → truth.
+ * /api/trust/ is public (trust score queries), /api/truth/ is public (RAG pipeline).
  * Uses inline replicas to avoid Cloudflare-specific module resolution issues.
  */
 
@@ -10,9 +11,9 @@
 // Inline replicas matching backend/src/lib/auth.ts exactly
 // ---------------------------------------------------------------------------
 
-const PUBLIC_ROUTES = ["/health", "/status", "/api/truth/", "/api/skills"];
+const PUBLIC_ROUTES = ["/health", "/status", "/api/trust/", "/api/truth/", "/api/skills"];
 const PUBLIC_EXACT = new Set(["/health", "/status", "/api/skills"]);
-const PUBLIC_PREFIXES = ["/api/truth/"];
+const PUBLIC_PREFIXES = ["/api/trust/", "/api/truth/"];
 
 interface MockEnv {
   SHARED_SECRET_TOKEN_VERCEL_CF?: string;
@@ -119,6 +120,10 @@ describe("PUBLIC_ROUTES array", () => {
     expect(PUBLIC_ROUTES).toContain("/status");
   });
 
+  it("contains /api/trust/ (public for trust score queries)", () => {
+    expect(PUBLIC_ROUTES).toContain("/api/trust/");
+  });
+
   it("contains /api/truth/ (PR change: was /api/iqra/)", () => {
     expect(PUBLIC_ROUTES).toContain("/api/truth/");
   });
@@ -131,17 +136,13 @@ describe("PUBLIC_ROUTES array", () => {
     expect(PUBLIC_ROUTES).not.toContain("/api/iqra/");
   });
 
-  it("does NOT contain /api/trust/ (removed in PR)", () => {
-    expect(PUBLIC_ROUTES).not.toContain("/api/trust/");
-  });
-
-  it("has exactly 4 entries", () => {
-    expect(PUBLIC_ROUTES).toHaveLength(4);
+  it("has exactly 5 entries", () => {
+    expect(PUBLIC_ROUTES).toHaveLength(5);
   });
 });
 
 // ---------------------------------------------------------------------------
-// PUBLIC_PREFIXES array (PR changed from ["/api/trust/", "/api/iqra/"] → ["/api/truth/"])
+// PUBLIC_PREFIXES array — /api/trust/ (public score queries) + /api/truth/ (RAG pipeline)
 // ---------------------------------------------------------------------------
 
 describe("PUBLIC_PREFIXES array", () => {
@@ -149,16 +150,16 @@ describe("PUBLIC_PREFIXES array", () => {
     expect(PUBLIC_PREFIXES).toContain("/api/truth/");
   });
 
+  it("contains /api/trust/ (public for trust score queries)", () => {
+    expect(PUBLIC_PREFIXES).toContain("/api/trust/");
+  });
+
   it("does NOT contain /api/iqra/ (removed in PR)", () => {
     expect(PUBLIC_PREFIXES).not.toContain("/api/iqra/");
   });
 
-  it("does NOT contain /api/trust/ (removed in PR)", () => {
-    expect(PUBLIC_PREFIXES).not.toContain("/api/trust/");
-  });
-
-  it("has exactly 1 entry", () => {
-    expect(PUBLIC_PREFIXES).toHaveLength(1);
+  it("has exactly 2 entries", () => {
+    expect(PUBLIC_PREFIXES).toHaveLength(2);
   });
 });
 
@@ -206,10 +207,10 @@ describe("verifyAuth — public routes", () => {
     expect(result.authorized).toBe(false);
   });
 
-  it("does NOT authorize /api/trust/did:axiom:alice (old path, removed in PR)", () => {
+  it("authorizes /api/trust/did:axiom:alice (public prefix match)", () => {
     const req = makeRequest("/api/trust/did:axiom:alice");
     const result = verifyAuth(req, env);
-    expect(result.authorized).toBe(false);
+    expect(result.authorized).toBe(true);
   });
 });
 
