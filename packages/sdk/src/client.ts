@@ -4,7 +4,8 @@ import {
   Stamps,
   DIDDocument,
   TrustScore,
-  Agent,
+  Skill,
+  SearchSkillsResponse,
 } from "./types";
 
 export class AxiomIDError extends Error {
@@ -103,9 +104,10 @@ export class AxiomSDK {
     );
   }
 
-  async searchAgents(query: string): Promise<Agent[]> {
-    return this.fetch<Agent[]>(
+  async searchSkills(query: string): Promise<Skill[]> {
+    const res = await this.fetch<SearchSkillsResponse>(
       `/api/skills?q=${encodeURIComponent(query)}`
     );
+    return res.skills ?? [];
   }
 }

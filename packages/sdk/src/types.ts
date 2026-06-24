@@ -60,12 +60,27 @@ export interface TrustBreakdown {
   agentActivity: number;
 }
 
-export interface Agent {
+export interface Skill {
+  id: string;
+  slug: string;
   name: string;
-  description: string;
-  ownerDid: string;
-  status: string;
-  publicKey: string;
+  description: string | null;
+  tier: string;
+  pricePi: number;
+  version: string;
+  installCount: number;
+  avgRating: number;
+  ratingCount: number;
+  authorId: string;
+  createdAt: string;
+}
+
+export interface SearchSkillsResponse {
+  skills: Skill[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
 }
 
 export interface AxiomSDKConfig {

@@ -9,5 +9,6 @@ export type {
   VerificationMethod,
   TrustScore,
   TrustBreakdown,
-  Agent,
+  Skill,
+  SearchSkillsResponse,
 } from "./types";

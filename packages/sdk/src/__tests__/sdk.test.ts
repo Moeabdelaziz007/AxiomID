@@ -46,15 +46,28 @@ const mockTrustScore = {
   },
 };
 
-const mockAgents = [
-  {
-    name: "ResearchBot",
-    description: "Automated research agent",
-    ownerDid: "did:axiom:pioneer.username",
-    status: "ACTIVE",
-    publicKey: "z6Mk...",
-  },
-];
+const mockSkillsResponse = {
+  skills: [
+    {
+      id: "skill-1",
+      slug: "research-bot",
+      name: "ResearchBot",
+      description: "Automated research agent",
+      tier: "PRO",
+      pricePi: 5,
+      version: "1.0.0",
+      installCount: 42,
+      avgRating: 4.5,
+      ratingCount: 10,
+      authorId: "user-1",
+      createdAt: "2026-01-01T00:00:00.000Z",
+    },
+  ],
+  total: 1,
+  limit: 50,
+  offset: 0,
+  hasMore: false,
+};
 
 describe("@axiomid/sdk", () => {
   let sdk: AxiomSDK;
@@ -200,16 +213,16 @@ describe("@axiomid/sdk", () => {
     });
   });
 
-  describe("searchAgents", () => {
-    it("returns matching agents", async () => {
+  describe("searchSkills", () => {
+    it("returns matching skills", async () => {
       fetchSpy.mockResolvedValueOnce({
         ok: true,
-        json: async () => mockAgents,
+        json: async () => mockSkillsResponse,
       });
 
-      const agents = await sdk.searchAgents("research");
-      expect(agents).toHaveLength(1);
-      expect(agents[0].name).toBe("ResearchBot");
+      const skills = await sdk.searchSkills("research");
+      expect(skills).toHaveLength(1);
+      expect(skills[0].name).toBe("ResearchBot");
     });
   });
 
