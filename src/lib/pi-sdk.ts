@@ -400,9 +400,13 @@ export async function createPiPayment(amount: number, memo: string, metadata?: R
           if (!response.ok) {
             const error = await response.json();
             logger.error("[Pi Payment] Server completion failed:", error);
+            reject(new PiSdkError(PiSdkErrorCode.GENERIC_ERROR, `Server completion failed: ${error?.message || response.statusText}`));
+            return;
           }
         } catch (err) {
           logger.error("[Pi Payment] Server completion error:", err);
+          reject(new PiSdkError(PiSdkErrorCode.GENERIC_ERROR, `Server completion error: ${err instanceof Error ? err.message : String(err)}`));
+          return;
         }
         resolve(txid);
       },

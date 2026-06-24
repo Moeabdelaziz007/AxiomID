@@ -558,7 +558,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     pushLog("Demo Mode initialized successfully!");
   }, [pushLog]);
 
-  const claimKya = useCallback(async (username: string) => {
+  const claimKya = useCallback(async (_username: string) => {
     if (!userRef.current) return false;
     try {
       const res = await fetch("/api/pi/kya/claim", {
@@ -567,7 +567,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           "Content-Type": "application/json",
           ...(piAccessToken ? { "Authorization": `Bearer ${piAccessToken}` } : {}),
         },
-        body: JSON.stringify({ username }),
       });
 
       if (!res.ok) {

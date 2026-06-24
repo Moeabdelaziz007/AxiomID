@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
     });
 
     const walletAddress = `pi:${uid}`;
-    const piDid = createPiDid(uid);
+    const piDid = createPiDid(username);
 
     let user;
     if (existingUser) {
