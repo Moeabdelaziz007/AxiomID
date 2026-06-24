@@ -8,6 +8,8 @@
  * - handleInstall: calls connectWallet() when user is null
  * - Install button text changes based on auth/connecting state
  * - Install button disabled when isConnecting is true
+ * - Error message priority: data?.message > data?.error > fallback for both
+ *   purchase verification failures and install failures (PR change)
  */
 
 import React from "react";
@@ -80,6 +82,12 @@ jest.mock("lucide-react", () => ({
   Star: () => <svg data-testid="icon-star" />,
   Coins: () => <svg data-testid="icon-coins" />,
   Package: () => <svg data-testid="icon-package" />,
+}));
+
+// Mock pi-sdk so createPiPayment can be controlled in paid-skill tests
+const mockCreatePiPayment = jest.fn();
+jest.mock("@/lib/pi-sdk", () => ({
+  createPiPayment: (...args: unknown[]) => mockCreatePiPayment(...args),
 }));
 
 // jsdom does not implement HTMLDialogElement.showModal / .close
@@ -737,6 +745,307 @@ describe("MarketplacePage — i18n text changes (PR change)", () => {
     await waitFor(() => {
       // marketplace_manifest_desc is a new PR key rendered under the manifest section
       expect(screen.getByText("marketplace_manifest_desc")).toBeInTheDocument();
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PR change: error message priority — data?.message > data?.error > fallback
+// ---------------------------------------------------------------------------
+
+const mockUserWithAgent = {
+  id: "u1",
+  walletAddress: "pi:user1",
+  piUsername: "user1",
+  xp: 0,
+  tier: "Citizen" as const,
+  trustScore: 0,
+  createdAt: new Date().toISOString(),
+  actions: [],
+  agent: { id: "agent-1", name: "My Agent", status: "ACTIVE" },
+};
+
+const mockPaidSkill = {
+  id: "skill-paid",
+  slug: "paid-skill",
+  name: "Paid Skill",
+  description: "A paid skill",
+  tier: "PRO",
+  pricePi: 5,
+  version: "1.0.0",
+  installCount: 10,
+  avgRating: 4.0,
+  ratingCount: 5,
+  createdAt: "2024-01-01T00:00:00Z",
+};
+
+const mockPaidSkillDetail = {
+  ...mockPaidSkill,
+  manifestMd: "# Paid Skill",
+  agentScript: null,
+  testSuite: null,
+  status: "PUBLISHED",
+  isPublished: true,
+  installationCount: 10,
+  reviewCount: 5,
+  updatedAt: "2024-01-01T00:00:00Z",
+};
+
+describe("MarketplacePage — install error message priority (PR change)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: mockUserWithAgent }));
+  });
+
+  it("shows data.message when both message and error are present in install failure response", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ skills: [mockSkill] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockSkillDetail })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        json: async () => ({ message: "Permission denied via message", error: "Old error field" }),
+      });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => expect(screen.getByText("Test Skill")).toBeInTheDocument());
+    fireEvent.click(screen.getByText("Test Skill"));
+    await waitFor(() => expect(screen.getByRole("button", { name: /install skill/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /install skill/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("Permission denied via message");
+    });
+  });
+
+  it("does NOT show data.error when data.message is present in install failure", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ skills: [mockSkill] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockSkillDetail })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        json: async () => ({ message: "Message field wins", error: "Error field loses" }),
+      });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => expect(screen.getByText("Test Skill")).toBeInTheDocument());
+    fireEvent.click(screen.getByText("Test Skill"));
+    await waitFor(() => expect(screen.getByRole("button", { name: /install skill/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /install skill/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).not.toHaveTextContent("Error field loses");
+    });
+  });
+
+  it("falls back to data.error when data.message is absent in install failure", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ skills: [mockSkill] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockSkillDetail })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        json: async () => ({ error: "Fallback error field" }),
+      });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => expect(screen.getByText("Test Skill")).toBeInTheDocument());
+    fireEvent.click(screen.getByText("Test Skill"));
+    await waitFor(() => expect(screen.getByRole("button", { name: /install skill/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /install skill/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("Fallback error field");
+    });
+  });
+
+  it("uses status-code fallback string when neither message nor error present in install failure", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ skills: [mockSkill] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockSkillDetail })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        json: async () => ({}),
+      });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => expect(screen.getByText("Test Skill")).toBeInTheDocument());
+    fireEvent.click(screen.getByText("Test Skill"));
+    await waitFor(() => expect(screen.getByRole("button", { name: /install skill/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /install skill/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("Install failed (503)");
+    });
+  });
+
+  it("install fallback message includes the HTTP status code (boundary: different status)", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ skills: [mockSkill] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockSkillDetail })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 422,
+        json: async () => ({}),
+      });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => expect(screen.getByText("Test Skill")).toBeInTheDocument());
+    fireEvent.click(screen.getByText("Test Skill"));
+    await waitFor(() => expect(screen.getByRole("button", { name: /install skill/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /install skill/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("Install failed (422)");
+    });
+  });
+});
+
+describe("MarketplacePage — purchase verification error message priority (PR change)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCreatePiPayment.mockResolvedValue("mock-txid-123");
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: mockUserWithAgent }));
+  });
+
+  it("shows data.message when both message and error present in order creation failure", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ skills: [mockPaidSkill] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockPaidSkillDetail })
+      // order creation fails with both message and error
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 402,
+        json: async () => ({ message: "Payment required via message", error: "Old error field" }),
+      });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => expect(screen.getByText("Paid Skill")).toBeInTheDocument());
+    fireEvent.click(screen.getByText("Paid Skill"));
+    await waitFor(() => expect(screen.getByRole("button", { name: /install skill/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /install skill/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("Payment required via message");
+    });
+  });
+
+  it("does NOT show data.error when data.message is present in order creation failure", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ skills: [mockPaidSkill] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockPaidSkillDetail })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 402,
+        json: async () => ({ message: "Message wins", error: "Error loses" }),
+      });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => expect(screen.getByText("Paid Skill")).toBeInTheDocument());
+    fireEvent.click(screen.getByText("Paid Skill"));
+    await waitFor(() => expect(screen.getByRole("button", { name: /install skill/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /install skill/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).not.toHaveTextContent("Error loses");
+    });
+  });
+
+  it("falls back to data.error when data.message is absent in order creation failure", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ skills: [mockPaidSkill] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockPaidSkillDetail })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 402,
+        json: async () => ({ error: "Insufficient balance" }),
+      });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => expect(screen.getByText("Paid Skill")).toBeInTheDocument());
+    fireEvent.click(screen.getByText("Paid Skill"));
+    await waitFor(() => expect(screen.getByRole("button", { name: /install skill/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /install skill/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("Insufficient balance");
+    });
+  });
+
+  it("uses status-code fallback string when neither message nor error present in order creation failure", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ skills: [mockPaidSkill] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockPaidSkillDetail })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 402,
+        json: async () => ({}),
+      });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => expect(screen.getByText("Paid Skill")).toBeInTheDocument());
+    fireEvent.click(screen.getByText("Paid Skill"));
+    await waitFor(() => expect(screen.getByRole("button", { name: /install skill/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /install skill/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("Purchase verification failed (402)");
+    });
+  });
+
+  it("purchase verification fallback includes the HTTP status code (boundary: different status)", async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ skills: [mockPaidSkill] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockPaidSkillDetail })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({}),
+      });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => expect(screen.getByText("Paid Skill")).toBeInTheDocument());
+    fireEvent.click(screen.getByText("Paid Skill"));
+    await waitFor(() => expect(screen.getByRole("button", { name: /install skill/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /install skill/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("Purchase verification failed (500)");
+    });
+  });
+
+  it("order creation json() parse failure still produces fallback error (regression)", async () => {
+    // order creation fails and json() itself throws — catch(() => ({})) should give empty obj
+    mockFetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ skills: [mockPaidSkill] }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => mockPaidSkillDetail })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        json: async () => { throw new Error("Not JSON"); },
+      });
+
+    render(<MarketplacePage />);
+
+    await waitFor(() => expect(screen.getByText("Paid Skill")).toBeInTheDocument());
+    fireEvent.click(screen.getByText("Paid Skill"));
+    await waitFor(() => expect(screen.getByRole("button", { name: /install skill/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /install skill/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("alert")).toHaveTextContent("Purchase verification failed (503)");
     });
   });
 });
