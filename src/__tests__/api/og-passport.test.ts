@@ -66,6 +66,53 @@ function renderedText(): string {
   return flattenText(element);
 }
 
+/**
+ * Collects every leaf text node in the rendered tree together with the
+ * `fontSize` of its nearest styled ancestor. Lets tests assert on the value of
+ * a specific element (e.g. the 56px trust score, the 44px avatar initials)
+ * rather than a flattened `toContain`, which collides with static card text
+ * such as the "/ 100" literal or the "AXIOMID" / "DECENTRALIZED ID" labels.
+ */
+function collectStyledText(
+  node: unknown,
+  inheritedFontSize?: number,
+  acc: Array<{ fontSize?: number; text: string }> = [],
+): Array<{ fontSize?: number; text: string }> {
+  if (node == null || typeof node === 'boolean') return acc;
+  if (typeof node === 'string' || typeof node === 'number') {
+    const text = String(node).trim();
+    if (text) acc.push({ fontSize: inheritedFontSize, text });
+    return acc;
+  }
+  if (Array.isArray(node)) {
+    for (const child of node) collectStyledText(child, inheritedFontSize, acc);
+    return acc;
+  }
+  if (typeof node === 'object' && 'props' in (node as Record<string, unknown>)) {
+    const props = (node as { props?: { style?: { fontSize?: number }; children?: unknown } }).props;
+    const fontSize = props?.style?.fontSize ?? inheritedFontSize;
+    collectStyledText(props?.children, fontSize, acc);
+  }
+  return acc;
+}
+
+/** Returns the text of the first leaf node rendered at the given fontSize. */
+function textAtFontSize(fontSize: number): string | undefined {
+  const calls = MockedImageResponse.mock.calls;
+  const element = calls[calls.length - 1][0];
+  return collectStyledText(element).find((n) => n.fontSize === fontSize)?.text;
+}
+
+/** Trust score is the only node rendered at 56px (see @/app/api/og/passport/route). */
+function renderedTrustScore(): string | undefined {
+  return textAtFontSize(56);
+}
+
+/** Avatar initials are the only node rendered at 44px (see @/app/api/og/passport/route). */
+function renderedAvatarInitials(): string | undefined {
+  return textAtFontSize(44);
+}
+
 describe('GET /api/og/passport — default parameters', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -178,10 +225,9 @@ describe('GET /api/og/passport — tier, xp, and stamps params', () => {
   it('falls back to Visitor for non-numeric xp and no tier', async () => {
     const req = makeRequest({ xp: 'abc' });
     await GET(req);
-    const text = renderedText();
-    expect(text).toContain('VISITOR');
-    // Non-numeric xp is clamped to 0 and rendered as the trust score.
-    expect(text).toContain('0');
+    expect(renderedText()).toContain('VISITOR');
+    // Non-numeric xp is clamped to 0, so the trust score node renders exactly 0.
+    expect(renderedTrustScore()).toBe('0');
   });
 
   it('clamps a negative stamps value to 0', async () => {
@@ -429,10 +475,10 @@ describe('GET /api/og/passport — trust score boundary values', () => {
   it('xp=0 stamps=0 → trust score 0', async () => {
     const req = makeRequest({ xp: '0', stamps: '0' });
     await GET(req);
-    // Trust score of 0 should appear in the rendered output
-    // xpScore=0, stampScore=0 → round(0*0.7 + 0*0.3) = 0
-    const text = renderedText();
-    expect(text).toContain('0');
+    // xpScore=0, stampScore=0 → round(0*0.7 + 0*0.3) = 0.
+    // Assert on the dedicated trust-score node so the static "/ 100" literal
+    // cannot satisfy the match.
+    expect(renderedTrustScore()).toBe('0');
   });
 
   it('xp=1000 stamps=6 → trust score 100', async () => {
@@ -441,7 +487,7 @@ describe('GET /api/og/passport — trust score boundary values', () => {
     // round(100*0.7 + 100*0.3) = round(70 + 30) = 100
     const req = makeRequest({ xp: '1000', stamps: '6' });
     await GET(req);
-    expect(renderedText()).toContain('100');
+    expect(renderedTrustScore()).toBe('100');
   });
 
   it('stamps > TOTAL_STAMPS (6) are clamped to 6 in trust score', async () => {
@@ -449,9 +495,8 @@ describe('GET /api/og/passport — trust score boundary values', () => {
     // trust = round(0*0.7 + 100*0.3) = round(30) = 30
     const req = makeRequest({ xp: '0', stamps: '10' });
     await GET(req);
-    const text = renderedText();
-    // Trust score should be 30 (clamped stamps=6), not higher
-    expect(text).toContain('30');
+    // Trust score should be exactly 30 (clamped stamps=6), not higher.
+    expect(renderedTrustScore()).toBe('30');
   });
 
   it('xp=10 stamps=0 → trust score 1', async () => {
@@ -459,7 +504,7 @@ describe('GET /api/og/passport — trust score boundary values', () => {
     // round(1*0.7 + 0*0.3) = round(0.7) = 1
     const req = makeRequest({ xp: '10', stamps: '0' });
     await GET(req);
-    expect(renderedText()).toContain('1');
+    expect(renderedTrustScore()).toBe('1');
   });
 });
 
@@ -469,24 +514,27 @@ describe('GET /api/og/passport — DID shortName extraction', () => {
   });
 
   it('renders first 2 chars of last DID segment uppercased in avatar', async () => {
-    // did:axiom:alice → last segment "alice" → "AL"
+    // did:axiom:alice → last segment "alice" → "AL".
+    // Assert on the avatar node specifically; "AL" is also a substring of the
+    // static "DECENTRALIZED ID" label, so a flattened match would be spurious.
     const req = makeRequest({ did: 'did:axiom:alice' });
     await GET(req);
-    expect(renderedText()).toContain('AL');
+    expect(renderedAvatarInitials()).toBe('AL');
   });
 
   it('renders single-char last DID segment as single uppercase char', async () => {
-    // did:axiom:x → last segment "x" → slice(0,2) = "x" → "X"
+    // did:axiom:x → last segment "x" → slice(0,2) = "x" → "X".
+    // "X" also appears in the static "AXIOMID" brand, so target the avatar node.
     const req = makeRequest({ did: 'did:axiom:x' });
     await GET(req);
-    expect(renderedText()).toContain('X');
+    expect(renderedAvatarInitials()).toBe('X');
   });
 
   it('renders shortName from a DID with multiple colons', async () => {
     // did:key:z6Mk... → last segment "z6Mk..." → "Z6"
     const req = makeRequest({ did: 'did:key:z6MkfooBARbaz' });
     await GET(req);
-    expect(renderedText()).toContain('Z6');
+    expect(renderedAvatarInitials()).toBe('Z6');
   });
 
   it('truncates DID longer than 28 chars in the rendered card', async () => {
