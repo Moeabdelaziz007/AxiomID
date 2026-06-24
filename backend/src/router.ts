@@ -13,7 +13,8 @@ import { SkillsMarketplace } from "./routes/skills";
 import { AgentDispatcher } from "./routes/agent-dispatch";
 import { handleMcp } from "./mcp/handler";
 import { handleSearch, handleSearchSimilar } from "./routes/search";
-import { handleIqraAsk, handleDailyAyah } from "./routes/iqra-rag";
+import { handleTruthAsk, handleDailyTruth } from "./routes/truth-rag";
+import { TrustEmbedder } from "./vectors/trust-embedder";
 import { generateId } from "./lib/utils";
 
 export class Router {
@@ -94,6 +95,36 @@ export class Router {
       return this.handleSyncStatus();
     }
 
+    // --- Embedding utility (shared-secret auth, for ingest script) ---
+    if (path === "/api/embed" && method === "POST") {
+      const embedSecret = request.headers.get("X-Shared-Secret");
+      const expected = this.env.SHARED_SECRET_TOKEN_VERCEL_CF;
+      if (!embedSecret || !expected || embedSecret.length !== expected.length) {
+        return errorResponse("Unauthorized", 401);
+      }
+      let match = 0;
+      for (let i = 0; i < embedSecret.length; i++) {
+        match |= embedSecret.charCodeAt(i) ^ expected.charCodeAt(i);
+      }
+      if (match !== 0) {
+        return errorResponse("Unauthorized", 401);
+      }
+
+      const body = await request.json<{ texts: string[] }>();
+      if (!body.texts || !Array.isArray(body.texts) || body.texts.length === 0) {
+        return errorResponse("Missing non-empty texts array", 400);
+      }
+      if (body.texts.length > 32) {
+        return errorResponse("Maximum 32 texts per request", 400);
+      }
+      const oversized = body.texts.findIndex((t) => typeof t !== "string" || t.length > 1000);
+      if (oversized !== -1) {
+        return errorResponse(`Text at index ${oversized} exceeds 1000 character limit`, 400);
+      }
+      const res = await this.env.AI.run("@cf/baai/bge-base-en-v1.5", { text: body.texts }) as { data: number[][] };
+      return jsonResponse({ embeddings: res.data });
+    }
+
     // --- Auth check for protected routes ---
     const { authorized, agentId } = verifyAuth(request, this.env);
     if (!authorized && !this.isPublicRoute(path)) {
@@ -108,13 +139,13 @@ export class Router {
       return errorResponse("Rate limit exceeded", 429, rateLimitHeaders(rl));
     }
 
-    // --- IQRA Quran RAG (after rate limiting — Workers AI is expensive) ---
-    if (path === "/api/iqra/ask" && method === "GET") {
-      return handleIqraAsk(request, this.env);
+    // --- TRUTH RAG (after rate limiting — Workers AI is expensive) ---
+    if (path === "/api/truth/ask" && method === "GET") {
+      return handleTruthAsk(request, this.env);
     }
 
-    if (path === "/api/iqra/daily-ayah" && method === "GET") {
-      return handleDailyAyah(request, this.env);
+    if (path === "/api/truth/daily-truth" && method === "GET") {
+      return handleDailyTruth(request, this.env);
     }
 
     // --- Presence ---
@@ -132,6 +163,8 @@ export class Router {
       const did = path.split("/api/trust/")[1];
       if (!did) return errorResponse("Missing DID");
       const result = await this.trust.compute(did);
+      const embedder = new TrustEmbedder(this.env);
+      await embedder.upsertVector(did, result.score, result.breakdown.delegation);
       return jsonResponse({ success: true, data: result, timestamp: Date.now() });
     }
 

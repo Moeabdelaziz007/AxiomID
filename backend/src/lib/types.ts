@@ -7,7 +7,7 @@ export interface Env {
   PERPLEXITY_API_KEY: string;
   CACHE_KV: KVNamespace;
   DB: D1Database;
-  IQRA_DB: D1Database;
+  TRUTH_DB: D1Database;
   PRESENCE_DO: DurableObjectNamespace;
   HARVEST_QUEUE: Queue;
   AI: Ai;
