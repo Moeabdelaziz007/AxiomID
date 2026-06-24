@@ -10,7 +10,7 @@
  *  - Accept header on every request
  *  - getStamps provider details, unknown stamp types
  *  - AxiomIDError as an Error subclass with correct message
- *  - HTTP errors surfaced by resolveDID, getTrustScore, and searchAgents
+ *  - HTTP errors surfaced by resolveDID, getTrustScore, and searchSkills
  *  - Boundary / regression cases
  */
 
@@ -202,12 +202,12 @@ describe("AxiomSDK – URL construction", () => {
     });
   });
 
-  describe("searchAgents", () => {
+  describe("searchSkills", () => {
     it("calls the correct endpoint with encoded query", async () => {
-      fetchSpy.mockResolvedValueOnce(mockOk([]));
+      fetchSpy.mockResolvedValueOnce(mockOk({ skills: [] }));
       const sdk = new AxiomSDK({ network: "mainnet" });
 
-      await sdk.searchAgents("hello world");
+      await sdk.searchSkills("hello world");
 
       expect(fetchSpy).toHaveBeenCalledWith(
         `${MAINNET_BASE}/api/skills?q=hello%20world`,
@@ -393,10 +393,10 @@ describe("AxiomSDK – error handling", () => {
     expect((err as AxiomIDError).code).toBe("HTTP_500");
   });
 
-  it("throws AxiomIDError on HTTP 503 for searchAgents", async () => {
+  it("throws AxiomIDError on HTTP 503 for searchSkills", async () => {
     fetchSpy.mockResolvedValueOnce(mockErr(503, "Service Unavailable"));
 
-    await expect(sdk.searchAgents("bot")).rejects.toBeInstanceOf(AxiomIDError);
+    await expect(sdk.searchSkills("bot")).rejects.toBeInstanceOf(AxiomIDError);
   });
 });
 
@@ -500,10 +500,10 @@ describe("AxiomSDK – getStamps", () => {
 });
 
 // ---------------------------------------------------------------------------
-// AxiomSDK – searchAgents boundary
+// AxiomSDK – searchSkills boundary
 // ---------------------------------------------------------------------------
 
-describe("AxiomSDK – searchAgents", () => {
+describe("AxiomSDK – searchSkills", () => {
   let fetchSpy: jest.SpyInstance;
   let sdk: AxiomSDK;
 
@@ -516,27 +516,42 @@ describe("AxiomSDK – searchAgents", () => {
     fetchSpy.mockRestore();
   });
 
-  it("returns an empty array when no agents match", async () => {
-    fetchSpy.mockResolvedValueOnce(mockOk([]));
+  it("returns an empty array when no skills match", async () => {
+    fetchSpy.mockResolvedValueOnce(mockOk({ skills: [] }));
 
-    const agents = await sdk.searchAgents("nonexistent");
+    const skills = await sdk.searchSkills("nonexistent");
 
-    expect(agents).toEqual([]);
+    expect(skills).toEqual([]);
   });
 
-  it("returns all agent fields", async () => {
-    const agent = {
+  it("returns an empty array when the response omits skills", async () => {
+    fetchSpy.mockResolvedValueOnce(mockOk({}));
+
+    const skills = await sdk.searchSkills("nonexistent");
+
+    expect(skills).toEqual([]);
+  });
+
+  it("returns all skill fields", async () => {
+    const skill = {
+      id: "skill-1",
+      slug: "bot-42",
       name: "Bot42",
       description: "A helper bot",
-      ownerDid: "did:axiom:owner",
-      status: "ACTIVE",
-      publicKey: "z6Mk...",
+      tier: "PRO",
+      pricePi: 5,
+      version: "1.0.0",
+      installCount: 42,
+      avgRating: 4.5,
+      ratingCount: 10,
+      authorId: "did:axiom:owner",
+      createdAt: "2026-01-01T00:00:00.000Z",
     };
-    fetchSpy.mockResolvedValueOnce(mockOk([agent]));
+    fetchSpy.mockResolvedValueOnce(mockOk({ skills: [skill] }));
 
-    const agents = await sdk.searchAgents("bot");
+    const skills = await sdk.searchSkills("bot");
 
-    expect(agents[0]).toEqual(agent);
+    expect(skills[0]).toEqual(skill);
   });
 });
 
