@@ -190,4 +190,3 @@ export function PiBrowserPrompt({ onConnect, onDismiss, onConnectDemo }: PiBrows
   );
 }
 
-export default PiBrowserGuard;
