@@ -1,5 +1,9 @@
 if ('serviceWorker' in navigator) {
   const registerServiceWorker = () => {
+    // Capture whether there was already a controller BEFORE registering
+    // This prevents false reload on first visit (clients.claim() sets controller during activation)
+    const hadPreviousController = !!navigator.serviceWorker.controller;
+
     navigator.serviceWorker.register('/sw.js').then((reg) => {
       // Check for updates every 60 minutes
       setInterval(() => reg.update(), 60 * 60 * 1000);
@@ -10,8 +14,8 @@ if ('serviceWorker' in navigator) {
         if (!newWorker) return;
 
         newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
-            // New SW activated — reload to get fresh content
+          if (newWorker.state === 'activated' && hadPreviousController) {
+            // New SW activated AND there was a previous controller — reload to get fresh content
             window.location.reload();
           }
         });
