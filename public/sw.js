@@ -1,4 +1,4 @@
-const CACHE = "axiomid-v2";
+const CACHE = "axiomid-v3";
 const STATIC_ASSETS = [
   "/",
   "/manifest.json",
@@ -44,6 +44,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Stale-while-revalidate for static assets (JS, CSS, images, fonts)
+  // These have content hashes in filenames so stale cache is safe
   if (
     url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2)$/) ||
     url.pathname.startsWith("/_next/static/")
@@ -64,7 +65,24 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Cache-first for navigation and other same-origin requests
+  // Network-first for navigation (HTML pages)
+  // This ensures users always get the latest HTML after a deploy
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Cache-first for other same-origin requests (icons, fonts already handled above)
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
