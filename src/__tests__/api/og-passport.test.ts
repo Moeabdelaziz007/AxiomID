@@ -61,7 +61,8 @@ function flattenText(node: unknown): string {
 
 /** Returns the flattened text of the element passed to the latest ImageResponse call. */
 function renderedText(): string {
-  const element = MockedImageResponse.mock.calls[0][0];
+  const calls = MockedImageResponse.mock.calls;
+  const element = calls[calls.length - 1][0];
   return flattenText(element);
 }
 
@@ -184,10 +185,16 @@ describe('GET /api/og/passport — tier, xp, and stamps params', () => {
   });
 
   it('clamps a negative stamps value to 0', async () => {
-    const req = makeRequest({ stamps: '-5' });
+    // Use a distinct, collision-free xp so the rendered "0" can only be the
+    // clamped stamps value (xp 300 → trust score 21, neither of which is "0").
+    const req = makeRequest({ stamps: '-5', xp: '300' });
     const res = await GET(req);
     expect(res.status).toBe(200);
-    expect(renderedText()).toContain('0');
+
+    const text = renderedText();
+    expect(text).toContain('300'); // raw xp in stats row
+    expect(text).toContain('21'); // calculateTrustScore(300, 0) = round(30 * 0.7) = 21
+    expect(text).toContain('0'); // clamped stamps value
   });
 });
 
