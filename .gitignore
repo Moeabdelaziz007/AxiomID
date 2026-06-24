@@ -3,7 +3,6 @@
 # dependencies
 /node_modules
 backend/node_modules/
-packages/*/node_modules/
 backend/package-lock.json
 
 # next.js
@@ -55,3 +54,4 @@ next-env.d.ts
 .cache/
 .swc/
 stitch-*.html
+packages/crypto/node_modules/

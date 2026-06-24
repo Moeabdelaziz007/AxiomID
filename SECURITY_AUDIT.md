@@ -14,11 +14,11 @@
 
 This was the **only** `Math.random()` in security-relevant code. Other occurrences:
 
-| File | Line | Context | Risk |
-|------|------|---------|------|
-| `src/lib/math-physics.ts` | 97 | Exponential backoff jitter | LOW (not security) |
-| `src/components/dashboard/TerminalOverlay.tsx` | 28-29 | Simulated CPU/memory gauges | NONE (visual only) |
-| `backend/src/lib/math-physics.ts` | 183, 314-315, 755-756, 854, 884, 1334, 1568-1569, 1723, 1736, 1755 | Math algorithms (Box-Muller, simulated annealing, etc.) | LOW (non-security math) |
+| File                                           | Line                                                               | Context                                                 | Risk                    |
+| ---------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------- | ----------------------- |
+| `src/lib/math-physics.ts`                      | 97                                                                 | Exponential backoff jitter                              | LOW (not security)      |
+| `src/components/dashboard/TerminalOverlay.tsx` | 28-29                                                              | Simulated CPU/memory gauges                             | NONE (visual only)      |
+| `backend/src/lib/math-physics.ts`              | 183, 314-315, 755-756, 854, 884, 1334, 1568-1569, 1723, 1736, 1755 | Math algorithms (Box-Muller, simulated annealing, etc.) | LOW (non-security math) |
 
 **Verdict:** Only `backend/src/lib/utils.ts:10` was security-relevant. **FIXED.**
 
@@ -26,14 +26,14 @@ This was the **only** `Math.random()` in security-relevant code. Other occurrenc
 
 ## 2. Zod Validation — Status
 
-| Route | Status | Notes |
-|-------|--------|-------|
-| `src/app/api/skills/[slug]/purchase/route.ts` | N/A | No request body parsed — uses URL params + auth only |
-| `src/app/api/skills/[slug]/install/route.ts` | N/A | No request body parsed — uses URL params + auth only |
-| `src/app/api/skills/[slug]/review/route.ts` | ALREADY VALIDATED | `SkillReviewCreateSchema` + `SlugParamSchema` |
-| `src/app/api/agent/route.ts` | ALREADY VALIDATED | `CreateAgentSchema` |
-| `src/app/api/agent/manifest/route.ts` | N/A | GET-only, no request body |
-| `src/app/api/settings/route.ts` | DOES NOT EXIST | Route not found in codebase |
+| Route                                         | Status            | Notes                                                |
+| --------------------------------------------- | ----------------- | ---------------------------------------------------- |
+| `src/app/api/skills/[slug]/purchase/route.ts` | N/A               | No request body parsed — uses URL params + auth only |
+| `src/app/api/skills/[slug]/install/route.ts`  | N/A               | No request body parsed — uses URL params + auth only |
+| `src/app/api/skills/[slug]/review/route.ts`   | ALREADY VALIDATED | `SkillReviewCreateSchema` + `SlugParamSchema`        |
+| `src/app/api/agent/route.ts`                  | ALREADY VALIDATED | `CreateAgentSchema`                                  |
+| `src/app/api/agent/manifest/route.ts`         | N/A               | GET-only, no request body                            |
+| `src/app/api/settings/route.ts`               | DOES NOT EXIST    | Route not found in codebase                          |
 
 **No additional Zod schemas needed** — the routes that accept user input already validate it. The purchase/install routes only use URL params and authenticated user context.
 
@@ -61,6 +61,7 @@ verification (payer-UID match, amount match, status check, replay protection) an
 payments in `ESCROWED` status.
 
 **Notes / corrections to the original report:**
+
 - The `PiPayment` model has **no** `COMPLETED`/`APPROVED` status. The actual
   `PaymentStatus` enum is `PENDING | ESCROWED | RELEASED | REFUNDED`
   (`prisma/schema.prisma`).
@@ -115,14 +116,14 @@ All user-data routes properly call `requireAuth()`:
 
 These are auth-flow endpoints that don't require prior authentication:
 
-| Route | Reason |
-|-------|--------|
-| `api/auth/pi/route.ts` | Pi token exchange (is the auth mechanism itself) |
-| `api/auth/state/route.ts` | OAuth state generation (pre-auth) |
-| `api/auth/connect/route.ts` | Wallet connection (pre-auth, uses CSRF state) |
-| `api/oauth2/token/route.ts` | Token exchange (is the auth mechanism itself) |
-| `api/agent/identity/route.ts` | Identity assertion/claim flow |
-| `api/agent/identity/claim/route.ts` | Claim status check |
+| Route                               | Reason                                           |
+| ----------------------------------- | ------------------------------------------------ |
+| `api/auth/pi/route.ts`              | Pi token exchange (is the auth mechanism itself) |
+| `api/auth/state/route.ts`           | OAuth state generation (pre-auth)                |
+| `api/auth/connect/route.ts`         | Wallet connection (pre-auth, uses CSRF state)    |
+| `api/oauth2/token/route.ts`         | Token exchange (is the auth mechanism itself)    |
+| `api/agent/identity/route.ts`       | Identity assertion/claim flow                    |
+| `api/agent/identity/claim/route.ts` | Claim status check                               |
 
 **Verdict:** No missing auth. All user-data routes are protected.
 
@@ -130,17 +131,20 @@ These are auth-flow endpoints that don't require prior authentication:
 
 ## 5. Summary
 
-| Issue | Severity | Status |
-|-------|----------|--------|
-| `Math.random()` in ID generation | CRITICAL | **FIXED** |
-| Missing Zod validation | N/A | Already validated or N/A |
-| Payment verification gap | HIGH | **OPEN** — TODO in purchase route |
-| Missing auth | N/A | None found |
+| Issue                            | Severity | Status                                                   |
+| -------------------------------- | -------- | -------------------------------------------------------- |
+| `Math.random()` in ID generation | CRITICAL | **FIXED**                                                |
+| Missing Zod validation           | N/A      | Already validated or N/A                                 |
+| Payment verification gap         | HIGH     | **FIXED** — install route enforces payment gate (PR #98) |
+| Missing auth                     | N/A      | None found                                               |
 
 ### Files Modified
+
 - `backend/src/lib/utils.ts` — Replaced `Math.random()` with `crypto.getRandomValues()`
+- `src/app/api/skills/[slug]/install/route.ts` — Added payment gate enforcement (PR #98)
 
 ### Action Items
-1. **[HIGH]** Implement Pi Payment SDK approval in `purchase/route.ts` before granting access
+
+1. ~~**[HIGH]** Implement Pi Payment SDK approval in `purchase/route.ts` before granting access~~ — **DONE (PR #98)**
 2. **[MEDIUM]** Consider adding a `paymentId` field to the purchase request body schema
 3. **[LOW]** Add `src/app/api/settings/route.ts` if settings update endpoint is planned
