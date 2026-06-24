@@ -260,7 +260,7 @@ console.log("Public Key:", did.verificationMethod[0].publicKeyMultibase);`;
                   { method: "getStamps(slug)", returns: "Promise<Stamps>", desc: language === "en" ? "Get all verified stamps for a user (KYC, wallet, social, agent)" : "الحصول على جميع الطوابع الموثقة لمستخدم" },
                   { method: "resolveDID(did)", returns: "Promise<DIDDocument>", desc: language === "en" ? "Resolve a did:axiom identifier to its W3C DID document" : "حل معرف did:axiom إلى وثيقة W3C DID" },
                   { method: "getTrustScore(did)", returns: "Promise<TrustScore>", desc: language === "en" ? "Get trust score breakdown: XP component + stamp component" : "الحصول على تفاصيل نقاط الثقة: مكون XP + مكون الطوابع" },
-                  { method: "searchAgents(query)", returns: "Promise<Agent[]>", desc: language === "en" ? "Search agents by name, description, or capabilities" : "البحث عن عملاء بالاسم أو الوصف أو القدرات" },
+                  { method: "searchSkills(query)", returns: "Promise<Skill[]>", desc: language === "en" ? "Search skills by name, description, or capabilities" : "البحث عن مهارات بالاسم أو الوصف أو القدرات" },
                 ].map((fn, i) => (
                   <div key={i} className="flex items-start gap-3 p-2 rounded-lg hover:bg-white/[0.01] transition-colors">
                     <code className="text-[11px] font-mono text-neon-green whitespace-nowrap">{fn.method}</code>
