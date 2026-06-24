@@ -45,6 +45,7 @@ Desktop.ini
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+packages/sdk/dist
 
 # prisma
 /src/generated/prisma
