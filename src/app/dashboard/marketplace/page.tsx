@@ -184,7 +184,7 @@ export default function MarketplacePage() {
         });
         if (!orderRes.ok) {
           const data = await orderRes.json().catch(() => ({}));
-          throw new Error(data.error || `Purchase verification failed (${orderRes.status})`);
+          throw new Error(data?.message || data?.error || 'Purchase verification failed (' + orderRes.status + ')');
         }
       }
 
@@ -193,7 +193,7 @@ export default function MarketplacePage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || `Install failed (${res.status})`);
+        throw new Error(data?.message || data?.error || 'Install failed (' + res.status + ')');
       }
       toast.success(t("marketplace_install_success"));
       openDetail(skill.slug);

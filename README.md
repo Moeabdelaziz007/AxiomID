@@ -20,7 +20,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-beta_v1.0-blue" alt="Status" />
-  <img src="https://img.shields.io/badge/tests-1260%20passing-brightgreen" alt="Tests" />
+  <img src="https://img.shields.io/badge/tests-1968%20passing-brightgreen" alt="Tests" />
   <img src="https://img.shields.io/badge/coverage-100%25-brightgreen" alt="Coverage" />
   <img src="https://img.shields.io/badge/Next.js-16-black" alt="Next.js" />
   <img src="https://img.shields.io/badge/React-19-blue" alt="React" />
