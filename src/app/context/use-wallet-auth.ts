@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useEffect } from "react";
 import { connectPi, checkPiBrowser, PiSdkError, PiSdkErrorCode, determineSandboxMode } from "@/lib/pi-sdk";
 import { logger } from "@/lib/logger";
 import {
@@ -36,6 +36,13 @@ export function useWalletAuth({
   pushLog,
 }: UseWalletAuthParams): UseWalletAuthReturn {
   const connectingRef = useRef(false);
+  const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+    };
+  }, []);
 
   const logout = useCallback(() => {
     removeLocalStorageItem("pi_access_token");
@@ -166,8 +173,8 @@ export function useWalletAuth({
       logger.error("Auth error:", message);
       pushLog(`❌ Error: ${message}`);
       setError(message);
-      setTimeout(() => setError(null), 8000);
-      return;
+      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+      errorTimeoutRef.current = setTimeout(() => setError(null), 8000);
     } finally {
       setIsConnecting(false);
       connectingRef.current = false;

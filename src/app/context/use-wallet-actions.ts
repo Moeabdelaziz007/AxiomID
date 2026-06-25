@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useRef, useEffect } from "react";
 import { runWalletTest } from "@/lib/pi-sdk";
 import { logger } from "@/lib/logger";
 import {
@@ -33,6 +33,14 @@ export function useWalletActions({
   setError,
   setWalletLogs,
 }: UseWalletActionsParams): UseWalletActionsReturn {
+  const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+    };
+  }, []);
+
   const pushLog = useCallback((msg: string) => {
     setWalletLogs((prev) => {
       const next = [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`];
@@ -84,7 +92,8 @@ export function useWalletActions({
       if (!res.ok) {
         const err = await res.json();
         setError(err.error || "Failed to claim");
-        setTimeout(() => setError(null), 8000);
+        if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = setTimeout(() => setError(null), 8000);
         return false;
       }
 
@@ -117,7 +126,8 @@ export function useWalletActions({
       if (!res.ok) {
         const err = await res.json();
         setError(err.error || "Failed to verify identity");
-        setTimeout(() => setError(null), 8000);
+        if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = setTimeout(() => setError(null), 8000);
         return false;
       }
 
