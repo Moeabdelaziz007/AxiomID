@@ -85,7 +85,7 @@ export default function Header({ showBack = false, showWallet = false }: HeaderP
           {showBack && (
             <Link href="/" className="btn-ghost text-xs font-mono px-3 py-1.5 flex items-center gap-1.5">
               <ArrowLeft className="w-3.5 h-3.5" />
-              {language === "en" ? "BACK" : "عودة"}
+              {t("header_back")}
             </Link>
           )}
           <LanguageToggle />

@@ -33,7 +33,7 @@ interface InteractivePassportCardProps {
  * @param onSign - Optional async callback for signing operations, passed to `PassportKeyManager`.
  */
 export default function InteractivePassportCard({ user, readonly = false, locked = false, onSign }: InteractivePassportCardProps) {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const cardRef = useRef<HTMLDivElement>(null);
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
@@ -41,7 +41,7 @@ export default function InteractivePassportCard({ user, readonly = false, locked
 
   const hasUser = !!user && !locked;
   const username = locked ? "" : (user?.piUsername || (user?.walletAddress ? (user.walletAddress.startsWith("pi:") ? user.walletAddress.slice(3) : user.walletAddress) : ""));
-  const displayUsername = locked ? (language === "en" ? "LOCKED PREVIEW" : "معاينة مقفلة") : (username || (language === "en" ? "Anonymous Pioneer" : "رائد مجهول"));
+  const displayUsername = locked ? t("passport_locked_preview") : (username || t("passport_anonymous"));
   const displayAddress = locked ? "did:axiom:locked_credential" : (user?.walletAddress 
     ? (user.walletAddress.length > 22 ? `${user.walletAddress.slice(0, 10)}...${user.walletAddress.slice(-8)}` : user.walletAddress)
     : "did:axiom:unconnected");

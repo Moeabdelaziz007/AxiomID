@@ -1,5 +1,10 @@
 import { MetadataRoute } from "next";
 
+/**
+ * Defines the web app manifest for AxiomID.
+ *
+ * @returns The manifest configuration for the application.
+ */
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "AxiomID - Agent Identity Protocol",

@@ -31,7 +31,7 @@ export default function OnboardingPage() {
   const handleCreateAgent = async () => {
     setCreatingAgent(true);
     try {
-      const ok = await createAgent(agentName || "Axiom Pioneer Agent");
+      const ok = await createAgent(agentName || t("onboarding_default_agent_name"));
       if (ok) {
         handleNextStep();
       } else {
@@ -82,12 +82,12 @@ export default function OnboardingPage() {
   const stateValue = getOnboardingState();
 
   const stateConfigs: Record<OnboardingState, { label: string; colorClass: string }> = {
-    VISITOR: { label: "VISITOR", colorClass: "text-zinc-500 border-zinc-800 bg-zinc-900/50" },
-    CONNECTED: { label: "CONNECTED", colorClass: "text-blue-400 border-blue-500/20 bg-blue-500/5" },
-    PARTIAL_VERIFIED: { label: "PARTIAL KYC", colorClass: "text-amber-400 border-amber-500/20 bg-amber-500/5" },
-    VERIFIED: { label: "VERIFIED", colorClass: "text-green-400 border-green-500/20 bg-green-500/5" },
-    PENDING_REVIEW: { label: "PENDING REVIEW", colorClass: "text-purple-400 border-purple-500/20 bg-purple-500/5" },
-    ERROR: { label: "ERROR", colorClass: "text-red-400 border-red-500/20 bg-red-500/5" }
+    VISITOR: { label: t("onboarding_state_visitor"), colorClass: "text-zinc-500 border-zinc-800 bg-zinc-900/50" },
+    CONNECTED: { label: t("onboarding_state_connected"), colorClass: "text-blue-400 border-blue-500/20 bg-blue-500/5" },
+    PARTIAL_VERIFIED: { label: t("onboarding_state_partial_kyc"), colorClass: "text-amber-400 border-amber-500/20 bg-amber-500/5" },
+    VERIFIED: { label: t("onboarding_state_verified"), colorClass: "text-green-400 border-green-500/20 bg-green-500/5" },
+    PENDING_REVIEW: { label: t("onboarding_state_pending_review"), colorClass: "text-purple-400 border-purple-500/20 bg-purple-500/5" },
+    ERROR: { label: t("onboarding_state_error"), colorClass: "text-red-400 border-red-500/20 bg-red-500/5" }
   };
 
   const stateConfig = stateConfigs[stateValue];
@@ -112,7 +112,7 @@ export default function OnboardingPage() {
                 </span>
                 <span className="text-zinc-700">•</span>
                 <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded border ${stateConfig.colorClass}`}>
-                  STATE: {stateConfig.label}
+                  {t("onboarding_state_prefix")}{stateConfig.label}
                 </span>
               </div>
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-white transition-all duration-300">

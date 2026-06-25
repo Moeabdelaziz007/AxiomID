@@ -98,10 +98,11 @@ export function clearAuthCache(tokenHash?: string): void {
 }
 
 /**
- * Verifies a request's Pi access token and retrieves the authenticated user.
+ * Resolves the authenticated user for a Pi access token in the request.
  *
- * @param request - The incoming request containing the Authorization header
- * @returns An object with the authenticated user and no error on success, or an error and no user on failure
+ * Checks the bearer token, verifies revocation status, consults the user cache, supports sandbox and development tokens, and falls back to Pi token verification before looking up the user record.
+ *
+ * @returns `{ error: null, user }` when authentication succeeds, or `{ error, user: null }` when it fails.
  */
 export async function requireAuth(request: NextRequest): Promise<
   { error: ReturnType<typeof apiError>; user: null } | { error: null; user: AuthenticatedUser }

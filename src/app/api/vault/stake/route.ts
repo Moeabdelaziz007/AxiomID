@@ -14,7 +14,9 @@ const StakeRequestSchema = z.object({
 });
 
 /**
- * Handle GET requests to fetch all staking records for the authenticated user.
+ * Fetches the authenticated user's staking records.
+ *
+ * @returns A response containing the user's staking records ordered by most recent first, or an error response.
  */
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
@@ -39,7 +41,9 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * Handle POST requests to perform a stake or unstake operation.
+ * Stakes tokens or unstakes one or all of the authenticated user's stake records.
+ *
+ * @returns A success response with the created stake, the updated stake, or a bulk unstaking message. Returns an error response when the request is invalid, rate-limited, unauthorized, or the operation fails.
  */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -99,22 +103,17 @@ export async function POST(request: NextRequest) {
         return apiSuccess({ stake: updatedStake });
       } else {
         // unstake all active stakes
-        const activeStakes = await prisma.stake.findMany({
+        const result = await prisma.stake.updateMany({
           where: { userId: auth.user.id, status: "staked" },
-        });
-
-        if (activeStakes.length === 0) {
-          return apiError("VALIDATION_ERROR", "No active stakes found");
-        }
-
-        const ids = activeStakes.map(s => s.id);
-        await prisma.stake.updateMany({
-          where: { id: { in: ids } },
           data: { status: "unstaked" },
         });
 
-        logger.info("[VAULT-STAKE] User unstaked all active stakes", { userId: auth.user.id, count: ids.length });
-        return apiSuccess({ message: `Successfully unstaked ${ids.length} stakes` });
+        if (result.count === 0) {
+          return apiError("VALIDATION_ERROR", "No active stakes found");
+        }
+
+        logger.info("[VAULT-STAKE] User unstaked all active stakes", { userId: auth.user.id, count: result.count });
+        return apiSuccess({ message: `Successfully unstaked ${result.count} stakes` });
       }
     }
   } catch (error) {

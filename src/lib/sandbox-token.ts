@@ -5,11 +5,9 @@
 const DEFAULT_SANDBOX_DEV_TOKEN = 'sandbox-dev-token-abc-123';
 
 /**
- * Server-side resolver for the sandbox dev token.
+ * Resolves the sandbox dev token on the server.
  *
- * Returns `undefined` in production (the sandbox bypass must never be active in
- * production). Outside production it prefers an explicit `SANDBOX_DEV_TOKEN`,
- * then a public `NEXT_PUBLIC_SANDBOX_DEV_TOKEN`, otherwise a well-known default.
+ * @returns `undefined` in production; otherwise the first available token from `SANDBOX_DEV_TOKEN`, `NEXT_PUBLIC_SANDBOX_DEV_TOKEN`, or the default token.
  */
 export function getSandboxDevToken(): string | undefined {
   if (process.env.NODE_ENV === 'production') return undefined;
@@ -21,9 +19,9 @@ export function getSandboxDevToken(): string | undefined {
 }
 
 /**
- * Client-safe resolver for the sandbox dev token. Only reads public env vars
- * so it produces the same value the server's {@link getSandboxDevToken} would
- * resolve to in non-production (when `SANDBOX_DEV_TOKEN` is not set).
+ * Gets the client-side sandbox dev token.
+ *
+ * @returns The value of `NEXT_PUBLIC_SANDBOX_DEV_TOKEN` when set, otherwise `DEFAULT_SANDBOX_DEV_TOKEN`.
  */
 export function getClientSandboxDevToken(): string {
   return process.env.NEXT_PUBLIC_SANDBOX_DEV_TOKEN || DEFAULT_SANDBOX_DEV_TOKEN;

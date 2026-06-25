@@ -48,12 +48,9 @@
     "test:watch": "jest --watch",
     "type-check": "tsc --noEmit",
     "memory:build": "ts-node --compiler-options '{\\\"module\\\":\\\"commonjs\\\"}' scripts/build-memory.ts",
-    "dead-code": "knip",
-    "prepare": "husky"
+    "dead-code": "knip"
   },
   "dependencies": {
-    "@axiomid/crypto": "file:packages/crypto",
-    "@axiomid/sdk": "file:packages/sdk",
     "@json-render/core": "^0.19.0",
     "@json-render/react": "^0.19.0",
     "@nostics/unplugin": "^1.1.0",
@@ -61,25 +58,21 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
     "@vercel/analytics": "^2.0.1",
-    "@vercel/og": "^0.11.1",
     "@vercel/speed-insights": "^2.0.0",
     "framer-motion": "^12.40.0",
-    "html2canvas": "^1.4.1",
     "jose": "^5.9.6",
-    "lucide-react": "^1.21.0",
+    "lucide-react": "^1.18.0",
     "next": "16.2.9",
     "nostics": "^1.1.4",
     "qrcode.react": "^4.2.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "sonner": "^2.0.7",
-    "stellar-sdk": "^13.3.0",
-    "telegraf": "^4.16.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@emulators/adapter-next": "^0.7.0",
-    "@emulators/github": "^0.7.0",
+    "@emulators/adapter-next": "^0.6.1",
+    "@emulators/github": "^0.6.1",
     "@sentry/nextjs": "^10.59.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
@@ -90,25 +83,14 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
-    "husky": "^9.1.7",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "jest-location-mock": "^4.0.1",
-    "knip": "^6.17.2",
-    "lint-staged": "^17.0.8",
-    "prettier": "^3.8.4",
+    "knip": "^6.17.1",
     "prisma": "^6.0.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5",
     "undici": "^8.5.0"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --max-warnings 0 --fix"
-    ],
-    "*.{json,md,yml,yaml,css}": [
-      "prettier --write"
-    ]
   }
 }
