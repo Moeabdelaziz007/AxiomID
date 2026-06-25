@@ -518,6 +518,7 @@ export function mctsSimulate(
   simulateFn: (state: Record<string, unknown>) => number,
   maxSteps: number = 100,
 ): number {
+  if (maxSteps <= 0) return 0;
   let state = { ...node.state };
   let totalReward = 0;
 
