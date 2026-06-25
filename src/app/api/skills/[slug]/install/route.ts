@@ -82,24 +82,31 @@ export async function POST(
       if (existingInstallation.status === 'active') {
         return apiError('CONFLICT', 'Skill is already installed');
       }
-      await prisma.skillInstallation.update({
-        where: { id: existingInstallation.id },
-        data: { status: 'active', installedAt: new Date() },
-      });
+      await prisma.$transaction([
+        prisma.skillInstallation.update({
+          where: { id: existingInstallation.id },
+          data: { status: 'active', installedAt: new Date() },
+        }),
+        prisma.skill.update({
+          where: { slug },
+          data: { installCount: { increment: 1 } },
+        }),
+      ]);
     } else {
-      await prisma.skillInstallation.create({
-        data: {
-          skillId: skill.id,
-          agentId: agent.id,
-          status: 'active',
-        },
-      });
+      await prisma.$transaction([
+        prisma.skillInstallation.create({
+          data: {
+            skillId: skill.id,
+            agentId: agent.id,
+            status: 'active',
+          },
+        }),
+        prisma.skill.update({
+          where: { slug },
+          data: { installCount: { increment: 1 } },
+        }),
+      ]);
     }
-
-    await prisma.skill.update({
-      where: { slug },
-      data: { installCount: { increment: 1 } },
-    });
 
     return apiSuccess({
       installed: true,
