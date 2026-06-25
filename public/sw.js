@@ -48,23 +48,23 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Network-First strategy for HTML document requests and homepage
+  // event.waitUntil() MUST be called before event.respondWith() to avoid
+  // DOMException when the event is deactivated before .then() runs.
   if (
     event.request.mode === "navigate" ||
     url.pathname === "/" ||
     !url.pathname.includes(".")
   ) {
+    const fetchPromise = fetch(event.request).then((response) => {
+      if (response.status === 200) {
+        const clone = response.clone();
+        caches.open(CACHE).then((cache) => cache.put(event.request, clone));
+      }
+      return response;
+    });
+    event.waitUntil(fetchPromise.catch(() => {}));
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response.status === 200) {
-            const clone = response.clone();
-            event.waitUntil(
-              caches.open(CACHE).then((cache) => cache.put(event.request, clone))
-            );
-          }
-          return response;
-        })
-        .catch(() => caches.match(event.request))
+      fetchPromise.catch(() => caches.match(event.request))
     );
     return;
   }
@@ -78,25 +78,18 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const fetchPromise = fetch(event.request)
-        .then((response) => {
-          if (response.status === 200) {
-            const clone = response.clone();
-            event.waitUntil(
-              caches.open(CACHE).then((cache) => cache.put(event.request, clone))
-            );
-          }
-          return response;
-        })
-        .catch((err) => { if (cached) return cached; throw err; });
+  // Stale-While-Revalidate: serve cached, update in background.
+  // event.waitUntil() is called BEFORE event.respondWith() to keep the SW alive.
+  const swrFetch = fetch(event.request).then((response) => {
+    if (response.status === 200) {
+      const clone = response.clone();
+      caches.open(CACHE).then((cache) => cache.put(event.request, clone));
+    }
+    return response;
+  }).catch(() => {});
 
-      if (cached) {
-        event.waitUntil(fetchPromise);
-        return cached;
-      }
-      return fetchPromise;
-    })
+  event.waitUntil(swrFetch);
+  event.respondWith(
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
 });
