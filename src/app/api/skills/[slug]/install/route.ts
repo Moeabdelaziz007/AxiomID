@@ -55,11 +55,7 @@ export async function POST(
           // Ignore JSON parsing errors
         }
 
-        if (
-          skillIdFromMeta === skill.id ||
-          p.memo?.includes(skill.name) ||
-          p.memo?.includes(skill.slug)
-        ) {
+        if (skillIdFromMeta === skill.id) {
           hasPaid = true;
           break;
         }
