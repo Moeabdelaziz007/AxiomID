@@ -19,7 +19,7 @@
 
 ### [Component: Caching & Service Worker]
 
-#### [MODIFY] [sw.js](file:///Users/cryptojoker710/Desktop/AxiomID/public/sw.js)
+#### [MODIFY] [sw.js](../../../public/sw.js)
 تحديث معالج طلبات الجلب (`fetch` listener) لتطبيق السياسة الجديدة:
 * استثناء أي طلبات تبدأ بـ `/api/` أو تحتوي على نهايات غير مدعومة.
 * تطبيق استراتيجية **Network-First** للمستندات والطلبات التي تطلب صفحات HTML.
@@ -29,22 +29,22 @@
 
 ### [Component: Codebase Duplications & Cleanups]
 
-#### [MODIFY] [PiBrowserGuard.tsx](file:///Users/cryptojoker710/Desktop/AxiomID/src/components/PiBrowserGuard.tsx)
+#### [MODIFY] [PiBrowserGuard.tsx](../../../src/components/PiBrowserGuard.tsx)
 إزالة السطر الأخير `export default PiBrowserGuard;` لتفادي تحذيرات التصدير المزدوج.
 
-#### [MODIFY] [validators.ts](file:///Users/cryptojoker710/Desktop/AxiomID/src/lib/validators.ts)
+#### [MODIFY] [validators.ts](../../../src/lib/validators.ts)
 إزالة `PassportSlugParamSchema` و `PassportSlugParamInput` والاكتفاء بـ `SlugParamSchema` و `SlugParamInput`.
 
-#### [MODIFY] [route.ts (publish)](file:///Users/cryptojoker710/Desktop/AxiomID/src/app/api/passport/%5Bslug%5D/publish/route.ts)
+#### [MODIFY] [route.ts (publish)](../../../src/app/api/passport/[slug]/publish/route.ts)
 تحديث الاستيراد واستخدام `SlugParamSchema` بدلاً من `PassportSlugParamSchema`.
 
-#### [MODIFY] [route.ts (passport)](file:///Users/cryptojoker710/Desktop/AxiomID/src/app/api/passport/%5Bslug%5D/route.ts)
+#### [MODIFY] [route.ts (passport)](../../../src/app/api/passport/[slug]/route.ts)
 تحديث الاستيراد واستخدام `SlugParamSchema` بدلاً من `PassportSlugParamSchema`.
 
-#### [MODIFY] [route.ts (verify)](file:///Users/cryptojoker710/Desktop/AxiomID/src/app/api/passport/%5Bslug%5D/verify/route.ts)
+#### [MODIFY] [route.ts (verify)](../../../src/app/api/passport/[slug]/verify/route.ts)
 تحديث الاستيراد واستخدام `SlugParamSchema` بدلاً من `PassportSlugParamSchema`.
 
-#### [MODIFY] [math-physics.ts](file:///Users/cryptojoker710/Desktop/AxiomID/src/lib/math-physics.ts)
+#### [MODIFY] [math-physics.ts](../../../src/lib/math-physics.ts)
 إدراج كافة دوال المحاكاة والتحليل الرياضي المتقدمة المتواجدة بـ `backend/src/lib/math-physics.ts` للحفاظ على التطابق الكامل وحماية حدود التجميع المستقلة.
 
 ---

@@ -32,7 +32,7 @@
   Before modifying `public/sw.js`, describe the expected behavior of the network-first service worker.
   
 - [ ] **Step 2: Replace sw.js content with Network-First & Stale-While-Revalidate Strategy**
-  Modify [public/sw.js](file:///Users/cryptojoker710/Desktop/AxiomID/public/sw.js):
+  Modify [public/sw.js](../../../public/sw.js):
   ```javascript
   const CACHE = "axiomid-v2"; // Increment cache version
   const STATIC_ASSETS = [
@@ -137,7 +137,7 @@ We have broken the caching chains that bound the interface to static ghosts of t
   We have already verified via grep search that no file uses default import (`import PiBrowserGuard` without braces). 
 
 - [ ] **Step 2: Modify PiBrowserGuard.tsx to remove default export**
-  Open [src/components/PiBrowserGuard.tsx](file:///Users/cryptojoker710/Desktop/AxiomID/src/components/PiBrowserGuard.tsx) and delete the line (Line 193):
+  Open [src/components/PiBrowserGuard.tsx](../../../src/components/PiBrowserGuard.tsx) and delete the line (Line 193):
   ```typescript
   export default PiBrowserGuard;
   ```
@@ -172,7 +172,7 @@ The redundant default export of the Pi Browser Guard has been dissolved, enforci
 - Produces: `SlugParamSchema` utilized uniformly across all passport routes.
 
 - [ ] **Step 1: Write tests for SlugParamSchema in validators.test.ts**
-  Add unit tests for `SlugParamSchema` inside [src/__tests__/lib/validators.test.ts](file:///Users/cryptojoker710/Desktop/AxiomID/src/__tests__/lib/validators.test.ts):
+  Add unit tests for `SlugParamSchema` inside [src/__tests__/lib/validators.test.ts](../../../src/__tests__/lib/validators.test.ts):
   ```typescript
   import { SlugParamSchema } from "@/lib/validators";
 
@@ -199,7 +199,7 @@ The redundant default export of the Pi Browser Guard has been dissolved, enforci
   Expected: Tests pass.
 
 - [ ] **Step 3: Modify validators.ts to remove PassportSlugParamSchema**
-  Open [src/lib/validators.ts](file:///Users/cryptojoker710/Desktop/AxiomID/src/lib/validators.ts), remove the duplicate schemas (Lines 130 and 152):
+  Open [src/lib/validators.ts](../../../src/lib/validators.ts), remove the duplicate schemas (Lines 130 and 152):
   ```typescript
   // DELETE
   export const PassportSlugParamSchema = SlugParamSchema;
@@ -209,9 +209,9 @@ The redundant default export of the Pi Browser Guard has been dissolved, enforci
 
 - [ ] **Step 4: Update import and usage in API routes**
   Update the following route handlers to use `SlugParamSchema` instead of `PassportSlugParamSchema`:
-  1. [src/app/api/passport/[slug]/publish/route.ts](file:///Users/cryptojoker710/Desktop/AxiomID/src/app/api/passport/%5Bslug%5D/publish/route.ts)
-  2. [src/app/api/passport/[slug]/route.ts](file:///Users/cryptojoker710/Desktop/AxiomID/src/app/api/passport/%5Bslug%5D/route.ts)
-  3. [src/app/api/passport/[slug]/verify/route.ts](file:///Users/cryptojoker710/Desktop/AxiomID/src/app/api/passport/%5Bslug%5D/verify/route.ts)
+  1. [src/app/api/passport/[slug]/publish/route.ts](../../../src/app/api/passport/[slug]/publish/route.ts)
+  2. [src/app/api/passport/[slug]/route.ts](../../../src/app/api/passport/[slug]/route.ts)
+  3. [src/app/api/passport/[slug]/verify/route.ts](../../../src/app/api/passport/[slug]/verify/route.ts)
 
 - [ ] **Step 5: Run tests and Knip audit**
   Run: `npm run type-check && npm run lint && npm run test && npm run dead-code`
@@ -239,7 +239,7 @@ We have extracted redundant schema representations from our validator systems. B
 - Produces: Full library of physics-inspired functions matches `backend/src/lib/math-physics.ts`.
 
 - [ ] **Step 1: Write a test verifying one of the new advanced functions compiles**
-  Add a test verifying `inverseSquareDecay` inside [src/__tests__/lib/math-physics.test.ts](file:///Users/cryptojoker710/Desktop/AxiomID/src/__tests__/lib/math-physics.test.ts):
+  Add a test verifying `inverseSquareDecay` inside [src/__tests__/lib/math-physics.test.ts](../../../src/__tests__/lib/math-physics.test.ts):
   ```typescript
   import { inverseSquareDecay } from "@/lib/math-physics";
 
