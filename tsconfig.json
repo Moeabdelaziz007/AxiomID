@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@axiomid/crypto": ["./packages/crypto/src/index.ts"],
+      "@axiomid/sdk": ["./packages/sdk/src/index.ts"]
     }
   },
   "include": [

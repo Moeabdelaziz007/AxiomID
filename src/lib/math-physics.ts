@@ -518,7 +518,6 @@ export function mctsSimulate(
   simulateFn: (state: Record<string, unknown>) => number,
   maxSteps: number = 100,
 ): number {
-  if (maxSteps <= 0) return 0;
   let state = { ...node.state };
   let totalReward = 0;
 
@@ -971,11 +970,9 @@ export function randomWalkTrust(
   // visits actually taken so the distribution always sums to 1, even when
   // the walk hits a dead-end before completing all steps.
   const stationaryDistribution = new Map<string, number>();
-  // Stationary distribution = visit frequency
-  const stationaryDistribution = new Map<string, number>();
-  const totalVisits = Array.from(visitCounts.values()).reduce((sum, count) => sum + count, 0);
+  const totalVisitsCalculated = Array.from(visitCounts.values()).reduce((sum, count) => sum + count, 0);
   for (const [node, count] of visitCounts) {
-    stationaryDistribution.set(node, totalVisits > 0 ? count / totalVisits : 0);
+    stationaryDistribution.set(node, totalVisitsCalculated > 0 ? count / totalVisitsCalculated : 0);
   }
 
   return { visitCounts, stationaryDistribution };

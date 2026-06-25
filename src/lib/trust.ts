@@ -36,6 +36,14 @@ export function calculateTrustScore(
     ? Math.round((clamped / TOTAL_STAMPS) * 100)
     : 0;
 
-  const score = xpScore * 0.7 + stampScore * 0.3;
+  if (tenureDays === undefined && semanticTrust === undefined) {
+    return Math.max(0, Math.min(100, Math.round(xpScore * 0.7 + stampScore * 0.3)));
+  }
+
+  const resolvedTenure = tenureDays ?? 0;
+  const resolvedSemantic = semanticTrust ?? 50;
+
+  const tenureScore = Math.min(100, Math.max(0, resolvedTenure * 2)); // e.g. 50 days = 100%
+  const score = xpScore * 0.5 + stampScore * 0.2 + tenureScore * 0.1 + resolvedSemantic * 0.2;
   return Math.max(0, Math.min(100, Math.round(score)));
 }

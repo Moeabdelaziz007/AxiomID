@@ -65,7 +65,6 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "maskable",
       },
     ],
-    ],
     categories: ["identity", "utilities", "finance"],
     lang: "en-US",
     dir: "ltr",
