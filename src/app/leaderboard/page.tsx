@@ -172,7 +172,7 @@ export default function LeaderboardPage() {
             </div>
           </div>
         </div>
-      ) : users.length === 0 ? (
+      ) : error ? null : users.length === 0 ? (
         <div className="max-w-4xl mx-auto px-4 mt-10 relative z-10">
           <div className="glass-card p-12 text-center relative overflow-hidden">
             <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-full blur-3xl opacity-60 pointer-events-none" />
