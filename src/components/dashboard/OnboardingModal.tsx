@@ -58,12 +58,12 @@ export function OnboardingModal({
   const stateValue = getOnboardingState(user);
 
   const stateConfigs: Record<OnboardingState, { label: string; colorClass: string }> = {
-    VISITOR: { label: "VISITOR", colorClass: "text-zinc-500 border-zinc-800 bg-zinc-900/50" },
-    CONNECTED: { label: "CONNECTED", colorClass: "text-blue-400 border-blue-500/20 bg-blue-500/5" },
-    PARTIAL_VERIFIED: { label: "PARTIAL KYC", colorClass: "text-amber-400 border-amber-500/20 bg-amber-500/5" },
-    VERIFIED: { label: "VERIFIED", colorClass: "text-green-400 border-green-500/20 bg-green-500/5" },
-    PENDING_REVIEW: { label: "PENDING REVIEW", colorClass: "text-purple-400 border-purple-500/20 bg-purple-500/5" },
-    ERROR: { label: "ERROR", colorClass: "text-red-400 border-red-500/20 bg-red-500/5" }
+    VISITOR: { label: t("onboarding_state_visitor"), colorClass: "text-zinc-500 border-zinc-800 bg-zinc-900/50" },
+    CONNECTED: { label: t("onboarding_state_connected"), colorClass: "text-blue-400 border-blue-500/20 bg-blue-500/5" },
+    PARTIAL_VERIFIED: { label: t("onboarding_state_partial_kyc"), colorClass: "text-amber-400 border-amber-500/20 bg-amber-500/5" },
+    VERIFIED: { label: t("onboarding_state_verified"), colorClass: "text-green-400 border-green-500/20 bg-green-500/5" },
+    PENDING_REVIEW: { label: t("onboarding_state_pending_review"), colorClass: "text-purple-400 border-purple-500/20 bg-purple-500/5" },
+    ERROR: { label: t("onboarding_state_error"), colorClass: "text-red-400 border-red-500/20 bg-red-500/5" }
   };
 
   const stateConfig = stateConfigs[stateValue];
@@ -111,9 +111,9 @@ export function OnboardingModal({
       >
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h3 id="onboarding-title" className="text-xl font-bold text-surface font-mono">AGENT ONBOARDING</h3>
+            <h3 id="onboarding-title" className="text-xl font-bold text-surface font-mono">{t("onboarding_modal_title")}</h3>
             <div className="flex items-center gap-1.5 mt-1">
-              <span className="text-[10px] text-subtle font-mono">Step {step} of 3</span>
+              <span className="text-[10px] text-subtle font-mono">{t("onboarding_modal_step_label").replace("{step}", String(step))}</span>
               <span className="text-zinc-600">•</span>
               <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded border ${stateConfig.colorClass}`}>
                 {stateConfig.label}
@@ -121,7 +121,7 @@ export function OnboardingModal({
             </div>
           </div>
           <button onClick={onSkip} className="text-faint hover:text-surface text-xs font-mono border border-white/5 hover:border-white/10 px-2.5 py-1 rounded">
-            SKIP
+            {t("onboarding_modal_skip")}
           </button>
         </div>
 
@@ -135,21 +135,21 @@ export function OnboardingModal({
           {step === 1 && (
             <div className="space-y-4">
               <div className="text-center py-4 text-4xl animate-float"><Fingerprint className="w-10 h-10 mx-auto text-neon-green" /></div>
-              <h4 className="text-base font-semibold text-surface text-center">Connect Your Pi Wallet</h4>
+              <h4 className="text-base font-semibold text-surface text-center">{t("onboarding_modal_connect_title")}</h4>
               <p className="text-xs text-subtle text-center leading-relaxed">
-                Link your secure Pi cryptographic identity to anchor your autonomous agent.
+                {t("onboarding_modal_connect_desc")}
               </p>
               {shouldShowPiBrowserPrompt && (
                 <div className="space-y-3">
                   <div className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-center text-amber-200 text-xs">
-                    Open in Pi Browser
+                    {t("onboarding_modal_pi_browser")}
                   </div>
                   {onConnectDemo && (
                     <button
                       onClick={onConnectDemo}
                       className="btn-primary w-full py-3 text-xs tracking-wider bg-gradient-to-r from-axiom-purple to-electric-blue text-white hover:opacity-90 transition-opacity"
                     >
-                      EXPLORE DEMO MODE
+                      {t("onboarding_modal_demo")}
                     </button>
                   )}
                 </div>
@@ -165,22 +165,22 @@ export function OnboardingModal({
           {step === 2 && (
             <div className="space-y-4">
               <div className="text-center py-4 text-4xl animate-float"><Bot className="w-10 h-10 mx-auto text-axiom-purple" /></div>
-              <h4 className="text-base font-semibold text-surface text-center">Create Autonomous Agent</h4>
+              <h4 className="text-base font-semibold text-surface text-center">{t("onboarding_modal_create_title")}</h4>
               <p className="text-xs text-subtle text-center leading-relaxed font-mono">
-                Define the name for your autonomous gRPC agent.
+                {t("onboarding_modal_create_desc")}
               </p>
               <div className="space-y-3 pt-2">
-                <label htmlFor="onboarding-agent-name" className="sr-only">Agent name</label>
+                <label htmlFor="onboarding-agent-name" className="sr-only">{t("onboarding_modal_agent_name_placeholder")}</label>
                 <input
                   id="onboarding-agent-name"
                   type="text"
                   value={agentName}
                   onChange={(e) => setAgentName(e.target.value)}
-                  placeholder="Agent name (optional)"
+                  placeholder={t("onboarding_modal_agent_name_placeholder")}
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-surface placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
                 />
                 <button onClick={() => onCreateAgent(agentName)} disabled={agentLoading} className="btn-primary w-full py-3 text-xs tracking-wider">
-                  {agentLoading ? "CREATING AGENT..." : "CREATE AGENT"}
+                  {agentLoading ? t("onboarding_modal_creating") : t("onboarding_modal_create_btn")}
                 </button>
               </div>
             </div>
@@ -189,24 +189,24 @@ export function OnboardingModal({
           {step === 3 && (
             <div className="space-y-4">
               <div className="text-center py-4 text-4xl animate-float"><Zap className="w-10 h-10 mx-auto text-electric-blue" /></div>
-              <h4 className="text-base font-semibold text-surface text-center">Your Passport is Ready!</h4>
+              <h4 className="text-base font-semibold text-surface text-center">{t("onboarding_modal_ready_title")}</h4>
               <p className="text-xs text-subtle text-center leading-relaxed">
-                Your agent identity passport has been successfully anchored.
+                {t("onboarding_modal_ready_desc")}
               </p>
               {user && (
                 <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl text-xs space-y-2 font-mono">
                   <div className="flex justify-between">
-                    <span className="text-faint">Agent:</span>
-                    <span className="text-neon-green">{user.agent?.name || "AxiomBot"}</span>
+                    <span className="text-faint">{t("onboarding_modal_agent_label")}</span>
+                    <span className="text-neon-green">{user.agent?.name || t("onboarding_default_agent_name")}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-faint">DID:</span>
+                    <span className="text-faint">{t("onboarding_modal_did_label")}</span>
                     <span className="text-electric-blue">{createUserDid(user.id).slice(0, 32)}...</span>
                   </div>
                 </div>
               )}
               <div className="pt-4">
-                <button onClick={onComplete} className="btn-primary w-full py-3 text-xs tracking-wider">GET STARTED</button>
+                <button onClick={onComplete} className="btn-primary w-full py-3 text-xs tracking-wider">{t("onboarding_modal_get_started")}</button>
               </div>
             </div>
           )}

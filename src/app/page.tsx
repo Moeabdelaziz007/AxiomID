@@ -18,7 +18,7 @@ import TrustTiers from "@/components/TrustTiers";
  */
 export default function Home() {
   const { user, connectWallet, isConnecting, isPiBrowser, logout } = useWallet();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <>
@@ -144,7 +144,7 @@ export default function Home() {
                   <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.3" />
                   <text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text>
                 </svg>
-                {language === "en" ? "Live on Pi Network Testnet" : "مباشر على شبكة Pi التجريبية"}
+                {t("landing_pi_badge")}
               </span>
               <span className="px-3 py-1 rounded-full text-[10px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-widest">
                 <svg viewBox="0 0 100 100" className="w-3 h-3 inline mr-1 -mt-0.5 align-middle" fill="currentColor">
@@ -156,17 +156,11 @@ export default function Home() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] text-white animate-[fadeInUp_0.6s_ease-out_0.2s_both]">
-              {language === "en" ? (
-                <>Your Identity.<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-electric-blue to-axiom-purple">Your Rules.</span></>
-              ) : (
-                <>هويتك.<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-electric-blue to-axiom-purple">قوانينك.</span></>
-              )}
+              <>{t("landing_headline_en")}<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-electric-blue to-axiom-purple">{t("landing_headline_rules_en")}</span></>
             </h1>
 
             <p className="text-lg sm:text-xl md:text-2xl font-medium tracking-tight text-zinc-300 max-w-xl animate-[fadeInUp_0.5s_ease-out_0.3s_both]">
-              {language === "en"
-                ? "No permission needed. One DID. Infinite agents. Cryptographic proof of human intent."
-                : "بدون تصريح. هوية واحدة. عملاء لا نهائية. إثبات تشفيري لنية البشر."}
+              {t("landing_tagline")}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto pt-2 animate-[fadeInUp_0.5s_ease-out_0.4s_both]">
@@ -229,7 +223,7 @@ export default function Home() {
       {/* Video Demo Placeholder */}
       <div className="w-full max-w-6xl px-4 sm:px-6 mt-16 sm:mt-24 z-10">
         <SectionHeader
-          label={language === "en" ? "Watch the Demo" : "شاهد العرض"}
+          label={t("landing_watch_demo")}
           title={t("watch_demo_title")}
           labelColor="text-electric-blue"
         />
@@ -252,8 +246,8 @@ export default function Home() {
       {/* Features Section */}
       <div className="w-full max-w-6xl px-4 sm:px-6 mt-16 sm:mt-24 z-10">
         <SectionHeader
-          label={language === "en" ? "How It Works" : "كيف يعمل النظام؟"}
-          title={language === "en" ? "Three Steps to Agent Identity" : "ثلاث خطوات لبناء هوية العميل"}
+          label={t("landing_how_it_works")}
+          title={t("landing_three_steps")}
           labelColor="text-electric-blue"
         />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
@@ -261,22 +255,22 @@ export default function Home() {
           {[
             {
               step: "01",
-              title: language === "en" ? "Connect" : "الاتصال",
-              desc: language === "en" ? "Link your Pi wallet or any Stellar address. Your identity starts here." : "اربط محفظتك للبدء فوراً في تأسيس هويتك الرقمية.",
+              title: t("landing_step1_title"),
+              desc: t("landing_step1_desc"),
               icon: <Fingerprint className="w-6 h-6 text-electric-blue" />,
               badge: "W3C DID Standard",
             },
             {
               step: "02",
-              title: language === "en" ? "Verify" : "التحقق",
-              desc: language === "en" ? "Complete KYA + KYC. Build trust through social actions and on-chain activity." : "أكمل خطوات التوثيق (KYA) واربح طوابع الهوية الرقمية.",
+              title: t("landing_step2_title"),
+              desc: t("landing_step2_desc"),
               icon: <Shield className="w-6 h-6 text-axiom-purple" />,
               badge: "ZKP Privacy Ready",
             },
             {
               step: "03",
-              title: language === "en" ? "Deploy" : "التشغيل",
-              desc: language === "en" ? "Your Agent Passport is ready. Use it across the Pi ecosystem with Pi token payments only." : "جواز سفر العميل الخاص بك جاهز للاستخدام في نظام Pi البيئي مع مدفوعات Pi فقط.",
+              title: t("landing_step3_title"),
+              desc: t("landing_step3_desc"),
               icon: <Zap className="w-6 h-6 text-emerald-400" />,
               badge: "Pi Network Compatible",
             },
@@ -302,8 +296,8 @@ export default function Home() {
       {/* Why AxiomID? */}
       <div className="w-full max-w-6xl px-4 sm:px-6 mt-16 sm:mt-24 z-10">
         <SectionHeader
-          label={language === "en" ? "The Sovereign Advantage" : "الميزة السيادية"}
-          title={language === "en" ? "Why Choose AxiomID?" : "لماذا تختار AxiomID؟"}
+          label={t("landing_sovereign_advantage")}
+          title={t("landing_why_title")}
           labelColor="text-zinc-500"
         />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -311,14 +305,14 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <AlertTriangle className="w-4 h-4 text-red-400 animate-pulse" />
-                <h3 className="text-base font-bold text-red-400 font-mono tracking-tight">{language === "en" ? "Traditional Identity (Web2)" : "الهوية التقليدية (Web2)"}</h3>
+                <h3 className="text-base font-bold text-red-400 font-mono tracking-tight">{t("landing_web2_title")}</h3>
               </div>
               <ul className="space-y-3 text-xs font-mono text-zinc-500">
                 {[
-                  language === "en" ? "Siloed data: Your profiles are owned by third-party platforms." : "بيانات معزولة: ملفاتك الشخصية مملوكة لمنصات خارجية.",
-                  language === "en" ? "High friction: Repeated manual KYC checks for every app." : "خطوات معقدة: فحوصات KYC متكررة لكل تطبيق.",
-                  language === "en" ? "Vulnerable: Easy spoofing of digital identities and usernames." : "سهل الاختراق: انتحال سهل للهويات الرقمية وأسماء المستخدمين.",
-                  language === "en" ? "No AI integration: Machine agents cannot prove their authority." : "لا تكامل مع الذكاء الاصطناعي: لا يمكن للعملاء الآليين إثبات هويتهم.",
+                  t("landing_web2_item1"),
+                  t("landing_web2_item2"),
+                  t("landing_web2_item3"),
+                  t("landing_web2_item4"),
                 ].map((text, i) => (
                   <li key={i} className="flex items-start gap-2.5">
                     <span className="text-red-500/50">✗</span>
@@ -328,7 +322,7 @@ export default function Home() {
               </ul>
             </div>
             <div className="border-t border-red-500/5 pt-4 mt-6 text-[10px] text-zinc-600 font-mono">
-              {language === "en" ? "Result: Fragile security, high friction, no agent trust." : "النتيجة: أمان هش، خطوات معقدة، غياب للثقة."}
+              {t("landing_web2_result")}
             </div>
           </div>
 
@@ -336,14 +330,14 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Shield className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-base font-bold text-emerald-400 font-mono tracking-tight">{language === "en" ? "AxiomID Sovereign Passport" : "جواز السفر السيادي AxiomID"}</h3>
+                <h3 className="text-base font-bold text-emerald-400 font-mono tracking-tight">{t("landing_axiom_title")}</h3>
               </div>
               <ul className="space-y-3 text-xs font-mono text-zinc-300">
                 {[
-                  language === "en" ? "Decentralized: You own your credentials via W3C DIDs." : "لامركزي: أنت تمتلك بياناتك عبر W3C DIDs.",
-                  language === "en" ? "Verify once, prove everywhere: Single dashboard for all stamps." : "تحقق مرة، أثبت في كل مكان: لوحة تحكم واحدة لجميع طوابعك.",
-                  language === "en" ? "Cryptographic security: Trust Score verified on-chain." : "حماية تشفيرية: نقاط الثقة موثقة ومعتمدة رياضياً.",
-                  language === "en" ? "Agent-native: Built for AI agents to represent you securely." : "مصمم للذكاء الاصطناعي: يمثلك عميلك الآلي بأمان.",
+                  t("landing_axiom_item1"),
+                  t("landing_axiom_item2"),
+                  t("landing_axiom_item3"),
+                  t("landing_axiom_item4"),
                 ].map((text, i) => (
                   <li key={i} className="flex items-start gap-2.5">
                     <span className="text-emerald-400">✓</span>
@@ -353,7 +347,7 @@ export default function Home() {
               </ul>
             </div>
             <div className="border-t border-emerald-500/10 pt-4 mt-6 text-[10px] text-zinc-400 font-mono">
-              {language === "en" ? "Result: Frictionless auth, resilient trust, delegation-ready." : "النتيجة: مصادقة خالية من الاحتكاك، ثقة مرنة، تفويض آمن."}
+              {t("landing_axiom_result")}
             </div>
           </div>
         </div>
@@ -363,7 +357,7 @@ export default function Home() {
       <div className="w-full max-w-6xl px-4 sm:px-6 mt-16 sm:mt-24 z-10">
         <SectionHeader
           label={t("tier")}
-          title={language === "en" ? "Level Up Your Identity" : "ارفع مستوى هويتك الرقمية"}
+          title={t("landing_level_up")}
           labelColor="text-electric-blue"
         />
         <TrustTiers />

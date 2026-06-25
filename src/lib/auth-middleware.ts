@@ -135,33 +135,37 @@ export async function requireAuth(request: NextRequest): Promise<
     return { error: null, user: cachedUser };
   }
 
-  // Sandbox bypass for local dev. The real safety layer is getSandboxDevToken()
-  // which returns undefined in production via NODE_ENV check. The isSandboxOrDev
-  // flag is a secondary gate that can be true in prod if misconfigured.
-  const host = request.headers.get("host") || "";
-  const isSandboxOrDev =
-    process.env.NODE_ENV !== "production" ||
-    process.env.NEXT_PUBLIC_PI_SANDBOX === "true" ||
-    host.includes("localhost") ||
-    host.includes("127.0.0.1");
+  // Sandbox bypass for local dev only. getSandboxDevToken() returns undefined
+  // in production (NODE_ENV check), so the bypass is doubly gated. This explicit
+  // production guard is the primary defense — never remove it.
+  const isProduction = process.env.NODE_ENV === "production";
+  if (isProduction) {
+    // Skip sandbox entirely in production. No env var can override this.
+  } else {
+    const host = request.headers.get("host") || "";
+    const isSandboxOrDev =
+      process.env.NEXT_PUBLIC_PI_SANDBOX === "true" ||
+      host.includes("localhost") ||
+      host.includes("127.0.0.1");
 
-  const sandboxToken = getSandboxDevToken();
-  if (isSandboxOrDev && sandboxToken && accessToken === sandboxToken) {
-    const sandboxUser = await prisma.user.findUnique({
-      where: { piUid: "sandbox-developer" },
-      select: {
-        id: true,
-        walletAddress: true,
-        piUid: true,
-        piUsername: true,
-        did: true,
-        xp: true,
-        tier: true,
-      },
-    });
+    const sandboxToken = getSandboxDevToken();
+    if (isSandboxOrDev && sandboxToken && accessToken === sandboxToken) {
+      const sandboxUser = await prisma.user.findUnique({
+        where: { piUid: "sandbox-developer" },
+        select: {
+          id: true,
+          walletAddress: true,
+          piUid: true,
+          piUsername: true,
+          did: true,
+          xp: true,
+          tier: true,
+        },
+      });
 
-    if (sandboxUser) {
-      return { error: null, user: sandboxUser as AuthenticatedUser };
+      if (sandboxUser) {
+        return { error: null, user: sandboxUser as AuthenticatedUser };
+      }
     }
   }
 

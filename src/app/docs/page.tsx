@@ -17,7 +17,7 @@ const SECTIONS: { id: SectionId; en: string; ar: string; icon: React.ReactNode; 
 ];
 
 export default function DocsPage() {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const [activeSection, setActiveSection] = useState<SectionId>("intro");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -112,7 +112,7 @@ console.log("Public Key:", did.verificationMethod[0].publicKeyMultibase);`;
         {/* Sidebar Nav */}
         <div className="md:col-span-3 space-y-2">
           <div className="p-3 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
-            {language === "en" ? "Documentation" : "الوثائق التقنية"}
+            {t("docs_sidebar_label")}
           </div>
 
           {/* Search Bar */}
@@ -120,7 +120,7 @@ console.log("Public Key:", did.verificationMethod[0].publicKeyMultibase);`;
             <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder={language === "en" ? "Search docs..." : "ابحث في الوثائق..."}
+              placeholder={t("docs_search_placeholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-9 pr-3 text-[11px] text-white font-mono placeholder-zinc-500 focus:outline-none focus:border-electric-blue/30 transition-colors"
@@ -139,7 +139,7 @@ console.log("Public Key:", did.verificationMethod[0].publicKeyMultibase);`;
               }`}
             >
               {sec.icon}
-              <span>{language === "en" ? sec.en : sec.ar}</span>
+              <span>{sec.id === "intro" ? t("docs_intro_title") : sec.id === "stamps" ? t("docs_stamps_title") : sec.id === "sdk" ? t("docs_sdk_title") : t("docs_api_title")}</span>
             </button>
           ))}
         </div>
@@ -148,21 +148,17 @@ console.log("Public Key:", did.verificationMethod[0].publicKeyMultibase);`;
         <div className="md:col-span-9 bento-card p-6 md:p-8 min-h-[500px]">
           {activeSection === "intro" && (
             <div className="space-y-6">
-              <span className="stitch-badge">Core Protocol</span>
-              <h2 className="text-xl md:text-2xl font-bold text-white">{language === "en" ? "Introduction to AxiomID" : "مقدمة عن AxiomID"}</h2>
+              <span className="stitch-badge">{t("docs_badge_core")}</span>
+              <h2 className="text-xl md:text-2xl font-bold text-white">{t("docs_intro_title")}</h2>
               <p className="text-zinc-400 text-sm leading-relaxed">
-                {language === "en"
-                  ? "AxiomID is a decentralized identity and human-authorization layer engineered to manage sybil-resistant agentic loops. By using W3C compliant Verifiable Credentials (VCs) and Decentralized Identifiers (DIDs), AxiomID allows humans to safely delegate transactional, computational, or social tasks to autonomous AI agents."
-                  : "AxiomID طبقة هوية لامركزية وتفويض بشري مصممة لإدارة حلقات عملاء مقاومة للتزوير. باستخدام بيانات اعتماد يمكن التحقق منها المتوافقة مع W3C والمعرفات اللامركزية (DIDs)، تسمح AxiomID للبشر بتفويض المهام بشكل آمن لعملاء الذكاء الاصطناعي المستقلين."}
+                {t("docs_intro_desc")}
               </p>
               
               <h3 className="text-sm font-bold font-mono text-white pt-2 border-b border-white/5 pb-2">
-                {language === "en" ? "The did:axiom DID Method" : "طريقة did:axiom DID"}
+                {t("docs_did_title")}
               </h3>
               <p className="text-zinc-400 text-sm leading-relaxed">
-                {language === "en"
-                  ? "Each verified Pioneer generates a unique sovereign DID formatted as did:axiom:piUsername. This document is cryptographically resolved by our oracle network, binding public keys directly to ledger accounts."
-                  : "كل رائد موثّق يولّد معرفاً فريداً sovereignty بصيغة did:axiom:piUsername. يتم حل هذه الوثيقة تشفيرياً من شبكة الأوراكل الخاصة بنا."}
+                {t("docs_did_desc")}
               </p>
               <CodeBlock code={didExample} language="json" />
             </div>
@@ -170,24 +166,22 @@ console.log("Public Key:", did.verificationMethod[0].publicKeyMultibase);`;
 
           {activeSection === "stamps" && (
             <div className="space-y-6">
-              <span className="stitch-badge">Trust Engine</span>
+              <span className="stitch-badge">{t("docs_badge_trust")}</span>
               <h2 className="text-xl md:text-2xl font-bold text-white">
-                {language === "en" ? "Identity Stamps" : "طوابع الهوية"}
+                {t("docs_stamps_title")}
               </h2>
               <p className="text-zinc-400 text-sm leading-relaxed">
-                {language === "en"
-                  ? "Trust is verified via cryptographically signed stamps. Each stamp earns XP and increases your Trust Score, elevating your Identity Tier from Visitor → Citizen → Validator → Sovereign."
-                  : "يتم التحقق من الثقة عبر طوابع موقعة تشفيرياً. كل طابع يكسب نقاط XP ويزيد من نقاط الثقة، مما يرفع مستوى الهوية من زائر → مواطن → مدقق → سيادي."}
+                {t("docs_stamps_desc")}
               </p>
               
               <div className="space-y-3 pt-2">
                 {[
-                  { name: "KYC Bound Stamp", xp: "250 XP", desc: language === "en" ? "Anchors proof of Pi Network KYC verification without exposing personal data. This is the highest-trust stamp — proves you are a verified human on Pi Network." : "يثبت التحقق من KYC على شبكة Pi بدون الكشف عن البيانات الشخصية. هذا أعلى طابع ثقة — يثبت أنك إنسان موثّق.", color: "text-axiom-purple" },
-                  { name: "Wallet Age Stamp", xp: "100 XP", desc: language === "en" ? "Verifies the age and transaction history of your connected Stellar/Pi wallet. Older wallets with active history earn higher trust." : "يتحقق من عمر محفظتك وسجل المعاملات. المحافظ الأقدم مع نشاط أعلى تكسب ثقة أعلى.", color: "text-electric-blue" },
-                  { name: "Social Identity Stamp", xp: "100 XP each", desc: language === "en" ? "Validates ownership of Twitter, Discord, and Google accounts via cryptographic protocol signatures. Each social link is an independent stamp." : "يتحقق من ملكية حسابات Twitter وDiscord وGoogle عبر توقيعات بروتوكول تشفيرية. كل رابط اجتماعي طابع مستقل.", color: "text-neon-green" },
-                  { name: "Transaction Stamp", xp: "50 XP each", desc: language === "en" ? "Proves on-chain activity through verified Pi or Stellar transactions. More transactions = higher trust signal." : "يثبت النشاط على السلسلة عبر معاملات Pi أو Stellar موثقة. المزيد من المعاملات = إشارة ثقة أعلى.", color: "text-amber-400" },
-                  { name: "Agent Stamp", xp: "150 XP", desc: language === "en" ? "Verifies that an AI agent is deployed, active, and working under your delegation. Ties agent behavior to your trust score." : "يتحقق من أن عميل الذكاء الاصطناعي نشط ويعمل تحت تفويضك. يربط سلوك العميل بنقاط ثقتك.", color: "text-emerald-400" },
-                  { name: "Daily PoW Proof", xp: "10 XP daily", desc: language === "en" ? "Establishes daily active human participation through lightweight cryptographic proof-of-work tasks. Consistency builds trust." : "يثبت المشاركة البشرية النشطة يومياً عبر مهام إثبات عمل تشفيرية خفيفة. الاتساق يبني الثقة.", color: "text-zinc-400" },
+                  { name: t("docs_stamp_kyc_name"), xp: t("docs_stamp_kyc_xp"), desc: t("docs_stamp_kyc_desc"), color: "text-axiom-purple" },
+                  { name: t("docs_stamp_wallet_name"), xp: t("docs_stamp_wallet_xp"), desc: t("docs_stamp_wallet_desc"), color: "text-electric-blue" },
+                  { name: t("docs_stamp_social_name"), xp: t("docs_stamp_social_xp"), desc: t("docs_stamp_social_desc"), color: "text-neon-green" },
+                  { name: t("docs_stamp_tx_name"), xp: t("docs_stamp_tx_xp"), desc: t("docs_stamp_tx_desc"), color: "text-amber-400" },
+                  { name: t("docs_stamp_agent_name"), xp: t("docs_stamp_agent_xp"), desc: t("docs_stamp_agent_desc"), color: "text-emerald-400" },
+                  { name: t("docs_stamp_pow_name"), xp: t("docs_stamp_pow_xp"), desc: t("docs_stamp_pow_desc"), color: "text-zinc-400" },
                 ].map((stamp, i) => (
                   <div key={i} className="flex justify-between items-start p-3 rounded-xl border border-white/5 bg-white/[0.01] hover:bg-white/[0.02] transition-colors">
                     <div className="flex-1 min-w-0">
@@ -203,15 +197,13 @@ console.log("Public Key:", did.verificationMethod[0].publicKeyMultibase);`;
 
               <div className="mt-6 p-4 rounded-xl border border-electric-blue/20 bg-electric-blue/5">
                 <h4 className="text-xs font-bold font-mono text-electric-blue mb-2">
-                  {language === "en" ? "Trust Score Formula" : "صيغة نقاط الثقة"}
+                  {t("docs_trust_formula_title")}
                 </h4>
                 <p className="text-[11px] text-zinc-400 font-mono">
                   Trust = (XP Score × 0.7) + (Stamp Score × 0.3)  →  0–100%
                 </p>
                 <p className="text-[10px] text-zinc-500 mt-1">
-                  {language === "en"
-                    ? "XP Score = min(100, XP/10). Stamp Score = (stamps claimed / 6 total) × 100."
-                    : "نقاط XP = min(100, XP/10). نقاط الطوابع = (الطوابع المكتسبة / 6) × 100."}
+                  {t("docs_trust_formula_desc")}
                 </p>
               </div>
             </div>
@@ -219,23 +211,21 @@ console.log("Public Key:", did.verificationMethod[0].publicKeyMultibase);`;
 
           {activeSection === "sdk" && (
             <div className="space-y-6">
-              <span className="stitch-badge">Client Integration</span>
+              <span className="stitch-badge">{t("docs_badge_sdk")}</span>
               <h2 className="text-xl md:text-2xl font-bold text-white">
-                {language === "en" ? "SDK & Integration" : "مكتبة المطورين والدمج"}
+                {t("docs_sdk_title")}
               </h2>
               <p className="text-zinc-400 text-sm leading-relaxed">
-                {language === "en"
-                  ? "AxiomID provides two packages: `@axiomid/sdk` for querying trust/passport data, and `@axiomid/crypto` for Ed25519 key derivation and signing. Both are MIT licensed."
-                  : "توفر AxiomID حزمتين: `@axiomid/sdk` للاستعلام عن بيانات الثقة والجواز، و`@axiomid/crypto` لاشتقاق مفاتيح Ed25519 والتوقيع. كلاهما بترخيص MIT."}
+                {t("docs_sdk_desc")}
               </p>
 
               <h3 className="text-sm font-bold font-mono text-white pt-2 border-b border-white/5 pb-2">
-                {language === "en" ? "Packages" : "الحزم"}
+                {t("docs_sdk_packages_title")}
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  { name: "@axiomid/sdk", desc: language === "en" ? "Query passports, trust scores, stamps, and DID documents" : "الاستعلام عن الجوازات ونقاط الثقة والطوابع ووثائق DID", install: "npm install @axiomid/sdk" },
-                  { name: "@axiomid/crypto", desc: language === "en" ? "Ed25519 key derivation, signing, and verification" : "اشتقاق مفاتيح Ed25519 والتوقيع والتحقق", install: "npm install @axiomid/crypto" },
+                  { name: t("docs_sdk_query_name"), desc: t("docs_sdk_query_desc"), install: "npm install @axiomid/sdk" },
+                  { name: t("docs_sdk_crypto_name"), desc: t("docs_sdk_crypto_desc"), install: "npm install @axiomid/crypto" },
                 ].map((pkg, i) => (
                   <div key={i} className="p-3 rounded-xl border border-white/5 bg-white/[0.01]">
                     <h4 className="text-xs font-bold font-mono text-electric-blue">{pkg.name}</h4>
@@ -246,21 +236,21 @@ console.log("Public Key:", did.verificationMethod[0].publicKeyMultibase);`;
               </div>
 
               <h3 className="text-sm font-bold font-mono text-white pt-2 border-b border-white/5 pb-2">
-                {language === "en" ? "@axiomid/sdk — Configuration" : "تكوين @axiomid/sdk"}
+                {t("docs_sdk_config_title")}
               </h3>
               <CodeBlock code={sdkInstallCode} language="bash" />
               <CodeBlock code={sdkExample} language="typescript" />
 
               <h3 className="text-sm font-bold font-mono text-white pt-4 border-b border-white/5 pb-2">
-                {language === "en" ? "SDK API Reference" : "مرجع API لـ SDK"}
+                {t("docs_sdk_api_title")}
               </h3>
               <div className="space-y-2">
                 {[
-                  { method: "verifyPassport(slug)", returns: "Promise<Passport>", desc: language === "en" ? "Fetch public passport with trust score, tier, stamps, and agent status" : "جلب الجواز العام مع نقاط الثقة والمستوى والطوابع وحالة العميل" },
-                  { method: "getStamps(slug)", returns: "Promise<Stamps>", desc: language === "en" ? "Get all verified stamps for a user (KYC, wallet, social, agent)" : "الحصول على جميع الطوابع الموثقة لمستخدم" },
-                  { method: "resolveDID(did)", returns: "Promise<DIDDocument>", desc: language === "en" ? "Resolve a did:axiom identifier to its W3C DID document" : "حل معرف did:axiom إلى وثيقة W3C DID" },
-                  { method: "getTrustScore(did)", returns: "Promise<TrustScore>", desc: language === "en" ? "Get trust score breakdown: XP component + stamp component" : "الحصول على تفاصيل نقاط الثقة: مكون XP + مكون الطوابع" },
-                  { method: "searchSkills(query)", returns: "Promise<Skill[]>", desc: language === "en" ? "Search skills by name, description, or capabilities" : "البحث عن مهارات بالاسم أو الوصف أو القدرات" },
+                  { method: "verifyPassport(slug)", returns: "Promise<Passport>", desc: t("docs_sdk_api_verify") },
+                  { method: "getStamps(slug)", returns: "Promise<Stamps>", desc: t("docs_sdk_api_stamps") },
+                  { method: "resolveDID(did)", returns: "Promise<DIDDocument>", desc: t("docs_sdk_api_did") },
+                  { method: "getTrustScore(did)", returns: "Promise<TrustScore>", desc: t("docs_sdk_api_trust") },
+                  { method: "searchSkills(query)", returns: "Promise<Skill[]>", desc: t("docs_sdk_api_skills") },
                 ].map((fn, i) => (
                   <div key={i} className="flex items-start gap-3 p-2 rounded-lg hover:bg-white/[0.01] transition-colors">
                     <code className="text-[11px] font-mono text-neon-green whitespace-nowrap">{fn.method}</code>
@@ -273,12 +263,10 @@ console.log("Public Key:", did.verificationMethod[0].publicKeyMultibase);`;
               </div>
 
               <h3 className="text-sm font-bold font-mono text-white pt-4 border-b border-white/5 pb-2">
-                {language === "en" ? "@axiomid/crypto — Key Derivation" : "اشتقاق المفاتيح — @axiomid/crypto"}
+                {t("docs_sdk_derive_title")}
               </h3>
               <p className="text-xs text-zinc-500 mb-3">
-                {language === "en"
-                  ? "Deterministic Ed25519 keypair derivation from Stellar address + agent ID. Server-side only (uses Node.js crypto)."
-                  : "اشتقاق مفتاح Ed25519 تحديدي من عنوان Stellar + معرف العميل. على الخادم فقط (يستخدم crypto في Node.js)."}
+                {t("docs_sdk_derive_desc")}
               </p>
               <CodeBlock code={`import { deriveKeypair, signPayload, verifySignature, deriveUserRootKey } from "@axiomid/crypto";
 
@@ -296,12 +284,10 @@ const rootKey = deriveUserRootKey(piUid, process.env.SOVEREIGN_KEY_SALT);`} lang
 
               <div className="mt-4 p-3 rounded-xl border border-amber-500/20 bg-amber-500/5">
                 <h4 className="text-xs font-bold font-mono text-amber-400 mb-1">
-                  {language === "en" ? "Security Note" : "ملاحظة أمنية"}
+                  {t("docs_sdk_security_title")}
                 </h4>
                 <p className="text-[11px] text-zinc-400">
-                  {language === "en"
-                    ? "`deriveKeypair` MUST use `SOVEREIGN_KEY_SALT` from env. Never use public inputs alone as key material. Private keys never leave the server."
-                    : "يجب أن يستخدم `deriveKeypair` مفتاح `SOVEREIGN_KEY_SALT` من متغيرات البيئة. لا تستخدم المدخلات العامة بمفردها كمفتاح. المفاتيح الخاصة لا تغادر الخادم أبداً."}
+                  {t("docs_sdk_security_desc")}
                 </p>
               </div>
             </div>
@@ -309,14 +295,12 @@ const rootKey = deriveUserRootKey(piUid, process.env.SOVEREIGN_KEY_SALT);`} lang
 
           {activeSection === "api" && (
             <div className="space-y-6">
-              <span className="stitch-badge">HTTP Reference</span>
+              <span className="stitch-badge">{t("docs_badge_api")}</span>
               <h2 className="text-xl md:text-2xl font-bold text-white">
-                {language === "en" ? "API Reference" : "مرجع واجهة البرمجة"}
+                {t("docs_api_title")}
               </h2>
               <p className="text-zinc-400 text-sm leading-relaxed">
-                {language === "en"
-                  ? "AxiomID exposes public read-only endpoints and authenticated write endpoints. All public endpoints are rate-limited."
-                  : "توفر AxiomID نقاط نهاية عامة للقراءة فقط ونقاط نهاية مصادقة للكتابة. جميع النقاط العامة مقيّدة المعدل."}
+                {t("docs_api_desc")}
               </p>
               
               <div className="overflow-x-auto">
@@ -353,17 +337,15 @@ const rootKey = deriveUserRootKey(piUid, process.env.SOVEREIGN_KEY_SALT);`} lang
               </div>
 
               <h3 className="text-sm font-bold font-mono text-white pt-4 border-b border-white/5 pb-2">
-                {language === "en" ? "Response Envelope" : "مغلف الاستجابة"}
+                {t("docs_api_response_title")}
               </h3>
               <CodeBlock code={apiResponseExample} language="json" />
 
               <h3 className="text-sm font-bold font-mono text-white pt-4 border-b border-white/5 pb-2">
-                {language === "en" ? "OpenAPI Specification" : "مواصفة OpenAPI"}
+                {t("docs_api_openapi_title")}
               </h3>
               <p className="text-xs text-zinc-500 mb-2">
-                {language === "en"
-                  ? "Full OpenAPI 3.1 spec available at:"
-                  : "مواصفة OpenAPI 3.1 كاملة متاحة على:"}
+                {t("docs_api_openapi_desc")}
               </p>
               <div className="bg-black/80 border border-white/5 rounded-xl p-3 font-mono text-[11px]">
                 <span className="text-neon-green">GET</span>{" "}

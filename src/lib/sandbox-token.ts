@@ -10,7 +10,12 @@ const DEFAULT_SANDBOX_DEV_TOKEN = 'sandbox-dev-token-abc-123';
  * @returns `undefined` in production; otherwise the first available token from `SANDBOX_DEV_TOKEN`, `NEXT_PUBLIC_SANDBOX_DEV_TOKEN`, or the default token.
  */
 export function getSandboxDevToken(): string | undefined {
-  if (process.env.NODE_ENV === 'production') return undefined;
+  if (process.env.NODE_ENV === 'production') {
+    // SECURITY: Never return sandbox tokens in production.
+    // Even if SANDBOX_DEV_TOKEN is set, this function returns undefined.
+    // The auth-middleware.ts also has an explicit production guard as a second layer.
+    return undefined;
+  }
   return (
     process.env.SANDBOX_DEV_TOKEN ||
     process.env.NEXT_PUBLIC_SANDBOX_DEV_TOKEN ||
