@@ -970,6 +970,9 @@ export function randomWalkTrust(
   // visits actually taken so the distribution always sums to 1, even when
   // the walk hits a dead-end before completing all steps.
   const stationaryDistribution = new Map<string, number>();
+  // Stationary distribution = visit frequency
+  const stationaryDistribution = new Map<string, number>();
+  const totalVisits = Array.from(visitCounts.values()).reduce((sum, count) => sum + count, 0);
   for (const [node, count] of visitCounts) {
     stationaryDistribution.set(node, totalVisits > 0 ? count / totalVisits : 0);
   }
