@@ -1,4 +1,4 @@
-import { shannonEntropy, dataFreshness } from "@/lib/math-physics-core";
+import { shannonEntropy, dataFreshness } from "@/lib/math-physics";
 import { logger } from "@/lib/logger";
 
 export interface SyncResult {
@@ -41,11 +41,12 @@ export async function fetchBackendExport<T>(
   return body.data[dataKey];
 }
 
-export async function upsertItems<T extends { id: string }>(
+export async function upsertItems<T>(
   items: T[],
   dryRun: boolean,
   upsertFn: (item: T) => Promise<unknown>,
-  label: string
+  label: string,
+  idKey: keyof T
 ): Promise<{ synced: number; errors: number }> {
   let synced = 0;
   let errors = 0;
@@ -56,7 +57,7 @@ export async function upsertItems<T extends { id: string }>(
         await upsertFn(item);
         synced++;
       } catch (err) {
-        logger.error(`Failed to upsert ${label} ${item.id}:`, err);
+        logger.error(`Failed to upsert ${label} ${String(item[idKey])}:`, err);
         errors++;
       }
     }

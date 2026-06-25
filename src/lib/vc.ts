@@ -27,7 +27,7 @@ function signCredential(credential: CredentialBase): {
   proof: { type: string; created: string; verificationMethod: string; proofPurpose: string; proofValue: string };
 } {
   const issuanceDate = new Date(credential.issuanceDate);
-  const dataToSign = JSON.stringify(canonicalize(credential), null, 0);
+  const dataToSign = JSON.stringify(canonicalize({ "@context": W3C_CONTEXT, ...credential }), null, 0);
   const { key: pemKey, alg } = getIssuerPrivateKey();
   const key = createPrivateKey({ key: pemKey, format: "pem", type: "pkcs8" });
 

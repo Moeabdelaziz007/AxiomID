@@ -251,7 +251,8 @@ async function syncHarvestResults(dryRun: boolean): Promise<SyncResult> {
           createdAt: parseDate(item.created_at),
         },
       }),
-      "harvest result"
+      "harvest result",
+      "id"
     );
 
     const recentHarvests = await prisma.harvestResult.findMany({
