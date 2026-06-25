@@ -90,7 +90,7 @@ self.addEventListener("fetch", (event) => {
           }
           return response;
         })
-        .catch(() => cached);
+        .catch((err) => { if (cached) return cached; throw err; });
 
       if (cached) {
         event.waitUntil(fetchPromise);
