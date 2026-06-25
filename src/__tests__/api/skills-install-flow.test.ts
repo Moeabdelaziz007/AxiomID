@@ -26,6 +26,7 @@ jest.mock('@/lib/prisma', () => ({
     },
     piPayment: {
       create: jest.fn(),
+      findMany: jest.fn(),
     },
   },
 }));
@@ -67,6 +68,7 @@ describe('Skill Install/Purchase Flow', () => {
   it('initiates purchase for a paid skill', async () => {
     (requireAuth as jest.Mock).mockResolvedValue({ user: { id: 'user-1' } });
     (prisma.skill.findUnique as jest.Mock).mockResolvedValue({ id: 'skill-1', slug: 'test', pricePi: 10 });
+    (prisma.piPayment.findMany as jest.Mock).mockResolvedValue([]);
     (prisma.piPayment.create as jest.Mock).mockResolvedValue({ paymentId: 'pi-1', amount: 10, status: 'PENDING' });
 
     const req = new NextRequest('http://localhost/api/skills/test/purchase', { method: 'POST' });
