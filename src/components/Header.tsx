@@ -9,7 +9,6 @@ import LanguageToggle from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ArrowLeft } from "lucide-react";
 import { AxiomLogo } from "@/components/AxiomLogo";
-import { getLocalStorageItem } from "@/app/context/wallet-types";
 
 interface HeaderProps {
   showBack?: boolean;
@@ -28,10 +27,10 @@ export default function Header({ showBack = false, showWallet = false }: HeaderP
 
   const handleConnect = async () => {
     setConnectError(null);
-    await connectWallet();
-    // connectWallet swallows its own errors and only persists the wallet on
-    // success, so use that as the signal rather than relying on a throw.
-    if (!getLocalStorageItem("axiomid_wallet")) {
+    // connectWallet swallows its own errors and returns whether it succeeded,
+    // so use the returned flag rather than relying on a throw.
+    const connected = await connectWallet();
+    if (!connected) {
       const msg = language === "ar" ? "فشل الاتصال" : "Connection failed";
       setConnectError(msg);
       setTimeout(() => setConnectError(null), 6000);

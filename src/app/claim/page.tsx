@@ -7,7 +7,6 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { motion, AnimatePresence } from "framer-motion";
 import { requestKycConsent } from "@/lib/pi-native-features";
-import { getLocalStorageItem } from "@/app/context/wallet-types";
 import {
   Wallet,
   Shield,
@@ -84,10 +83,10 @@ export default function ClaimPage() {
 
   const handleConnect = async () => {
     setConnectError(null);
-    await connectWallet();
-    // connectWallet swallows its own errors and only persists the wallet on
-    // success, so use that as the signal rather than assuming success.
-    if (getLocalStorageItem("axiomid_wallet")) {
+    // connectWallet swallows its own errors and returns whether it succeeded,
+    // so use the returned flag rather than assuming success.
+    const connected = await connectWallet();
+    if (connected) {
       setWalletConnected(true);
     } else {
       setConnectError(t("Connection failed", "فشل الاتصال"));
