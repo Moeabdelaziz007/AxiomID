@@ -7,8 +7,11 @@ import { getClientIp } from "@/lib/ip";
 import { requireAuth } from "@/lib/auth-middleware";
 import { z } from "zod";
 
+// "unstake" with a `stakeId` unstakes that single record; "unstake" without a
+// `stakeId` unstakes all of the user's active stakes. There is intentionally no
+// separate "unstakeAll" action — the handler does not distinguish it.
 const StakeRequestSchema = z.object({
-  action: z.enum(["stake", "unstake", "unstakeAll"]),
+  action: z.enum(["stake", "unstake"]),
   amount: z.number().positive().optional(),
   stakeId: z.string().uuid().optional(),
 });
