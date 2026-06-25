@@ -41,7 +41,7 @@ export async function POST(
       const payments = await prisma.piPayment.findMany({
         where: {
           userId: user.id,
-          status: { in: ['RELEASED', 'ESCROWED'] },
+          status: 'RELEASED',
         },
       });
 
