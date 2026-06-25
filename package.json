@@ -51,6 +51,8 @@
     "dead-code": "knip"
   },
   "dependencies": {
+    "@axiomid/crypto": "file:packages/crypto",
+    "@axiomid/sdk": "file:packages/sdk",
     "@json-render/core": "^0.19.0",
     "@json-render/react": "^0.19.0",
     "@nostics/unplugin": "^1.1.0",
@@ -58,8 +60,10 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/og": "^0.11.1",
     "@vercel/speed-insights": "^2.0.0",
     "framer-motion": "^12.40.0",
+    "html2canvas": "^1.4.1",
     "jose": "^5.9.6",
     "lucide-react": "^1.18.0",
     "next": "16.2.9",
@@ -68,6 +72,8 @@
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "sonner": "^2.0.7",
+    "stellar-sdk": "^13.3.0",
+    "telegraf": "^4.16.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {

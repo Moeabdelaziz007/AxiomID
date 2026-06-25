@@ -13,7 +13,9 @@ self.addEventListener("install", (event) => {
     caches
       .open(CACHE)
       .then((cache) => cache.addAll(STATIC_ASSETS))
-      .catch(() => {})
+      .catch((err) => {
+        console.error("[SW] Precaching failed", err);
+      })
   );
   self.skipWaiting();
 });
@@ -29,13 +31,17 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// Static immutable assets that are safe to serve Stale-While-Revalidate.
+const STATIC_ASSET_PATTERN = /\.(?:js|css|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot)$/i;
+
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Bypass caching for non-GET requests, APIs, and external origins
+  // Bypass caching for non-GET requests, APIs, and external origins.
+  // Use an exact origin comparison so lookalike hosts are never matched.
   if (
     event.request.method !== "GET" ||
-    !event.request.url.startsWith(self.location.origin) ||
+    url.origin !== self.location.origin ||
     url.pathname.startsWith("/api/")
   ) {
     return;
@@ -63,7 +69,15 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Stale-While-Revalidate strategy for static assets
+  // Stale-While-Revalidate strategy, restricted to static immutable assets
+  // and the Next.js static chunk directory. Everything else bypasses the cache.
+  if (
+    !STATIC_ASSET_PATTERN.test(url.pathname) &&
+    !url.pathname.startsWith("/_next/static/")
+  ) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const fetchPromise = fetch(event.request)
@@ -77,7 +91,12 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => cached);
-      return cached || fetchPromise;
+
+      if (cached) {
+        event.waitUntil(fetchPromise);
+        return cached;
+      }
+      return fetchPromise;
     })
   );
 });
