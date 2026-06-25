@@ -83,53 +83,53 @@ export default function ClaimPage() {
 
   const handleConnect = async () => {
     setConnectError(null);
-    try {
-      await connectWallet();
-      setWalletConnected(true);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : t("Connection failed", "فشل الاتصال");
-      setConnectError(msg);
-    }
+    await connectWallet();
+    setWalletConnected(true);
   };
 
   const handleVerify = async () => {
-    // In Pi Browser, request native KYC consent before verification
-    const consent = await requestKycConsent({
-      header: t("KYC Consent", "موافقة التحقق"),
-      description: t(
-        "AxiomID needs to verify your Pi Network KYC status to build your trust score. No personal data is stored.",
-        "يحتاج AxiomID للتحقق من حالة KYC على شبكة Pi لبناء نقاط ثقتك. لا يتم تخزين بيانات شخصية."
-      ),
-      consentItems: [
-        {
-          label: t("I consent to KYC verification", "أوافق على التحقق من KYC"),
-          value: true,
-        },
-        {
-          label: t("I understand my data stays on-chain", "أفهم أن بياناتي تبقى على السلسلة"),
-          value: true,
-        },
-      ],
-    });
-
-    // If native consent dialog returned results, check all items were accepted
-    if (consent) {
-      const allAccepted = Object.values(consent).every(Boolean);
-      if (!allAccepted) return;
-    }
-    // If no native dialog (not in Pi Browser), proceed silently
-
-    setVerificationProgress(0);
-    const interval = setInterval(() => {
-      setVerificationProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setVerified(true);
-          return 100;
-        }
-        return prev + 2;
+    try {
+      // In Pi Browser, request native KYC consent before verification
+      const consent = await requestKycConsent({
+        header: t("KYC Consent", "موافقة التحقق"),
+        description: t(
+          "AxiomID needs to verify your Pi Network KYC status to build your trust score. No personal data is stored.",
+          "يحتاج AxiomID للتحقق من حالة KYC على شبكة Pi لبناء نقاط ثقتك. لا يتم تخزين بيانات شخصية."
+        ),
+        consentItems: [
+          {
+            label: t("I consent to KYC verification", "أوافق على التحقق من KYC"),
+            value: true,
+          },
+          {
+            label: t("I understand my data stays on-chain", "أفهم أن بياناتي تبقى على السلسلة"),
+            value: true,
+          },
+        ],
       });
-    }, 40);
+
+      // If native consent dialog returned results, check all items were accepted
+      if (consent) {
+        const allAccepted = Object.values(consent).every(Boolean);
+        if (!allAccepted) return;
+      }
+
+      // If no native dialog (not in Pi Browser), proceed silently
+      setVerificationProgress(0);
+      const interval = setInterval(() => {
+        setVerificationProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setVerified(true);
+            return 100;
+          }
+          return prev + 2;
+        });
+      }, 40);
+    } catch {
+      // KYC consent failed or was dismissed — silently continue
+      setVerificationProgress(0);
+    }
   };
 
   const handleDeploy = () => {

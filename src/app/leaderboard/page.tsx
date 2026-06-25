@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import { Trophy, Search, ChevronDown } from "lucide-react";
 import TopThreeCards from "@/components/ui/TopThreeCards";
 import { getTierColor, Tier } from "@/lib/tiers";
+import { logger } from "@/lib/logger";
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +35,7 @@ export default function LeaderboardPage() {
   const { user } = useWallet();
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState("All");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -49,7 +51,8 @@ export default function LeaderboardPage() {
           setUsers(json.leaderboard);
         }
       } catch (err) {
-        console.error("Failed to query leaderboard:", err);
+        logger.error("Failed to query leaderboard:", err);
+        if (active) setError("Failed to load leaderboard");
       } finally {
         if (active) setLoading(false);
       }
@@ -126,7 +129,18 @@ export default function LeaderboardPage() {
         );
       })()}
 
-      {loading ? (
+      {error && !loading && (
+        <div className="max-w-4xl mx-auto px-4 mt-10 relative z-10">
+          <div className="glass-card p-12 text-center">
+            <p className="text-sm text-red-400 mb-4">{error}</p>
+            <button onClick={() => window.location.reload()} className="text-xs font-mono text-electric-blue hover:underline">
+              {language === "en" ? "Retry" : "إعادة المحاولة"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!error && loading ? (
         <div className="max-w-4xl mx-auto px-4 mt-10 space-y-6 animate-pulse">
           {/* Top three skeleton */}
           <div className="grid grid-cols-3 gap-4">
