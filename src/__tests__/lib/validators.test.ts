@@ -24,8 +24,8 @@ describe("KyaClaimSchema", () => {
 });
 
 describe("OrderCreateSchema (PR change: amount field removed)", () => {
-  const validUUID = "123e4567-e89b-12d3-a456-426614174000";
-  const validUUID2 = "123e4567-e89b-12d3-a456-426614174001";
+  const validUUID = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
+  const validUUID2 = "550e8400-e29b-41d4-a716-446655440000";
 
   it("accepts valid skillId, agentId and paymentId", () => {
     const result = OrderCreateSchema.safeParse({
