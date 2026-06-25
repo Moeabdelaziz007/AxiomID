@@ -257,7 +257,7 @@ We have extracted redundant schema representations from our validator systems. B
   Expected: Compilation fail (import not found).
 
 - [ ] **Step 3: Copy backend/src/lib/math-physics.ts content over to src/lib/math-physics.ts**
-  Copy all contents of [backend/src/lib/math-physics.ts](file:///Users/cryptojoker710/Desktop/AxiomID/backend/src/lib/math-physics.ts) and write it directly to [src/lib/math-physics.ts](file:///Users/cryptojoker710/Desktop/AxiomID/src/lib/math-physics.ts), replacing the old file.
+  Copy all contents of [backend/src/lib/math-physics.ts](../../../backend/src/lib/math-physics.ts) and write it directly to [src/lib/math-physics.ts](../../../src/lib/math-physics.ts), replacing the old file.
 
 - [ ] **Step 4: Run type-check and test suite to verify success**
   Run: `npm run type-check && npm run test`
