@@ -23,6 +23,7 @@ import {
 } from "@/lib/rate-limiter";
 import { requireAuth } from "@/lib/auth-middleware";
 import { logger } from "@/lib/logger";
+import { getBackendConfig, fetchBackendExport, upsertItems, computeSyncMetrics, parseDate, SyncResult } from "./sync-helpers";
 
 export const maxDuration = 60;
 
@@ -32,16 +33,6 @@ const SyncRequestSchema = z.object({
   maxRetries: z.number().int().min(0).max(10).default(3),
 });
 export type SyncRequest = z.infer<typeof SyncRequestSchema>;
-
-
-
-interface SyncResult {
-  synced: number;
-  errors: number;
-  maxRetries: number;
-  entropy: number;
-  freshness: number;
-}
 
 /**
  * Executes authenticated data synchronization with request validation and retry logic.
@@ -221,16 +212,8 @@ async function syncWithRetry(
  * Uses entropy scoring to measure data quality.
  */
 async function syncHarvestResults(dryRun: boolean): Promise<SyncResult> {
-  let synced = 0;
-  let errors = 0;
-
   try {
-    const backendUrl = process.env.CLOUDFLARE_BACKEND_URL;
-    const sharedSecret = process.env.SHARED_SECRET_TOKEN_VERCEL_CF;
-
-    if (!backendUrl || !sharedSecret) {
-      throw new Error("Backend URL or shared secret is missing");
-    }
+    const { backendUrl, sharedSecret } = getBackendConfig();
 
     const lastRecord = await prisma.harvestResult.findFirst({
       orderBy: { createdAt: "desc" },
@@ -238,74 +221,38 @@ async function syncHarvestResults(dryRun: boolean): Promise<SyncResult> {
     });
     const since = lastRecord ? lastRecord.createdAt.getTime() : 0;
 
-    const response = await fetch(`${backendUrl}/api/sync/export?since=${since}`, {
-      method: "GET",
-      headers: {
-        "X-Shared-Secret": sharedSecret,
-      },
-    });
+    const items = await fetchBackendExport<{
+      id: string;
+      query: string;
+      result: string;
+      citations: string | null;
+      user_did: string | null;
+      created_at: string;
+    }>(backendUrl, sharedSecret, since, "harvestResults");
 
-    if (!response.ok) {
-      throw new Error(`Cloudflare export API error: ${response.status}`);
-    }
-
-    const body = await response.json() as {
-      success: boolean;
-      data: {
-        harvestResults: Array<{
-          id: string;
-          query: string;
-          result: string;
-          citations: string | null;
-          user_did: string | null;
-          created_at: string;
-        }>;
-      };
-    };
-
-    if (!body.success || !body.data?.harvestResults) {
-      throw new Error("Export returned invalid structure");
-    }
-
-    const items = body.data.harvestResults;
-
-    const parseDate = (dStr: string) => {
-      if (!dStr.endsWith("Z") && !dStr.includes("+") && !dStr.includes("GMT")) {
-        return new Date(dStr.replace(" ", "T") + "Z");
-      }
-      return new Date(dStr);
-    };
-
-    if (!dryRun) {
-      for (const item of items) {
-        try {
-          await prisma.harvestResult.upsert({
-            where: { id: item.id },
-            update: {
-              query: item.query,
-              result: item.result,
-              citations: item.citations,
-              userDid: item.user_did,
-              createdAt: parseDate(item.created_at),
-            },
-            create: {
-              id: item.id,
-              query: item.query,
-              result: item.result,
-              citations: item.citations,
-              userDid: item.user_did,
-              createdAt: parseDate(item.created_at),
-            },
-          });
-          synced++;
-        } catch (err) {
-          logger.error(`Failed to upsert harvest result ${item.id}:`, err);
-          errors++;
-        }
-      }
-    } else {
-      synced = items.length;
-    }
+    const { synced, errors } = await upsertItems(
+      items,
+      dryRun,
+      (item) => prisma.harvestResult.upsert({
+        where: { id: item.id },
+        update: {
+          query: item.query,
+          result: item.result,
+          citations: item.citations,
+          userDid: item.user_did,
+          createdAt: parseDate(item.created_at),
+        },
+        create: {
+          id: item.id,
+          query: item.query,
+          result: item.result,
+          citations: item.citations,
+          userDid: item.user_did,
+          createdAt: parseDate(item.created_at),
+        },
+      }),
+      "harvest result"
+    );
 
     const recentHarvests = await prisma.harvestResult.findMany({
       orderBy: { createdAt: "desc" },
@@ -314,112 +261,70 @@ async function syncHarvestResults(dryRun: boolean): Promise<SyncResult> {
     });
 
     const dataString = recentHarvests.map((h) => h.query + h.result).join("");
-    const entropy = shannonEntropy(dataString);
-    const freshness = recentHarvests.length > 0
-      ? dataFreshness(recentHarvests[0].createdAt.getTime())
-      : 0;
+    const { entropy, freshness } = computeSyncMetrics(
+      dataString,
+      recentHarvests.length > 0 ? recentHarvests[0].createdAt.getTime() : null
+    );
 
     logger.info(`[Sync] Harvest results: entropy=${entropy.toFixed(3)}, freshness=${freshness.toFixed(3)}`);
-
     return { synced, errors, maxRetries: 0, entropy, freshness };
   } catch (error) {
     logger.error("[Sync] Harvest sync error:", error);
-    errors++;
-    return { synced, errors, maxRetries: 0, entropy: 0, freshness: 0 };
+    return { synced: 0, errors: 1, maxRetries: 0, entropy: 0, freshness: 0 };
   }
 }
 
 async function syncAgentPresence(dryRun: boolean): Promise<SyncResult> {
-  let synced = 0;
-  let errors = 0;
-
   try {
-    const backendUrl = process.env.CLOUDFLARE_BACKEND_URL;
-    const sharedSecret = process.env.SHARED_SECRET_TOKEN_VERCEL_CF;
+    const { backendUrl, sharedSecret } = getBackendConfig();
 
-    if (!backendUrl || !sharedSecret) {
-      throw new Error("Backend URL or shared secret is missing");
-    }
+    const items = await fetchBackendExport<{
+      agent_id: string;
+      status: string;
+      last_heartbeat: number | null;
+      metadata: string | null;
+    }>(backendUrl, sharedSecret, 0, "agentPresence");
 
-    const response = await fetch(`${backendUrl}/api/sync/export?since=0`, {
-      method: "GET",
-      headers: {
-        "X-Shared-Secret": sharedSecret,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Cloudflare export API error: ${response.status}`);
-    }
-
-    const body = await response.json() as {
-      success: boolean;
-      data: {
-        agentPresence: Array<{
-          agent_id: string;
-          status: string;
-          last_heartbeat: number | null;
-          metadata: string | null;
-        }>;
-      };
-    };
-
-    if (!body.success || !body.data?.agentPresence) {
-      throw new Error("Export returned invalid structure");
-    }
-
-    const items = body.data.agentPresence;
-
-    if (!dryRun) {
-      for (const item of items) {
-        try {
-          await prisma.agentPresence.upsert({
-            where: { agentId: item.agent_id },
-            update: {
-              status: item.status,
-              lastHeartbeat: item.last_heartbeat ? BigInt(item.last_heartbeat) : null,
-              metadata: item.metadata,
-            },
-            create: {
-              agentId: item.agent_id,
-              status: item.status,
-              lastHeartbeat: item.last_heartbeat ? BigInt(item.last_heartbeat) : null,
-              metadata: item.metadata,
-            },
-          });
-          synced++;
-        } catch (err) {
-          logger.error(`Failed to upsert agent presence ${item.agent_id}:`, err);
-          errors++;
-        }
-      }
-    } else {
-      synced = items.length;
-    }
+    const { synced, errors } = await upsertItems(
+      items,
+      dryRun,
+      (item) => prisma.agentPresence.upsert({
+        where: { agentId: item.agent_id },
+        update: {
+          status: item.status,
+          lastHeartbeat: item.last_heartbeat ? BigInt(item.last_heartbeat) : null,
+          metadata: item.metadata,
+        },
+        create: {
+          agentId: item.agent_id,
+          status: item.status,
+          lastHeartbeat: item.last_heartbeat ? BigInt(item.last_heartbeat) : null,
+          metadata: item.metadata,
+        },
+      }),
+      "agent presence"
+    );
 
     const presenceRecords = await prisma.agentPresence.findMany({
       select: { status: true },
     });
 
     const statusString = presenceRecords.map((p) => p.status).join("");
-    const entropy = shannonEntropy(statusString);
-
     const latestPresence = await prisma.agentPresence.findFirst({
       orderBy: { updatedAt: "desc" },
       select: { updatedAt: true },
     });
 
-    const freshness = latestPresence
-      ? dataFreshness(latestPresence.updatedAt.getTime())
-      : 0;
+    const { entropy, freshness } = computeSyncMetrics(
+      statusString,
+      latestPresence ? latestPresence.updatedAt.getTime() : null
+    );
 
     logger.info(`[Sync] Agent presence: entropy=${entropy.toFixed(3)}, freshness=${freshness.toFixed(3)}`);
-
     return { synced, errors, maxRetries: 0, entropy, freshness };
   } catch (error) {
     logger.error("[Sync] Presence sync error:", error);
-    errors++;
-    return { synced, errors, maxRetries: 0, entropy: 0, freshness: 0 };
+    return { synced: 0, errors: 1, maxRetries: 0, entropy: 0, freshness: 0 };
   }
 }
 
