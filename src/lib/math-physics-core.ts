@@ -34,7 +34,11 @@ export function leakyBucketCheck(
   const newLevel = drainedLevel + 1;
 
   if (newLevel > config.capacity) {
-    const waitTimeMs = Math.ceil(-Math.log(config.capacity / drainedLevel) / lambda * 1000);
+    const targetLevel = Math.max(config.capacity - 1, 1e-9);
+    const waitTimeMs = Math.max(
+      0,
+      Math.ceil((-Math.log(targetLevel / drainedLevel) / lambda) * 1000),
+    );
     return {
       allowed: false,
       newState: {
