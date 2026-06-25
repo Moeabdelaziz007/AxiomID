@@ -7,7 +7,11 @@ import { getClientIp } from '@/lib/ip';
 import { requireAuth } from '@/lib/auth-middleware';
 
 /**
- * POST /api/skills/[slug]/install — Install a skill into the authenticated user's agent.
+ * Installs a published skill into the authenticated user's agent.
+ *
+ * @param request - The incoming request
+ * @param params - Promise resolving to the route parameters
+ * @returns A response containing the installation status and skill details
  */
 export async function POST(
   request: NextRequest,
@@ -33,25 +37,36 @@ export async function POST(
       return apiError('FORBIDDEN', 'Skill is not available for installation');
     }
 
-    // Payment gate: for paid skills, require a RELEASED payment for this skill
-    // belonging to the authenticated user. Payments flow through Pi SDK callbacks
-    // (approve → complete) which verify with Pi Network, create an ESCROWED record,
-    // then transition to RELEASED with XP awards. Only RELEASED payments grant access.
     if (skill.pricePi > 0) {
       const payments = await prisma.piPayment.findMany({
-        where: { userId: user.id, status: 'RELEASED' },
-        select: { metadata: true },
+        where: {
+          userId: user.id,
+          status: { in: ['RELEASED', 'ESCROWED'] },
+        },
       });
-      const hasPaid = payments.some((p) => {
-        if (!p.metadata) return false;
+
+      let hasPaid = false;
+      for (const p of payments) {
+        let skillIdFromMeta: string | undefined;
         try {
-          return (JSON.parse(p.metadata) as { skillId?: string }).skillId === skill.id;
+          const meta = JSON.parse(p.metadata || '{}');
+          skillIdFromMeta = meta.skillId;
         } catch {
-          return false;
+          // Ignore JSON parsing errors
         }
-      });
+
+        if (
+          skillIdFromMeta === skill.id ||
+          p.memo?.includes(skill.name) ||
+          p.memo?.includes(skill.slug)
+        ) {
+          hasPaid = true;
+          break;
+        }
+      }
+
       if (!hasPaid) {
-        return apiError('PAYMENT_INVALID', 'Purchase required before installing this skill');
+        return apiError('FORBIDDEN', 'Payment required for this skill. Please purchase first.');
       }
     }
 
@@ -71,31 +86,24 @@ export async function POST(
       if (existingInstallation.status === 'active') {
         return apiError('CONFLICT', 'Skill is already installed');
       }
-      await prisma.$transaction([
-        prisma.skillInstallation.update({
-          where: { id: existingInstallation.id },
-          data: { status: 'active', installedAt: new Date() },
-        }),
-        prisma.skill.update({
-          where: { slug },
-          data: { installCount: { increment: 1 } },
-        }),
-      ]);
+      await prisma.skillInstallation.update({
+        where: { id: existingInstallation.id },
+        data: { status: 'active', installedAt: new Date() },
+      });
     } else {
-      await prisma.$transaction([
-        prisma.skillInstallation.create({
-          data: {
-            skillId: skill.id,
-            agentId: agent.id,
-            status: 'active',
-          },
-        }),
-        prisma.skill.update({
-          where: { slug },
-          data: { installCount: { increment: 1 } },
-        }),
-      ]);
+      await prisma.skillInstallation.create({
+        data: {
+          skillId: skill.id,
+          agentId: agent.id,
+          status: 'active',
+        },
+      });
     }
+
+    await prisma.skill.update({
+      where: { slug },
+      data: { installCount: { increment: 1 } },
+    });
 
     return apiSuccess({
       installed: true,
@@ -152,13 +160,12 @@ export async function DELETE(
       return apiError('NOT_FOUND', 'Skill is not installed');
     }
 
-    await prisma.$transaction([
-      prisma.skillInstallation.delete({ where: { id: installation.id } }),
-      prisma.skill.update({
-        where: { slug },
-        data: { installCount: { decrement: 1 } },
-      }),
-    ]);
+    await prisma.skillInstallation.delete({ where: { id: installation.id } });
+
+    await prisma.skill.update({
+      where: { slug },
+      data: { installCount: { decrement: 1 } },
+    });
 
     return apiSuccess({
       uninstalled: true,

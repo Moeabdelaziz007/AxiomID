@@ -18,6 +18,12 @@ interface HeaderProps {
   navItems: NavItem[];
 }
 
+/**
+ * Renders the dashboard header with branding, navigation, wallet controls, and utility toggles.
+ *
+ * @param pathname - Current route path used to highlight the active navigation item.
+ * @param navItems - Navigation entries to display in the header.
+ */
 export function Header({ pathname, navItems }: HeaderProps) {
   const { t } = useLanguage();
   const { user, connectWallet, isConnecting, isPiBrowser, logout } = useWallet();

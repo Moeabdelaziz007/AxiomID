@@ -182,7 +182,8 @@ These are not "nice to have." They are the operating system of every agent that 
 - **No `as any` casts.** If TypeScript rejects a call, fix the types at the source — don't silence with casts.
 - The only permitted `eslint-disable @typescript-eslint/no-explicit-any` is on the `REPORT_DIAGNOSTIC` map return type in `src/lib/errors.ts`, which uses `any` as the heterogeneous nostics call return envelope (not an escape hatch from type safety).
 - Use `unknown` instead of `any` for external data boundaries (API responses, SDK callbacks).
-- **Strict API Error Codes:** Only use pre-registered error categories defined in the `ErrorCode` union inside `src/lib/errors.ts`. Never pass ad-hoc strings.
+- **Strict API Error Codes:** Only use pre-registered error categories defined in the `ErrorCode` union inside `src/lib/errors.ts`. Never pass ad-hoc strings (like `BAD_REQUEST`) to `apiError()`, as they trigger a fallback HTTP status code of `500`. For input validation errors, always use `VALIDATION_ERROR` (which maps to HTTP `400`).
+- **Zod UUID Validation in Tests:** When writing unit or integration tests that validate UUID fields under Zod schemas (which use `.uuid()`), always use a syntactically valid v4 UUID format (e.g. `"4ef60647-f509-4ed8-a873-c1519c7246ea"`). Using custom non-conforming mock strings (e.g., `"stake-123"`) will cause validation schemas to reject the input.
 - **Dynamic PWA Manifest (`manifest.ts`):** When generating metadata routes using Next.js `MetadataRoute.Manifest`, the `purpose` property inside icon objects strictly accepts `'any' | 'maskable' | 'monochrome'` individual literals. Do not use standard PWA space-separated `"any maskable"` values as they will trigger compile-time TypeScript errors.
 
 ### 🩺 Nostics Diagnostic Catalog Rules (`src/diagnostics/catalog.ts`)
@@ -213,6 +214,12 @@ These are not "nice to have." They are the operating system of every agent that 
 - **Server Components are the default** — add `"use client"` only when you need browser APIs or React hooks.
 - **Vercel Functions are stateless** — no in-memory state, no `setInterval`, no background daemons. Use `waitUntil` for post-response async work.
 - `outputFileTracingRoot` warning from Next.js about multiple `package-lock.json` is benign — ignore it.
+
+### 🌐 PWA & Service Worker Caching Constraints (non-negotiable)
+
+- **Network-First for Documents:** Always use a Network-First strategy (or bypass cache completely) for HTML page routes, index paths (`/`), and page navigation. Never use Cache-First on pages as it locks old index.html and breaks Next.js chunk hashing loading.
+- **Stale-While-Revalidate for Assets:** Restrict client-side service worker caching (like in `sw.js`) to static immutable assets such as icons, logos, global styles, and fonts.
+- **Never Cache API Routes:** Always bypass service worker caching for any paths starting with `/api/`.
 
 ### 🖥️ TUI & Real-Time Rendering Patterns
 
