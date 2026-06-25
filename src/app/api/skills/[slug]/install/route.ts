@@ -55,14 +55,15 @@ export async function POST(
           // Ignore JSON parsing errors
         }
 
-        if (skillIdFromMeta === skill.id) {
+        // Authorize only when the payment is for this skill AND covers its price.
+        if (skillIdFromMeta === skill.id && p.amount >= skill.pricePi) {
           hasPaid = true;
           break;
         }
       }
 
       if (!hasPaid) {
-        return apiError('FORBIDDEN', 'Payment required for this skill. Please purchase first.');
+        return apiError('PAYMENT_INVALID', 'Purchase required before installing this skill');
       }
     }
 

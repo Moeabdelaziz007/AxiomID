@@ -39,7 +39,11 @@ export async function revokeToken(token: string): Promise<void> {
     try {
       await redis.set(key, '1', { ex: REVOKED_TOKENS_TTL_SECONDS });
     } catch (err) {
-      logger.error('[REVOCATION-STORE] Redis set failed, fell back to local store', { error: String(err) });
+      // Redis is the source of truth across instances. If it fails, the local
+      // write alone cannot guarantee revocation propagates, so surface the error
+      // rather than silently downgrading to a best-effort, single-instance revoke.
+      logger.error('[REVOCATION-STORE] Redis set failed', { error: String(err) });
+      throw err;
     }
   }
 }
@@ -68,7 +72,10 @@ export async function isTokenRevoked(token: string): Promise<boolean> {
         return true;
       }
     } catch (err) {
-      logger.error('[REVOCATION-STORE] Redis get failed, fell back to local store', { error: String(err) });
+      // Fail closed: when Redis is the source of truth and unreachable, we
+      // cannot confirm the token is valid, so treat it as revoked.
+      logger.error('[REVOCATION-STORE] Redis get failed, treating token as revoked', { error: String(err) });
+      return true;
     }
   }
   return false;

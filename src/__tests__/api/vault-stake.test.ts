@@ -210,7 +210,7 @@ describe("POST /api/vault/stake", () => {
   });
 
   it("returns 404 NOT_FOUND when unstaking a stakeId that does not belong to the user", async () => {
-    const validUuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+    const validUuid = "4ef60647-f509-4ed8-a873-c1519c7246ea";
     mockPrisma.stake.findFirst.mockResolvedValue(null);
 
     const req = mockRequest("POST", { action: "unstake", stakeId: validUuid });
