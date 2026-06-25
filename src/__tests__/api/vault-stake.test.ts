@@ -48,6 +48,12 @@ const mockUser = {
   id: "user-123",
 };
 
+// The route serializes Prisma Decimal `amount` via `.toNumber()` before
+// responding, so stake mocks must expose a Decimal-like object, not a raw number.
+function decimal(value: number) {
+  return { toNumber: () => value };
+}
+
 function mockRequest(method: "GET" | "POST", body?: any) {
   return new Request("http://localhost/api/vault/stake", {
     method,
@@ -65,7 +71,7 @@ describe("GET /api/vault/stake", () => {
 
   it("returns user stakes successfully", async () => {
     const mockStakes = [
-      { id: "stake-1", userId: "user-123", amount: 100, status: "staked", createdAt: new Date() },
+      { id: "stake-1", userId: "user-123", amount: decimal(100), status: "staked", createdAt: new Date() },
     ];
     mockPrisma.stake.findMany.mockResolvedValue(mockStakes as any);
 
@@ -102,7 +108,7 @@ describe("POST /api/vault/stake", () => {
   });
 
   it("stakes successfully", async () => {
-    const mockStake = { id: "stake-123", userId: "user-123", amount: 50, status: "staked" };
+    const mockStake = { id: "stake-123", userId: "user-123", amount: decimal(50), status: "staked" };
     mockPrisma.stake.create.mockResolvedValue(mockStake as any);
 
     const req = mockRequest("POST", { action: "stake", amount: 50 });
@@ -122,7 +128,7 @@ describe("POST /api/vault/stake", () => {
 
   it("unstakes a specific stakeId successfully", async () => {
     const validUuid = "4ef60647-f509-4ed8-a873-c1519c7246ea";
-    const mockStake = { id: validUuid, userId: "user-123", amount: 50, status: "staked" };
+    const mockStake = { id: validUuid, userId: "user-123", amount: decimal(50), status: "staked" };
     const mockUpdatedStake = { ...mockStake, status: "unstaked" };
     mockPrisma.stake.findFirst.mockResolvedValue(mockStake as any);
     mockPrisma.stake.update.mockResolvedValue(mockUpdatedStake as any);
