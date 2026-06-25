@@ -89,7 +89,14 @@ export default function ClaimPage() {
     if (connected) {
       setWalletConnected(true);
     } else {
-      setConnectError(t("Connection failed", "فشل الاتصال"));
+  const handleConnect = async () => {
+    setConnectError(null);
+    const connected = await connectWallet();
+    if (!connected) {
+      // Assuming 'error' is exposed via useWallet()
+      setConnectError(error || t("Connection failed", "فشل الاتصال"));
+    }
+  };
     }
   };
 
