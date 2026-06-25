@@ -7,7 +7,10 @@ import { requireAuth } from '@/lib/auth-middleware';
 import { logger } from '@/lib/logger';
 
 /**
- * POST /api/skills/[slug]/purchase — Initiate a skill purchase (Pi Payment).
+ * Initiates a purchase for the skill identified by `slug`.
+ *
+ * @param params - Route parameters containing the skill slug.
+ * @returns A success payload with the created payment ID, amount, and status, or an error response.
  */
 export async function POST(
   request: NextRequest,
@@ -34,8 +37,37 @@ export async function POST(
       return apiError('VALIDATION_ERROR', 'Skill is free. Use /install directly.');
     }
 
-    // TODO: Integrate with Pi Payment SDK (create payment intent and return ID)
-    // For now, simulate payment record creation as per marketplace requirement.
+    const payments = await prisma.piPayment.findMany({
+      where: {
+        userId: user.id,
+        status: { in: ['RELEASED', 'ESCROWED'] },
+      },
+    });
+
+    let alreadyPaid = false;
+    for (const p of payments) {
+      let metadata: { skillId?: unknown; purpose?: unknown } = {};
+      try {
+        metadata = JSON.parse(p.metadata || '{}');
+      } catch {
+        // Ignore JSON parsing errors
+      }
+
+      if (
+        metadata.skillId === skill.id &&
+        metadata.purpose === 'skill_purchase'
+      ) {
+        alreadyPaid = true;
+        break;
+      }
+    }
+
+    if (alreadyPaid) {
+      return apiError('CONFLICT', 'You have already purchased this skill. Go ahead and install it!');
+    }
+
+    // Create a pending payment intent record. The client will fulfill this
+    // using the client-side Pi SDK and verify it via /order/create.
     const payment = await prisma.piPayment.create({
       data: {
         userId: user.id,
