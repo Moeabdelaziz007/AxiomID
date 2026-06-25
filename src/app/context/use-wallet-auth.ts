@@ -190,6 +190,8 @@ export function useWalletAuth({
   }, [logout]);
 
   const connectDemo = useCallback(async () => {
+    if (connectingRef.current) return;
+    connectingRef.current = true;
     setIsConnecting(true);
     setError(null);
     pushLog("Initializing Offline Demo Mode...");
@@ -242,6 +244,7 @@ export function useWalletAuth({
     setPiAccessToken(demoToken);
     setUser(demoUser);
     setIsConnecting(false);
+    connectingRef.current = false;
     pushLog("Demo Mode initialized successfully!");
   }, [pushLog, setUser, setPiAccessToken, setIsConnecting, setError]);
 
