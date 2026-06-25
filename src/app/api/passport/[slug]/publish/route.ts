@@ -102,8 +102,6 @@ export async function POST(
     return apiSuccess({
       cid: ipfsResult.cid,
       url: ipfsResult.url,
-      // Simulated publication — content is not yet pinned to a real IPFS node.
-      mock: ipfsResult.mock,
       verifiableCredential: vc,
     }, 200);
   } catch (err) {

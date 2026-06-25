@@ -26,7 +26,6 @@ jest.mock('@/lib/prisma', () => ({
     },
     piPayment: {
       create: jest.fn(),
-      findMany: jest.fn(),
     },
   },
 }));
@@ -65,14 +64,11 @@ describe('Skill Install/Purchase Flow', () => {
     expect(res.status).toBe(200);
   });
 
-  it('initiates purchase for a paid skill', async () => {
-    (requireAuth as jest.Mock).mockResolvedValue({ user: { id: 'user-1' } });
-    (prisma.skill.findUnique as jest.Mock).mockResolvedValue({ id: 'skill-1', slug: 'test', pricePi: 10 });
-    (prisma.piPayment.findMany as jest.Mock).mockResolvedValue([]);
-    (prisma.piPayment.create as jest.Mock).mockResolvedValue({ paymentId: 'pi-1', amount: 10, status: 'PENDING' });
-
+  it('returns 410 for deprecated purchase endpoint', async () => {
     const req = new NextRequest('http://localhost/api/skills/test/purchase', { method: 'POST' });
     const res = await PurchasePOST(req, { params: Promise.resolve({ slug: 'test' }) });
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(410);
+    const body = await res.json();
+    expect(body.error).toBe('GONE');
   });
 });
