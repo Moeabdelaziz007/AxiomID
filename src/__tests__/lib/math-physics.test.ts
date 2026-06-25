@@ -672,7 +672,7 @@ describe("mctsSimulate (PR sync)", () => {
     // 0 steps → totalReward stays 0, division by 0 → NaN
     // Verify behavior is numeric (NaN is typeof number)
     const result = mctsSimulate(node, () => 1.0, 0);
-    expect(typeof result).toBe("number");
+    expect(Number.isNaN(result)).toBe(true); // 0 steps → totalReward/0 = NaN
   });
 });
 
