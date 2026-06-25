@@ -160,12 +160,13 @@ export async function DELETE(
       return apiError('NOT_FOUND', 'Skill is not installed');
     }
 
-    await prisma.skillInstallation.delete({ where: { id: installation.id } });
-
-    await prisma.skill.update({
-      where: { slug },
-      data: { installCount: { decrement: 1 } },
-    });
+    await prisma.$transaction([
+      prisma.skillInstallation.delete({ where: { id: installation.id } }),
+      prisma.skill.update({
+        where: { slug },
+        data: { installCount: { decrement: 1 } },
+      }),
+    ]);
 
     return apiSuccess({
       uninstalled: true,
