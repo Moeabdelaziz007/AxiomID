@@ -16,7 +16,7 @@ import {
   exponentialBackoff,
   shannonEntropy,
   dataFreshness,
-} from "@/lib/math-physics";
+} from "@/lib/math-physics-core";
 import {
   checkRateLimit,
   RATE_LIMITS,

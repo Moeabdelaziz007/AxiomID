@@ -11,7 +11,7 @@
  * Local dev: Falls back to in-memory Map (process-local).
  */
 
-import { leakyBucketCheck, idealGasPressure, type LeakyBucketConfig, type LeakyBucketState } from "./math-physics";
+import { leakyBucketCheck, idealGasPressure, type LeakyBucketConfig, type LeakyBucketState } from "./math-physics-core";
 import { logger } from "./logger";
 
 // Lazy-loaded Upstash modules (ESM-only, would break Jest if imported statically)
