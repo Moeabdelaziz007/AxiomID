@@ -247,6 +247,7 @@ export function useWalletAuth({
       }
     };
 
+    const demoToken = getClientSandboxDevToken();
     setLocalStorageItem("axiomid_wallet", "pi:demo_alice");
     setLocalStorageItem("pi_access_token", demoToken);
     setPiAccessToken(demoToken);
