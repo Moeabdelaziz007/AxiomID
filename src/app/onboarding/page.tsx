@@ -13,7 +13,7 @@ import { toast } from "sonner";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
   const { user, connectWallet, isConnecting, createAgent } = useWallet();
 
   const [step, setStep] = useState(1);
@@ -48,23 +48,23 @@ export default function OnboardingPage() {
     switch (step) {
       case 1:
         return {
-          title: language === "en" ? "Link Sovereign Key" : "ربط المفتاح السيادي",
-          desc: language === "en" ? "Establish authorization link via Stellar or Pi Network protocol key." : "أسس تفويض الهوية الرقمية عبر مفتاح شبكة Pi أو Stellar.",
+          title: t("onboarding_step1_title"),
+          desc: t("onboarding_step1_desc"),
         };
       case 2:
         return {
-          title: language === "en" ? "Configure Your Agent" : "إعداد العميل الذكي",
-          desc: language === "en" ? "Give your autonomous agent representative a custom profile label." : "امنح عميلك الآلي المستقل اسماً مميزاً للتعريف.",
+          title: t("onboarding_step2_title"),
+          desc: t("onboarding_step2_desc"),
         };
       case 3:
         return {
-          title: language === "en" ? "Anchor Trust Status" : "توثيق الهوية والربط",
-          desc: language === "en" ? "Acquire W3C social credentials and complete the basic human oracle verifications." : "اربح بيانات الاعتماد ومستندات DID لتأكيد هويتك.",
+          title: t("onboarding_step3_title"),
+          desc: t("onboarding_step3_desc"),
         };
       default:
         return {
-          title: language === "en" ? "Identity Provisioned" : "تم إصدار جواز السفر",
-          desc: language === "en" ? "Your decentralized agent passport is fully anchored on the registry." : "جواز سفر العميل اللامركزي الخاص بك نشط ومسجل بالكامل.",
+          title: t("onboarding_step4_title"),
+          desc: t("onboarding_step4_desc"),
         };
     }
   };

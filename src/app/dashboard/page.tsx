@@ -40,7 +40,7 @@ type TabId = "passport" | "actions" | "terminal" | "marketplace" | "agent";
  */
 export default function Dashboard() {
   const router = useRouter();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const {
     user,
     isLoading,
@@ -346,12 +346,10 @@ export default function Dashboard() {
                       <div className="space-y-1">
                         <h3 className="text-sm font-bold text-amber-200 flex items-center gap-1.5 font-mono">
                           <Zap className="w-4 h-4 text-amber-400 animate-pulse" />
-                          {language === "ar" ? "إعلانات مكافأة PI" : "REWARDED PI ADS"}
+                          {t("ad_rewards_title")}
                         </h3>
                         <p className="text-xs text-zinc-400">
-                          {language === "ar" 
-                            ? "شاهد إعلاناً قصيراً للحصول على 10 XP إضافية على الفور ورفع مستوى التوثيق الخاص بك."
-                            : "Watch a short ad to earn +10 XP immediately and upgrade your authorization tier."}
+                          {t("ad_rewards_desc")}
                         </p>
                       </div>
                       <button
@@ -361,10 +359,10 @@ export default function Dashboard() {
                       >
                         {adLoading ? (
                           <span className="flex items-center gap-1.5">
-                            <span className="animate-spin">⟳</span> {language === "ar" ? "جاري التحميل..." : "LOADING..."}
+                            <span className="animate-spin">⟳</span> {t("ad_rewards_loading")}
                           </span>
                         ) : (
-                          language === "ar" ? "شاهد الإعلان (+10 XP)" : "WATCH AD (+10 XP)"
+                          t("ad_rewards_btn")
                         )}
                       </button>
                     </div>
@@ -466,10 +464,10 @@ export default function Dashboard() {
             const claimedStamps = user.stamps?.length ?? 0;
             const unclaimedStamps = Math.max(0, totalStamps - claimedStamps);
             const tabs = [
-              { id: "passport" as TabId, icon: <Fingerprint className="w-4 h-4" />, label: language === "ar" ? "الجواز" : "Passport", badge: 0 },
-              { id: "actions" as TabId, icon: <Zap className="w-4 h-4" />, label: language === "ar" ? "العمليات" : "Actions", badge: unclaimedStamps },
-              { id: "agent" as TabId, icon: <Bot className="w-4 h-4" />, label: language === "ar" ? "العميل" : "Agent", badge: hasAgent ? 0 : 1 },
-              { id: "terminal" as TabId, icon: <Terminal className="w-4 h-4" />, label: language === "ar" ? "الطرفية" : "Terminal", badge: 0 },
+              { id: "passport" as TabId, icon: <Fingerprint className="w-4 h-4" />, label: t("tab_passport"), badge: unclaimedStamps },
+              { id: "actions" as TabId, icon: <Zap className="w-4 h-4" />, label: t("tab_actions"), badge: unclaimedStamps },
+              { id: "agent" as TabId, icon: <Bot className="w-4 h-4" />, label: t("tab_agent"), badge: hasAgent ? 0 : 1 },
+              { id: "terminal" as TabId, icon: <Terminal className="w-4 h-4" />, label: t("tab_terminal"), badge: 0 },
             ];
             return tabs.map((tab) => {
               const isActive = tab.id === "terminal" ? showTerminal : activeTab === tab.id;
