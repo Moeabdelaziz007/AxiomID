@@ -140,7 +140,7 @@ export function trustPropagation(
 export function boltzmannTrustProbability(
   trustScore: number,
   temperature: number = 1.0,
-  boltzmannConstant: number = 1.380649e-23,
+  boltzmannConstant: number = 1.0,
 ): number {
   // Energy is inverse of trust (0 trust = max energy)
   const energy = 1 - trustScore;
