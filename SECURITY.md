@@ -29,9 +29,11 @@ Use GitHub’s built-in private vulnerability reporting:
 
 Alternatively, email us directly at:
 
+```text
+security@axiomid.app
+```
 
-
-Encrypt sensitive reports using our PGP key (available in this repository at SEC-KEY.asc or on request).
+Encrypt sensitive reports using our PGP key (available on request).
 
 ---
 
