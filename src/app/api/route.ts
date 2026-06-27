@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { logger } from "@/lib/logger";
 import { apiSuccess } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 
