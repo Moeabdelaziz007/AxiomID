@@ -29,8 +29,8 @@ describe("vercel.json — top-level settings", () => {
     expect(vercelConfig.version).toBe(2);
   });
 
-  it("targets iad1, hnd1, lhr1 regions", () => {
-    expect(vercelConfig.regions).toEqual(["iad1", "hnd1", "lhr1"]);
+  it("targets iad1 region (Hobby plan — single region only)", () => {
+    expect(vercelConfig.regions).toEqual(["iad1"]);
   });
 
   it("specifies nextjs framework", () => {
