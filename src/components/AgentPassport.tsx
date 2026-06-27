@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { getTierColor } from "@/lib/tiers";
 import {
   AgentPassportProps,
