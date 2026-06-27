@@ -12,10 +12,6 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import HeroDemo from "@/components/HeroDemo";
 import StatsBar from "@/components/StatsBar";
 import TrustTiers from "@/components/TrustTiers";
-import { AxiomLogo } from "@/components/AxiomLogo";
-
-export const dynamic = 'force-dynamic';
-
 
 /**
  * Renders the AxiomID landing page with hero section, feature overview, identity tiers, and authentication controls.
@@ -63,7 +59,22 @@ export default function Home() {
       <header className="sticky top-0 w-full z-50 bg-[#0c0d14]/95 backdrop-blur-lg border-b border-white/[0.04] shadow-[0_1px_0_0_rgba(255,255,255,0.02)_inset]">
         <div className="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3 px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center gap-2 sm:gap-3">
-            <AxiomLogo size="sm" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center border border-white/[0.08] bg-black/40 relative group overflow-hidden transition-all duration-300 hover:border-electric-blue/40">
+              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 via-electric-blue/5 to-axiom-purple/5 opacity-50 group-hover:opacity-100 transition-opacity" />
+              <svg className="w-5 h-5 z-10 filter drop-shadow-[0_0_8px_rgba(0,212,255,0.4)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="42" stroke="url(#logoGrad)" strokeWidth="3" strokeDasharray="4 16 28 6" className="animate-spin" style={{ animationDuration: "24s" }} />
+                <path d="M50 24 L74 74 L62 74 L50 48 L38 74 L26 74 Z" fill="#ffffff" />
+                <path d="M40 64 H60 L58 68 H42 Z" fill="#39FF14" />
+                <defs>
+                  <linearGradient id="logoGrad" x1="0" y1="0" x2="100" y2="100">
+                    <stop offset="0%" stopColor="#39FF14" />
+                    <stop offset="50%" stopColor="#00d4ff" />
+                    <stop offset="100%" stopColor="#a855f7" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <span className="font-mono text-lg sm:text-xl tracking-tighter text-surface">AXIOM<span className="text-electric-blue">ID</span></span>
             <div className="w-px h-6 bg-white/10 hidden sm:block" />
             <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded bg-white/5 border border-white/10">
               <svg viewBox="0 0 100 100" className="w-4 h-4" fill="currentColor">
@@ -175,7 +186,7 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="flex flex-wrap gap-4 items-center justify-center md:justify-start pt-6 text-[11px] font-mono text-zinc-400 animate-[fade-in-up_0.6s_ease-out_0.5s_both]">
+            <div className="flex flex-wrap gap-4 items-center justify-center md:justify-start pt-6 text-[11px] font-mono text-zinc-500 animate-[fade-in-up_0.6s_ease-out_0.5s_both]">
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 <span className="tracking-wider">100% On-chain</span>
@@ -275,7 +286,7 @@ export default function Home() {
               <p className="text-sm leading-relaxed text-zinc-400">{item.desc}</p>
               <div className="mt-auto pt-4 border-t border-white/5 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-electric-blue animate-pulse" />
-                <span className="text-[11px] font-mono text-zinc-400">{item.badge}</span>
+                <span className="text-[11px] font-mono text-zinc-500">{item.badge}</span>
               </div>
             </div>
           ))}
@@ -287,7 +298,7 @@ export default function Home() {
         <SectionHeader
           label={t("landing_sovereign_advantage")}
           title={t("landing_why_title")}
-          labelColor="text-zinc-400"
+          labelColor="text-zinc-500"
         />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="p-6 rounded-3xl border border-red-500/10 glass-card flex flex-col justify-between min-h-[300px]">
@@ -296,7 +307,7 @@ export default function Home() {
                 <AlertTriangle className="w-4 h-4 text-red-400 animate-pulse" />
                 <h3 className="text-base font-bold text-red-400 font-mono tracking-tight">{t("landing_web2_title")}</h3>
               </div>
-              <ul className="space-y-3 text-xs font-mono text-zinc-400">
+              <ul className="space-y-3 text-xs font-mono text-zinc-500">
                 {[
                   t("landing_web2_item1"),
                   t("landing_web2_item2"),
@@ -310,7 +321,7 @@ export default function Home() {
                 ))}
               </ul>
             </div>
-            <div className="border-t border-red-500/5 pt-4 mt-6 text-[10px] text-zinc-400 font-mono">
+            <div className="border-t border-red-500/5 pt-4 mt-6 text-[10px] text-zinc-600 font-mono">
               {t("landing_web2_result")}
             </div>
           </div>

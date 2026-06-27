@@ -67,8 +67,7 @@ export async function POST(req: Request) {
     await bot.handleUpdate(body);
     return NextResponse.json({ ok: true });
   } catch (error) {
-    logger.error(error);
-    console.error("Error handling Telegram webhook:", error);
+    logger.error({ error, event: "TELEGRAM_WEBHOOK_ERROR" }, "Error handling Telegram webhook");
     return NextResponse.json({ ok: false, error: "Internal Server Error" }, { status: 500 });
   }
 }

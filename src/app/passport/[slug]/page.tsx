@@ -2,40 +2,22 @@ import { PassportView } from "./PassportView";
 import { PassportHeader } from "./PassportHeader";
 import { Metadata } from "next";
 import Footer from "@/components/Footer";
-import { prisma } from "@/lib/prisma";
 
-export const revalidate = 3600;
+export const dynamic = "force-static";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
-
-  let ogTier = "Visitor";
-  let ogXp = 0;
-
-  try {
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { walletAddress: decodedSlug },
-          { did: decodedSlug },
-          { piUsername: decodedSlug },
-        ],
-      },
-      select: { tier: true, xp: true },
-    });
-    if (user) {
-      ogTier = user.tier || "Visitor";
-      ogXp = user.xp ?? 0;
-    }
-  } catch {
-    // fall back to defaults if DB is unreachable
-  }
-
   const title = `Passport: ${decodedSlug} | AxiomID`;
   const description = `AxiomID sovereign identity passport for ${decodedSlug}. Verified agent identity, trust score, and decentralized identifier (DID).`;
+
+  // NOTE: This page is `force-static` with no generateStaticParams, so we cannot
+  // fetch per-slug tier/xp/stamps here without converting it to dynamic/ISR.
+  // The OG endpoint accepts optional `tier`, `xp`, and `stamps` params and
+  // derives a coherent Visitor card from XP when they are omitted. Populating
+  // them with live data is deferred to a follow-up that addresses rendering mode.
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://axiomid.app";
-  const ogUrl = `${baseUrl}/api/og/passport?title=${encodeURIComponent(title)}&did=${encodeURIComponent(decodedSlug)}&tier=${encodeURIComponent(ogTier)}&xp=${ogXp}`;
+  const ogUrl = `${baseUrl}/api/og/passport?title=${encodeURIComponent(title)}&did=${encodeURIComponent(decodedSlug)}`;
 
   return {
     title,

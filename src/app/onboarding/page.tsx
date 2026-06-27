@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Wallet, ShieldCheck, CheckCircle2, ChevronRight, Zap } from "lucide-react";
 import InteractivePassportCard from "@/components/ui/InteractivePassportCard";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
 export default function OnboardingPage() {
@@ -137,9 +138,15 @@ export default function OnboardingPage() {
             {/* Wizard Steps Details */}
             <div className="bento-card p-6 bg-[#101217]/65 min-h-[160px] flex flex-col justify-between">
               
-              <div className="relative min-h-[160px]">
+              <AnimatePresence mode="wait">
                 {step === 1 && (
-                  <div key="step-1-details" className="space-y-4 animate-fadeInUp">
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    key="step-1-details"
+                    className="space-y-4"
+                  >
                     <p className="text-xs text-zinc-500 font-mono">
                       {t("onboarding_connect_desc")}
                     </p>
@@ -161,11 +168,17 @@ export default function OnboardingPage() {
                         <Wallet className="w-4 h-4" />
                       </button>
                     )}
-                  </div>
+                  </motion.div>
                 )}
 
                 {step === 2 && (
-                  <div key="step-2-details" className="space-y-4 animate-fadeInUp">
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    key="step-2-details"
+                    className="space-y-4"
+                  >
                     <div className="space-y-2">
                       <label className="text-[10px] font-mono text-zinc-500 uppercase block">{t("onboarding_agent_name_label")}</label>
                       <input
@@ -184,11 +197,17 @@ export default function OnboardingPage() {
                       {creatingAgent ? t("onboarding_provisioning") : t("onboarding_provision_btn")}
                       <ChevronRight className="w-4 h-4" />
                     </button>
-                  </div>
+                  </motion.div>
                 )}
 
                 {step === 3 && (
-                  <div key="step-3-details" className="space-y-4 animate-fadeInUp">
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    key="step-3-details"
+                    className="space-y-4"
+                  >
                     <p className="text-xs text-zinc-500 font-mono">
                       {t("onboarding_seal_desc")}
                     </p>
@@ -200,11 +219,17 @@ export default function OnboardingPage() {
                       {t("onboarding_seal_btn")}
                       <ChevronRight className="w-4 h-4" />
                     </button>
-                  </div>
+                  </motion.div>
                 )}
 
                 {step === 4 && (
-                  <div key="step-4-details" className="space-y-4 animate-fadeInUp">
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    key="step-4-details"
+                    className="space-y-4"
+                  >
                     <p className="text-xs text-zinc-500 font-mono">
                       {t("onboarding_congrats_desc")}
                     </p>
@@ -212,9 +237,9 @@ export default function OnboardingPage() {
                       {t("onboarding_enter_dashboard")}
                       <Zap className="w-4 h-4 text-amber-400 fill-amber-400 animate-pulse" />
                     </button>
-                  </div>
+                  </motion.div>
                 )}
-              </div>
+              </AnimatePresence>
 
               {/* Back navigation */}
               {step > 1 && step < 4 && (

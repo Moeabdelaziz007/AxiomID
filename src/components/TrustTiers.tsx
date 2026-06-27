@@ -73,7 +73,6 @@ export default function TrustTiers() {
               onClick={() => setExpanded(isExpanded ? null : tier.name)}
               aria-expanded={isExpanded}
               aria-controls={`tier-perks-${tier.name}`}
-              aria-label={`${tier.name} tier — ${tier.xp} XP — ${tier.desc}`}
               className="w-full text-left"
             >
               <div
@@ -87,15 +86,15 @@ export default function TrustTiers() {
                 <span className="font-bold text-lg font-mono">{tier.letter}</span>
               </div>
 
-              <h3 className="text-sm font-bold text-white mb-1">{tier.name}</h3>
+              <h4 className="text-sm font-bold text-white mb-1">{tier.name}</h4>
               <span className="text-[11px] font-mono block mb-2" style={{ color: tier.color }}>
                 {tier.xp} XP
               </span>
-              <p className="text-[11px] text-zinc-400 leading-relaxed">{tier.desc}</p>
+              <p className="text-[11px] text-zinc-500 leading-relaxed">{tier.desc}</p>
 
               <div className="mt-3 flex justify-center">
                 <ChevronDown
-                  className="w-4 h-4 text-zinc-400 transition-transform duration-300"
+                  className="w-4 h-4 text-zinc-600 transition-transform duration-300"
                   style={{ transform: isExpanded ? "rotate(180deg)" : undefined }}
                 />
               </div>

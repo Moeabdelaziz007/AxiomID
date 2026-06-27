@@ -32,7 +32,7 @@ jobs:
           echo "$DIFF" > /tmp/pr.diff
           FILE_COUNT=$(grep -c "^diff --git" /tmp/pr.diff || echo "0")
           echo "file_count=$FILE_COUNT" >> "$GITHUB_OUTPUT"
-          echo "diff_lines=$(wc -l < /tmp/pr.diff | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+          echo "diff_lines=$(wc -l < /tmp/pr.diff)" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

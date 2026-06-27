@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { apiError, apiSuccess } from '@/lib/errors';
-import { getSandboxDevToken } from '@/lib/sandbox-token';
 import { logger } from '@/lib/logger';
+import { getSandboxDevToken } from '@/lib/sandbox-token';
 
 /**
  * GET /api/sandbox/dev-token — Returns the sandbox dev token for local development.
@@ -19,23 +19,22 @@ import { logger } from '@/lib/logger';
  */
 export async function GET(request: NextRequest) {
   try {
-    const hostname = request.nextUrl.hostname;
-    const isLoopbackHost =
-      hostname === 'localhost' ||
-      hostname === '127.0.0.1' ||
-      hostname === '::1';
+  const hostname = request.nextUrl.hostname;
+  const isLoopbackHost =
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '::1';
 
-    const bypassEnabled = process.env.SANDBOX_AUTH_BYPASS === 'true' && isLoopbackHost;
-    const token = getSandboxDevToken();
+  const bypassEnabled = process.env.SANDBOX_AUTH_BYPASS === 'true' && isLoopbackHost;
+  const token = getSandboxDevToken();
 
-    if (!bypassEnabled || !token) {
-      return apiError('NOT_FOUND', 'Sandbox dev token endpoint is not available');
-    }
-
-    return apiSuccess({ token });
-  } catch (error) {
-    logger.error('Error fetching dev token', { error });
-    return apiError('INTERNAL_ERROR', 'Internal server error');
+  if (!bypassEnabled || !token) {
+    return apiError('NOT_FOUND', 'Sandbox dev token endpoint is not available');
   }
 
+  return apiSuccess({ token });
+  } catch (error) {
+    logger.error({ error, event: "DEV_TOKEN_ERROR" }, "Error serving dev token");
+    return apiError("INTERNAL_ERROR", "Internal Server Error");
+  }
 }

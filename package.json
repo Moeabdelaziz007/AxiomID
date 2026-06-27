@@ -37,6 +37,7 @@
   ],
   "scripts": {
     "dev": "next dev",
+    "build": "prisma generate && next build --webpack",
     "start": "next start",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "preview": "next build && next start",
@@ -47,8 +48,7 @@
     "test:watch": "jest --watch",
     "type-check": "tsc --noEmit",
     "memory:build": "ts-node --compiler-options '{\\\"module\\\":\\\"commonjs\\\"}' scripts/build-memory.ts",
-    "dead-code": "knip",
-    "build": "prisma generate && next build"
+    "dead-code": "knip"
   },
   "dependencies": {
     "@axiomid/crypto": "^0.1.0",
