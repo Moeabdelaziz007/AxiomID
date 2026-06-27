@@ -48,7 +48,7 @@ interface WalletContextType {
   runWalletTest: () => Promise<void>;
   clearWalletLogs: () => void;
   disconnectWallet: () => Promise<void>;
-  connectDemo: () => void;
+  connectDemo: () => Promise<void>;
 }
 
 export const WalletContext = createContext<WalletContextType | null>(null);
@@ -800,7 +800,7 @@ export function useWallet() {
       runWalletTest: async () => {},
       clearWalletLogs: () => {},
       disconnectWallet: async () => {},
-      connectDemo: () => {},
+      connectDemo: async () => {},
     };
   }
   return ctx;
