@@ -268,7 +268,6 @@ describe("AgentPassport — renders without explicit React import (PR change)", 
 
   it("renders PassportFooter with issuedDate", () => {
     const { container } = render(<AgentPassport {...defaultProps} issuedDate="2025-06-01T00:00:00.000Z" />);
-    // PassportFooter renders something containing the issuedDate info; verify it mounted.
-    expect(container.firstChild).not.toBeNull();
+    expect(container.textContent).toContain("2025");
   });
 });

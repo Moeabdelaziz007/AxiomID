@@ -956,11 +956,9 @@ export function randomWalkTrust(
 ): { visitCounts: Map<string, number>; stationaryDistribution: Map<string, number> } {
   const visitCounts = new Map<string, number>();
   let current = startNode;
-  let _totalVisits = 0;
 
   for (let i = 0; i < steps; i++) {
     visitCounts.set(current, (visitCounts.get(current) || 0) + 1);
-    _totalVisits++;
     const neighbors = graph.get(current) || [];
     if (neighbors.length === 0) break;
     current = neighbors[Math.floor(Math.random() * neighbors.length)];

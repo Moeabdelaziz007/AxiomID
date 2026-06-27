@@ -56,3 +56,4 @@ packages/sdk/dist
 .swc/
 stitch-*.html
 packages/crypto/node_modules/
+ai-report.html
