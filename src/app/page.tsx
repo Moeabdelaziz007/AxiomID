@@ -189,7 +189,7 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="flex flex-wrap gap-4 items-center justify-center md:justify-start pt-6 text-[11px] font-mono text-zinc-500 animate-[fade-in-up_0.6s_ease-out_0.5s_both]">
+            <div className="flex flex-wrap gap-4 items-center justify-center md:justify-start pt-6 text-[11px] font-mono text-zinc-400 animate-[fade-in-up_0.6s_ease-out_0.5s_both]">
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 <span className="tracking-wider">100% On-chain</span>
@@ -289,7 +289,7 @@ export default function Home() {
               <p className="text-sm leading-relaxed text-zinc-400">{item.desc}</p>
               <div className="mt-auto pt-4 border-t border-white/5 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-electric-blue animate-pulse" />
-                <span className="text-[11px] font-mono text-zinc-500">{item.badge}</span>
+                <span className="text-[11px] font-mono text-zinc-400">{item.badge}</span>
               </div>
             </div>
           ))}
@@ -301,7 +301,7 @@ export default function Home() {
         <SectionHeader
           label={t("landing_sovereign_advantage")}
           title={t("landing_why_title")}
-          labelColor="text-zinc-500"
+          labelColor="text-zinc-400"
         />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="p-6 rounded-3xl border border-red-500/10 glass-card flex flex-col justify-between min-h-[300px]">
@@ -310,7 +310,7 @@ export default function Home() {
                 <AlertTriangle className="w-4 h-4 text-red-400 animate-pulse" />
                 <h3 className="text-base font-bold text-red-400 font-mono tracking-tight">{t("landing_web2_title")}</h3>
               </div>
-              <ul className="space-y-3 text-xs font-mono text-zinc-500">
+              <ul className="space-y-3 text-xs font-mono text-zinc-400">
                 {[
                   t("landing_web2_item1"),
                   t("landing_web2_item2"),
@@ -324,7 +324,7 @@ export default function Home() {
                 ))}
               </ul>
             </div>
-            <div className="border-t border-red-500/5 pt-4 mt-6 text-[10px] text-zinc-600 font-mono">
+            <div className="border-t border-red-500/5 pt-4 mt-6 text-[10px] text-zinc-400 font-mono">
               {t("landing_web2_result")}
             </div>
           </div>

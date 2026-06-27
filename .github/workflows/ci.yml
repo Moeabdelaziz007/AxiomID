@@ -40,6 +40,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          DATABASE_URL: "postgresql://localhost:5432/dummy"
 
       - name: Test
         run: npm test -- --ci --runInBand

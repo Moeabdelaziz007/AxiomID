@@ -29,7 +29,7 @@ describe("vercel.json — top-level settings", () => {
     expect(vercelConfig.version).toBe(2);
   });
 
-  it("targets the iad1 region only", () => {
+  it("targets iad1 region (Hobby plan — single region only)", () => {
     expect(vercelConfig.regions).toEqual(["iad1"]);
   });
 
