@@ -1,0 +1,146 @@
+name: AI Issue Triage
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  triage:
+    name: AI Triage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: AI Triage with Gemini
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          AI_GATEWAY_URL: ${{ secrets.AI_GATEWAY_URL }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 << 'PYEOF'
+          import json, urllib.request, urllib.error, os, sys
+
+          GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+          AI_GATEWAY_URL = os.environ.get("AI_GATEWAY_URL", "")
+
+          if not GEMINI_API_KEY and not AI_GATEWAY_URL:
+              print("⚠️  Skipping AI triage: no API key configured")
+              sys.exit(0)
+
+          title = os.environ.get("ISSUE_TITLE", "")
+          body = os.environ.get("ISSUE_BODY", "")
+          number = os.environ.get("ISSUE_NUMBER", "")
+          repo = os.environ.get("GITHUB_REPOSITORY", "")
+
+          prompt = f"""You are an AI issue triage agent for AxiomID.
+          Classify this GitHub issue and return ONLY valid JSON.
+
+          Available labels:
+          - bug: Something isn't working, unexpected behavior, error
+          - enhancement: Improvement or addition to existing feature
+          - feat: New feature or request
+          - question: Further information is requested
+          - needs-triage: Cannot determine, needs human
+          - priority:critical: Security issue, data loss, production down
+          - priority:high: Blocks existing functionality, major feature broken
+          - priority:medium: Enhancement, nice-to-have
+          - priority:low: Cosmetic, documentation, minor
+          - needs-human-approval: Requires human review before action
+          - good first issue: Easy, good for newcomers
+          - help wanted: Community contribution welcome
+
+          Area labels (pick one if matches):
+          - pi-network: Pi SDK, Pi Browser, Pi authentication
+          - did-passport: DIDs, passports, credentials, VCs
+          - frontend: UI, components, pages
+          - cloudflare-workers: Workers, D1, Vectorize, edge
+          - database: Prisma, PostgreSQL, migrations
+          - documentation: Docs, README, comments
+          - ci/cd: CI/CD pipeline, Actions, deployment
+          - infra: Infrastructure, config, build
+
+          Issue title: {title}
+          Issue body: {body[:3000]}
+
+          Return JSON:
+          {{"labels": ["label1", "label2"], "summary": "One sentence classification", "needs_human": false}}
+          """
+
+          url = AI_GATEWAY_URL + "/v1/chat/completions" if AI_GATEWAY_URL else "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+          headers = {"Content-Type": "application/json"}
+
+          if AI_GATEWAY_URL:
+              payload = json.dumps({"model": "google/gemini-2.0-flash", "messages": [{"role": "user", "content": prompt}], "max_tokens": 500}).encode()
+          else:
+              url += f"?key={GEMINI_API_KEY}"
+              payload = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode()
+
+          try:
+              req = urllib.request.Request(url, data=payload, headers=headers)
+              resp = urllib.request.urlopen(req, timeout=30)
+              result = json.loads(resp.read())
+
+              if AI_GATEWAY_URL:
+                  text = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+              else:
+                  text = result.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+
+              json_match = text[text.find("{"):text.rfind("}") + 1] if "{" in text else "{}"
+              classification = json.loads(json_match)
+              labels = classification.get("labels", ["needs-triage"])
+              summary = classification.get("summary", "AI triage completed")
+              needs_human = classification.get("needs_human", False)
+
+              with open(os.environ.get("GITHUB_OUTPUT"), "a") as f:
+                  f.write(f"labels={json.dumps(labels)}\n")
+                  f.write(f"summary={summary}\n")
+
+              with open("/tmp/ai-triage-result.json", "w") as f:
+                  json.dump({"labels": labels, "summary": summary, "needs_human": needs_human}, f)
+
+              print(f"✅ Triage: {labels} — {summary}")
+
+          except Exception as e:
+              print(f"❌ AI triage failed: {e}")
+              with open(os.environ.get("GITHUB_OUTPUT"), "a") as f:
+                  f.write("labels=[]\n")
+                  f.write("summary=AI triage unavailable, manual triage needed\n")
+              sys.exit(0)
+          PYEOF
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+
+      - name: Apply Labels
+        if: hashFiles('/tmp/ai-triage-result.json') != ''
+        run: |
+          python3 << 'PYEOF'
+          import json, os
+          with open("/tmp/ai-triage-result.json") as f:
+              result = json.load(f)
+          labels = result.get("labels", [])
+          summary = result.get("summary", "")
+          number = "${{ github.event.issue.number }}"
+          repo = "${{ github.repository }}"
+
+          if labels:
+              label_str = " ".join(labels)
+              os.system(f'gh issue edit {number} --repo {repo} --add-label "{label_str}"')
+
+          if summary:
+              body = f"## 🤖 AI Triage\n\n**{summary}**\n\n_Automated by AxiomID AI Triage Agent_"
+              os.system(f'gh issue comment {number} --repo {repo} --body "{body}"')
+
+          print(f"✅ Labels applied: {labels}")
+          print(f"✅ Comment posted: {summary}")
+          PYEOF
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

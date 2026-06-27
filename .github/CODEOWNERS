@@ -21,6 +21,19 @@
 # CI/CD
 /.github/ @Moeabdelaziz007
 
+# AI team workflows
+/.github/workflows/ai-*.yml @Moeabdelaziz007
+/.github/workflows/gemini-review.yml @Moeabdelaziz007
+/.github/workflows/ci-intelligence.yml @Moeabdelaziz007
+/.github/workflows/loops.yml @Moeabdelaziz007
+
+# Frontend components — AI-safe zone
+/src/components/ @Moeabdelaziz007
+/src/app/dashboard/ @Moeabdelaziz007
+
+# Tests — AI-safe zone
+/src/__tests__/ @Moeabdelaziz007
+
 # Documentation
 /docs/ @Moeabdelaziz007
 *.md @Moeabdelaziz007
