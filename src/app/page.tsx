@@ -13,6 +13,9 @@ import HeroDemo from "@/components/HeroDemo";
 import StatsBar from "@/components/StatsBar";
 import TrustTiers from "@/components/TrustTiers";
 
+export const dynamic = 'force-dynamic';
+
+
 /**
  * Renders the AxiomID landing page with hero section, feature overview, identity tiers, and authentication controls.
  */

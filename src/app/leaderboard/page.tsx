@@ -10,6 +10,9 @@ import { Trophy, Search, ChevronDown } from "lucide-react";
 import TopThreeCards from "@/components/ui/TopThreeCards";
 import { getTierColor, Tier } from "@/lib/tiers";
 
+export const dynamic = 'force-dynamic';
+
+
 const PAGE_SIZE = 20;
 
 interface LeaderboardUser {
