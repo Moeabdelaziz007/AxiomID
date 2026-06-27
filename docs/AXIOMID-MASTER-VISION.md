@@ -254,7 +254,7 @@ Core aesthetic guiding all UI/UX:
 - **Hexagonal grids** for modular layouts
 - **Glassmorphism** with subtle grid patterns
 - **Pulsing animations** for active states
-- **Monospace fonts** (Geist Sans, Geist Mono)
+- **Typography:** Geist Sans (body), Geist Mono (data/code)
 
 ### "The Digital Orb"
 
