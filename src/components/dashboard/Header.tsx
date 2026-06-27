@@ -62,11 +62,11 @@ export function Header({ pathname, navItems }: HeaderProps) {
               <Link
                 key={href}
                 href={href}
-className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-mono transition-colors duration-200 ${
-                   pathname === href
-                     ? "text-neon-green bg-neon-green/10 shadow-[0_0_12px_rgba(34,197,94,0.05)] border border-neon-green/20"
-                     : "text-subtle hover:text-surface hover:bg-white/5 border border-transparent"
-                 }`}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 ${
+                  pathname === href
+                    ? "text-neon-green bg-neon-green/10 shadow-[0_0_12px_rgba(34,197,94,0.05)] border border-neon-green/20"
+                    : "text-subtle hover:text-surface hover:bg-white/5 border border-transparent"
+                }`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 {t(labelKey)}

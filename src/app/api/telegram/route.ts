@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
 if (!botToken) {
   // Let it pass for build if env var is missing, but log an error.
-  console.error("TELEGRAM_BOT_TOKEN is not defined");
+  logger.error("TELEGRAM_BOT_TOKEN is not defined");
 }
 
 const bot = new Telegraf(botToken || "dummy_token_for_build");
@@ -67,8 +67,7 @@ export async function POST(req: Request) {
     await bot.handleUpdate(body);
     return NextResponse.json({ ok: true });
   } catch (error) {
-    logger.error(error);
-    console.error("Error handling Telegram webhook:", error);
+    logger.error("Error handling Telegram webhook:", error);
     return NextResponse.json({ ok: false, error: "Internal Server Error" }, { status: 500 });
   }
 }

@@ -26,13 +26,13 @@ jobs:
         run: |
           DIFF=$(gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }} 2>/dev/null || echo "")
           if [ -z "$DIFF" ]; then
-            echo "diff=" >> "$GITHUB_OUTPUT"
+            echo "diff=" >> $GITHUB_OUTPUT
             exit 0
           fi
           echo "$DIFF" > /tmp/pr.diff
           FILE_COUNT=$(grep -c "^diff --git" /tmp/pr.diff || echo "0")
-          echo "file_count=$FILE_COUNT" >> "$GITHUB_OUTPUT"
-          echo "diff_lines=$(wc -l < /tmp/pr.diff | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+          echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
+          echo "diff_lines=$(wc -l < /tmp/pr.diff | awk '{print $1}')" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

@@ -5,13 +5,10 @@ import { useLanguage } from "../context/language-context";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Bot, Users, Ticket, Zap } from "lucide-react";
-import nextDynamic from "next/dynamic";
-const NetworkGraph = nextDynamic(() => import("@/components/ui/NetworkGraph"), { ssr: false });
+import dynamic from "next/dynamic";
+const NetworkGraph = dynamic(() => import("@/components/ui/NetworkGraph"), { ssr: false });
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { Tier } from "@/lib/tiers";
-
-export const dynamic = 'force-dynamic';
-
 
 interface ExplorerData {
   stats: {

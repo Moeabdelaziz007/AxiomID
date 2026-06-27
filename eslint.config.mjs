@@ -15,7 +15,6 @@ const eslintConfig = defineConfig([
     "backend/**",
     ".agents/**",
     "packages/**",
-    "coverage/**",
   ]),
   {
     rules: {

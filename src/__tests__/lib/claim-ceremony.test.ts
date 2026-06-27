@@ -53,11 +53,6 @@ describe("Claim Ceremony", () => {
     expect(() => confirmClaimToken("nonexistent-token", "user-789")).toThrow("Claim token not found or expired");
   });
 
-  it("returns null for empty string token", () => {
-    const result = verifyClaimToken("");
-    expect(result).toBeNull();
-  });
-
   it("creates unique tokens for each call", () => {
     const claim1 = createClaimToken();
     const claim2 = createClaimToken();

@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -23,15 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@axiomid/crypto": [
-        "./packages/crypto/src/index.ts"
-      ],
-      "@axiomid/sdk": [
-        "./packages/sdk/src/index.ts"
-      ]
+      "@/*": ["./src/*"],
+      "@axiomid/crypto": ["./packages/crypto/src/index.ts"],
+      "@axiomid/sdk": ["./packages/sdk/src/index.ts"]
     }
   },
   "include": [
@@ -42,12 +32,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": [
-    "node_modules",
-    "**/test-harness.ts",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/*.spec.ts",
-    "backend"
-  ]
+  "exclude": ["node_modules", "**/test-harness.ts", "**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "backend"]
 }

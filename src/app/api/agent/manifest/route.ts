@@ -1,4 +1,3 @@
-import { logger } from '@/lib/logger';
 import { NextRequest } from "next/server";
 import { apiError, apiSuccess } from "@/lib/errors";
 import { requireAuth } from "@/lib/auth-middleware";
@@ -78,8 +77,7 @@ export async function GET(request: NextRequest) {
       "Content-Type": "application/ld+json",
       "Cache-Control": "public, max-age=300",
     });
-  } catch (error) {
-    logger.error('[AGENT-MANIFEST] Error signing credential:', error);
+  } catch {
     return apiError("INTERNAL_ERROR", "Failed to sign credential manifest");
   }
 }
