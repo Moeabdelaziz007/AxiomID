@@ -267,8 +267,12 @@ describe("SECURITY.md — security best practices for contributors", () => {
   });
 
   it("lists exactly 7 best-practice bullet points", () => {
+    // Extract only the text between this H2 and the next H2 (or end of file),
+    // so unrelated bullets elsewhere in the document cannot skew the count.
+    const afterHeading =
+      content.split("## Security Best Practices for Contributors")[1] ?? "";
+    const section = afterHeading.split(/^## /m)[0];
     // Each bullet in the section starts with "- "
-    const section = content.split("## Security Best Practices for Contributors")[1] ?? "";
     const bullets = section.match(/^- .+/gm) ?? [];
     expect(bullets).toHaveLength(7);
   });
