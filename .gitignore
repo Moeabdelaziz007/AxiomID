@@ -57,3 +57,12 @@ packages/sdk/dist
 stitch-*.html
 packages/crypto/node_modules/
 ai-report.html
+
+# Sensitive internal files
+memory.graph.json
+scratchpad/
+.jolli/
+
+# Patch/merge artifacts
+*.orig
+*.rej
