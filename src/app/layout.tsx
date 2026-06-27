@@ -132,38 +132,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen overflow-x-hidden`}
       >
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.addEventListener('unhandledrejection', function(event) {
-                if (!event.reason) return;
-                var reasonStr = '';
-                if (typeof event.reason === 'string') {
-                  reasonStr = event.reason;
-                } else if (event.reason instanceof Error) {
-                  reasonStr = event.reason.message || event.reason.toString();
-                } else if (typeof event.reason === 'object') {
-                  reasonStr = event.reason.message || event.reason.error || String(event.reason);
-                } else {
-                  reasonStr = String(event.reason);
-                }
-                var normalized = reasonStr.toLowerCase();
-                if (normalized.indexOf('connection closed') !== -1 || normalized.indexOf('connection_closed') !== -1) {
-                  event.preventDefault();
-                }
-              });
-            `
-          }}
-        />
+        <Script src="/error-handler.js" strategy="beforeInteractive" />
         <a href="#main-content" className="skip-link">
           Skip to content
         </a>
-        <Script
-          src="https://sdk.minepi.com/pi-sdk.js"
-          strategy="beforeInteractive"
-          integrity="sha384-MB+dVW+BFRnwyiBYxALhuOr8KOKBtIJdOS3MmO7M87C5+khNeoYuj09OTzIx0GDD"
-          crossOrigin="anonymous"
-        />
+        <Script src="https://sdk.minepi.com/pi-sdk.js" strategy="beforeInteractive" />
         <Script src="/register-sw.js" strategy="afterInteractive" />
         <ThemeProvider>
           <LanguageProvider>

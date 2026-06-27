@@ -5,9 +5,9 @@
     "enabled": true,
     "silent": false
   },
-  "regions": ["iad1"],
+  "regions": ["iad1", "hnd1", "lhr1"],
   "framework": "nextjs",
-  "buildCommand": "(test -n \"$DATABASE_URL\" && prisma migrate deploy) || true; npm run build",
+  "buildCommand": "(test -z \"$DATABASE_URL\" || (prisma generate && prisma migrate deploy)) && npm run build",
   "installCommand": "npm install",
   "outputDirectory": ".next",
   "cleanUrls": true,
@@ -19,8 +19,14 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; frame-ancestors 'self' https://sandbox.minepi.com https://app-cdn.minepi.com https://*.minepi.com; script-src 'self' 'unsafe-inline' https://sdk.minepi.com https://vercel.live https://*.vercel.live; frame-src 'self' https://vercel.live https://*.vercel.live; connect-src 'self' https://vercel.live https://*.vercel.live https://*.vercel.com https://*.minepi.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:;" },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; frame-ancestors 'self' https://sandbox.minepi.com https://app-cdn.minepi.com https://*.minepi.com; script-src 'self' https://sdk.minepi.com https://vercel.live https://*.vercel.live; frame-src 'self' https://vercel.live https://*.vercel.live; connect-src 'self' https://vercel.live https://*.vercel.live https://*.vercel.com https://*.minepi.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:;"
+        },
         { "key": "Link", "value": "<https://sandbox.minepi.com>; rel=preconnect" }
       ]
     },
@@ -33,15 +39,11 @@
     },
     {
       "source": "/_next/static/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     },
     {
       "source": "/(.*)\\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     }
   ],
   "crons": [
