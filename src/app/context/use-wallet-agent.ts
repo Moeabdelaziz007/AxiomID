@@ -32,7 +32,7 @@ export function useWalletAgent({
       const res = await fetch("/api/agent", {
         method: "POST",
         headers: authHeaders(piAccessToken),
-        body: JSON.stringify(name !== undefined ? { name } : {}),
+        ...(name !== undefined ? { body: JSON.stringify({ name }) } : {}),
       });
       if (!res.ok) return false;
       await refreshUser();
