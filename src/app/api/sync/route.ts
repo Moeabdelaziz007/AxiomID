@@ -277,40 +277,31 @@ async function syncHarvestResults(dryRun: boolean): Promise<SyncResult> {
     };
 
     if (!dryRun) {
-      const CHUNK_SIZE = 50;
-      for (let i = 0; i < items.length; i += CHUNK_SIZE) {
-        const chunk = items.slice(i, i + CHUNK_SIZE);
-        const results = await Promise.allSettled(
-          chunk.map((item) =>
-            prisma.harvestResult.upsert({
-              where: { id: item.id },
-              update: {
-                query: item.query,
-                result: item.result,
-                citations: item.citations,
-                userDid: item.user_did,
-                createdAt: parseDate(item.created_at),
-              },
-              create: {
-                id: item.id,
-                query: item.query,
-                result: item.result,
-                citations: item.citations,
-                userDid: item.user_did,
-                createdAt: parseDate(item.created_at),
-              },
-            })
-          )
-        );
-
-        results.forEach((res, index) => {
-          if (res.status === "fulfilled") {
-            synced++;
-          } else {
-            logger.error(`Failed to upsert harvest result ${chunk[index].id}:`, res.reason);
-            errors++;
-          }
-        });
+      for (const item of items) {
+        try {
+          await prisma.harvestResult.upsert({
+            where: { id: item.id },
+            update: {
+              query: item.query,
+              result: item.result,
+              citations: item.citations,
+              userDid: item.user_did,
+              createdAt: parseDate(item.created_at),
+            },
+            create: {
+              id: item.id,
+              query: item.query,
+              result: item.result,
+              citations: item.citations,
+              userDid: item.user_did,
+              createdAt: parseDate(item.created_at),
+            },
+          });
+          synced++;
+        } catch (err) {
+          logger.error(`Failed to upsert harvest result ${item.id}:`, err);
+          errors++;
+        }
       }
     } else {
       synced = items.length;
@@ -380,36 +371,27 @@ async function syncAgentPresence(dryRun: boolean): Promise<SyncResult> {
     const items = body.data.agentPresence;
 
     if (!dryRun) {
-      const CHUNK_SIZE = 50;
-      for (let i = 0; i < items.length; i += CHUNK_SIZE) {
-        const chunk = items.slice(i, i + CHUNK_SIZE);
-        const results = await Promise.allSettled(
-          chunk.map((item) =>
-            prisma.agentPresence.upsert({
-              where: { agentId: item.agent_id },
-              update: {
-                status: item.status,
-                lastHeartbeat: item.last_heartbeat ? BigInt(item.last_heartbeat) : null,
-                metadata: item.metadata,
-              },
-              create: {
-                agentId: item.agent_id,
-                status: item.status,
-                lastHeartbeat: item.last_heartbeat ? BigInt(item.last_heartbeat) : null,
-                metadata: item.metadata,
-              },
-            })
-          )
-        );
-
-        results.forEach((res, index) => {
-          if (res.status === "fulfilled") {
-            synced++;
-          } else {
-            logger.error(`Failed to upsert agent presence ${chunk[index].agent_id}:`, res.reason);
-            errors++;
-          }
-        });
+      for (const item of items) {
+        try {
+          await prisma.agentPresence.upsert({
+            where: { agentId: item.agent_id },
+            update: {
+              status: item.status,
+              lastHeartbeat: item.last_heartbeat ? BigInt(item.last_heartbeat) : null,
+              metadata: item.metadata,
+            },
+            create: {
+              agentId: item.agent_id,
+              status: item.status,
+              lastHeartbeat: item.last_heartbeat ? BigInt(item.last_heartbeat) : null,
+              metadata: item.metadata,
+            },
+          });
+          synced++;
+        } catch (err) {
+          logger.error(`Failed to upsert agent presence ${item.agent_id}:`, err);
+          errors++;
+        }
       }
     } else {
       synced = items.length;

@@ -20,9 +20,9 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-beta_v1.0-blue" alt="Status" />
-  <img src="https://img.shields.io/badge/tests-2501%20passing-brightgreen" alt="Tests" />
+  <img src="https://img.shields.io/badge/tests-1968%20passing-brightgreen" alt="Tests" />
   <img src="https://img.shields.io/badge/coverage-100%25-brightgreen" alt="Coverage" />
-  <img src="https://img.shields.io/badge/Next.js-15-black" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Next.js-16-black" alt="Next.js" />
   <img src="https://img.shields.io/badge/React-19-blue" alt="React" />
   <img src="https://img.shields.io/badge/Prisma-6-2D3748" alt="Prisma" />
   <img src="https://img.shields.io/badge/Cloudflare-Workers-orange" alt="Workers" />
@@ -154,7 +154,7 @@ See [`docs/SUBDOMAIN-SETUP.md`](./docs/SUBDOMAIN-SETUP.md) for DNS configuration
 ## Testing
 
 ```bash
-npm test           # 2501 tests, 111 suites
+npm test           # 1260 tests, 99 suites
 npm run lint       # 0 errors, 0 warnings
 npx tsc --noEmit   # type check
 ```
@@ -201,42 +201,24 @@ Full docs: [`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md) · [`STRATEGY.md`](./S
 
 AxiomID agents run through a **five-gate ethical evaluation loop** before any action:
 
-
-```mermaid
-graph TD
-    A[Agent Action Initiated] --> B(1. Muraqabah: Self-awareness check)
-    B --> C(2. Ethical: Intent analysis via Workers AI)
-    C --> D(3. Sab'iyyah: Seven-attribute virtue scoring)
-    D --> E(4. Tawbah: Repentance & correction gate)
-    E --> F(5. Self-Review: Groq-powered post-action reflection)
-    F --> G[Action Executed / Blocked]
-
-    style A fill:#10131a,stroke:#3b82f6,stroke-width:2px,color:#fff
-    style B fill:#10131a,stroke:#6366f1,stroke-width:2px,color:#fff
-    style C fill:#10131a,stroke:#6366f1,stroke-width:2px,color:#fff
-    style D fill:#10131a,stroke:#6366f1,stroke-width:2px,color:#fff
-    style E fill:#10131a,stroke:#6366f1,stroke-width:2px,color:#fff
-    style F fill:#10131a,stroke:#6366f1,stroke-width:2px,color:#fff
-    style G fill:#10131a,stroke:#22c55e,stroke-width:2px,color:#fff
 ```
-
+┌─────────────────────────────────────────────────────────┐
+│                    SOUL LOOP                            │
+│                                                         │
+│  1. Muraqabah  ──── Self-awareness check                │
+│  2. Ethical     ──── Intent analysis (Workers AI)        │
+│  3. Sab'iyyah  ──── Seven-attribute virtue scoring       │
+│  4. Tawbah     ──── Repentance / correction gate         │
+│  5. Self-Review─── Groq-powered post-action reflection   │
+│                                                         │
+│  Milestones: 700 actions → Telegram notification        │
+│              7000 actions → Sovereign milestone          │
+└─────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## Architecture
-
-```mermaid
-graph LR
-    User[User / Client] --> Frontend(Next.js 15 App Router)
-    Frontend --> Edge[Cloudflare Workers / Edge]
-    Frontend --> Auth[Pi Network Auth]
-    Edge --> DB[(PostgreSQL + Prisma 6)]
-    Edge --> D1[(Cloudflare D1)]
-    Edge --> AI[Workers AI / Vectorize]
-```
-
-
-### Directory Structure
 
 ```
 src/
@@ -249,9 +231,25 @@ src/
     leaderboard/      ← Trust rankings
     docs/             ← Documentation
     status/           ← Service health
-  lib/                ← Core logic (soul loop, trust algorithm, auth)
+  lib/
+    soul/             ← Five-gate ethical loop
+    trust.ts          ← Trust score algorithm
+    daily-review.ts   ← Soul loop daily review
+    herenow.ts        ← here.now API integration
+    auth-middleware.ts ← Auth verification
+    auth-tokens.ts    ← JWT/Pi token handling
+    errors.ts         ← Structured error codes
+    pi-sdk.ts         ← Pi SDK loader
   components/         ← Shared UI components
   diagnostics/        ← Nostics error catalog
+backend/
+  src/
+    routes/           ← Cloudflare Worker handlers
+    lib/              ← Auth, types, JWKS
+iqra-core/
+  schema.sql          ← Quran D1 schema
+scripts/
+  ingest_quran.ts     ← Quran ingestion pipeline
 ```
 
 ---

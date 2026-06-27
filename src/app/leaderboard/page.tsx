@@ -9,10 +9,6 @@ import Footer from "@/components/Footer";
 import { Trophy, Search, ChevronDown } from "lucide-react";
 import TopThreeCards from "@/components/ui/TopThreeCards";
 import { getTierColor, Tier } from "@/lib/tiers";
-import { logger } from "@/lib/logger";
-
-export const dynamic = 'force-dynamic';
-
 
 const PAGE_SIZE = 20;
 
@@ -35,13 +31,12 @@ export default function LeaderboardPage() {
   const { user } = useWallet();
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState("All");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
-    let active = true;
+    const active = true;
     const fetchLeaderboard = async () => {
       try {
         const res = await fetch("/api/leaderboard");
@@ -51,16 +46,12 @@ export default function LeaderboardPage() {
           setUsers(json.leaderboard);
         }
       } catch (err) {
-        logger.error("Failed to query leaderboard:", err);
-        if (active) setError("Failed to load leaderboard");
+        console.error("Failed to query leaderboard:", err);
       } finally {
         if (active) setLoading(false);
       }
     };
     fetchLeaderboard();
-    return () => {
-      active = false;
-    };
   }, []);
 
   const filteredUsers = users.filter((u) => {
@@ -132,18 +123,7 @@ export default function LeaderboardPage() {
         );
       })()}
 
-      {error && !loading && (
-        <div className="max-w-4xl mx-auto px-4 mt-10 relative z-10">
-          <div className="glass-card p-12 text-center">
-            <p className="text-sm text-red-400 mb-4">{error}</p>
-            <button onClick={() => window.location.reload()} className="text-xs font-mono text-electric-blue hover:underline focus:outline-none focus:ring-2 focus:ring-electric-blue/50 focus:ring-offset-2 focus:ring-offset-[#0a0b0f] rounded transition-all">
-              {language === "en" ? "Retry" : "إعادة المحاولة"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {!error && loading ? (
+      {loading ? (
         <div className="max-w-4xl mx-auto px-4 mt-10 space-y-6 animate-pulse">
           {/* Top three skeleton */}
           <div className="grid grid-cols-3 gap-4">
@@ -175,7 +155,7 @@ export default function LeaderboardPage() {
             </div>
           </div>
         </div>
-      ) : error ? null : users.length === 0 ? (
+      ) : users.length === 0 ? (
         <div className="max-w-4xl mx-auto px-4 mt-10 relative z-10">
           <div className="glass-card p-12 text-center relative overflow-hidden">
             <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-full blur-3xl opacity-60 pointer-events-none" />

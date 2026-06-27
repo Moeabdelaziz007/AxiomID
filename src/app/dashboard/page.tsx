@@ -23,13 +23,10 @@ import { CreateAgentCard } from "@/components/dashboard/CreateAgentCard";
 import { PiBrowserGuard, PiBrowserBanner } from "@/components/PiBrowserGuard";
 import { QuickStatsRow } from "@/components/dashboard/QuickStatsRow";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
-import nextDynamic from "next/dynamic";
-
-export const dynamic = 'force-dynamic';
-
-const InteractivePassportCard = nextDynamic(() => import("@/components/ui/InteractivePassportCard"), { ssr: false });
-const StampBoard = nextDynamic(() => import("@/components/StampBoard").then(m => m.StampBoard), { ssr: false });
-const TerminalOverlay = nextDynamic(() => import("@/components/dashboard/TerminalOverlay").then(m => m.TerminalOverlay), { ssr: false });
+import dynamic from "next/dynamic";
+const InteractivePassportCard = dynamic(() => import("@/components/ui/InteractivePassportCard"), { ssr: false });
+const StampBoard = dynamic(() => import("@/components/StampBoard").then(m => m.StampBoard), { ssr: false });
+const TerminalOverlay = dynamic(() => import("@/components/dashboard/TerminalOverlay").then(m => m.TerminalOverlay), { ssr: false });
 
 type TabId = "passport" | "actions" | "terminal" | "marketplace" | "agent";
 
