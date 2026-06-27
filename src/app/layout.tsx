@@ -136,7 +136,12 @@ export default function RootLayout({
         <a href="#main-content" className="skip-link">
           Skip to content
         </a>
-        <Script src="https://sdk.minepi.com/pi-sdk.js" strategy="beforeInteractive" />
+        <Script
+          src="https://sdk.minepi.com/pi-sdk.js"
+          strategy="beforeInteractive"
+          integrity="sha384-MB+dVW+BFRnwyiBYxALhuOr8KOKBtIJdOS3MmO7M87C5+khNeoYuj09OTzIx0GDD"
+          crossOrigin="anonymous"
+        />
         <Script src="/register-sw.js" strategy="afterInteractive" />
         <ThemeProvider>
           <LanguageProvider>
