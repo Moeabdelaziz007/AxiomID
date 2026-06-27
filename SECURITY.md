@@ -33,7 +33,7 @@ Alternatively, email us directly at:
 security@axiomid.app
 ```
 
-Encrypt sensitive reports using our PGP key (available on request).
+Encrypt sensitive reports using our PGP key (available at `https://axiomid.app/SEC-KEY.asc`).
 
 ---
 
