@@ -37,7 +37,6 @@ function mockRequestWithHeader(headers: Record<string, string> = {}) {
     headers: {
       get: (name: string) => headers[name.toLowerCase()] ?? null,
     },
-    nextUrl: new URL("https://example.com/"),
   } as any;
 }
 

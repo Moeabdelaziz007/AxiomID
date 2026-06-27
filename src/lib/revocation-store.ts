@@ -60,9 +60,10 @@ export async function isTokenRevoked(token: string): Promise<boolean> {
   if (localExpiry) {
     if (Date.now() > localExpiry) {
       localStore.delete(key);
-      return false;
+      // Local cache expired; fall through to Redis (source of truth).
+    } else {
+      return true;
     }
-    return true;
   }
   if (redis) {
     try {

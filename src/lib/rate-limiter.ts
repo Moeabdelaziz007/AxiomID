@@ -11,7 +11,7 @@
  * Local dev: Falls back to in-memory Map (process-local).
  */
 
-import { leakyBucketCheck, idealGasPressure, type LeakyBucketConfig, type LeakyBucketState } from "./math-physics-core";
+import { leakyBucketCheck, idealGasPressure, type LeakyBucketState } from "./math-physics-core";
 import { logger } from "./logger";
 
 // Lazy-loaded Upstash modules (ESM-only, would break Jest if imported statically)
@@ -229,7 +229,7 @@ export async function checkRateLimit(
     ? Math.max(1, Math.floor(config.maxRequests / pressure))
     : config.maxRequests;
 
-  const bucketConfig: LeakyBucketConfig = {
+  const bucketConfig = {
     capacity: adaptiveCapacity,
     drainRate: config.drainRate || config.maxRequests / (config.windowMs / 1000),
     inflowRate: config.inflowRate || config.maxRequests / (config.windowMs / 1000),

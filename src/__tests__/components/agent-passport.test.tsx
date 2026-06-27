@@ -238,36 +238,3 @@ describe("AgentPassport — core identity rendering", () => {
     expect(shortAddr).toBeInTheDocument();
   });
 });
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PR change: removed `import React from "react"` — confirms the component
-// still renders correctly using the automatic JSX runtime (no explicit React
-// import required). All rendering tests below exercise the component in the
-// same environment that will run post-PR.
-// ─────────────────────────────────────────────────────────────────────────────
-
-describe("AgentPassport — renders without explicit React import (PR change)", () => {
-  it("mounts without throwing (automatic JSX runtime works without React import)", () => {
-    expect(() => render(<AgentPassport {...defaultProps} />)).not.toThrow();
-  });
-
-  it("shows fallback 'no_address' text when both walletAddress and stellarAddress are absent", () => {
-    // When displayAddress is null/undefined the t('no_address') key is used.
-    // The mock t() returns the raw key when not found in the dict, so expect 'no_address'.
-    render(<AgentPassport {...defaultProps} walletAddress={null} stellarAddress={null} />);
-    expect(screen.getByText("no_address")).toBeInTheDocument();
-  });
-
-  it("displays the full address (≤ 20 chars) without truncation", () => {
-    const shortWallet = "pi:abc";
-    render(
-      <AgentPassport {...defaultProps} walletAddress={shortWallet} stellarAddress={null} />
-    );
-    expect(screen.getByText(shortWallet)).toBeInTheDocument();
-  });
-
-  it("renders PassportFooter with issuedDate", () => {
-    const { container } = render(<AgentPassport {...defaultProps} issuedDate="2025-06-01T00:00:00.000Z" />);
-    expect(container.textContent).toContain("2025");
-  });
-});

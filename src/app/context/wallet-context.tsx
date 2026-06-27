@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo, u
 import { Tier, getLevelProgress, getNextLevelXP } from "@/lib/tiers";
 import { calculateTrustScore } from "@/lib/trust";
 import { connectPi, runWalletTest, checkPiBrowser, PiSdkError, PiSdkErrorCode, determineSandboxMode } from "@/lib/pi-sdk";
+import { getClientSandboxDevToken } from "@/lib/sandbox-token";
 import { logger } from "@/lib/logger";
 
 export interface User {
@@ -48,7 +49,7 @@ interface WalletContextType {
   runWalletTest: () => Promise<void>;
   clearWalletLogs: () => void;
   disconnectWallet: () => Promise<void>;
-  connectDemo: () => Promise<void>;
+  connectDemo: () => void;
 }
 
 export const WalletContext = createContext<WalletContextType | null>(null);
@@ -368,29 +369,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         let result;
         if (!checkPiBrowser() && determineSandboxMode() && process.env.NODE_ENV !== "test") {
           pushLog("⚠️ Standard browser detected in Sandbox/Dev mode.");
-          pushLog("Fetching sandbox dev token from server...");
-
-          // SECURITY: Fetch sandbox dev token from server API endpoint instead of exposing it
-          // via hardcoded defaults or NEXT_PUBLIC_ env vars. The server validates the request
-          // is from localhost in dev mode before returning the token.
-          let sandboxToken: string;
-          try {
-            const tokenResponse = await fetch('/api/sandbox/dev-token');
-            if (!tokenResponse.ok) {
-              throw new Error(`Failed to fetch sandbox token: ${tokenResponse.status}`);
-            }
-            const tokenData = await tokenResponse.json();
-            sandboxToken = tokenData.data?.token || tokenData.token;
-            pushLog("✓ Sandbox token retrieved from server");
-          } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
-            pushLog(`Failed to get sandbox token: ${msg}`);
-            throw new Error("Sandbox dev token not available. Set SANDBOX_DEV_TOKEN in .env.local");
-          }
-
           pushLog("Connecting with simulated credentials...");
           result = {
-            token: sandboxToken,
+            token: getClientSandboxDevToken(),
             user: {
               uid: "sandbox-developer",
               username: "developer",
@@ -537,26 +518,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     logout();
   }, [logout]);
 
-  const connectDemo = useCallback(async () => {
+  const connectDemo = useCallback(() => {
     setIsConnecting(true);
     setError(null);
     pushLog("Initializing Offline Demo Mode...");
     removeLocalStorageItem("axiomid_logged_out");
-
-    // SECURITY: Fetch sandbox token from server endpoint in dev mode
-    let demoToken = "demo-mode-placeholder";
-    if (process.env.NODE_ENV === "development") {
-      try {
-        const tokenResponse = await fetch('/api/sandbox/dev-token');
-        if (tokenResponse.ok) {
-          const tokenData = await tokenResponse.json();
-          demoToken = tokenData.data?.token || tokenData.token || demoToken;
-          pushLog("✓ Demo token retrieved from server");
-        }
-      } catch {
-        pushLog("⚠️ Could not fetch dev token, using placeholder");
-      }
-    }
 
     const demoUser: User = {
       id: "demo-user-id",
@@ -586,7 +552,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     };
 
     setLocalStorageItem("axiomid_wallet", "pi:demo_alice");
-    setLocalStorageItem("pi_access_token", demoToken);
+    setLocalStorageItem("pi_access_token", getClientSandboxDevToken());
     setUser(demoUser);
     setIsConnecting(false);
     pushLog("Demo Mode initialized successfully!");
@@ -800,7 +766,7 @@ export function useWallet() {
       runWalletTest: async () => {},
       clearWalletLogs: () => {},
       disconnectWallet: async () => {},
-      connectDemo: async () => {},
+      connectDemo: () => {},
     };
   }
   return ctx;

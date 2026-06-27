@@ -957,8 +957,10 @@ export function randomWalkTrust(
   const visitCounts = new Map<string, number>();
   let current = startNode;
 
+
   for (let i = 0; i < steps; i++) {
     visitCounts.set(current, (visitCounts.get(current) || 0) + 1);
+
     const neighbors = graph.get(current) || [];
     if (neighbors.length === 0) break;
     current = neighbors[Math.floor(Math.random() * neighbors.length)];
@@ -1628,6 +1630,7 @@ export function minCutTrustBottleneck(
 
     // No finite augmenting path found — stop to avoid adding Infinity to maxFlow.
     if (!Number.isFinite(pathFlow) || pathFlow <= 0) break;
+
     // Update residual graph
     v = sink;
     while (v !== source) {

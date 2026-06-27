@@ -1204,7 +1204,7 @@ a:focus-visible {
   box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
 
-@keyframes fade-in-up {
+@keyframes fadeInUp {
   from {
     opacity: 0;
     transform: translateY(15px);

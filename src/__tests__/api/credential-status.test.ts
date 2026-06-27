@@ -216,7 +216,7 @@ describe("GET /api/credential-status — user lookup", () => {
   });
 
   it("looks up user by UUID for user-prefixed DID", async () => {
-    const uuid = "123e4567-e89b-42d3-a456-426614174000";
+    const uuid = "123e4567-e89b-12d3-a456-426614174000";
     mockPrisma.user.findUnique.mockResolvedValue({
       id: uuid,
       did: `did:axiom:user-${uuid}`,

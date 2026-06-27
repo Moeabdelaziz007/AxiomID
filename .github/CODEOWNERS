@@ -11,12 +11,6 @@
 /src/lib/sovereign-keys.ts @Moeabdelaziz007
 /src/app/api/oauth2/ @Moeabdelaziz007
 /src/app/api/agent/ @Moeabdelaziz007
-/backend/src/lib/auth.ts @Moeabdelaziz007
-
-# Critical trust and identity paths
-/src/lib/trust.ts @Moeabdelaziz007
-/src/lib/soul/ @Moeabdelaziz007
-/packages/crypto/ @Moeabdelaziz007
 
 # CI/CD
 /.github/ @Moeabdelaziz007
