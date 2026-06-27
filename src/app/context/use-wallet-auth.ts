@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useEffect } from "react";
 import { connectPi, checkPiBrowser, PiSdkError, PiSdkErrorCode, determineSandboxMode } from "@/lib/pi-sdk";
+
 import { logger } from "@/lib/logger";
 import {
   User,
@@ -36,6 +37,13 @@ export function useWalletAuth({
   pushLog,
 }: UseWalletAuthParams): UseWalletAuthReturn {
   const connectingRef = useRef(false);
+  const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+    };
+  }, []);
 
   const logout = useCallback(() => {
     removeLocalStorageItem("pi_access_token");
@@ -119,8 +127,8 @@ export function useWalletAuth({
         const accessToken = result.token;
         const piUser = result.user;
 
-        setPiAccessToken(accessToken);
-        setLocalStorageItem("pi_access_token", accessToken);
+        setPiAccessToken(accessToken ?? null);
+        setLocalStorageItem("pi_access_token", accessToken ?? "");
         const walletAddress = `pi:${piUser.uid}`;
         const stellarAddress = piUser.stellarAddress || null;
         pushLog(`Wallet: ${walletAddress}`);
@@ -166,8 +174,8 @@ export function useWalletAuth({
       logger.error("Auth error:", message);
       pushLog(`❌ Error: ${message}`);
       setError(message);
-      setTimeout(() => setError(null), 8000);
-      return;
+      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+      errorTimeoutRef.current = setTimeout(() => setError(null), 8000);
     } finally {
       setIsConnecting(false);
       connectingRef.current = false;
@@ -212,6 +220,7 @@ export function useWalletAuth({
       }
     }
 
+
     const demoUser: User = {
       id: "demo-user-id",
       walletAddress: "pi:demo_alice",
@@ -240,8 +249,8 @@ export function useWalletAuth({
     };
 
     setLocalStorageItem("axiomid_wallet", "pi:demo_alice");
-    setLocalStorageItem("pi_access_token", demoToken);
-    setPiAccessToken(demoToken);
+    setLocalStorageItem("pi_access_token", demoToken ?? "");
+    setPiAccessToken(demoToken ?? null);
     setUser(demoUser);
     setIsConnecting(false);
     connectingRef.current = false;

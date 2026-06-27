@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useRef, useEffect } from "react";
 import { runWalletTest } from "@/lib/pi-sdk";
 import { logger } from "@/lib/logger";
 import {
@@ -33,6 +33,14 @@ export function useWalletActions({
   setError,
   setWalletLogs,
 }: UseWalletActionsParams): UseWalletActionsReturn {
+  const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+    };
+  }, []);
+
   const pushLog = useCallback((msg: string) => {
     setWalletLogs((prev) => {
       const next = [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`];
@@ -84,7 +92,8 @@ export function useWalletActions({
       if (!res.ok) {
         const err = await res.json();
         setError(err.error || "Failed to claim");
-        setTimeout(() => setError(null), 8000);
+        if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = setTimeout(() => setError(null), 8000);
         return false;
       }
 
@@ -93,8 +102,8 @@ export function useWalletActions({
         ...prev,
         xp: data.newBalance,
         tier: data.tier,
-        actions: [...(prev.actions || []), { type: actionType, xp: data.xpEarned, timestamp: new Date().toISOString(), metadata: data.metadata }],
-        stamps: [...(prev.stamps || []), { type: actionType, provider: actionType.startsWith("connect_") ? actionType.replace("connect_", "") : "system", xpAwarded: data.xpEarned, metadata: data.metadata, createdAt: new Date().toISOString() }],
+        actions: [...(prev.actions || []), { type: actionType, xp: data.xpEarned, timestamp: new Date().toISOString(), metadata: data.metadata ? (typeof data.metadata === "string" ? data.metadata : JSON.stringify(data.metadata)) : null }],
+        stamps: [...(prev.stamps || []), { type: actionType, provider: actionType.startsWith("connect_") ? actionType.replace("connect_", "") : "system", xpAwarded: data.xpEarned, metadata: data.metadata ? (typeof data.metadata === "string" ? data.metadata : JSON.stringify(data.metadata)) : null, createdAt: new Date().toISOString() }],
       } : prev);
       return true;
     } catch (err) {
@@ -117,7 +126,8 @@ export function useWalletActions({
       if (!res.ok) {
         const err = await res.json();
         setError(err.error || "Failed to verify identity");
-        setTimeout(() => setError(null), 8000);
+        if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+        errorTimeoutRef.current = setTimeout(() => setError(null), 8000);
         return false;
       }
 
