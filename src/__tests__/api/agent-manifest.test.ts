@@ -23,15 +23,25 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
+jest.mock('@/lib/logger', () => ({
+  logger: {
+    error: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+  },
+}));
+
 import { GET } from '@/app/api/agent/manifest/route';
 import { createPrivateKey, sign } from 'crypto';
 import { requireAuth } from '@/lib/auth-middleware';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 const mockCreatePrivateKey = createPrivateKey as jest.Mock;
 const mockSign = sign as jest.Mock;
 const mockRequireAuth = requireAuth as jest.Mock;
 const mockFindUnique = prisma.user.findUnique as jest.Mock;
+const mockLoggerError = logger.error as jest.Mock;
 
 function mockGetRequest() {
   return new Request('http://localhost/api/agent/manifest', { method: 'GET' });
@@ -162,5 +172,55 @@ describe('GET /api/agent/manifest', () => {
     expect(data.proof.verificationMethod).toBe('did:axiom:issuer#key-1');
     expect(data.proof.proofPurpose).toBe('assertionMethod');
     expect(data.proof.created).toBe(data.issuanceDate);
+  });
+
+  it('returns 500 and logs error when signing fails (inner catch)', async () => {
+    mockCreatePrivateKey.mockImplementation(() => {
+      throw new Error('Invalid key format');
+    });
+
+    const req = mockGetRequest();
+    const res = await GET(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(data.code).toBe('INTERNAL_ERROR');
+    expect(data.error).toBe('Failed to sign credential manifest');
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      'Failed to sign credential manifest',
+      expect.objectContaining({ error: expect.any(Error) }),
+    );
+  });
+
+  it('returns 500 and logs error when requireAuth throws unexpectedly (outer catch)', async () => {
+    mockRequireAuth.mockRejectedValue(new Error('Unexpected auth failure'));
+
+    const req = mockGetRequest();
+    const res = await GET(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(data.code).toBe('INTERNAL_ERROR');
+    expect(data.error).toBe('Internal Server Error');
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      'Error in agent manifest route',
+      expect.objectContaining({ error: expect.any(Error) }),
+    );
+  });
+
+  it('returns 500 and logs when prisma findUnique throws unexpectedly (outer catch)', async () => {
+    mockFindUnique.mockRejectedValue(new Error('DB connection lost'));
+
+    const req = mockGetRequest();
+    const res = await GET(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(data.code).toBe('INTERNAL_ERROR');
+    expect(data.error).toBe('Internal Server Error');
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      'Error in agent manifest route',
+      expect.objectContaining({ error: expect.any(Error) }),
+    );
   });
 });
