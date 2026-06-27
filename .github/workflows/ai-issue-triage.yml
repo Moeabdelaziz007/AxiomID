@@ -18,19 +18,17 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: AI Triage with Gemini
+      - name: AI Triage with Groq
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          AI_GATEWAY_URL: ${{ secrets.AI_GATEWAY_URL }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 << 'PYEOF'
           import json, urllib.request, urllib.error, os, sys
 
-          GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-          AI_GATEWAY_URL = os.environ.get("AI_GATEWAY_URL", "")
+          GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 
-          if not GEMINI_API_KEY and not AI_GATEWAY_URL:
+          if not GROQ_API_KEY:
               print("⚠️  Skipping AI triage: no API key configured")
               sys.exit(0)
 
@@ -73,24 +71,15 @@ jobs:
           {{"labels": ["label1", "label2"], "summary": "One sentence classification", "needs_human": false}}
           """
 
-          url = AI_GATEWAY_URL + "/v1/chat/completions" if AI_GATEWAY_URL else "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
-          headers = {"Content-Type": "application/json"}
-
-          if AI_GATEWAY_URL:
-              payload = json.dumps({"model": "google/gemini-2.0-flash", "messages": [{"role": "user", "content": prompt}], "max_tokens": 500}).encode()
-          else:
-              url += f"?key={GEMINI_API_KEY}"
-              payload = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode()
+          url = "https://api.groq.com/openai/v1/chat/completions"
+          headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
+          payload = json.dumps({"model": "llama-3.3-70b-versatile", "messages": [{"role": "user", "content": prompt}], "max_tokens": 500, "temperature": 0.1}).encode()
 
           try:
               req = urllib.request.Request(url, data=payload, headers=headers)
               resp = urllib.request.urlopen(req, timeout=30)
               result = json.loads(resp.read())
-
-              if AI_GATEWAY_URL:
-                  text = result.get("choices", [{}])[0].get("message", {}).get("content", "")
-              else:
-                  text = result.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+              text = result.get("choices", [{}])[0].get("message", {}).get("content", "")
 
               json_match = text[text.find("{"):text.rfind("}") + 1] if "{" in text else "{}"
               classification = json.loads(json_match)
