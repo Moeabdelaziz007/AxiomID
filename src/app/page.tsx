@@ -135,7 +135,7 @@ export default function Home() {
         <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center py-12 relative z-10">
           {/* Left: Headline + CTAs */}
           <div className="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left space-y-5">
-            <div className="flex flex-wrap gap-2 justify-center md:justify-start items-center animate-[fadeInUp_0.4s_ease-out_0.1s_both]">
+            <div className="flex flex-wrap gap-2 justify-center md:justify-start items-center animate-[fade-in-up_0.4s_ease-out_0.1s_both]">
               <span className="px-3 py-1 rounded-full text-[10px] font-mono bg-neon-green/10 text-neon-green border border-neon-green/20 uppercase tracking-widest">
                 {t("hero_badge")}
               </span>
@@ -155,15 +155,15 @@ export default function Home() {
               </span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] text-white animate-[fadeInUp_0.6s_ease-out_0.2s_both]">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] text-white animate-[fade-in-up_0.6s_ease-out_0.2s_both]">
               <>{t("landing_headline_en")}<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-electric-blue to-axiom-purple">{t("landing_headline_rules_en")}</span></>
             </h1>
 
-            <p className="text-lg sm:text-xl md:text-2xl font-medium tracking-tight text-zinc-300 max-w-xl animate-[fadeInUp_0.5s_ease-out_0.3s_both]">
+            <p className="text-lg sm:text-xl md:text-2xl font-medium tracking-tight text-zinc-300 max-w-xl animate-[fade-in-up_0.5s_ease-out_0.3s_both]">
               {t("landing_tagline")}
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto pt-2 animate-[fadeInUp_0.5s_ease-out_0.4s_both]">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto pt-2 animate-[fade-in-up_0.5s_ease-out_0.4s_both]">
               {!user ? (
                 isPiBrowser ? (
                   <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} className="flex items-center justify-center gap-2 text-sm font-semibold px-8 py-4 min-h-[52px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
@@ -186,7 +186,7 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="flex flex-wrap gap-4 items-center justify-center md:justify-start pt-6 text-[11px] font-mono text-zinc-500 animate-[fadeInUp_0.6s_ease-out_0.5s_both]">
+            <div className="flex flex-wrap gap-4 items-center justify-center md:justify-start pt-6 text-[11px] font-mono text-zinc-500 animate-[fade-in-up_0.6s_ease-out_0.5s_both]">
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 <span className="tracking-wider">100% On-chain</span>
@@ -206,7 +206,7 @@ export default function Home() {
 
           {/* Right: Animated Demo */}
           <div className="md:col-span-5 flex items-center justify-center">
-            <div className="w-full max-w-sm relative animate-[fadeInUp_0.6s_ease-out_0.3s_both]">
+            <div className="w-full max-w-sm relative animate-[fade-in-up_0.6s_ease-out_0.3s_both]">
               <div className="absolute -inset-8 bg-gradient-to-tr from-emerald-500/15 via-electric-blue/15 to-axiom-purple/15 rounded-[48px] blur-3xl opacity-50 animate-pulse pointer-events-none" style={{ animationDuration: "6s" }} />
               <div className="absolute -inset-4 bg-gradient-to-tr from-emerald-500/5 via-electric-blue/5 to-axiom-purple/5 rounded-[32px] blur-xl opacity-40 pointer-events-none" />
               <HeroDemo />

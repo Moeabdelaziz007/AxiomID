@@ -36,7 +36,7 @@
   ```javascript
   const CACHE = "axiomid-v2"; // Increment cache version
   const STATIC_ASSETS = [
-    "/manifest.json",
+    "/manifest.webmanifest",
     "/icon-192x192.png",
     "/icon-512x512.png",
     "/axiomid-logo.png",

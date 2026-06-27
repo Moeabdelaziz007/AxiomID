@@ -637,6 +637,10 @@ describe('translations — landing page keys (PR change)', () => {
     });
 
     it(`EN and AR "${key}" are not identical (actually translated)`, () => {
+      // landing_headline_ar and landing_headline_rules_ar intentionally carry
+      // Arabic text in both EN and AR blocks (they represent the Arabic headline)
+      const sameAcrossLangs = ['landing_headline_ar', 'landing_headline_rules_ar'];
+      if (sameAcrossLangs.includes(key)) return;
       expect(en[key]).not.toBe(ar[key]);
     });
   });
@@ -806,15 +810,14 @@ describe('translations — landing page key parity (EN vs AR, PR change)', () =>
     });
   });
 
-  it('landing_headline_en EN and AR values differ (EN "Your Identity.", AR "هويتك.")', () => {
-    // The EN dict sets landing_headline_en to "Your Identity."
-    // The AR dict sets it to "هويتك." — different text for the same key
+  it('landing_headline_en EN and AR differ (EN "Your Identity.", AR "هويتك.")', () => {
+    // EN dict uses English, AR dict uses Arabic for the same key
     expect(en['landing_headline_en']).toBe('Your Identity.');
     expect(ar['landing_headline_en']).toBe('هويتك.');
   });
 
-  it('landing_headline_ar EN is "هويتك." and AR is also "هويتك." (both languages use Arabic text)', () => {
-    // landing_headline_ar carries the Arabic headline in both locales
+  it('landing_headline_ar EN and AR both use Arabic text', () => {
+    // Both dicts carry the Arabic headline in landing_headline_ar
     expect(en['landing_headline_ar']).toBe('هويتك.');
     expect(ar['landing_headline_ar']).toBe('هويتك.');
   });
