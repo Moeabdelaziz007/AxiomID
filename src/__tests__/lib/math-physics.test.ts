@@ -933,6 +933,82 @@ describe("randomWalkTrust (PR sync)", () => {
     );
     expect(totalVisits).toBeLessThan(100);
   });
+
+  // ── Tests targeting the `_totalVisits` rename (was `totalVisits`) ──────────
+  // The rename is cosmetic: the variable tracks loop iterations but the
+  // stationaryDistribution is normalized using the sum of visitCounts values,
+  // not the renamed variable. The tests below verify this invariant holds.
+
+  it("sum of visitCounts equals total steps taken (verifies internal counter consistency)", () => {
+    // On a simple 2-node cycle the walk always progresses; with steps=20 all
+    // 20 iterations are completed, so sum of visitCounts must equal 20.
+    const graph = new Map([["A", ["B"]], ["B", ["A"]]]);
+    const steps = 20;
+    const result = randomWalkTrust(graph, "A", steps);
+    const visitSum = Array.from(result.visitCounts.values()).reduce(
+      (a, b) => a + b,
+      0
+    );
+    expect(visitSum).toBe(steps);
+  });
+
+  it("stationary distribution values equal visitCount / totalVisits for each node", () => {
+    // Verifies that stationaryDistribution is correctly normalized from
+    // visitCounts, independent of the renamed _totalVisits counter.
+    const graph = new Map([
+      ["X", ["Y"]],
+      ["Y", ["X"]],
+    ]);
+    const result = randomWalkTrust(graph, "X", 50);
+    const totalVisits = Array.from(result.visitCounts.values()).reduce(
+      (a, b) => a + b,
+      0
+    );
+    for (const [node, count] of result.visitCounts) {
+      expect(result.stationaryDistribution.get(node)).toBeCloseTo(
+        count / totalVisits,
+        10
+      );
+    }
+  });
+
+  it("startNode not present in graph: walk stops immediately with 1 visit to startNode", () => {
+    // If startNode has no neighbors (not in graph), the walk stops after 1 step.
+    const graph = new Map<string, string[]>();
+    const result = randomWalkTrust(graph, "isolated", 50);
+    expect(result.visitCounts.get("isolated")).toBe(1);
+    const visitSum = Array.from(result.visitCounts.values()).reduce(
+      (a, b) => a + b,
+      0
+    );
+    expect(visitSum).toBe(1);
+    // Stationary distribution: isolated node has all probability mass
+    expect(result.stationaryDistribution.get("isolated")).toBeCloseTo(1, 10);
+  });
+
+  it("default steps=100 produces up to 100 total visits on an unrestricted graph", () => {
+    // Calling without explicit steps uses the default of 100.
+    const graph = new Map([["A", ["B"]], ["B", ["A"]]]);
+    const result = randomWalkTrust(graph, "A");
+    const visitSum = Array.from(result.visitCounts.values()).reduce(
+      (a, b) => a + b,
+      0
+    );
+    expect(visitSum).toBe(100);
+  });
+
+  it("each node in stationaryDistribution has a value in [0, 1]", () => {
+    const graph = new Map([
+      ["A", ["B", "C"]],
+      ["B", ["C"]],
+      ["C", ["A"]],
+    ]);
+    const result = randomWalkTrust(graph, "A", 200);
+    for (const prob of result.stationaryDistribution.values()) {
+      expect(prob).toBeGreaterThanOrEqual(0);
+      expect(prob).toBeLessThanOrEqual(1);
+    }
+  });
 });
 
 // ─── PILLAR 1: THERMODYNAMICS ─────────────────────────────────────────────────
