@@ -1,4 +1,5 @@
 const CACHE = "axiomid-v3";
+const STATIC_ASSET_PATTERN = /\.(?:png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|otf|eot|map)$/;
 const STATIC_ASSETS = [
   "/manifest.webmanifest",
   "/icon-192x192.png",
@@ -32,7 +33,6 @@ self.addEventListener("activate", (event) => {
 });
 
 // Static immutable assets that are safe to serve Stale-While-Revalidate.
-const STATIC_ASSET_PATTERN = /\.(?:js|css|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot)$/i;
 
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
@@ -48,23 +48,28 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Network-First strategy for HTML document requests and homepage
+  // event.waitUntil() MUST be called before event.respondWith() to avoid
+  // DOMException when the event is deactivated before .then() runs.
   if (
     event.request.mode === "navigate" ||
     url.pathname === "/" ||
     !url.pathname.includes(".")
   ) {
+    let cacheWritePromise;
+    const fetchPromise = fetch(event.request).then((response) => {
+      if (response.status === 200) {
+        const clone = response.clone();
+        cacheWritePromise = caches
+          .open(CACHE)
+          .then((cache) => cache.put(event.request, clone));
+      }
+      return response;
+    });
+    event.waitUntil(
+      fetchPromise.then(() => cacheWritePromise).catch(() => {})
+    );
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response.status === 200) {
-            const clone = response.clone();
-            event.waitUntil(
-              caches.open(CACHE).then((cache) => cache.put(event.request, clone))
-            );
-          }
-          return response;
-        })
-        .catch(() => caches.match(event.request))
+      fetchPromise.catch(() => caches.match(event.request))
     );
     return;
   }
@@ -78,25 +83,27 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const fetchPromise = fetch(event.request)
-        .then((response) => {
-          if (response.status === 200) {
-            const clone = response.clone();
-            event.waitUntil(
-              caches.open(CACHE).then((cache) => cache.put(event.request, clone))
-            );
-          }
-          return response;
-        })
-        .catch((err) => { if (cached) return cached; throw err; });
+  // Stale-While-Revalidate: serve cached, update in background.
+  // event.waitUntil() is called BEFORE event.respondWith() to keep the SW alive.
+  // A single network request is shared between the cache update and the
+  // response fallback so uncached assets are never fetched twice.
+  let cacheWritePromise;
+  const fetchPromise = fetch(event.request).then((response) => {
+    if (response.status === 200) {
+      const clone = response.clone();
+      cacheWritePromise = caches
+        .open(CACHE)
+        .then((cache) => cache.put(event.request, clone));
+    }
+    return response;
+  });
 
-      if (cached) {
-        event.waitUntil(fetchPromise);
-        return cached;
-      }
-      return fetchPromise;
-    })
+  event.waitUntil(
+    fetchPromise.then(() => cacheWritePromise).catch(() => {})
+  );
+  event.respondWith(
+    caches
+      .match(event.request)
+      .then((cached) => cached || fetchPromise)
   );
 });

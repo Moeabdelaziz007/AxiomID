@@ -26,7 +26,7 @@
 * **الهدف:** استبعاد أزمنة بدء تشغيل محرك Node.js وتحميل الـ cache الأولي، ليعبر الفحص بدقة عن استجابة الخوادم الدافئة والـ CDN Edge Cache التي يراها المستخدم الفعلي.
 
 ### ب. تحويل هيكل `/passport/[slug]` إلى قالب ساكن (Force-Static Shell)
-* **التعديل:** إضافة `export const dynamic = "force-static";` في ملف [page.tsx](file:///Users/cryptojoker710/Desktop/AxiomID/src/app/passport/[slug]/page.tsx).
+* **التعديل:** إضافة `export const dynamic = "force-static";` في ملف [page.tsx](src/app/passport/[slug]/page.tsx).
 * **الهدف:** بما أن الصفحة تقوم بجلب البيانات وعرضها ديناميكياً بالكامل في جانب العميل (Client-Side `fetch` داخل `useEffect`)، فإن تصيير الهيكل الخارجي (الخلفية المتوهجة، الهيدر، الفوتر) لا يحتاج لمعالجة خادوم ديناميكية. ستقوم Next.js بتصدير قالب HTML ساكن عند البناء، مما يجعل استجابة الصفحة فورية ومباشرة (`<5ms`).
 
 ### ج. تجزئة الكود البرمجي الثقيل (Dynamic Code Splitting - ssr: false)
@@ -34,7 +34,7 @@
   - `TerminalOverlay`
   - `StampBoard`
   - `KYAVerificationCard`
-  في صفحة الـ [Dashboard](file:///Users/cryptojoker710/Desktop/AxiomID/src/app/dashboard/page.tsx) ليتم تحميلها برمجياً عبر الاستدعاء الديناميكي `dynamic(() => import(...), { ssr: false })`.
+  في صفحة الـ [Dashboard](src/app/dashboard/page.tsx) ليتم تحميلها برمجياً عبر الاستدعاء الديناميكي `dynamic(() => import(...), { ssr: false })`.
 * **الهدف:** تقليص حجم الحزمة الأولية المرسلة من الخادوم للعميل لتسريع زمن معالجة وإرسال الصفحة الأولى.
 
 ### د. تكامل ترويسات الكاش لطلبات الجلب الثابتة (CDN Edge Cache Headers)
