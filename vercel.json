@@ -5,7 +5,7 @@
     "enabled": true,
     "silent": false
   },
-  "regions": ["iad1", "hnd1", "lhr1"],
+  "regions": ["iad1"],
   "framework": "nextjs",
   "buildCommand": "(test -z \"$DATABASE_URL\" || (prisma generate && prisma migrate deploy)) && npm run build",
   "installCommand": "npm install",
