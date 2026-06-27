@@ -355,7 +355,7 @@ Multi-agent orchestration model for automation and quality control:
 
 ## Roadmap & Evolution
 
-### v1.5.0 (Current — 2026-06-24)
+### v0.1.1 (Current — 2026-06-24)
 
 - ✅ Pi Browser native features (share, KYC consent, payments)
 - ✅ Passport Export as Image + Mint as SBT + Share
