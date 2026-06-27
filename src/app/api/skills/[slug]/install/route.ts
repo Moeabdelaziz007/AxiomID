@@ -43,6 +43,7 @@ export async function POST(
           userId: user.id,
           status: 'RELEASED',
         },
+        select: { metadata: true, amount: true },
       });
 
       let hasPaid = false;
