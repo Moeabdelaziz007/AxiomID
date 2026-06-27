@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useEffect } from "react";
 import { connectPi, checkPiBrowser, PiSdkError, PiSdkErrorCode, determineSandboxMode } from "@/lib/pi-sdk";
+
 import { logger } from "@/lib/logger";
 import {
   User,
@@ -126,8 +127,8 @@ export function useWalletAuth({
         const accessToken = result.token;
         const piUser = result.user;
 
-        setPiAccessToken(accessToken);
-        setLocalStorageItem("pi_access_token", accessToken);
+        setPiAccessToken(accessToken ?? null);
+        setLocalStorageItem("pi_access_token", accessToken ?? "");
         const walletAddress = `pi:${piUser.uid}`;
         const stellarAddress = piUser.stellarAddress || null;
         pushLog(`Wallet: ${walletAddress}`);
@@ -247,10 +248,10 @@ export function useWalletAuth({
       }
     };
 
-    const demoToken = getClientSandboxDevToken();
+    const demoToken = getSandboxDevToken();
     setLocalStorageItem("axiomid_wallet", "pi:demo_alice");
-    setLocalStorageItem("pi_access_token", demoToken);
-    setPiAccessToken(demoToken);
+    setLocalStorageItem("pi_access_token", demoToken ?? "");
+    setPiAccessToken(demoToken ?? null);
     setUser(demoUser);
     setIsConnecting(false);
     connectingRef.current = false;
