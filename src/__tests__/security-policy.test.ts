@@ -17,7 +17,12 @@ const SECURITY_MD_PATH = path.join(__dirname, "../../SECURITY.md");
 
 let content: string;
 
+let content = "";
+
 beforeAll(() => {
+  if (!fs.existsSync(SECURITY_MD_PATH)) {
+    return;
+  }
   content = fs.readFileSync(SECURITY_MD_PATH, "utf-8");
 });
 
