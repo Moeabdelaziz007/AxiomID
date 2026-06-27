@@ -1,6 +1,7 @@
 import { logger } from '@/lib/logger';
 import { NextRequest } from "next/server";
 import { apiError, apiSuccess } from "@/lib/errors";
+import { logger } from "@/lib/logger";
 import { requireAuth } from "@/lib/auth-middleware";
 import { prisma } from "@/lib/prisma";
 import { createPrivateKey, sign } from "crypto";

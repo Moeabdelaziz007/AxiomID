@@ -37,4 +37,5 @@ export async function GET(request: NextRequest) {
     logger.error('Error fetching dev token', { error });
     return apiError('INTERNAL_ERROR', 'Internal server error');
   }
+
 }

@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
 if (!botToken) {
   // Let it pass for build if env var is missing, but log an error.
-  console.error("TELEGRAM_BOT_TOKEN is not defined");
+  logger.error({ event: "TELEGRAM_BOT_TOKEN_MISSING" }, "TELEGRAM_BOT_TOKEN is not defined");
 }
 
 const bot = new Telegraf(botToken || "dummy_token_for_build");
