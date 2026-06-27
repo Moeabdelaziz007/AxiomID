@@ -89,7 +89,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: "AxiomID - The Human Authorization Protocol",
     description: "Prove human intent behind AI actions with decentralized identity verification",
     images: ['/axiomid-banner.png'],
@@ -132,7 +132,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen overflow-x-hidden`}
       >
-        <Script src="/error-handler.js" strategy="beforeInteractive" />
         <a href="#main-content" className="skip-link">
           Skip to content
         </a>

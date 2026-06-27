@@ -77,6 +77,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         reasonStr.toLowerCase().includes("connection_closed");
 
       if (isConnectionClosed) {
+        console.warn("[WalletContext] Suppressed connection closed rejection:", reasonStr);
         event.preventDefault();
       }
     };
