@@ -1,6 +1,6 @@
 const CACHE = "axiomid-v3";
 const STATIC_ASSETS = [
-  "/manifest.webmanifest",
+  "/icon-192x192.png",
   "/icon-192x192.png",
   "/icon-512x512.png",
   "/axiomid-logo.png",
