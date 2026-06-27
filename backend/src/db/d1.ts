@@ -38,9 +38,7 @@ export class D1Helper {
       'CREATE TABLE IF NOT EXISTS skill_installs (id TEXT PRIMARY KEY, skill_slug TEXT NOT NULL, user_did TEXT NOT NULL, version TEXT, installed_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(skill_slug, user_did))',
     ];
 
-    for (const sql of stmts) {
-      await this.db.exec(sql);
-    }
+    await this.db.batch(stmts.map((sql) => this.db.prepare(sql)));
   }
 
   async saveHarvestResult(data: {
