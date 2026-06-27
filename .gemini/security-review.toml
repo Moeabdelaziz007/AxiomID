@@ -1,0 +1,136 @@
+# AxiomID Security Review Configuration for Gemini CLI
+# Usage: gemini --config .gemini/security-review.toml -p "$(git diff HEAD~1)"
+
+[review]
+name = "AxiomID Security Review"
+model = "gemini-2.0-flash"
+description = "Automated security review for AxiomID codebase per engineering covenant"
+
+# ─── Auth & Access Control ────────────────────────────────────────────────────
+
+[[checks]]
+name = "Auth Bypass"
+severity = "critical"
+prompt = """
+Scan the diff for Next.js API routes missing requireAuth guard.
+Every file in src/app/api/** must call requireAuth() before any data access.
+Flag any route handler that reads req.body or queries the DB without prior auth check.
+"""
+
+[[checks]]
+name = "Worker Auth"
+severity = "critical"
+prompt = """
+Scan Cloudflare Worker files in backend/src/** for missing X-Shared-Secret validation.
+All worker-to-worker calls must use timing-safe comparison (e.g., crypto.subtle.timingSafeEqual).
+Flag any route that accepts internal requests without the shared secret check.
+"""
+
+[[checks]]
+name = "CRON Endpoint Auth"
+severity = "high"
+prompt = """
+Scan src/app/api/daily-review/** for CRON_SECRET validation.
+If process.env.CRON_SECRET is not checked, the endpoint must return HTTP 503.
+Flag any scheduled endpoint that proceeds without this env var check.
+"""
+
+# ─── Injection & Data Safety ──────────────────────────────────────────────────
+
+[[checks]]
+name = "SQL Injection (D1)"
+severity = "critical"
+prompt = """
+Scan all Cloudflare D1 queries in backend/src/** for string interpolation.
+All queries must use parameterized bindings: db.prepare("SELECT * FROM users WHERE id = ?").bind(id)
+Flag any query that uses template literals or string concatenation to build SQL.
+"""
+
+[[checks]]
+name = "Secret Leakage"
+severity = "critical"
+prompt = """
+Scan for hardcoded secrets, API keys, tokens, or passwords in the diff.
+Also flag any sensitive value stored in NEXT_PUBLIC_* env vars (these are exposed to the browser).
+Check for secrets accidentally committed in config files, .env examples, or comments.
+"""
+
+# ─── Trust Score Integrity ────────────────────────────────────────────────────
+
+[[checks]]
+name = "Trust Score Formula"
+severity = "high"
+prompt = """
+Verify any trust score calculation follows the formula: XP * 0.7 + stamps * 0.3, clamped 0-100.
+The default trust score must be 0 — never 85 or any other hardcoded value.
+Flag any deviation from this formula or any hardcoded trust score default.
+"""
+
+# ─── Input Validation ─────────────────────────────────────────────────────────
+
+[[checks]]
+name = "Zod Validation"
+severity = "high"
+prompt = """
+Scan Next.js API routes in src/app/api/** for missing Zod schema validation on request bodies.
+Every POST/PUT/PATCH handler must parse and validate input with a Zod schema before processing.
+Flag any route that uses req.body or request.json() without Zod validation.
+"""
+
+[[checks]]
+name = "Rate Limiting"
+severity = "medium"
+prompt = """
+Scan public-facing API routes for missing rate limiting middleware.
+All public endpoints must apply rate limiting before processing requests.
+Flag any new API route that doesn't include a rate limit check.
+"""
+
+# ─── Async & Performance Safety ───────────────────────────────────────────────
+
+[[checks]]
+name = "setTimeout in API Routes"
+severity = "medium"
+prompt = """
+Scan src/app/api/** and backend/src/** for setTimeout usage.
+setTimeout is forbidden in API routes — use ctx.waitUntil() for async background work in Workers,
+or background jobs for Next.js routes.
+Flag any setTimeout call in these directories.
+"""
+
+[[checks]]
+name = "Soul Gate Timeout"
+severity = "medium"
+prompt = """
+Scan src/lib/soul/** for AI/LLM calls missing a 5000ms timeout.
+Every AI call inside a soul gate must be wrapped with a timeout (Promise.race or AbortController).
+Also verify Telegram notification errors are caught and don't crash the soul loop.
+"""
+
+[[checks]]
+name = "KV Cache TTL"
+severity = "low"
+prompt = """
+Scan backend/src/** for Cloudflare KV put() calls missing an explicit expirationTtl.
+All KV cache writes must specify a TTL. Flag any kv.put() without { expirationTtl: N }.
+"""
+
+# ─── Code Quality ─────────────────────────────────────────────────────────────
+
+[[checks]]
+name = "TypeScript any"
+severity = "medium"
+prompt = """
+Scan the diff for TypeScript `any` type usage and eslint-disable comments.
+Both are forbidden per the AxiomID engineering covenant.
+Flag every occurrence with the file path and line reference.
+"""
+
+[[checks]]
+name = "Error Logging"
+severity = "low"
+prompt = """
+Scan API route catch blocks in src/app/api/** for missing logger.error() calls.
+Every catch block in an API route must call logger.error() before returning an error response.
+Flag catch blocks that silently swallow errors or only use console.log.
+"""
