@@ -9,6 +9,9 @@ jest.mock("@/lib/auth-middleware", () => ({
   requireAuth: jest.fn(),
 }));
 
+const mockTxSkillCreate = jest.fn().mockResolvedValue({ id: "s1", slug: "test" });
+const mockTxSkillModerationCreate = jest.fn().mockResolvedValue({});
+
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     skill: {
@@ -17,6 +20,19 @@ jest.mock("@/lib/prisma", () => ({
       findUnique: jest.fn(),
       create: jest.fn(),
     },
+    skillModeration: {
+      create: jest.fn(),
+    },
+    $transaction: jest.fn(async (fnOrFns: any) => {
+      const fns = Array.isArray(fnOrFns) ? fnOrFns : [fnOrFns];
+      const tx = {
+        skill: { create: mockTxSkillCreate },
+        skillModeration: { create: mockTxSkillModerationCreate },
+      };
+      let result: any;
+      for (const fn of fns) result = await fn(tx);
+      return result ?? tx;
+    }),
   },
 }));
 
@@ -321,16 +337,16 @@ describe("POST /api/skills — business logic", () => {
 
   it("creates skill with correct defaults", async () => {
     mockPrisma.skill.findUnique.mockResolvedValue(null);
-    mockPrisma.skill.create.mockResolvedValue({
+    mockTxSkillCreate.mockResolvedValue({
       id: "s1", slug: "new-skill", name: "New Skill", tier: "BASIC_TOOL", version: "1.0.0", status: "PUBLISHED",
-    } as any);
+    });
 
     const req = mockPostRequest({ slug: "new-skill", name: "New Skill", manifestMd: "# manifest" });
     const res = await POST(req);
     const data = await res.json();
 
     expect(res.status).toBe(201);
-    expect(mockPrisma.skill.create).toHaveBeenCalledWith(
+    expect(mockTxSkillCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           tier: "BASIC_TOOL",
@@ -346,9 +362,9 @@ describe("POST /api/skills — business logic", () => {
 
   it("creates skill with custom tier and price", async () => {
     mockPrisma.skill.findUnique.mockResolvedValue(null);
-    mockPrisma.skill.create.mockResolvedValue({
+    mockTxSkillCreate.mockResolvedValue({
       id: "s2", slug: "pro-skill", name: "Pro Skill", tier: "PRO", version: "2.0.0", status: "PUBLISHED",
-    } as any);
+    });
 
     const req = mockPostRequest({
       slug: "pro-skill",
@@ -362,7 +378,7 @@ describe("POST /api/skills — business logic", () => {
     const data = await res.json();
 
     expect(res.status).toBe(201);
-    expect(mockPrisma.skill.create).toHaveBeenCalledWith(
+    expect(mockTxSkillCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           tier: "PRO",
@@ -375,7 +391,7 @@ describe("POST /api/skills — business logic", () => {
 
   it("returns 500 on database error", async () => {
     mockPrisma.skill.findUnique.mockResolvedValue(null);
-    mockPrisma.skill.create.mockRejectedValue(new Error("DB failure"));
+    mockTxSkillCreate.mockRejectedValue(new Error("DB failure"));
 
     const req = mockPostRequest({ slug: "fail-skill", name: "Fail", manifestMd: "# m" });
     const res = await POST(req);
