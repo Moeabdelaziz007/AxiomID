@@ -77,6 +77,48 @@ export async function submitAnchorTransaction(
   return { stellarTxId: result.hash, memo };
 }
 
+export interface VerifyResult {
+  anchored: boolean;
+  memoMatches: boolean;
+  onChainHash: string;
+  stellarTxId: string;
+}
+
+/**
+ * Verifies a VC's on-chain anchor by:
+ * 1. Fetching the transaction from Horizon
+ * 2. Extracting the memo (VC hash)
+ * 3. Comparing with freshly computed hash of the presented VC
+ */
+export async function verifyVcOnChain(
+  signedVc: Record<string, unknown>,
+  stellarTxId: string,
+): Promise<VerifyResult> {
+  const server = getStellarServer();
+
+  try {
+    const transaction = await server.transactions().transaction(stellarTxId).call();
+    await server.operations().forTransaction(stellarTxId).call();
+
+    const onChainHash = transaction.memo || "";
+    const presentedHash = computeVcHash(signedVc);
+
+    return {
+      anchored: true,
+      memoMatches: onChainHash === presentedHash.slice(0, 28),
+      onChainHash,
+      stellarTxId,
+    };
+  } catch {
+    return {
+      anchored: false,
+      memoMatches: false,
+      onChainHash: "",
+      stellarTxId,
+    };
+  }
+}
+
 export interface AnchorResult {
   txHash: string;
   stellarTxId: string;

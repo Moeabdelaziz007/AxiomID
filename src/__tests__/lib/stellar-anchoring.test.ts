@@ -4,6 +4,7 @@ import {
   buildAnchorTransaction,
   submitAnchorTransaction,
   anchorVcHash,
+  verifyVcOnChain,
 } from "@/lib/stellar-anchoring";
 
 describe("computeVcHash", () => {
@@ -91,5 +92,22 @@ describe("anchorVcHash", () => {
   it("rejects with invalid secret key", async () => {
     const vc = { type: ["VerifiableCredential"] };
     await expect(anchorVcHash(vc, "INVALID_KEY")).rejects.toThrow();
+  });
+});
+
+describe("verifyVcOnChain", () => {
+  it("returns anchored=false for non-existent transaction", async () => {
+    const vc = {
+      type: ["VerifiableCredential"],
+      proof: { proofValue: "abc" },
+    };
+    const result = await verifyVcOnChain(vc, "nonexistent_tx_id");
+    expect(result.anchored).toBe(false);
+    expect(result.memoMatches).toBe(false);
+  });
+
+  it("is exported as a function with the correct signature", () => {
+    expect(typeof verifyVcOnChain).toBe("function");
+    expect(verifyVcOnChain.length).toBe(2);
   });
 });
