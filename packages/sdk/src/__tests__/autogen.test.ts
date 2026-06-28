@@ -272,6 +272,13 @@ describe("createAxiomIDAutoGenAdapter", () => {
         expiresAt: "2026-06-29",
       })
     ).toThrow("expiresAt must be a valid ISO-8601 date-time timestamp");
+    expect(() =>
+      adapter.createAttestationDraft({
+        subjectDid: "did:axiom:agent:alice",
+        claim: "AutoGen task completed",
+        expiresAt: "2026-99-99T99:99:99Z",
+      })
+    ).toThrow("expiresAt must be a valid ISO-8601 date-time timestamp");
   });
 
   it("exposes AutoGen function tool definitions that delegate to the adapter", async () => {
@@ -371,6 +378,7 @@ describe("createAxiomIDAutoGenAdapter", () => {
     });
 
     expect(error.name).toBe("AxiomIDAutoGenGateError");
+    expect(error).toBeInstanceOf(AxiomIDAutoGenGateError);
     expect(error.decision.score).toBe(1);
   });
 });

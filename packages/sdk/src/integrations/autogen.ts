@@ -118,6 +118,7 @@ export class AxiomIDAutoGenGateError extends Error {
   constructor(decision: AxiomIDAutoGenGateDecision) {
     super(decision.reason);
     this.name = "AxiomIDAutoGenGateError";
+    Object.setPrototypeOf(this, new.target.prototype);
     this.decision = decision;
   }
 }
