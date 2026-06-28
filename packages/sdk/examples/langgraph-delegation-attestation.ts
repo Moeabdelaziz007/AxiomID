@@ -38,6 +38,11 @@ export async function logBootstrapStream() {
     { did: "did:axiom:agent-a" },
     { sdkConfig: { network: "testnet" } }
   )) {
+    if (event.type === "bootstrap:complete") {
+      console.log(event.type, event.context.gate.allowed);
+      continue;
+    }
+
     console.log(event.type, event.did);
   }
 }

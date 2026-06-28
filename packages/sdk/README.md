@@ -39,9 +39,9 @@ await graph.invoke({
 - `bootstrapLangGraphAgentContext()` resolves the DID document, fetches trust score context, evaluates Soul Gate, and can create an unsigned attestation draft.
 - `assertLangGraphSoulGate()` throws `AxiomIDError` when graph execution should stop.
 - `createAxiomLangGraphNodes()` returns graph-ready nodes:
-  - `bootstrapAgentContext(state)` reads a DID from graph state and writes AxiomID context back into state.
+  - `bootstrapAgentContext(state)` reads a DID from graph state and writes AxiomID context back into state. It also forwards optional `attestationSubjectDid`, `delegationChain`, and `metadata` state fields into the bootstrap input.
   - `enforceSoulGate(state)` fails closed when the stored context is denied or missing.
-- `streamLangGraphBootstrap()` emits async bootstrap events for streaming graph UIs or audit logs.
+- `streamLangGraphBootstrap()` emits async bootstrap events for streaming graph UIs or audit logs, ending with a `bootstrap:complete` event that includes the final context.
 
 ### State Shape
 
@@ -53,6 +53,8 @@ const axiom = createAxiomLangGraphNodes({
   contextKey: "identity",
 });
 ```
+
+When `includeAttestationDraft` is enabled on node helpers, graph state can include `attestationSubjectDid`, `delegationChain`, and `metadata` so the generated draft preserves delegation context.
 
 ### Delegation And Attestation
 

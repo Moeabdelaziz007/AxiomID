@@ -58,6 +58,18 @@ describe("LangGraph integration helpers", () => {
     expect(context.gate.reason).toContain("below required minimum 70");
   });
 
+  it("rejects invalid Soul Gate thresholds", async () => {
+    await expect(
+      bootstrapLangGraphAgentContext(
+        { did: "did:axiom:pioneer.username" },
+        { sdk: createMockSdk(91), minimumTrustScore: Number.NaN }
+      )
+    ).rejects.toMatchObject({
+      code: "LANGGRAPH_TRUST_THRESHOLD_INVALID",
+      status: 400,
+    });
+  });
+
   it("throws a typed AxiomIDError when denied context is asserted", async () => {
     const context = await bootstrapLangGraphAgentContext(
       { did: "did:axiom:pioneer.username" },
@@ -111,6 +123,17 @@ describe("LangGraph integration helpers", () => {
       },
       metadata: { graph: "kyc-review" },
     });
+  });
+
+  it("does not call now when no attestation draft is requested", async () => {
+    const now = jest.fn(() => new Date("2026-06-28T00:00:00.000Z"));
+
+    await bootstrapLangGraphAgentContext(
+      { did: "did:axiom:pioneer.username" },
+      { sdk: createMockSdk(94), now }
+    );
+
+    expect(now).not.toHaveBeenCalled();
   });
 
   it("records a delegation chain in the attestation draft", async () => {
@@ -175,6 +198,39 @@ describe("LangGraph integration helpers", () => {
     expect(state.identity.did).toBe("did:axiom:pioneer.username");
   });
 
+  it("passes attestation fields from graph state into node bootstrap", async () => {
+    const delegationChain: AxiomLangGraphDelegationStep[] = [
+      {
+        fromDid: "did:axiom:agent-a",
+        toDid: "did:axiom:agent-b",
+        capability: "research",
+      },
+    ];
+    const nodes = createAxiomLangGraphNodes({
+      sdk: createMockSdk(88),
+      includeAttestationDraft: true,
+      now: () => new Date("2026-06-28T02:00:00.000Z"),
+    });
+
+    const state = await nodes.bootstrapAgentContext({
+      did: "did:axiom:agent-a",
+      attestationSubjectDid: "did:axiom:agent-b",
+      delegationChain,
+      metadata: { task: "delegated-review" },
+    });
+
+    expect(state.axiom.attestationDraft).toMatchObject({
+      issuerDid: "did:axiom:agent-a",
+      subjectDid: "did:axiom:agent-b",
+      issuedAt: "2026-06-28T02:00:00.000Z",
+      evidence: {
+        trustScore: 88,
+        delegationChain,
+      },
+      metadata: { task: "delegated-review" },
+    });
+  });
+
   it("enforceSoulGate returns state unchanged when context is allowed", async () => {
     const nodes = createAxiomLangGraphNodes({ sdk: createMockSdk(90) });
     const state = await nodes.bootstrapAgentContext({
@@ -217,8 +273,29 @@ describe("LangGraph integration helpers", () => {
   it("throws a typed error when enforcement runs before bootstrap", () => {
     const nodes = createAxiomLangGraphNodes();
 
-    expect(() => nodes.enforceSoulGate({ did: "did:axiom:pioneer.username" }))
-      .toThrow(AxiomIDError);
+    try {
+      nodes.enforceSoulGate({ did: "did:axiom:pioneer.username" });
+      throw new Error("Expected missing AxiomID context to throw");
+    } catch (err) {
+      expect(err).toMatchObject({
+        code: "LANGGRAPH_CONTEXT_MISSING",
+        status: 400,
+      });
+    }
+  });
+
+  it("rejects forged AxiomID context before trusting gate.allowed", () => {
+    const nodes = createAxiomLangGraphNodes();
+
+    try {
+      nodes.enforceSoulGate({ axiom: { gate: { allowed: true } } } as never);
+      throw new Error("Expected invalid AxiomID context to throw");
+    } catch (err) {
+      expect(err).toMatchObject({
+        code: "LANGGRAPH_CONTEXT_INVALID",
+        status: 400,
+      });
+    }
   });
 
   it("throws a typed error when enforcement receives invalid state", () => {
@@ -250,10 +327,18 @@ describe("LangGraph integration helpers", () => {
       "did:resolved",
       "trust:loaded",
       "gate:checked",
+      "bootstrap:complete",
     ]);
     expect(events[3]).toMatchObject({
       type: "gate:checked",
       gate: { allowed: true, minimumTrustScore: 75 },
+    });
+    expect(events[4]).toMatchObject({
+      type: "bootstrap:complete",
+      context: {
+        did: "did:axiom:pioneer.username",
+        gate: { allowed: true, minimumTrustScore: 75 },
+      },
     });
   });
 
