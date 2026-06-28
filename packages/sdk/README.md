@@ -58,7 +58,7 @@ export const agent = new Agent({
 | --- | --- |
 | `axiom_resolve_did` | Resolve the AxiomID DID document. |
 | `axiom_get_trust_score` | Fetch trust score and tier context. |
-| `axiom_bootstrap_agent_context` | Resolve DID, fetch trust score, and evaluate Soul Gate in one call. |
+| `axiom_bootstrap_agent_context` | Resolve DID, fetch trust score, and evaluate Soul Gate in one call. Tool callers may request a stricter `minimumTrustScore`, but they cannot lower the developer-configured floor. |
 
 ### Validation
 

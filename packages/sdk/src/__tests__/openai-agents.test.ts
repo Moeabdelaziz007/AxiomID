@@ -127,6 +127,24 @@ describe("OpenAI Agents SDK integration helpers", () => {
     expect(sdk.getTrustScore).toHaveBeenCalledTimes(2);
   });
 
+  it("does not let tool arguments lower the developer-configured Soul Gate floor", async () => {
+    const tools = createAxiomOpenAIAgentTools({
+      sdk: createMockSdk(50),
+      minimumTrustScore: 70,
+    });
+
+    const context = await tools[2].execute({
+      did: "did:axiom:pioneer.username",
+      minimumTrustScore: 0,
+    });
+
+    expect(context.gate).toEqual({
+      allowed: false,
+      minimumTrustScore: 70,
+      reason: "Trust score 50 is below required minimum 70",
+    });
+  });
+
   it("adapts definitions through a caller supplied OpenAI tool factory", () => {
     const wrapped = toOpenAIAgentTools(
       (definition) => ({

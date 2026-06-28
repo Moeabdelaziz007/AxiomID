@@ -111,6 +111,14 @@ function getOptionalNumberArg(args: unknown, key: string) {
   return value;
 }
 
+function getEffectiveMinimumTrustScore(args: unknown, configuredMinimumTrustScore?: number) {
+  const requestedMinimumTrustScore = getOptionalNumberArg(args, "minimumTrustScore");
+  const configuredFloor = configuredMinimumTrustScore ?? DEFAULT_MINIMUM_TRUST_SCORE;
+  const requestedFloor = requestedMinimumTrustScore ?? configuredFloor;
+
+  return Math.max(requestedFloor, configuredFloor);
+}
+
 export async function bootstrapOpenAIAgentContext(
   options: AxiomOpenAIAgentBootstrapOptions
 ): Promise<AxiomOpenAIAgentContext> {
@@ -244,8 +252,7 @@ export function createAxiomOpenAIAgentTools(
         bootstrapOpenAIAgentContext({
           did: getStringArg(args, "did"),
           sdk,
-          minimumTrustScore:
-            getOptionalNumberArg(args, "minimumTrustScore") ?? options.minimumTrustScore,
+          minimumTrustScore: getEffectiveMinimumTrustScore(args, options.minimumTrustScore),
         }),
     },
   ];
