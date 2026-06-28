@@ -48,6 +48,7 @@
     "type-check": "tsc --noEmit",
     "memory:build": "ts-node --compiler-options '{\\\"module\\\":\\\"commonjs\\\"}' scripts/build-memory.ts",
     "dead-code": "knip",
+    "prisma:seed-tags": "npx tsx prisma/seed-tags.ts",
     "build": "prisma generate && next build"
   },
   "dependencies": {
