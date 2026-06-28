@@ -16,12 +16,13 @@ const TAGS = [
 async function main() {
   console.log('Seeding default skill tags...');
   for (const tag of TAGS) {
+    const { id, ...data } = tag;
     await prisma.skillTag.upsert({
-      where: { id: tag.id },
+      where: { id },
       create: tag,
-      update: tag,
+      update: data,
     });
-    console.log(`  ✅ ${tag.name}`);
+    console.log('  ✅ ' + tag.name);
   }
   console.log(`Done. ${TAGS.length} tags seeded.`);
 }
