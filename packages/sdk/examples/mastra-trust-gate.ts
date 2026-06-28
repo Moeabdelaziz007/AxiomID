@@ -1,0 +1,49 @@
+import { createTool } from "@mastra/core/tools";
+import { Agent } from "@mastra/core/agent";
+import { z } from "zod";
+import { AxiomSDK, createAxiomIDMastraTools } from "../src";
+
+const sdk = new AxiomSDK({
+  network: "mainnet",
+  apiKey: process.env.AXIOMID_API_KEY,
+});
+
+const axiomTools = createAxiomIDMastraTools({
+  sdk,
+  createTool,
+  schemas: {
+    verifyDidInput: z.object({
+      did: z.string(),
+      passportSlug: z.string().optional(),
+      minimumTrustScore: z.number().optional(),
+      purpose: z.string().optional(),
+    }),
+    soulGateInput: z.object({
+      did: z.string(),
+      passportSlug: z.string().optional(),
+      minimumTrustScore: z.number().optional(),
+      purpose: z.string().optional(),
+    }),
+    attestationDraftInput: z.object({
+      issuerDid: z.string().optional(),
+      subjectDid: z.string(),
+      claim: z.string(),
+      evidence: z.record(z.string(), z.unknown()).optional(),
+      expiresAt: z.string().optional(),
+    }),
+    objectOutput: z.object({}).passthrough(),
+  },
+  agentDid: "did:axiom:agent:researcher",
+  minimumTrustScore: 60,
+});
+
+export const trustedResearchAgent = new Agent({
+  name: "trusted-research-agent",
+  instructions:
+    "Resolve AxiomID identity context before delegated work, enforce Soul Gate, and draft attestations for host signing.",
+  tools: {
+    verifyDid: axiomTools.verifyDid,
+    enforceSoulGate: axiomTools.enforceSoulGate,
+    createAttestationDraft: axiomTools.createAttestationDraft,
+  },
+});
