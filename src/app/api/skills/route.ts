@@ -189,9 +189,9 @@ export async function POST(request: NextRequest) {
       await tx.skillModeration.create({
         data: {
           skillId: skill.id,
-          status: 'APPROVED',
-          reviewerId: user.id,
-          reason: 'Auto-approved: published by author',
+          status: 'PENDING',
+          reviewerId: null,
+          reason: 'Submitted by author; pending moderator review',
         },
       });
 
