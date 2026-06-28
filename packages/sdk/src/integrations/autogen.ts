@@ -183,6 +183,10 @@ function normalizeOptionalDateTime(
   return parsed.toISOString();
 }
 
+function cloneToolParameters<T extends Record<string, unknown>>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
 function evaluateSoulGate(
   trustScore: TrustScore,
   requiredScore: number,
@@ -222,7 +226,7 @@ function createToolContext(context: AxiomIDAutoGenContextSeed) {
         }
       : undefined,
     didDocumentId: context.didDocument.id,
-    metadata: context.metadata,
+    metadata: context.metadata ? { ...context.metadata } : undefined,
   };
 }
 
@@ -397,21 +401,21 @@ export function createAxiomIDAutoGenAdapter(
         name: "axiomid_bootstrap_identity",
         description:
           "Resolve AxiomID DID, trust score, optional passport context, and Soul Gate state before AutoGen work.",
-        parameters: bootstrapParameters,
+        parameters: cloneToolParameters(bootstrapParameters),
         run: bootstrapAgent,
       },
       enforceSoulGate: {
         name: "axiomid_enforce_soul_gate",
         description:
           "Authorize an AutoGen task by requiring the DID to meet the configured AxiomID trust threshold.",
-        parameters: gateParameters,
+        parameters: cloneToolParameters(gateParameters),
         run: requireSoulGate,
       },
       createAttestationDraft: {
         name: "axiomid_create_attestation_draft",
         description:
           "Create an unsigned AxiomID attestation draft from AutoGen task output.",
-        parameters: attestationParameters,
+        parameters: cloneToolParameters(attestationParameters),
         run: async (input) => createAttestationDraft(input),
       },
     };

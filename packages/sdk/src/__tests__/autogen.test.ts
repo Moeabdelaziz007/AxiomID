@@ -329,6 +329,25 @@ describe("createAxiomIDAutoGenAdapter", () => {
     });
   });
 
+  it("returns isolated tool schemas so callers can mutate without side effects", () => {
+    const sdk = createMockSdk();
+    const toolsA = createAxiomIDAutoGenToolDefinitions({ sdk });
+    const toolsB = createAxiomIDAutoGenToolDefinitions({ sdk });
+
+    const bootstrapParamsA = toolsA.bootstrapIdentity.parameters as {
+      required: string[];
+      properties: Record<string, unknown>;
+    };
+    bootstrapParamsA.required.push("extra");
+    bootstrapParamsA.properties = {
+      ...bootstrapParamsA.properties,
+      extra: { type: "string" },
+    };
+    expect((toolsB.bootstrapIdentity.parameters as { required: string[] }).required).toEqual(
+      ["did"]
+    );
+  });
+
   it("validates required fields before creating attestation drafts", () => {
     const sdk = createMockSdk();
     const adapter = createAxiomIDAutoGenAdapter({ sdk });
@@ -353,6 +372,23 @@ describe("createAxiomIDAutoGenAdapter", () => {
         claim: "AutoGen task completed",
       })
     ).toThrow("subjectDid is required");
+  });
+
+  it("keeps toolContext metadata isolated from caller mutations", async () => {
+    const sdk = createMockSdk();
+    const adapter = createAxiomIDAutoGenAdapter({ sdk });
+    const metadata = { taskId: "task-123", nested: { stage: "review" } };
+
+    const context = await adapter.bootstrapAgent({
+      did: "did:axiom:agent:alice",
+      metadata,
+    });
+
+    const toolContextMetadata = context.toolContext as { metadata?: Record<string, unknown> };
+    expect(toolContextMetadata.metadata).toEqual(metadata);
+    expect(toolContextMetadata.metadata).not.toBe(metadata);
+    metadata.taskId = "mutated";
+    expect(toolContextMetadata.metadata).toMatchObject({ taskId: "task-123" });
   });
 
   it("propagates SDK failures from DID resolution", async () => {
