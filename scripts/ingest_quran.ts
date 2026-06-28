@@ -159,7 +159,14 @@ async function generateEmbeddings(
   return embeddings;
 }
 
-// ─── Step 5: Insert into D1 ───────────────────────────────────────────────────
+/**
+ * Inserts surahs and verses into D1.
+ *
+ * @param surahs - Surah records to store.
+ * @param verses - Verse records to store.
+ * @param translations - English translation text keyed by verse ID.
+ * @param remote - Whether to target the production D1 database.
+ */
 
 function insertD1(surahs: Surah[], verses: Verse[], translations: Map<number, string>, remote: boolean) {
   const db = "iqra-db";
@@ -192,7 +199,13 @@ function insertD1(surahs: Surah[], verses: Verse[], translations: Map<number, st
   console.log(`  ✓ ${inserted} verses inserted`);
 }
 
-// ─── Step 6: Store Vectors in Vectorize ───────────────────────────────────────
+/**
+ * Stores verse embeddings in the Vectorize index.
+ *
+ * @param verses - The verses to associate with each embedding
+ * @param embeddings - The embedding vectors to store
+ * @param remote - Whether to target the remote Wrangler environment
+ */
 
 function storeVectors(
   verses: Verse[],
