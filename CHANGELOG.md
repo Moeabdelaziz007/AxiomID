@@ -33,10 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Applied labels to all 9 open issues (#130–#153)
 - Added due dates to all 4 milestones (Jul 15 → Sep 1, 2026)
 - Closed Issue #135 (agent framework integration) — bounty cancelled, no external PRs accepted
-- Added `.gitignore` entries: `memory.graph.json`, `scratchpad/`, `.jolli/`, `*.orig`, `*.rej`
-
-### Performance
-
+- Closed Issue #135 (agent framework integration) — bounty cancelled, no external PRs accepted
 - N+1 query fix in sync route — chunked `Promise.allSettled` (40x faster)
 - Sprint 3 refactoring — CSS animations, wallet decomposition, memory leak fixes
 
