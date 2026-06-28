@@ -10,10 +10,8 @@ export default function DemoVideo() {
     if (playing) {
       videoRef.current?.pause();
       setPlaying(false);
-    } else {
-      videoRef.current?.play();
+      videoRef.current?.play().catch(() => setPlaying(false));
       setPlaying(true);
-    }
   }
 
   return (
