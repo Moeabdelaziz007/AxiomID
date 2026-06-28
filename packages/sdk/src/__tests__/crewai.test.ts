@@ -1,4 +1,5 @@
 import type { AxiomSDK } from "../client";
+import { AxiomAgentBootstrap } from "../integrations/agent-bootstrap";
 import {
   createAxiomIDCrewAITools,
   type CrewAIToolDefinition,
@@ -326,6 +327,22 @@ describe("createAxiomIDCrewAITools", () => {
       })
     ).toThrow("issuerDid must be a non-empty string");
     expect(sdk.resolveDID).not.toHaveBeenCalled();
+  });
+
+  it("rejects empty issuer DIDs for direct bootstrap calls", () => {
+    const sdk = createMockSdk();
+    const bootstrap = new AxiomAgentBootstrap({
+      sdk,
+      agentDid: "did:axiom:crewai-agent",
+    });
+
+    expect(() =>
+      bootstrap.createAttestationDraft({
+        issuerDid: "",
+        subjectDid: "did:axiom:operator",
+        claim: "CrewAI task completed",
+      })
+    ).toThrow("issuerDid must be a non-empty string");
   });
 
   it("propagates SDK/API failures to the CrewAI host", async () => {

@@ -130,9 +130,10 @@ export class AxiomAgentBootstrap {
   ): AxiomAttestationDraft {
     return {
       type: "AxiomIDAttestationDraft",
-      issuerDid: input.issuerDid
-        ? requireNonEmptyString(input.issuerDid, "issuerDid")
-        : this.requireConfiguredAgentDid(),
+      issuerDid:
+        input.issuerDid === undefined
+          ? this.requireConfiguredAgentDid()
+          : requireNonEmptyString(input.issuerDid, "issuerDid"),
       subjectDid: requireNonEmptyString(input.subjectDid, "subjectDid"),
       claim: requireNonEmptyString(input.claim, "claim"),
       purpose: input.purpose,
