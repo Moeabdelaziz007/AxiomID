@@ -144,7 +144,11 @@ function minimumTrustScore(
 }
 
 function purposeFor(inputPurpose: string | undefined, defaultPurpose: string | undefined): string {
-  return inputPurpose?.trim() || defaultPurpose || "Authorize AutoGen agent work";
+  return (
+    inputPurpose?.trim() ||
+    defaultPurpose?.trim() ||
+    "Authorize AutoGen agent work"
+  );
 }
 
 function assertIdentitySdk(options: AxiomIDAutoGenAdapterOptions): AxiomIdentitySDK {
@@ -185,6 +189,9 @@ function normalizeOptionalDateTime(
 }
 
 function cloneToolParameters<T extends Record<string, unknown>>(value: T): T {
+  if (typeof structuredClone === "function") {
+    return structuredClone(value);
+  }
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
@@ -340,28 +347,30 @@ export function createAxiomIDAutoGenAdapter(
     );
 
     const passportSlug = input.passportSlug?.trim();
-    const passportPromise = passportSlug
-      ? sdk.verifyPassport(passportSlug)
-      : Promise.resolve<Passport | undefined>(undefined);
-    const trustScorePromise = passportSlug
-      ? passportPromise.then((verifiedPassport) => {
-          if (!verifiedPassport || verifiedPassport.did !== did) {
-            throw new Error("passportSlug does not belong to the requested did");
-          }
+    const didDocumentPromise = sdk.resolveDID(did);
+    let passport: Passport | undefined;
+    let didDocument: DIDDocument;
+    let trustScore: TrustScore;
 
-          return {
-            did: verifiedPassport.did,
-            score: verifiedPassport.trustScore,
-            tier: verifiedPassport.tier,
-          } as TrustScore;
-        })
-      : sdk.getTrustScore(did);
-
-    const [didDocument, trustScore, passport] = await Promise.all([
-      sdk.resolveDID(did),
-      trustScorePromise,
-      passportPromise,
-    ]);
+    if (passportSlug) {
+      [passport, didDocument] = await Promise.all([
+        sdk.verifyPassport(passportSlug),
+        didDocumentPromise,
+      ]);
+      if (passport.did !== did) {
+        throw new Error("passportSlug does not belong to the requested did");
+      }
+      trustScore = {
+        did: passport.did,
+        score: passport.trustScore,
+        tier: passport.tier,
+      } as TrustScore;
+    } else {
+      [trustScore, didDocument] = await Promise.all([
+        sdk.getTrustScore(did),
+        didDocumentPromise,
+      ]);
+    }
     const soulGate = evaluateSoulGate(trustScore, requiredScore, purpose);
     const baseContext = {
       framework: "autogen" as const,
