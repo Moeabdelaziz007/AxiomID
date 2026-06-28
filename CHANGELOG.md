@@ -32,7 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Merged `performance` label into `perf` ( eliminated duplicate)
 - Applied labels to all 9 open issues (#130–#153)
 - Added due dates to all 4 milestones (Jul 15 → Sep 1, 2026)
-- Fleshed out Issue #135 Bounty — $150–$500 tiers with acceptance criteria
+- Fleshed out Issue #135 — Agent Framework Integration scope
 - Added `.gitignore` entries: `memory.graph.json`, `scratchpad/`, `.jolli/`, `*.orig`, `*.rej`
 
 ### Performance
