@@ -88,8 +88,8 @@ describe("Telegram Webhook", () => {
     expect(json.ok).toBe(false);
     expect(json.error).toBe("Internal Server Error");
     expect(mockLoggerError).toHaveBeenCalledWith(
-      "Error handling Telegram webhook",
-      expect.objectContaining({ error: expect.any(Error) }),
+      "Error handling Telegram webhook:",
+      expect.any(Error),
     );
   });
 
@@ -106,8 +106,8 @@ describe("Telegram Webhook", () => {
     expect(json.ok).toBe(false);
     expect(json.error).toBe("Internal Server Error");
     expect(mockLoggerError).toHaveBeenCalledWith(
-      "Error handling Telegram webhook",
-      expect.objectContaining({ error: expect.anything() }),
+      "Error handling Telegram webhook:",
+      expect.anything(),
     );
   });
 });

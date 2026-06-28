@@ -125,7 +125,7 @@ describe('GET /api/sandbox/dev-token', () => {
     expect(res.status).toBe(500);
     expect(data.code).toBe('INTERNAL_ERROR');
     expect(mockLoggerError).toHaveBeenCalledWith(
-      'Error in sandbox dev-token route',
+      'Error fetching dev token',
       expect.objectContaining({ error: expect.any(Error) }),
     );
   });

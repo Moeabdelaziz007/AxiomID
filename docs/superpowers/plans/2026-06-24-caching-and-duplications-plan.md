@@ -40,8 +40,8 @@
     "/manifest.json",
     "/icon-192x192.png",
     "/icon-512x512.png",
-    "/axiomid-logo.png",
-    "/axiomid-banner.png",
+    "/axiomid-logo.jpg",
+    "/axiomid-banner.jpg",
     "/favicon.ico",
   ];
 

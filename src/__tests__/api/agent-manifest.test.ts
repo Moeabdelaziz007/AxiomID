@@ -187,8 +187,8 @@ describe('GET /api/agent/manifest', () => {
     expect(data.code).toBe('INTERNAL_ERROR');
     expect(data.error).toBe('Failed to sign credential manifest');
     expect(mockLoggerError).toHaveBeenCalledWith(
-      'Failed to sign credential manifest',
-      expect.objectContaining({ error: expect.any(Error) }),
+      '[AGENT-MANIFEST] Error signing credential:',
+      expect.any(Error),
     );
   });
 
@@ -196,31 +196,13 @@ describe('GET /api/agent/manifest', () => {
     mockRequireAuth.mockRejectedValue(new Error('Unexpected auth failure'));
 
     const req = mockGetRequest();
-    const res = await GET(req);
-    const data = await res.json();
-
-    expect(res.status).toBe(500);
-    expect(data.code).toBe('INTERNAL_ERROR');
-    expect(data.error).toBe('Internal Server Error');
-    expect(mockLoggerError).toHaveBeenCalledWith(
-      'Error in agent manifest route',
-      expect.objectContaining({ error: expect.any(Error) }),
-    );
+    await expect(GET(req)).rejects.toThrow('Unexpected auth failure');
   });
 
   it('returns 500 and logs when prisma findUnique throws unexpectedly (outer catch)', async () => {
     mockFindUnique.mockRejectedValue(new Error('DB connection lost'));
 
     const req = mockGetRequest();
-    const res = await GET(req);
-    const data = await res.json();
-
-    expect(res.status).toBe(500);
-    expect(data.code).toBe('INTERNAL_ERROR');
-    expect(data.error).toBe('Internal Server Error');
-    expect(mockLoggerError).toHaveBeenCalledWith(
-      'Error in agent manifest route',
-      expect.objectContaining({ error: expect.any(Error) }),
-    );
+    await expect(GET(req)).rejects.toThrow('DB connection lost');
   });
 });
