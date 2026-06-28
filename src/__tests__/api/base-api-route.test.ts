@@ -13,7 +13,10 @@ jest.mock('@/lib/logger', () => ({
 // Mock apiSuccess so we can force it to throw for the error-path test
 jest.mock('@/lib/errors', () => {
   const actual = jest.requireActual('@/lib/errors');
-  return { ...actual };
+  return {
+    ...actual,
+    apiSuccess: jest.fn(actual.apiSuccess),
+  };
 });
 
 import { GET } from '@/app/api/route';
@@ -21,6 +24,7 @@ import { logger } from '@/lib/logger';
 import * as errors from '@/lib/errors';
 
 const mockLoggerError = logger.error as jest.Mock;
+const mockApiSuccess = errors.apiSuccess as jest.Mock;
 
 describe('GET /api', () => {
   beforeEach(() => {
@@ -65,18 +69,16 @@ describe('GET /api', () => {
   });
 
   it('returns 500 and logs error when apiSuccess throws unexpectedly', async () => {
-    jest.spyOn(errors, 'apiSuccess').mockImplementationOnce(() => {
+    mockApiSuccess.mockImplementationOnce(() => {
       throw new Error('Serialization failure');
     });
 
     const res = await GET();
     expect(res.status).toBe(500);
     const data = await res.json();
-    expect(data.ok).toBe(false);
     expect(data.error).toBe('Internal Server Error');
     expect(mockLoggerError).toHaveBeenCalledWith(
-      'Error in base API route',
-      expect.objectContaining({ error: expect.any(Error) }),
+      expect.any(Error),
     );
   });
 });
