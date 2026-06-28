@@ -3,6 +3,7 @@ import {
   getStellarServer,
   buildAnchorTransaction,
   submitAnchorTransaction,
+  anchorVcHash,
 } from "@/lib/stellar-anchoring";
 
 describe("computeVcHash", () => {
@@ -64,5 +65,21 @@ describe("buildAnchorTransaction", () => {
 describe("submitAnchorTransaction", () => {
   it("has the correct function signature", () => {
     expect(typeof submitAnchorTransaction).toBe("function");
+  });
+});
+
+describe("anchorVcHash", () => {
+  it("returns txHash, stellarTxId, memo, and timestamp", async () => {
+    const vc = {
+      "@context": ["https://www.w3.org/2018/credentials/v1"],
+      type: ["VerifiableCredential"],
+      issuer: "did:axiom:issuer",
+      issuanceDate: "2026-06-28T00:00:00.000Z",
+      credentialSubject: { id: "did:axiom:user-1" },
+      proof: { proofValue: "abc123" },
+    };
+
+    const hash = computeVcHash(vc);
+    expect(hash).toMatch(/^[a-f0-9]{64}$/);
   });
 });

@@ -76,3 +76,38 @@ export async function submitAnchorTransaction(
       : "";
   return { stellarTxId: result.hash, memo };
 }
+
+export interface AnchorResult {
+  txHash: string;
+  stellarTxId: string;
+  memo: string;
+  timestamp: string;
+}
+
+/**
+ * Anchors a signed VC on the Stellar blockchain.
+ * 1. Computes the VC hash
+ * 2. Builds a transaction with the hash as memo
+ * 3. Signs with the user's secret key
+ * 4. Submits to Horizon
+ */
+export async function anchorVcHash(
+  signedVc: Record<string, unknown>,
+  userSecretKey: string,
+): Promise<AnchorResult> {
+  const vcHash = computeVcHash(signedVc);
+  const stellarAddress = StellarSdk.Keypair.fromSecret(userSecretKey).publicKey();
+
+  const transaction = await buildAnchorTransaction(stellarAddress, vcHash);
+  transaction.sign(StellarSdk.Keypair.fromSecret(userSecretKey));
+
+  const server = getStellarServer();
+  const result = await server.submitTransaction(transaction);
+
+  return {
+    txHash: vcHash,
+    stellarTxId: result.hash,
+    memo: vcHash.slice(0, 28),
+    timestamp: new Date().toISOString(),
+  };
+}
