@@ -62,6 +62,11 @@ export interface AxiomIDAutoGenContext {
   metadata?: Record<string, unknown>;
 }
 
+export type AxiomIDAutoGenContextSeed = Omit<
+  AxiomIDAutoGenContext,
+  "systemMessage" | "toolContext"
+>;
+
 export interface AxiomIDAutoGenAttestationDraft {
   type: "AxiomIDAttestationDraft";
   issuerDid: string;
@@ -103,7 +108,7 @@ export interface AxiomIDAutoGenAdapter {
   createAttestationDraft(
     input: AxiomIDAutoGenAttestationDraftInput
   ): AxiomIDAutoGenAttestationDraft;
-  buildSystemMessage(context: AxiomIDAutoGenContext): string;
+  buildSystemMessage(context: AxiomIDAutoGenContextSeed): string;
   toToolDefinitions(): AxiomIDAutoGenToolDefinitions;
 }
 
@@ -194,11 +199,6 @@ function evaluateSoulGate(
   };
 }
 
-type AxiomIDAutoGenContextSeed = Omit<
-  AxiomIDAutoGenContext,
-  "systemMessage" | "toolContext"
->;
-
 function createToolContext(context: AxiomIDAutoGenContextSeed) {
   return {
     framework: "autogen",
@@ -208,7 +208,7 @@ function createToolContext(context: AxiomIDAutoGenContextSeed) {
       tier: context.trustScore.tier,
       breakdown: context.trustScore.breakdown,
     },
-    soulGate: context.soulGate,
+    soulGate: { ...context.soulGate },
     passport: context.passport
       ? {
           username: context.passport.username,

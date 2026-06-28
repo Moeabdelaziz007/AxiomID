@@ -11,6 +11,7 @@ export type {
   AxiomIDAutoGenAttestationDraftInput,
   AxiomIDAutoGenBootstrapInput,
   AxiomIDAutoGenContext,
+  AxiomIDAutoGenContextSeed,
   AxiomIDAutoGenGateDecision,
   AxiomIDAutoGenGateInput,
   AxiomIDAutoGenToolDefinitions,

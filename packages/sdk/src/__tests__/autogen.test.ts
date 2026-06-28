@@ -99,6 +99,12 @@ describe("createAxiomIDAutoGenAdapter", () => {
         kycStatus: "VERIFIED",
       },
     });
+    expect((context.toolContext as { soulGate: unknown }).soulGate).toEqual(
+      context.soulGate
+    );
+    expect((context.toolContext as { soulGate: unknown }).soulGate).not.toBe(
+      context.soulGate
+    );
   });
 
   it("validates adapter options before creating tools", () => {
@@ -211,6 +217,30 @@ describe("createAxiomIDAutoGenAdapter", () => {
       framework: "autogen",
       purpose: "AutoGen task completion",
     });
+  });
+
+  it("builds a system message from a context seed", () => {
+    const sdk = createMockSdk();
+    const adapter = createAxiomIDAutoGenAdapter({ sdk });
+
+    const message = adapter.buildSystemMessage({
+      framework: "autogen",
+      did: "did:axiom:agent:alice",
+      didDocument,
+      trustScore,
+      soulGate: {
+        allowed: true,
+        score: 82,
+        minimumTrustScore: 60,
+        reason: "Trust score 82 meets minimum 60",
+        purpose: "Prepare delegated work",
+      },
+      metadata: { taskId: "task-123" },
+    });
+
+    expect(message).toContain("did:axiom:agent:alice");
+    expect(message).toContain("Trust: 82 (Sovereign)");
+    expect(message).toContain("Purpose: Prepare delegated work");
   });
 
   it("normalizes valid attestation expirations and rejects malformed ones", () => {
