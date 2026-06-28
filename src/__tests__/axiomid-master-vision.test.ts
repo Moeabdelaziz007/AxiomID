@@ -369,7 +369,7 @@ describe("AXIOMID-MASTER-VISION.md — Trust Tier definitions", () => {
 
   it("lists exactly 4 trust tiers", () => {
     const tierSection =
-      content.split("### Trust Tiers")[1]?.split("---")[0] ?? "";
+      content.split("### Trust Tiers")[1]?.split(/\n---\n/)[0] ?? "";
     const tierRows = tierSection.match(/\| \*\*\w+\*\* \|/g) ?? [];
     expect(tierRows).toHaveLength(4);
   });
