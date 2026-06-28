@@ -8,7 +8,7 @@ type AxiomIdentitySDK = Pick<
 
 const DEFAULT_MINIMUM_TRUST_SCORE = 60;
 const ISO_DATE_TIME_PATTERN =
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:?\d{2})$/;
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
 
 export interface AxiomIDAutoGenAdapterOptions {
   sdk: AxiomIdentitySDK;
@@ -31,6 +31,7 @@ export interface AxiomIDAutoGenGateInput {
   minimumTrustScore?: number;
   purpose?: string;
   metadata?: Record<string, unknown>;
+  passportSlug?: string;
 }
 
 export interface AxiomIDAutoGenAttestationDraftInput {
@@ -283,6 +284,10 @@ const gateParameters: Record<string, unknown> = Object.freeze({
       description: "Optional per-task Soul Gate threshold",
     },
     purpose: { type: "string", description: "AutoGen task purpose" },
+    passportSlug: {
+      type: "string",
+      description: "Optional passport slug to hydrate public passport context",
+    },
     metadata: {
       type: "object",
       additionalProperties: true,

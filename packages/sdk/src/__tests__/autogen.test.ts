@@ -164,6 +164,29 @@ describe("createAxiomIDAutoGenAdapter", () => {
     expect(context.systemMessage).toContain("Soul Gate: denied");
   });
 
+  it("hydrates passport context in requireSoulGate when passportSlug is provided", async () => {
+    const sdk = createMockSdk();
+    const adapter = createAxiomIDAutoGenAdapter({ sdk });
+
+    const context = await adapter.requireSoulGate({
+      did: "did:axiom:agent:alice",
+      minimumTrustScore: 75,
+      passportSlug: "alice",
+      purpose: "Verify passport-aware gate",
+    });
+
+    expect(sdk.getTrustScore).not.toHaveBeenCalled();
+    expect(sdk.verifyPassport).toHaveBeenCalledWith("alice");
+    expect(context.soulGate.allowed).toBe(true);
+    expect(context.passport).toEqual(passport);
+    expect(context.toolContext).toMatchObject({
+      passport: {
+        username: "alice",
+        tier: "Sovereign",
+      },
+    });
+  });
+
   it("rejects missing bootstrap input and mismatched passports", async () => {
     const sdk = createMockSdk();
     const adapter = createAxiomIDAutoGenAdapter({ sdk });
@@ -254,7 +277,7 @@ describe("createAxiomIDAutoGenAdapter", () => {
     const draft = adapter.createAttestationDraft({
       subjectDid: "did:axiom:agent:alice",
       claim: "AutoGen task completed",
-      expiresAt: "2026-06-29T12:30:00+0200",
+      expiresAt: "2026-06-29T12:30:00+02:00",
     });
 
     expect(draft.expiresAt).toBe("2026-06-29T10:30:00.000Z");
@@ -387,6 +410,8 @@ describe("createAxiomIDAutoGenAdapter", () => {
     const toolContextMetadata = context.toolContext as { metadata?: Record<string, unknown> };
     expect(toolContextMetadata.metadata).toEqual(metadata);
     expect(toolContextMetadata.metadata).not.toBe(metadata);
+    expect(context.metadata).toEqual(metadata);
+    expect(context.metadata).not.toBe(metadata);
     metadata.taskId = "mutated";
     expect(toolContextMetadata.metadata).toMatchObject({ taskId: "task-123" });
     (metadata.nested as { stage: string }).stage = "escalated";
