@@ -71,7 +71,7 @@ export default function LeaderboardPage() {
     return (usernameMatch || walletMatch) && tierMatch;
   });
 
-  const allDemoUsers = users.length > 0 && users.every((u) => u.xp === 0 && u.piUsername === null);
+  const allDemoUsers = users.length > 0 && users.every((u) => u.xp === 0 && !u.piUsername);
   const topThree = users.slice(0, 3);
   const allTableUsers = filteredUsers.filter((u) => u.rank > 3 || search !== "");
   const tableUsers = allTableUsers.slice(0, visibleCount);

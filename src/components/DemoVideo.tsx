@@ -7,11 +7,7 @@ export default function DemoVideo() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   function handlePlay() {
-    if (playing) {
-      videoRef.current?.pause();
-      setPlaying(false);
-      videoRef.current?.play().catch(() => setPlaying(false));
-      setPlaying(true);
+    videoRef.current?.play().catch(() => setPlaying(false));
   }
 
   return (
