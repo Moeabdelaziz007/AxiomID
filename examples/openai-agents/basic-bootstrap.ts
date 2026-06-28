@@ -1,5 +1,5 @@
 import { Agent, tool } from "@openai/agents";
-import { toOpenAIAgentTools } from "../../packages/sdk/src/openai-agents";
+import { toOpenAIAgentTools } from "@axiomid/sdk";
 
 const axiomTools = toOpenAIAgentTools(tool, {
   sdkConfig: { network: "testnet" },
