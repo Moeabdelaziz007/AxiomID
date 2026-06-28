@@ -70,6 +70,21 @@ describe("LangGraph integration helpers", () => {
     });
   });
 
+  it("rejects invalid Soul Gate thresholds when graph nodes are created", () => {
+    try {
+      createAxiomLangGraphNodes({
+        sdk: createMockSdk(91),
+        minimumTrustScore: 150,
+      });
+      throw new Error("Expected invalid LangGraph threshold to throw");
+    } catch (err) {
+      expect(err).toMatchObject({
+        code: "LANGGRAPH_TRUST_THRESHOLD_INVALID",
+        status: 400,
+      });
+    }
+  });
+
   it("throws a typed AxiomIDError when denied context is asserted", async () => {
     const context = await bootstrapLangGraphAgentContext(
       { did: "did:axiom:pioneer.username" },

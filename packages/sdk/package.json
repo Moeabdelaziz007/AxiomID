@@ -29,6 +29,14 @@
     "ts-jest": "^29.4.0",
     "typescript": "^5"
   },
+  "peerDependencies": {
+    "@langchain/langgraph": ">=0.2.0"
+  },
+  "peerDependenciesMeta": {
+    "@langchain/langgraph": {
+      "optional": true
+    }
+  },
   "engines": {
     "node": ">=20.0.0"
   },

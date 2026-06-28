@@ -6,6 +6,8 @@ TypeScript SDK for resolving AxiomID passports, DIDs, trust scores, and agent co
 
 The SDK includes dependency-light helpers for LangGraph workflows. They expose AxiomID identity, trust score, Soul Gate, delegation, and attestation context without adding `@langchain/langgraph` as a runtime dependency of `@axiomid/sdk`.
 
+The runnable examples expect `@langchain/langgraph` to be installed by the host project; it is declared as an optional peer dependency so SDK consumers only install it when they use the LangGraph examples directly.
+
 ```ts
 import { StateGraph, START, END } from "@langchain/langgraph";
 import { createAxiomLangGraphNodes, type LangGraphState } from "@axiomid/sdk";

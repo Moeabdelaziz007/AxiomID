@@ -385,10 +385,11 @@ export function createAxiomLangGraphNodes(
   const didField = options.didField ?? DEFAULT_DID_FIELD;
   const contextKey = options.contextKey ?? DEFAULT_CONTEXT_KEY;
   const sdk = getSdk(options);
+  const minimumTrustScore = getMinimumTrustScore(options);
   const bootstrapOptions: AxiomLangGraphOptions = {
     sdk,
     sdkConfig: options.sdkConfig,
-    minimumTrustScore: options.minimumTrustScore,
+    minimumTrustScore,
     includeAttestationDraft: options.includeAttestationDraft,
     now: options.now,
   };
@@ -420,7 +421,7 @@ export function createAxiomLangGraphNodes(
 export async function* streamLangGraphBootstrap(
   input: AxiomLangGraphBootstrapInput,
   options: AxiomLangGraphOptions = {}
-): AsyncGenerator<AxiomLangGraphStreamEvent, AxiomLangGraphContext, void> {
+): AsyncGenerator<AxiomLangGraphStreamEvent, void, void> {
   const sdk = getSdk(options);
   const minimumTrustScore = getMinimumTrustScore(options);
 
@@ -442,5 +443,4 @@ export async function* streamLangGraphBootstrap(
     options
   );
   yield { type: "bootstrap:complete", did: input.did, context };
-  return context;
 }
