@@ -97,6 +97,7 @@ describe("OpenAI Agents SDK integration helpers", () => {
 
     expect(sdk.resolveDID).toHaveBeenCalledWith("did:axiom:pioneer.username");
     expect(sdk.getTrustScore).toHaveBeenCalledWith("did:axiom:pioneer.username");
+    expect(context.did).toBe("did:axiom:pioneer.username");
     expect(context.attestationDraft?.issuerDid).toBe("did:axiom:pioneer.username");
     expect(context.attestationDraft?.subjectDid).toBe("did:axiom:pioneer.username");
   });

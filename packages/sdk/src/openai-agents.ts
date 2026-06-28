@@ -163,7 +163,7 @@ export async function bootstrapOpenAIAgentContext(
   };
 
   const context: AxiomOpenAIAgentContext = {
-    did: options.did,
+    did,
     didDocument,
     trustScore,
     gate,
