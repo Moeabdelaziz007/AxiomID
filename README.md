@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./public/axiomid-banner.png" alt="AxiomID" width="100%" />
+  <img src="./public/axiomid-banner.jpg" alt="AxiomID" width="100%" />
 </div>
 
 <h3 align="center">The Human Authorization Protocol for AI Agents</h3>

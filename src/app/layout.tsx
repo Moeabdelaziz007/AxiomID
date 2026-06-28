@@ -54,10 +54,9 @@ export const metadata: Metadata = {
     icon: [
       { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
       { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/favicon.ico', sizes: '48x48', type: 'image/x-icon' },
     ],
-    apple: [
-      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-    ],
+    apple: '/icon-192x192.png',
   },
   formatDetection: {
     email: false,
@@ -79,7 +78,7 @@ export const metadata: Metadata = {
     siteName: 'AxiomID',
     images: [
       {
-        url: '/axiomid-banner.png',
+        url: '/axiomid-banner.jpg',
         width: 640,
         height: 640,
         alt: 'AxiomID - Human Authorization Protocol',
@@ -92,7 +91,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "AxiomID - The Human Authorization Protocol",
     description: "Prove human intent behind AI actions with decentralized identity verification",
-    images: ['/axiomid-banner.png'],
+    images: ['/axiomid-banner.jpg'],
     creator: '@Moeabdelaziz007',
   },
   robots: {

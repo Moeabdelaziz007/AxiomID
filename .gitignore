@@ -38,6 +38,9 @@ Desktop.ini
 .qoder/
 .opencode/
 
+# gemini CLI (local tool config)
+.gemini/
+
 # superpowers (local workflow scripts)
 .superpowers/
 
