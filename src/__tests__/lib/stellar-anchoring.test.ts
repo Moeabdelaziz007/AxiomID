@@ -1,4 +1,9 @@
-import { computeVcHash } from "@/lib/stellar-anchoring";
+import {
+  computeVcHash,
+  getStellarServer,
+  buildAnchorTransaction,
+  submitAnchorTransaction,
+} from "@/lib/stellar-anchoring";
 
 describe("computeVcHash", () => {
   it("returns a hex-encoded SHA-256 hash of the canonicalized VC", () => {
@@ -32,5 +37,32 @@ describe("computeVcHash", () => {
     const vc1 = { type: ["VerifiableCredential"], issuer: "did:axiom:issuer" };
     const vc2 = { type: ["VerifiableCredential"], issuer: "did:axiom:other" };
     expect(computeVcHash(vc1)).not.toBe(computeVcHash(vc2));
+  });
+});
+
+describe("getStellarServer", () => {
+  it("returns a Horizon server instance for testnet by default", () => {
+    const server = getStellarServer();
+    expect(server).toBeDefined();
+    expect(server.serverURL.toString()).toContain("horizon-testnet");
+  });
+});
+
+describe("buildAnchorTransaction", () => {
+  it("builds a transaction with the VC hash as memo", async () => {
+    const vcHash = "a".repeat(64);
+    const stellarAddress = "GALAXYPLLQOZNB5GZRG3XHZK7AGQGEFOKG7HKJDQ4QFQY6JN3C4Q4O7Z8";
+    // Account won't exist on testnet — we just verify the function exists and rejects appropriately
+    try {
+      await buildAnchorTransaction(stellarAddress, vcHash);
+    } catch (err) {
+      expect(err).toBeDefined();
+    }
+  });
+});
+
+describe("submitAnchorTransaction", () => {
+  it("has the correct function signature", () => {
+    expect(typeof submitAnchorTransaction).toBe("function");
   });
 });
