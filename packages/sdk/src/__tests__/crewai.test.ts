@@ -97,7 +97,7 @@ describe("createAxiomIDCrewAITools", () => {
       createdAt: "2026-06-28T00:00:00.000Z",
     });
     expect(sdk.resolveDID).toHaveBeenCalledWith("did:axiom:operator");
-    expect(sdk.getTrustScore).toHaveBeenCalledWith("did:axiom:operator");
+    expect(sdk.getTrustScore).not.toHaveBeenCalled();
     expect(sdk.verifyPassport).toHaveBeenCalledWith("operator");
   });
 
@@ -205,6 +205,29 @@ describe("createAxiomIDCrewAITools", () => {
       issuerDid: "did:axiom:crew-manager",
       subjectDid: "did:axiom:operator",
       claim: "CrewAI task completed",
+    });
+  });
+
+  it("treats null optional fields from LLM tool calls as omitted", () => {
+    const sdk = createMockSdk();
+    const createTool = jest.fn((definition) => definition);
+    const tools = createAxiomIDCrewAITools({ sdk, createTool });
+    const createAttestationDraft =
+      tools.createAttestationDraft as CapturedTool<unknown, unknown>;
+
+    const draft = createAttestationDraft.run({
+      issuerDid: "did:axiom:crew-manager",
+      subjectDid: "did:axiom:operator",
+      claim: "CrewAI task completed",
+      purpose: null,
+      evidence: null,
+    });
+
+    expect(draft).toMatchObject({
+      issuerDid: "did:axiom:crew-manager",
+      subjectDid: "did:axiom:operator",
+      claim: "CrewAI task completed",
+      evidence: {},
     });
   });
 

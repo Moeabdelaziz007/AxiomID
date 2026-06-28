@@ -19,6 +19,7 @@ from crewai.tools import tool
 AXIOMID_BASE_URL = os.getenv("AXIOMID_BASE_URL", "https://axiomid.app").rstrip("/")
 AXIOMID_API_KEY = os.getenv("AXIOMID_API_KEY")
 DEFAULT_MINIMUM_TRUST_SCORE = int(os.getenv("AXIOMID_MINIMUM_TRUST_SCORE", "70"))
+AXIOMID_TIMEOUT_SECONDS = float(os.getenv("AXIOMID_TIMEOUT_SECONDS", "5"))
 
 
 def _axiomid_get(path: str) -> dict[str, Any]:
@@ -33,7 +34,7 @@ def _axiomid_get(path: str) -> dict[str, Any]:
     )
 
     try:
-        with urllib.request.urlopen(request, timeout=15) as response:
+        with urllib.request.urlopen(request, timeout=AXIOMID_TIMEOUT_SECONDS) as response:
             return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as error:
         body = error.read().decode("utf-8", errors="replace")
@@ -41,7 +42,7 @@ def _axiomid_get(path: str) -> dict[str, Any]:
 
 
 def _identity_context(did: str) -> dict[str, Any]:
-    if not did.strip():
+    if not isinstance(did, str) or not did.strip():
         raise ValueError("did must be a non-empty string")
 
     encoded_did = urllib.parse.quote(did, safe="")
@@ -51,12 +52,27 @@ def _identity_context(did: str) -> dict[str, Any]:
     return {
         "did": did,
         "didDocument": did_document,
-        "trustScore": {
-            "did": passport.get("did", did),
-            "score": passport.get("trustScore", 0),
-            "tier": passport.get("tier", "Unknown"),
-        },
+        "trustScore": _trust_score_context(passport, did),
         "passport": passport,
+    }
+
+
+def _trust_score_context(passport: dict[str, Any], fallback_did: str) -> dict[str, Any]:
+    raw_score = passport.get("trustScore", 0)
+    try:
+        score = int(raw_score) if raw_score is not None else 0
+    except (TypeError, ValueError):
+        score = 0
+
+    passport_did = passport.get("did")
+    tier = passport.get("tier")
+
+    return {
+        "did": passport_did
+        if isinstance(passport_did, str) and passport_did
+        else fallback_did,
+        "score": score,
+        "tier": tier if isinstance(tier, str) and tier else "Unknown",
     }
 
 
@@ -104,7 +120,11 @@ def axiomid_create_attestation_draft(
     if not claim.strip():
         raise ValueError("claim must be a non-empty string")
 
-    evidence = json.loads(evidence_json)
+    try:
+        evidence = json.loads(evidence_json)
+    except json.JSONDecodeError as error:
+        raise ValueError("evidence_json must be valid JSON") from error
+
     if not isinstance(evidence, dict):
         raise ValueError("evidence_json must decode to an object")
 

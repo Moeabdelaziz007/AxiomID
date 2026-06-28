@@ -74,13 +74,20 @@ export class AxiomAgentBootstrap {
 
   async createContext(input: AxiomAgentContextInput): Promise<AxiomAgentContext> {
     const did = requireNonEmptyString(input.did, "did");
-    const [didDocument, trustScore, passport] = await Promise.all([
+    const passportPromise = input.passportSlug
+      ? this.sdk.verifyPassport(input.passportSlug)
+      : Promise.resolve(undefined);
+    const [didDocument, passport] = await Promise.all([
       this.sdk.resolveDID(did),
-      this.sdk.getTrustScore(did),
-      input.passportSlug
-        ? this.sdk.verifyPassport(input.passportSlug)
-        : Promise.resolve(undefined),
+      passportPromise,
     ]);
+    const trustScore = passport
+      ? {
+          did: passport.did,
+          score: passport.trustScore,
+          tier: passport.tier,
+        }
+      : await this.sdk.getTrustScore(did);
 
     return {
       did,

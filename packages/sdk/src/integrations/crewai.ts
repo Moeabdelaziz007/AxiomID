@@ -178,14 +178,14 @@ function requireString(value: unknown, field: string): string {
 }
 
 function optionalString(value: unknown, field: string): string | undefined {
-  if (value === undefined) {
+  if (value === undefined || value === null) {
     return undefined;
   }
   return requireString(value, field);
 }
 
 function optionalNumber(value: unknown, field: string): number | undefined {
-  if (value === undefined) {
+  if (value === undefined || value === null) {
     return undefined;
   }
   if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -198,7 +198,7 @@ function optionalRecord(
   value: unknown,
   field: string
 ): Record<string, unknown> | undefined {
-  if (value === undefined) {
+  if (value === undefined || value === null) {
     return undefined;
   }
   return requireRecord(value, field);
