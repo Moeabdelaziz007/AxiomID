@@ -17,7 +17,7 @@ interface WalletContextType {
   isConnecting: boolean;
   error: string | null;
   isPiBrowser: boolean;
-  connectWallet: () => Promise<void>;
+  connectWallet: () => Promise<boolean>;
   logout: () => void;
   claimAction: (actionType: string, metadata?: Record<string, unknown>) => Promise<boolean>;
   refreshUser: () => Promise<void>;

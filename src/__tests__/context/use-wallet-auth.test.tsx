@@ -523,7 +523,7 @@ describe("useWalletAuth — connectDemo", () => {
   });
 });
 
-describe("useWalletAuth — connectWallet returns void", () => {
+describe("useWalletAuth — connectWallet returns boolean", () => {
   let mockFetch: jest.Mock;
 
   beforeEach(() => {
@@ -535,7 +535,7 @@ describe("useWalletAuth — connectWallet returns void", () => {
     mockDetermineSandboxMode.mockReturnValue(false);
   });
 
-  it("returns undefined when authentication succeeds", async () => {
+  it("returns true when authentication succeeds", async () => {
     const params = makeAuthParams();
     mockConnectPi.mockResolvedValueOnce({
       token: "ok-token",
@@ -554,12 +554,12 @@ describe("useWalletAuth — connectWallet returns void", () => {
     });
 
     const { result } = renderHook(() => useWalletAuth(params));
-    let res: void | undefined;
+    let res: boolean | undefined;
     await act(async () => {
       res = await result.current.connectWallet();
     });
 
-    expect(res).toBeUndefined();
+    expect(res).toBe(true);
   });
 
   it("sets error when /api/auth/pi returns non-ok", async () => {
