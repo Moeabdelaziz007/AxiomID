@@ -71,6 +71,7 @@ export default function LeaderboardPage() {
     return (usernameMatch || walletMatch) && tierMatch;
   });
 
+  const allDemoUsers = users.length > 0 && users.every((u) => u.xp === 0 && !u.piUsername);
   const topThree = users.slice(0, 3);
   const allTableUsers = filteredUsers.filter((u) => u.rank > 3 || search !== "");
   const tableUsers = allTableUsers.slice(0, visibleCount);
@@ -196,7 +197,15 @@ export default function LeaderboardPage() {
         </div>
       ) : (
         <div className="max-w-4xl mx-auto px-4 mt-8 relative z-10 space-y-8">
-          
+
+          {allDemoUsers && (
+            <div className="px-4 py-3 rounded-xl border border-amber-500/20 bg-amber-500/10 backdrop-blur-sm text-center">
+              <p className="text-xs font-mono text-amber-300">
+                {language === "en" ? "🚀 AxiomID is in beta — be the first pioneer to claim your passport." : "🚀 AxiomID في مرحلة البيتا — كن أول رائد يحصل على جواز سفره."}
+              </p>
+            </div>
+          )}
+
           {/* Top Three Cards Podium (Only show if search is empty to maintain clean UI) */}
           {search === "" && topThree.length > 0 && (
             <TopThreeCards users={topThree} />

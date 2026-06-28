@@ -10,6 +10,7 @@ import Script from "next/script";
 import LanguageToggle from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import HeroDemo from "@/components/HeroDemo";
+import DemoVideo from "@/components/DemoVideo";
 import StatsBar from "@/components/StatsBar";
 import TrustTiers from "@/components/TrustTiers";
 import { AxiomLogo } from "@/components/AxiomLogo";
@@ -209,27 +210,14 @@ export default function Home() {
         <StatsBar />
       </div>
 
-      {/* Video Demo Placeholder */}
+      {/* Video Demo */}
       <div className="w-full max-w-6xl px-4 sm:px-6 mt-16 sm:mt-24 z-10">
         <SectionHeader
           label={t("landing_watch_demo")}
           title={t("watch_demo_title")}
           labelColor="text-electric-blue"
         />
-        <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-transparent group cursor-pointer">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center group-hover:bg-white/20 group-hover:scale-110 transition-all duration-300">
-              <svg className="w-8 h-8 text-white ms-1" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </div>
-          </div>
-          <div className="absolute bottom-4 start-4 end-4 text-center">
-            <p className="text-sm text-zinc-400 font-mono">{t("watch_demo_desc")}</p>
-          </div>
-          {/* Subtle gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-        </div>
+        <DemoVideo />
       </div>
 
       {/* Features Section */}
