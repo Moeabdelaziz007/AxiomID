@@ -6,6 +6,8 @@ TypeScript SDK for resolving AxiomID passports, DIDs, trust scores, and agent co
 
 The SDK includes dependency-light helpers for OpenAI Agents SDK projects. They expose AxiomID identity and Soul Gate context without forcing `@openai/agents` into this package's runtime dependencies.
 
+Pass either `sdkConfig` or a preconfigured SDK instance when creating tools. The helpers do not silently default to mainnet, which avoids accidental production API calls in development.
+
 ```ts
 import { Agent, tool } from "@openai/agents";
 import { toOpenAIAgentTools } from "@axiomid/sdk";

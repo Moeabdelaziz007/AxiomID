@@ -127,6 +127,20 @@ describe("OpenAI Agents SDK integration helpers", () => {
     expect(sdk.getTrustScore).toHaveBeenCalledTimes(2);
   });
 
+  it("requires explicit SDK configuration for tool creation", () => {
+    expect(() => createAxiomOpenAIAgentTools()).toThrow(AxiomIDError);
+    expect(() => createAxiomOpenAIAgentTools()).toThrow("sdk or sdkConfig is required");
+  });
+
+  it("validates the developer-configured Soul Gate floor at tool creation", () => {
+    expect(() =>
+      createAxiomOpenAIAgentTools({
+        sdk: createMockSdk(),
+        minimumTrustScore: 150,
+      })
+    ).toThrow(AxiomIDError);
+  });
+
   it("does not let tool arguments lower the developer-configured Soul Gate floor", async () => {
     const tools = createAxiomOpenAIAgentTools({
       sdk: createMockSdk(50),
@@ -142,6 +156,30 @@ describe("OpenAI Agents SDK integration helpers", () => {
       allowed: false,
       minimumTrustScore: 70,
       reason: "Trust score 50 is below required minimum 70",
+    });
+  });
+
+  it("rejects NaN or Infinity tool-supplied trust-score thresholds", async () => {
+    const tools = createAxiomOpenAIAgentTools({ sdk: createMockSdk() });
+
+    await expect(
+      tools[2].execute({
+        did: "did:axiom:pioneer.username",
+        minimumTrustScore: Number.NaN,
+      })
+    ).rejects.toMatchObject({
+      code: "INVALID_MINIMUM_TRUST_SCORE",
+      status: 400,
+    });
+
+    await expect(
+      tools[2].execute({
+        did: "did:axiom:pioneer.username",
+        minimumTrustScore: Number.POSITIVE_INFINITY,
+      })
+    ).rejects.toMatchObject({
+      code: "INVALID_MINIMUM_TRUST_SCORE",
+      status: 400,
     });
   });
 

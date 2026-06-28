@@ -65,7 +65,18 @@ function getSdk(
   sdk?: Pick<AxiomSDK, "resolveDID" | "getTrustScore">,
   sdkConfig?: AxiomSDKConfig
 ) {
-  return sdk ?? new AxiomSDK(sdkConfig ?? { network: "mainnet" });
+  if (sdk) {
+    return sdk;
+  }
+  if (!sdkConfig) {
+    throw new AxiomIDError(
+      "sdk or sdkConfig is required",
+      "MISSING_SDK_CONFIG",
+      400
+    );
+  }
+
+  return new AxiomSDK(sdkConfig);
 }
 
 function getMinimumTrustScore(value?: number) {
@@ -113,7 +124,7 @@ function getOptionalNumberArg(args: unknown, key: string) {
 
 function getEffectiveMinimumTrustScore(args: unknown, configuredMinimumTrustScore?: number) {
   const requestedMinimumTrustScore = getOptionalNumberArg(args, "minimumTrustScore");
-  const configuredFloor = configuredMinimumTrustScore ?? DEFAULT_MINIMUM_TRUST_SCORE;
+  const configuredFloor = getMinimumTrustScore(configuredMinimumTrustScore);
   const requestedFloor = requestedMinimumTrustScore ?? configuredFloor;
 
   return Math.max(requestedFloor, configuredFloor);
@@ -200,6 +211,7 @@ export function createAxiomOpenAIAgentTools(
   AxiomOpenAIToolDefinition<AxiomOpenAIAgentContext>
 ] {
   const sdk = getSdk(options.sdk, options.sdkConfig);
+  const configuredMinimumTrustScore = getMinimumTrustScore(options.minimumTrustScore);
   const didProperty = {
     type: "string",
     description: "AxiomID DID, for example did:axiom:pioneer.username",
@@ -252,7 +264,7 @@ export function createAxiomOpenAIAgentTools(
         bootstrapOpenAIAgentContext({
           did: getStringArg(args, "did"),
           sdk,
-          minimumTrustScore: getEffectiveMinimumTrustScore(args, options.minimumTrustScore),
+          minimumTrustScore: getEffectiveMinimumTrustScore(args, configuredMinimumTrustScore),
         }),
     },
   ];
