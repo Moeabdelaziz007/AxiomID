@@ -106,6 +106,7 @@ export async function POST(request: NextRequest) {
             }
 
             const lastAction = await tx.action.findFirst({
+              where: { userId: user.id },
               orderBy: { timestamp: 'desc' },
               select: { hash: true },
             });
