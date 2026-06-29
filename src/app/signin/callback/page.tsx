@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useLanguage } from "@/app/context/language-context";
 import { parsePiSignInCallback, fetchPiUser } from "@/lib/pi-signin";
 
 /**
@@ -11,7 +11,8 @@ import { parsePiSignInCallback, fetchPiUser } from "@/lib/pi-signin";
  * @returns The sign-in callback page content.
  */
 export default function PiSignInCallbackPage() {
-  const router = useRouter();
+  const { language } = useLanguage();
+  const t = (en: string, ar: string) => (language === "en" ? en : ar);
   const [status, setStatus] = useState<"processing" | "error">("processing");
   const [error, setError] = useState<string>("");
 
@@ -32,7 +33,7 @@ export default function PiSignInCallbackPage() {
       if (!result.accessToken) {
         if (!cancelled) {
           setStatus("error");
-          setError("No access token received.");
+          setError(t("No access token received.", "لم يتم استلام رمز الوصول."));
         }
         return;
       }
@@ -59,7 +60,12 @@ export default function PiSignInCallbackPage() {
         const authData = await authRes.json();
 
         if (!authData.userId || !user.uid || !user.username) {
-          throw new Error("Incomplete sign-in response from server.");
+          throw new Error(
+            t(
+              "Incomplete sign-in response from server.",
+              "استجابة تسجيل دخول غير مكتملة من الخادم.",
+            ),
+          );
         }
 
         localStorage.setItem("pi_access_token", result.accessToken);
@@ -76,7 +82,7 @@ export default function PiSignInCallbackPage() {
       } catch (e) {
         if (!cancelled) {
           setStatus("error");
-          setError(e instanceof Error ? e.message : "Sign-in failed");
+          setError(e instanceof Error ? e.message : t("Sign-in failed", "فشل تسجيل الدخول"));
         }
       }
     }
@@ -86,19 +92,23 @@ export default function PiSignInCallbackPage() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (status === "error") {
     return (
-      <main className="flex min-h-screen items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold mb-4">Sign-in failed</h1>
-          <p className="text-red-500 mb-6">{error}</p>
+      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black p-4 text-white">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(0,120,255,0.08)_0%,_transparent_60%)]" />
+        <div className="relative z-10 w-full max-w-md rounded-2xl border border-white/[0.08] bg-white/[0.03] p-8 text-center shadow-2xl shadow-black/40 backdrop-blur-xl">
+          <h1 className="mb-4 font-sans text-2xl font-bold">
+            {t("Sign-in failed", "فشل تسجيل الدخول")}
+          </h1>
+          <p className="mb-6 font-mono text-sm text-red-400">{error}</p>
           <Link
             href="/"
-            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-gradient-to-r from-electric-blue to-blue-600 px-6 py-3 font-sans font-semibold text-white shadow-lg shadow-electric-blue/10 transition-shadow hover:shadow-electric-blue/20"
           >
-            Try again
+            {t("Try again", "حاول مرة أخرى")}
           </Link>
         </div>
       </main>
@@ -106,10 +116,13 @@ export default function PiSignInCallbackPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
-        <p className="text-lg">Completing sign-in...</p>
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(0,120,255,0.08)_0%,_transparent_60%)]" />
+      <div className="relative z-10 text-center">
+        <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-electric-blue border-t-transparent" />
+        <p className="font-sans text-lg text-white/70">
+          {t("Completing sign-in...", "جارٍ إكمال تسجيل الدخول...")}
+        </p>
       </div>
     </main>
   );
