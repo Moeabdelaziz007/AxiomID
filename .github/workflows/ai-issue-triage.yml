@@ -20,12 +20,16 @@ jobs:
           persist-credentials: false
 
       - name: AI Triage with Groq
+        id: triage
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           python3 << 'PYEOF'
-          import json, urllib.request, urllib.error, os, sys
+          import json, urllib.request, urllib.error, os, sys, subprocess
 
           GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 
@@ -76,6 +80,14 @@ jobs:
           headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
           payload = json.dumps({"model": "llama-3.3-70b-versatile", "messages": [{"role": "user", "content": prompt}], "max_tokens": 500, "temperature": 0.1}).encode()
 
+          ALLOWED_LABELS = {
+              "bug", "enhancement", "feat", "question", "needs-triage",
+              "priority:critical", "priority:high", "priority:medium", "priority:low",
+              "needs-human-approval", "good first issue", "help wanted",
+              "pi-network", "did-passport", "frontend", "cloudflare-workers",
+              "database", "documentation", "ci/cd", "infra",
+          }
+
           try:
               req = urllib.request.Request(url, data=payload, headers=headers)
               resp = urllib.request.urlopen(req, timeout=30)
@@ -84,13 +96,17 @@ jobs:
 
               json_match = text[text.find("{"):text.rfind("}") + 1] if "{" in text else "{}"
               classification = json.loads(json_match)
-              labels = classification.get("labels", ["needs-triage"])
-              summary = classification.get("summary", "AI triage completed")
+              labels = [l for l in classification.get("labels", ["needs-triage"]) if l in ALLOWED_LABELS]
+              summary = classification.get("summary", "AI triage completed")[:500]
               needs_human = classification.get("needs_human", False)
 
-              with open(os.environ.get("GITHUB_OUTPUT"), "a") as f:
-                  f.write(f"labels={json.dumps(labels)}\n")
-                  f.write(f"summary={summary}\n")
+              if not labels:
+                  labels = ["needs-triage"]
+
+              output_path = os.environ.get("GITHUB_OUTPUT", "")
+              if output_path:
+                  with open(output_path, "a") as f:
+                      f.write(f"labels={json.dumps(labels)}\n")
 
               with open("/tmp/ai-triage-result.json", "w") as f:
                   json.dump({"labels": labels, "summary": summary, "needs_human": needs_human}, f)
@@ -99,41 +115,45 @@ jobs:
 
           except Exception as e:
               print(f"❌ AI triage failed: {e}")
-              with open(os.environ.get("GITHUB_OUTPUT"), "a") as f:
-                  f.write("labels=[]\n")
-                  f.write("summary=AI triage unavailable, manual triage needed\n")
+              with open("/tmp/ai-triage-result.json", "w") as f:
+                  json.dump({"labels": ["needs-triage"], "summary": "AI triage unavailable", "needs_human": True}, f)
               sys.exit(0)
           PYEOF
-        env:
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-          ISSUE_BODY: ${{ github.event.issue.body }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
 
       - name: Apply Labels
         if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 << 'PYEOF'
-          import json, os, sys
+          import json, os, sys, subprocess
+
           if not os.path.exists("/tmp/ai-triage-result.json"):
               print("⚠️  No triage result, skipping label step")
               sys.exit(0)
+
           with open("/tmp/ai-triage-result.json") as f:
               result = json.load(f)
+
           labels = result.get("labels", [])
           summary = result.get("summary", "")
-          number = "${{ github.event.issue.number }}"
-          repo = "${{ github.repository }}"
+          number = os.environ.get("ISSUE_NUMBER", "${{ github.event.issue.number }}")
+          repo = os.environ.get("GITHUB_REPOSITORY", "${{ github.repository }}")
 
           if labels:
-              label_str = " ".join(labels)
-              os.system(f'gh issue edit {number} --repo {repo} --add-label "{label_str}"')
+              cmd = ["gh", "issue", "edit", number, "--repo", repo, "--add-label"] + labels
+              proc = subprocess.run(cmd, capture_output=True, text=True)
+              if proc.returncode != 0:
+                  print(f"⚠️  Label command failed: {proc.stderr}")
+              else:
+                  print(f"✅ Labels applied: {labels}")
 
           if summary:
               body = f"## 🤖 AI Triage\n\n**{summary}**\n\n_Automated by AxiomID AI Triage Agent_"
-              os.system(f'gh issue comment {number} --repo {repo} --body "{body}"')
-
-          print(f"✅ Labels applied: {labels}")
-          print(f"✅ Comment posted: {summary}")
+              cmd = ["gh", "issue", "comment", number, "--repo", repo, "--body", body]
+              proc = subprocess.run(cmd, capture_output=True, text=True)
+              if proc.returncode != 0:
+                  print(f"⚠️  Comment command failed: {proc.stderr}")
+              else:
+                  print(f"✅ Comment posted: {summary}")
           PYEOF
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
