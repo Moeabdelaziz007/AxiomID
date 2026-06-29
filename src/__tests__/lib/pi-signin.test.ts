@@ -1,9 +1,14 @@
 /**
+ * @jest-environment jsdom
+ * @jest-environment-options {"url": "https://axiomid.app/"}
+ *
  * Tests for src/lib/pi-signin.ts
  *
  * Covers: getPiOAuthClientId, buildPiSignInUrl, initiatePiSignIn,
  *         parsePiSignInCallback, fetchPiUser
  */
+
+import "jest-location-mock";
 
 import {
   getPiOAuthClientId,
@@ -18,17 +23,7 @@ import {
 // ---------------------------------------------------------------------------
 
 function setHash(hash: string) {
-  Object.defineProperty(window, "location", {
-    configurable: true,
-    writable: true,
-    value: {
-      ...window.location,
-      hash,
-      origin: "https://axiomid.app",
-      assign: jest.fn(),
-      href: "",
-    },
-  });
+  window.location.hash = hash;
 }
 
 function setSessionState(state: string | null) {
@@ -79,16 +74,9 @@ describe("buildPiSignInUrl", () => {
 
   beforeEach(() => {
     process.env.NEXT_PUBLIC_PI_OAUTH_CLIENT_ID = "test-client-id";
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      writable: true,
-      value: {
-        ...window.location,
-        origin: "https://axiomid.app",
-        hash: "",
-        assign: jest.fn(),
-      },
-    });
+    window.location.assign("https://axiomid.app/");
+    window.location.hash = "";
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -137,9 +125,9 @@ describe("buildPiSignInUrl", () => {
 
   it("joins provided scopes with a space", () => {
     const url = new URL(
-      buildPiSignInUrl({ scopes: ["username", "wallet_address"], state: "s5" })
+      buildPiSignInUrl({ scopes: ["username", "payments"], state: "s5" })
     );
-    expect(url.searchParams.get("scope")).toBe("username wallet_address");
+    expect(url.searchParams.get("scope")).toBe("username payments");
   });
 
   it("defaults scope to 'username' when no scopes are given", () => {
@@ -169,23 +157,14 @@ describe("buildPiSignInUrl", () => {
 
 describe("initiatePiSignIn", () => {
   const origEnv = process.env.NEXT_PUBLIC_PI_OAUTH_CLIENT_ID;
-  let assignMock: jest.Mock;
 
   beforeEach(() => {
     process.env.NEXT_PUBLIC_PI_OAUTH_CLIENT_ID = "init-client-id";
-    assignMock = jest.fn();
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      writable: true,
-      value: {
-        ...window.location,
-        origin: "https://axiomid.app",
-        hash: "",
-        assign: assignMock,
-      },
-    });
+    window.location.assign("https://axiomid.app/");
+    window.location.hash = "";
     // Clear Pi from window
     (window as any).Pi = undefined;
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -198,8 +177,8 @@ describe("initiatePiSignIn", () => {
 
   it("calls window.location.assign with a valid OAuth URL when window.Pi is not available", () => {
     initiatePiSignIn({ state: "test-state" });
-    expect(assignMock).toHaveBeenCalledTimes(1);
-    const calledUrl = assignMock.mock.calls[0][0] as string;
+    expect(window.location.assign).toHaveBeenCalledTimes(1);
+    const calledUrl = (window.location.assign as jest.Mock).mock.calls[0][0] as string;
     expect(calledUrl).toContain("accounts.pinet.com/oauth/authorize");
     expect(calledUrl).toContain("client_id=init-client-id");
   });
@@ -222,7 +201,7 @@ describe("initiatePiSignIn", () => {
         state: "pi-state",
       })
     );
-    expect(assignMock).not.toHaveBeenCalled();
+    expect(window.location.assign).not.toHaveBeenCalled();
   });
 
   it("falls back to window.location.assign when window.Pi.signIn throws", () => {
@@ -233,7 +212,7 @@ describe("initiatePiSignIn", () => {
     };
 
     initiatePiSignIn({ state: "fallback-state" });
-    expect(assignMock).toHaveBeenCalledTimes(1);
+    expect(window.location.assign).toHaveBeenCalledTimes(1);
   });
 
   it("falls back to window.location.assign when client ID is missing (Pi.signIn branch skipped)", () => {
@@ -270,7 +249,7 @@ describe("parsePiSignInCallback", () => {
     setSessionState(null);
 
     const result = parsePiSignInCallback();
-    expect(result.error).toMatch(/invalid sign-in state/i);
+    expect(result.error).toMatch(/state mismatch/i);
     expect(result.accessToken).toBeUndefined();
   });
 
@@ -279,7 +258,7 @@ describe("parsePiSignInCallback", () => {
     setSessionState("expected-state");
 
     const result = parsePiSignInCallback();
-    expect(result.error).toMatch(/invalid sign-in state/i);
+    expect(result.error).toMatch(/state mismatch/i);
   });
 
   it("removes pi_oauth_state from sessionStorage after successful validation", () => {

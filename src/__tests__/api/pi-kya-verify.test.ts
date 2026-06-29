@@ -33,7 +33,12 @@ jest.mock('@/lib/trust-chain', () => ({
 }));
 
 jest.mock('@/lib/tiers', () => ({
-  calculateTier: jest.fn().mockReturnValue('Pioneer'),
+  calculateTier: jest.fn((xp: number) => {
+    if (xp >= 1000) return 'Ambassador';
+    if (xp >= 500) return 'Governor';
+    if (xp >= 100) return 'Citizen';
+    return 'Pioneer';
+  }),
 }));
 
 jest.mock('@/lib/prisma', () => ({
@@ -413,7 +418,7 @@ describe('POST /api/pi/kya/verify — action hash-chain (PR change)', () => {
         data: expect.objectContaining({
           type: 'complete_kyc',
           xp: 200,
-          hash: 'a'.repeat(64),
+          hash: 'mock-hash-abc',
         }),
       })
     );

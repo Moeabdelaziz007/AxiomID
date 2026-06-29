@@ -130,7 +130,7 @@ export function useWalletAuth({
                 const state = crypto.randomUUID();
                 sessionStorage.setItem("pi_oauth_state", state);
                 const redirectUri = `${window.location.origin}/signin/callback`;
-                const url = buildPiSignInUrl({ redirectUri, scopes: ["username", "wallet_address"], state });
+                const url = buildPiSignInUrl({ redirectUri, scopes: ["username"], state });
                 window.location.assign(url);
                 return true;
               }

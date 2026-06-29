@@ -153,8 +153,9 @@ export async function POST(request: NextRequest) {
         }
       });
     } catch (txErr) {
+      const code = (txErr as { code?: string })?.code;
       const msg = txErr instanceof Error ? txErr.message : String(txErr);
-      if (msg.includes('P2002')) {
+      if (code === 'P2002' || msg.includes('P2002')) {
         stampCreated = false;
       } else {
         throw txErr;

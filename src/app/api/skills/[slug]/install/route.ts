@@ -149,6 +149,9 @@ export async function POST(
       tier: skill.tier,
     });
   } catch (error) {
+    if (error instanceof Error && error.message === 'PAYMENT_ALREADY_CONSUMED') {
+      return apiError('CONFLICT', 'Payment already consumed');
+    }
     logger.error('[SKILL-INSTALL] Database error:', error);
     return apiError('INTERNAL_ERROR', 'Failed to install skill');
   }

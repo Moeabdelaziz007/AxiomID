@@ -177,6 +177,7 @@ model PiPayment {
 
   @@index([userId])
   @@index([status])
+  @@index([userId, status, consumedByInstallationId])
 }
 
 // ─────────────────────────────────────────────

@@ -77,7 +77,7 @@ export default function PiSignInCallbackPage() {
         localStorage.removeItem("axiomid_info_modal");
 
         if (!cancelled) {
-          window.location.href = "/dashboard";
+          window.location.assign("/dashboard");
         }
       } catch (e) {
         if (!cancelled) {

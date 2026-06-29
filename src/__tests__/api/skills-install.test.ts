@@ -663,8 +663,8 @@ describe("POST /api/skills/[slug]/install — paid skill: TOCTOU guard on new in
     const res = await POST(req, makeParams());
     const data = await res.json();
 
-    expect(res.status).toBe(500);
-    expect(data.code).toBe("INTERNAL_ERROR");
+    expect(res.status).toBe(409);
+    expect(data.code).toBe("CONFLICT");
   });
 });
 
@@ -739,8 +739,8 @@ describe("POST /api/skills/[slug]/install — paid skill: TOCTOU guard on reinst
     const res = await POST(req, makeParams());
     const data = await res.json();
 
-    expect(res.status).toBe(500);
-    expect(data.code).toBe("INTERNAL_ERROR");
+    expect(res.status).toBe(409);
+    expect(data.code).toBe("CONFLICT");
   });
 });
 

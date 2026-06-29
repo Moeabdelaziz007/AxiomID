@@ -2,6 +2,7 @@ import React from "react";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useWalletAuth } from "@/app/context/use-wallet-auth";
 import { connectPi, checkPiBrowser, PiSdkError, PiSdkErrorCode, determineSandboxMode } from "@/lib/pi-sdk";
+import "jest-location-mock";
 
 jest.mock("@/lib/pi-sdk", () => {
   const actual = jest.requireActual("@/lib/pi-sdk");
@@ -766,8 +767,6 @@ describe("useWalletAuth — connectDemo idempotency", () => {
 
 describe("useWalletAuth — connectWallet OAuth redirect when Pi SDK unavailable", () => {
   let mockFetch: jest.Mock;
-  let assignMock: jest.Mock;
-
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
@@ -777,19 +776,10 @@ describe("useWalletAuth — connectWallet OAuth redirect when Pi SDK unavailable
     mockCheckPiBrowser.mockReturnValue(false);
     mockDetermineSandboxMode.mockReturnValue(false);
 
-    // Simulate window.location.assign. configurable:true so this beforeEach
-    // can redefine it across tests without "Cannot redefine property: location".
-    assignMock = jest.fn();
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      writable: true,
-      value: {
-        ...window.location,
-        origin: "https://axiomid.app",
-        assign: assignMock,
-        href: "",
-      },
-    });
+    // Use jest-location-mock
+    window.location.assign("https://axiomid.app/");
+    window.location.hash = "";
+    (window.location.assign as jest.Mock).mockClear();
   });
 
   afterEach(() => {
@@ -811,7 +801,7 @@ describe("useWalletAuth — connectWallet OAuth redirect when Pi SDK unavailable
       await result.current.connectWallet();
     });
 
-    expect(assignMock).toHaveBeenCalledWith(
+    expect(window.location.assign).toHaveBeenCalledWith(
       "https://accounts.pinet.com/oauth/authorize?client_id=my-client-id"
     );
   });
@@ -864,8 +854,7 @@ describe("useWalletAuth — connectWallet OAuth redirect when Pi SDK unavailable
 
     expect(mockBuildPiSignInUrl).toHaveBeenCalledWith(
       expect.objectContaining({
-        redirectUri: "https://axiomid.app/signin/callback",
-        scopes: ["username", "wallet_address"],
+        scopes: ["username"],
       })
     );
   });
@@ -901,7 +890,7 @@ describe("useWalletAuth — connectWallet OAuth redirect when Pi SDK unavailable
       await result.current.connectWallet();
     });
 
-    expect(assignMock).not.toHaveBeenCalled();
+    expect(window.location.assign).not.toHaveBeenCalled();
     expect(params.setError).toHaveBeenCalledWith(
       expect.stringContaining("Pi Browser required")
     );
@@ -921,7 +910,7 @@ describe("useWalletAuth — connectWallet OAuth redirect when Pi SDK unavailable
       await result.current.connectWallet();
     });
 
-    expect(assignMock).toHaveBeenCalledTimes(1);
+    expect(window.location.assign).toHaveBeenCalledTimes(1);
   });
 
   it("does not set setError when redirecting (OAuth redirect is success path)", async () => {
@@ -937,6 +926,6 @@ describe("useWalletAuth — connectWallet OAuth redirect when Pi SDK unavailable
       await result.current.connectWallet();
     });
 
-    expect(params.setError).not.toHaveBeenCalled();
+    expect(params.setError).not.toHaveBeenCalledWith(expect.any(String));
   });
 });

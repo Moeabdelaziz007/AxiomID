@@ -9,6 +9,7 @@
 
 import React from "react";
 import { render, screen, waitFor, act } from "@testing-library/react";
+import "jest-location-mock";
 
 // ---------------------------------------------------------------------------
 // Mock next/navigation (useRouter)
@@ -79,18 +80,9 @@ beforeEach(() => {
     json: async () => ({ userId: "db-user-id" }),
   });
 
-  // Reset window.location.href. configurable:true so each test's beforeEach
-  // can redefine it without "Cannot redefine property: location".
-  Object.defineProperty(window, "location", {
-    configurable: true,
-    writable: true,
-    value: {
-      ...window.location,
-      href: "",
-      hash: "",
-      origin: "https://axiomid.app",
-    },
-  });
+  window.location.assign("https://axiomid.app/");
+  window.location.hash = "";
+  (window.location.assign as jest.Mock).mockClear();
 });
 
 // ---------------------------------------------------------------------------
@@ -336,7 +328,7 @@ describe("PiSignInCallbackPage — successful sign-in", () => {
   it("redirects to /dashboard", async () => {
     render(<PiSignInCallbackPage />);
     await waitFor(() =>
-      expect(window.location.href).toBe("/dashboard")
+      expect(window.location.assign).toHaveBeenCalledWith("/dashboard")
     );
   });
 
@@ -363,8 +355,7 @@ describe("PiSignInCallbackPage — non-Error thrown", () => {
     mockFetchPiUser.mockRejectedValue("string error"); // non-Error thrown
     render(<PiSignInCallbackPage />);
     await waitFor(() => {
-      expect(screen.getByText("Sign-in failed")).toBeInTheDocument();
-      expect(screen.getByText("Sign-in failed")).toBeInTheDocument();
+      expect(screen.getAllByText("Sign-in failed").length).toBeGreaterThan(0);
     });
     const errorEl = screen
       .getAllByText(/sign-in failed/i)
