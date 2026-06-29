@@ -71,6 +71,13 @@ export interface PiSignInCallbackResult {
 export function parsePiSignInCallback(): PiSignInCallbackResult {
   const params = new URLSearchParams(window.location.hash.slice(1));
   const expectedState = sessionStorage.getItem("pi_oauth_state");
+  const returnedState = params.get("state");
+
+  if (!expectedState || !returnedState || returnedState !== expectedState) {
+    return { error: "Invalid sign-in state. Please try again." };
+  }
+
+  // Only remove after successful validation so Strict Mode re-runs don't break
   sessionStorage.removeItem("pi_oauth_state");
   const returnedState = params.get("state");
 
