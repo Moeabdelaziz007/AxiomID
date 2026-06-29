@@ -93,7 +93,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
         {
           id: "stamp-1",
           userId: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-          type: "connect_twitter",
+          type: "connect_wallet",
           provider: "twitter",
           xpAwarded: 50,
           metadata: "{}",
@@ -106,7 +106,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
 
       expect(res.status).toBe(200);
       expect(data.stamps).toHaveLength(1);
-      expect(data.trustScore).toBe(5); // calculateTrustScore(0 XP, 1 stamp) = round(0*0.7 + 17*0.3)
+      expect(data.trustScore).toBe(3); // calculateTrustScore(0 XP, 1 stamp) = round(0*0.7 + 10*0.3)
     });
   });
 
@@ -114,12 +114,20 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
     it("claims stamp, signs VC, and registers transaction", async () => {
       mockPrisma.stamp.findUnique.mockResolvedValue(null);
       mockPrisma.user.findUnique.mockResolvedValue({ id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", xp: 0 } as any);
+      mockPrisma.stamp.findMany.mockResolvedValue([
+        {
+          id: "stamp-1",
+          type: "connect_wallet",
+          xpAwarded: 100,
+          createdAt: new Date(),
+        },
+      ] as any);
 
       const tx = {
         stamp: {
           create: jest.fn().mockResolvedValue({
             id: "stamp-1",
-            type: "connect_twitter",
+            type: "connect_wallet",
             metadata: "{}",
           }),
         },
@@ -139,7 +147,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
       mockPrisma.$transaction.mockImplementation(async (fn: any) => fn(tx));
 
       const req = mockPostRequest({
-        actionType: "connect_twitter",
+        actionType: "connect_wallet",
         metadata: { handle: "cryptojoker" },
       });
 
@@ -147,7 +155,8 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
       const data = await res.json();
 
       expect(res.status).toBe(200);
-      expect(data.xpEarned).toBe(50);
+      expect(data.xpEarned).toBe(100);
+      expect(typeof data.computedTrustScore).toBe('number');
       expect(tx.stamp.create).toHaveBeenCalledTimes(1);
       expect(tx.action.create).toHaveBeenCalledTimes(1);
     });
@@ -166,7 +175,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
         createdAt: new Date(),
         stamps: [
           {
-            type: "connect_twitter",
+            type: "connect_wallet",
             provider: "twitter",
             xpAwarded: 50,
             createdAt: new Date(),
@@ -183,7 +192,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
 
       expect(res.status).toBe(200);
       expect(data.walletAddress).toBe("pi:testuser");
-      expect(data.trustScore).toBe(16);
+      expect(data.trustScore).toBe(14);
       expect(data.stamps).toHaveLength(1);
     });
   });
