@@ -19,6 +19,7 @@ import {
 
 function setHash(hash: string) {
   Object.defineProperty(window, "location", {
+    configurable: true,
     writable: true,
     value: {
       ...window.location,
@@ -79,6 +80,7 @@ describe("buildPiSignInUrl", () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_PI_OAUTH_CLIENT_ID = "test-client-id";
     Object.defineProperty(window, "location", {
+      configurable: true,
       writable: true,
       value: {
         ...window.location,
@@ -173,6 +175,7 @@ describe("initiatePiSignIn", () => {
     process.env.NEXT_PUBLIC_PI_OAUTH_CLIENT_ID = "init-client-id";
     assignMock = jest.fn();
     Object.defineProperty(window, "location", {
+      configurable: true,
       writable: true,
       value: {
         ...window.location,

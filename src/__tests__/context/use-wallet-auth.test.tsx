@@ -777,9 +777,11 @@ describe("useWalletAuth — connectWallet OAuth redirect when Pi SDK unavailable
     mockCheckPiBrowser.mockReturnValue(false);
     mockDetermineSandboxMode.mockReturnValue(false);
 
-    // Simulate window.location.assign
+    // Simulate window.location.assign. configurable:true so this beforeEach
+    // can redefine it across tests without "Cannot redefine property: location".
     assignMock = jest.fn();
     Object.defineProperty(window, "location", {
+      configurable: true,
       writable: true,
       value: {
         ...window.location,

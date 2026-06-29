@@ -14,7 +14,10 @@ export function PassportHeader() {
     <header
       className="w-full border-b backdrop-blur-xl px-4 sm:px-6 py-4 z-10"
       style={{
-        background: "color-mix(in srgb, var(--bg-deep) 80%, transparent)",
+        // Theme-aware solid background. Avoids color-mix() so older browsers
+        // without support still render an opaque header; backdrop-blur-xl
+        // already provides the glassy effect over scrolled content.
+        backgroundColor: "var(--bg-deep)",
         borderColor: "var(--card-border)",
       }}
     >

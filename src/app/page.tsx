@@ -64,7 +64,10 @@ export default function Home() {
       <header
         className="sticky top-0 w-full z-50 backdrop-blur-lg border-b shadow-[0_1px_0_0_rgba(255,255,255,0.02)_inset]"
         style={{
-          background: "color-mix(in srgb, var(--bg-deep) 90%, transparent)",
+          // Theme-aware solid background. Avoids color-mix() so older browsers
+          // without support still render an opaque header; backdrop-blur-lg
+          // already provides the glassy effect over scrolled content.
+          backgroundColor: "var(--bg-deep)",
           borderColor: "var(--card-border)",
         }}
       >

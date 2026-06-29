@@ -12,6 +12,9 @@ describe('computeTrustScore', () => {
   });
 
   it('returns 100 for all actions completed', () => {
+    // MAX_TRUST_SCORE includes headroom for up to 5 mining_streak entries
+    // (sum of weights + 4 × mining_streak weight). To reach a raw score equal
+    // to MAX_TRUST_SCORE (and thus 100), include all 5 mining streaks.
     const allActions = [
       { type: 'connect_wallet', xp: 100, timestamp: now },
       { type: 'complete_kyc', xp: 200, timestamp: now },
@@ -21,6 +24,10 @@ describe('computeTrustScore', () => {
       { type: 'node_operation', xp: 300, timestamp: now },
       { type: 'mainnet_migration', xp: 150, timestamp: now },
       { type: 'wallet_age', xp: 300, timestamp: now },
+      { type: 'mining_streak', xp: 50, timestamp: now },
+      { type: 'mining_streak', xp: 50, timestamp: now },
+      { type: 'mining_streak', xp: 50, timestamp: now },
+      { type: 'mining_streak', xp: 50, timestamp: now },
       { type: 'mining_streak', xp: 50, timestamp: now },
       { type: 'validator_service', xp: 200, timestamp: now },
     ];

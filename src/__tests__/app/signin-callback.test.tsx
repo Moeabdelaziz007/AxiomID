@@ -79,8 +79,10 @@ beforeEach(() => {
     json: async () => ({ userId: "db-user-id" }),
   });
 
-  // Reset window.location.href
+  // Reset window.location.href. configurable:true so each test's beforeEach
+  // can redefine it without "Cannot redefine property: location".
   Object.defineProperty(window, "location", {
+    configurable: true,
     writable: true,
     value: {
       ...window.location,
