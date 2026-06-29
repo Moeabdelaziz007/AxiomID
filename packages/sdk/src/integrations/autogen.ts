@@ -168,10 +168,10 @@ function assertIdentitySdk(options: AxiomIDAutoGenAdapterOptions): AxiomIdentity
 }
 
 function normalizeOptionalDateTime(
-  value: string | undefined,
+  value: string | null | undefined,
   issuedAt?: Date
 ): string | undefined {
-  if (value === undefined) {
+  if (value === undefined || value === null) {
     return undefined;
   }
   const trimmed = value.trim();
