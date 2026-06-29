@@ -130,6 +130,9 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
             type: "connect_wallet",
             metadata: "{}",
           }),
+          findMany: jest.fn().mockResolvedValue([
+            { type: "connect_wallet", xpAwarded: 100, createdAt: new Date() },
+          ]),
         },
         action: {
           create: jest.fn().mockResolvedValue({}),

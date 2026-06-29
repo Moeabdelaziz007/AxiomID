@@ -30,6 +30,13 @@ jest.mock('@/lib/trust-score', () => ({
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     user: { findUnique: jest.fn(), update: jest.fn() },
+    stamp: { findUnique: jest.fn().mockResolvedValue(null) },
+    action: { create: jest.fn() },
+    $transaction: jest.fn(async (fn: any) => fn({
+      stamp: { create: jest.fn().mockResolvedValue({}) },
+      user: { update: jest.fn().mockResolvedValue({ xp: 200 }) },
+      action: { create: jest.fn().mockResolvedValue({}) },
+    })),
   },
 }));
 

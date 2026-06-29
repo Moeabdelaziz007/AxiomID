@@ -70,6 +70,12 @@ declare global {
       scopes: string[],
       onIncompletePaymentFound?: (payment: PiPaymentDTO) => void
     ) => Promise<PiAuthResult>;
+    signIn?: (options: {
+      clientId: string;
+      redirectUri: string;
+      scopes?: string[];
+      state?: string;
+    }) => void;
     createPayment: (
       paymentData: {
         amount: number;

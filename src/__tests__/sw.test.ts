@@ -34,7 +34,7 @@ const swSource = fs.readFileSync(SW_PATH, "utf8");
 // ---------------------------------------------------------------------------
 
 /** The expected cache name. Bump whenever sw.js increments its version. */
-const EXPECTED_CACHE = "axiomid-v3";
+const EXPECTED_CACHE = "axiomid-v4";
 
 /** The expected static asset list (filenames only — not full paths). */
 const EXPECTED_STATIC_ASSETS = [
