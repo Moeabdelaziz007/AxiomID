@@ -9,9 +9,8 @@ jest.mock("@/lib/auth-middleware", () => ({
   requireAuth: jest.fn(),
 }));
 
-jest.mock("@/lib/prisma", () => ({
-  prisma: {
-    $transaction: jest.fn((ops: unknown[]) => Promise.all(ops)),
+jest.mock("@/lib/prisma", () => {
+  const prismaMock: Record<string, unknown> = {
     skill: {
       findUnique: jest.fn(),
       update: jest.fn(),
@@ -25,8 +24,21 @@ jest.mock("@/lib/prisma", () => ({
       update: jest.fn(),
       delete: jest.fn(),
     },
-  },
-}));
+    piPayment: {
+      findMany: jest.fn(),
+      update: jest.fn(),
+    },
+    // Support both the array form ($transaction([...])) and the interactive
+    // callback form ($transaction(async (tx) => {...})). The callback receives
+    // the same mocked prisma client as the transaction client.
+    $transaction: jest.fn((arg: unknown) =>
+      typeof arg === "function"
+        ? (arg as (tx: unknown) => unknown)(prismaMock)
+        : Promise.all(arg as unknown[])
+    ),
+  };
+  return { prisma: prismaMock };
+});
 
 jest.mock("@/lib/rate-limiter", () => ({
   checkRateLimit: jest.fn().mockResolvedValue({ allowed: true, remaining: 9, resetAt: Date.now() + 60000 }),
