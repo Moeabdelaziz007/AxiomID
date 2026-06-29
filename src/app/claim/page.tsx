@@ -115,7 +115,7 @@ export default function ClaimPage() {
         const kyaData = await kyaRes.json();
         setVerificationItems((prev) => ({ ...prev, kyc: true }));
 
-        if (kyaData.data?.kycStatus === "VERIFIED") {
+        if (kyaData.kycStatus === "VERIFIED") {
           setVerificationItems((prev) => ({ ...prev, payment: true }));
         }
 
