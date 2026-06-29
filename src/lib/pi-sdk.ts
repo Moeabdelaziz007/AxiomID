@@ -218,19 +218,27 @@ export function checkPiBrowser(): boolean {
  */
 export async function connectPi(pushLog?: (msg: string) => void): Promise<PiSdkAuthResult> {
   try {
+    pushLog?.("[DEBUG] Starting Pi authentication flow...");
+    
     if (typeof window === "undefined") {
+      pushLog?.("[DEBUG] Not in browser environment");
       throw new PiSdkError(
         PiSdkErrorCode.NOT_IN_PI_BROWSER,
         "Pi Browser required. Pi SDK authenticate function not available."
       );
     }
 
-    pushLog?.("Browser environment detected — loading Pi SDK...");
+    pushLog?.("[DEBUG] Browser environment detected — loading Pi SDK...");
     const Pi = await ensurePiInitialized(pushLog);
 
     const piInstance = Pi as { authenticate: (scopes: string[], onIncompletePaymentFound: (payment: PiPaymentDTO) => void) => Promise<unknown> };
     if (piInstance && typeof piInstance.authenticate === "function") {
-      pushLog?.("Requesting Pi authentication token...");
+      pushLog?.("[DEBUG] Pi SDK loaded successfully");
+      pushLog?.(`[DEBUG] Sandbox mode: ${determineSandboxMode()}`);
+      pushLog?.("[DEBUG] Environment variables check:");
+      pushLog?.(`[DEBUG]   NEXT_PUBLIC_PI_SANDBOX: ${process.env.NEXT_PUBLIC_PI_SANDBOX ?? "not set"}`);
+      pushLog?.(`[DEBUG]   NEXT_PUBLIC_PI_OAUTH_CLIENT_ID: ${process.env.NEXT_PUBLIC_PI_OAUTH_CLIENT_ID ? "set" : "not set"}`);
+      pushLog?.("[DEBUG] Requesting Pi authentication token...");
 
       const onIncompletePaymentFound = async (payment: PiPaymentDTO) => {
         logger.info("[Pi Auth] Incomplete payment found:", payment);
@@ -307,11 +315,14 @@ export async function connectPi(pushLog?: (msg: string) => void): Promise<PiSdkA
 
       let result: { user: { uid: string; username: string; name: string; stellarAddress?: string }; accessToken: string };
       try {
+        pushLog?.("[DEBUG] Calling Pi.authenticate() with timeout (45s)...");
         result = await authenticateWithTimeout() as typeof result;
+        pushLog?.("[DEBUG] Pi.authenticate() returned successfully");
       } catch (authErr) {
         const authMsg = authErr instanceof Error ? authErr.message : String(authErr);
+        pushLog?.(`[DEBUG] Authentication error: ${authMsg}`);
         if (/not\s*initialized|init\(\)/i.test(authMsg)) {
-          pushLog?.("Pi SDK reported not initialized — re-initializing and retrying...");
+          pushLog?.("[DEBUG] Pi SDK reported not initialized — re-initializing and retrying...");
           isInitialized = false;
           await ensurePiInitialized(pushLog);
           result = await authenticateWithTimeout() as typeof result;
@@ -321,17 +332,22 @@ export async function connectPi(pushLog?: (msg: string) => void): Promise<PiSdkA
       }
 
       if (!result?.user) {
+        pushLog?.("[DEBUG] Authentication failed - no user data received");
         throw new PiSdkError(
           PiSdkErrorCode.AUTHENTICATION_FAILED,
           "Authentication failed - no user data received"
         );
       }
+      pushLog?.(`[DEBUG] User data received: ${JSON.stringify(result.user)}`);
+      
       if (!result.accessToken) {
+        pushLog?.("[DEBUG] Authentication failed - no token received");
         throw new PiSdkError(
           PiSdkErrorCode.AUTHENTICATION_FAILED,
           "Authentication failed - no token received"
         );
       }
+      pushLog?.(`[DEBUG] Access token received (length: ${result.accessToken.length})`);
       pushLog?.(`Authenticated: ${result.user.name || result.user.uid}`);
       if (!result.user.uid) {
         throw new PiSdkError(
@@ -350,6 +366,7 @@ export async function connectPi(pushLog?: (msg: string) => void): Promise<PiSdkA
         stellarAddress: result.user.stellarAddress,
       };
     }
+    pushLog?.("[DEBUG] Pi SDK authenticate function not available");
     throw new PiSdkError(
       PiSdkErrorCode.NOT_IN_PI_BROWSER,
       "Pi Browser required. Pi SDK authenticate function not available."
@@ -357,10 +374,11 @@ export async function connectPi(pushLog?: (msg: string) => void): Promise<PiSdkA
   } catch (error) {
     // If it's already a PiSdkError, re-throw it
     if (error instanceof PiSdkError) {
-      pushLog?.(`Auth error: ${error.message}`);
+      pushLog?.(`[DEBUG] PiSdkError: ${error.code} - ${error.message}`);
       throw error;
     }
     const message = error instanceof Error ? error.message : "Unknown error";
+    pushLog?.(`[DEBUG] Generic error: ${message}`);
     pushLog?.(`Auth error: ${message}`);
     throw new PiSdkError(
       PiSdkErrorCode.GENERIC_ERROR,
