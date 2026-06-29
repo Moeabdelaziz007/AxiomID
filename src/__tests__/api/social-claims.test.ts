@@ -93,6 +93,11 @@ function makeTx(overrides: {
           timestamp: new Date(),
         }
       ),
+      findMany: jest.fn().mockResolvedValue(
+        overrides.stamp?.findMany ?? [
+          { type: "connect_wallet", xpAwarded: 100, createdAt: new Date() },
+        ]
+      ),
     },
     xpLedger: {
       create: jest.fn().mockResolvedValue(overrides.ledger ?? { id: "ledger-1" }),

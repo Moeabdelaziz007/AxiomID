@@ -489,7 +489,7 @@ describe("useWalletAuth — connectDemo", () => {
 
     const demoUser = params.setUser.mock.calls[0][0];
     expect(demoUser.piUsername).toBe("AliceDemo");
-    expect(demoUser.kycStatus).toBe("verified");
+    expect(demoUser.kycStatus).toBe("VERIFIED");
     expect(demoUser.xp).toBe(450);
     expect(demoUser.tier).toBe("Citizen");
     expect(demoUser.did).toBe("did:axiom:demo_alice_did_hash_12345");

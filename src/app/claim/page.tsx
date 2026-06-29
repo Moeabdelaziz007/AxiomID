@@ -113,7 +113,7 @@ export default function ClaimPage() {
       if (kyaRes.ok) {
         const kyaData = await kyaRes.json();
 
-        if (kyaData.data?.kycStatus === "VERIFIED") {
+        if (kyaData.kycStatus === "VERIFIED") {
           setVerificationItems({ kyc: true, payment: true });
           setVerified(true);
         } else {

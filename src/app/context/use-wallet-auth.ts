@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useEffect } from "react";
 import { connectPi, checkPiBrowser, PiSdkError, PiSdkErrorCode, determineSandboxMode } from "@/lib/pi-sdk";
+import { buildPiSignInUrl, getPiOAuthClientId } from "@/lib/pi-signin";
 
 import { logger } from "@/lib/logger";
 import {
@@ -118,6 +119,16 @@ export function useWalletAuth({
             );
 
             if (isPiSdkUnavailable) {
+              const clientId = getPiOAuthClientId();
+              if (clientId) {
+                pushLog("Redirecting to Pi Sign-in for regular browser auth...");
+                const state = crypto.randomUUID();
+                sessionStorage.setItem("pi_oauth_state", state);
+                const redirectUri = `${window.location.origin}/signin/callback`;
+                const url = buildPiSignInUrl({ redirectUri, scopes: ["username", "wallet_address"], state });
+                window.location.assign(url);
+                return true;
+              }
               throw new Error("Pi Browser required. Open this app inside Pi Browser to authenticate.");
             }
             throw err;
@@ -127,8 +138,6 @@ export function useWalletAuth({
         const accessToken = result.token;
         const piUser = result.user;
 
-        setPiAccessToken(accessToken ?? null);
-        setLocalStorageItem("pi_access_token", accessToken ?? "");
         const walletAddress = `pi:${piUser.uid}`;
         const stellarAddress = piUser.stellarAddress || null;
         pushLog(`Wallet: ${walletAddress}`);
@@ -160,6 +169,10 @@ export function useWalletAuth({
         }
 
         const data = await res.json();
+
+        // Only persist token AFTER server-side auth succeeds — prevents half-auth state
+        setPiAccessToken(accessToken ?? null);
+        setLocalStorageItem("pi_access_token", accessToken ?? "");
         setLocalStorageItem("axiomid_wallet", walletAddress);
         setUser(mapApiUser(data, {
           stellarAddress: stellarAddress,

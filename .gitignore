@@ -69,3 +69,4 @@ scratchpad/
 # Patch/merge artifacts
 *.orig
 *.rej
+.env*.local

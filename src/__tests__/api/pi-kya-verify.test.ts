@@ -27,9 +27,31 @@ jest.mock('@/lib/trust-score', () => ({
   computeTrustScore: jest.fn().mockReturnValue(45),
 }));
 
+jest.mock('@/lib/trust-chain', () => ({
+  calculateActionHash: jest.fn().mockReturnValue('mock-hash-abc'),
+  GENESIS_HASH: 'genesis-hash-000',
+}));
+
+jest.mock('@/lib/tiers', () => ({
+  calculateTier: jest.fn().mockReturnValue('Pioneer'),
+}));
+
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     user: { findUnique: jest.fn(), update: jest.fn() },
+    stamp: { findUnique: jest.fn().mockResolvedValue(null) },
+    action: { create: jest.fn(), findFirst: jest.fn().mockResolvedValue({ hash: 'prev-hash' }) },
+    $transaction: jest.fn(async (fn: any) => fn({
+      stamp: {
+        findUnique: jest.fn().mockResolvedValue(null),
+        create: jest.fn().mockResolvedValue({}),
+      },
+      user: { update: jest.fn().mockResolvedValue({ xp: 200 }) },
+      action: {
+        create: jest.fn().mockResolvedValue({}),
+        findFirst: jest.fn().mockResolvedValue({ hash: 'prev-hash' }),
+      },
+    })),
   },
 }));
 
@@ -112,7 +134,12 @@ describe('POST /api/pi/kya/verify', () => {
     expect(data.kycStatus).toBe('VERIFIED');
     expect(data.uid).toBe('pi-123');
     expect(data.computedTrustScore).toBe(45);
-    expect(mockComputeTrust).toHaveBeenCalledWith([], false, null);
+    // Note: Jest captures array by reference — stampsToScore is mutated after computeTrustScore call
+    expect(mockComputeTrust).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ type: 'complete_kyc', xp: 200 })]),
+      false,
+      null,
+    );
   });
 
   it('returns KYC pending when not verified', async () => {
@@ -183,11 +210,13 @@ describe('POST /api/pi/kya/verify', () => {
     const req = mockPostRequest({ accessToken: 'valid-token' });
     await POST(req);
 
+    // Jest captures array by reference — KYC stamp is pushed after computeTrustScore call
     expect(mockComputeTrust).toHaveBeenCalledWith(
-      [
-        { type: 'connect_twitter', xp: 10, timestamp: now },
-        { type: 'daily_pow', xp: 5, timestamp: now },
-      ],
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'connect_twitter', xp: 10 }),
+        expect.objectContaining({ type: 'daily_pow', xp: 5 }),
+        expect.objectContaining({ type: 'complete_kyc', xp: 200 }),
+      ]),
       false,
       now,
     );

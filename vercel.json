@@ -25,7 +25,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; frame-ancestors 'self' https://sandbox.minepi.com https://app-cdn.minepi.com https://*.minepi.com; script-src 'self' 'unsafe-inline' https://sdk.minepi.com https://vercel.live https://*.vercel.live; frame-src 'self' https://vercel.live https://*.vercel.live; connect-src 'self' https://vercel.live https://*.vercel.live https://*.vercel.com https://*.minepi.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:;"
+          "value": "default-src 'self'; frame-ancestors 'self' https://sandbox.minepi.com https://app-cdn.minepi.com https://*.minepi.com https://*.pinet.com; script-src 'self' 'unsafe-inline' https://sdk.minepi.com https://vercel.live https://*.vercel.live; frame-src 'self' https://vercel.live https://*.vercel.live https://accounts.pinet.com; connect-src 'self' https://vercel.live https://*.vercel.live https://*.vercel.com https://*.minepi.com https://accounts.pinet.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:;"
         },
         { "key": "Link", "value": "<https://sandbox.minepi.com>; rel=preconnect" }
       ]

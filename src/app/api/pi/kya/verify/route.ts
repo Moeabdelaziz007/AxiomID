@@ -5,6 +5,8 @@ import { getClientIp } from '@/lib/ip';
 import { requireAuth } from '@/lib/auth-middleware';
 import { verifyKycServerSide } from '@/lib/pi-kyc';
 import { computeTrustScore } from '@/lib/trust-score';
+import { calculateTier } from '@/lib/tiers';
+import { calculateActionHash, GENESIS_HASH } from '@/lib/trust-chain';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
@@ -53,30 +55,97 @@ export async function POST(request: NextRequest) {
 
     const kycStatus = kycResult.kycVerified ? 'VERIFIED' : 'PENDING';
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        kycStatus,
-        kycProvider: 'pi_network',
-        kycVerifiedAt: kycResult.kycVerified ? new Date() : null,
-      },
-    });
-
     const stampsToScore = user.stamps.map(s => ({
       type: s.type as string,
       xp: s.xpAwarded,
       timestamp: s.createdAt,
     }));
 
-    if (kycResult.kycVerified) {
-      await prisma.stamp.create({
-        data: {
-          userId: user.id,
-          type: 'complete_kyc',
-          provider: 'pi_network',
-          xpAwarded: 200,
-        },
+    let stampCreated = false;
+
+    // Atomic: persist KYC status + stamp + XP + tier + audit record together
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Persist KYC status inside the transaction so it rolls back on failure
+        await tx.user.update({
+          where: { id: user.id },
+          data: {
+            kycStatus,
+            kycProvider: 'pi_network',
+            kycVerifiedAt: kycResult.kycVerified ? new Date() : null,
+          },
+        });
+
+        if (kycResult.kycVerified) {
+          const existingStamp = await tx.stamp.findUnique({
+            where: { user_stamp_unique: { userId: user.id, type: 'complete_kyc' } },
+          });
+
+          if (!existingStamp) {
+            await tx.stamp.create({
+              data: {
+                userId: user.id,
+                type: 'complete_kyc',
+                provider: 'pi_network',
+                xpAwarded: 200,
+              },
+            });
+
+            const { xp: totalXp } = await tx.user.update({
+              where: { id: user.id },
+              data: { xp: { increment: 200 } },
+              select: { xp: true },
+            });
+
+            const nextTier = calculateTier(totalXp);
+            if (nextTier !== user.tier) {
+              await tx.user.update({
+                where: { id: user.id },
+                data: { tier: nextTier },
+              });
+            }
+
+            const lastAction = await tx.action.findFirst({
+              where: { userId: user.id },
+              orderBy: { timestamp: 'desc' },
+              select: { hash: true },
+            });
+            const parentHash = lastAction?.hash || GENESIS_HASH;
+            const actionTimestamp = new Date();
+            const actionHash = calculateActionHash(parentHash, {
+              type: 'complete_kyc',
+              xp: 200,
+              metadata: '{}',
+              userId: user.id,
+              timestamp: actionTimestamp,
+            });
+
+            await tx.action.create({
+              data: { 
+                userId: user.id,
+                type: 'complete_kyc',
+                xp: 200,
+                metadata: '{}',
+                hash: actionHash,
+                parentHash,
+                timestamp: actionTimestamp,
+              },
+            });
+
+            stampCreated = true;
+          }
+        }
       });
+    } catch (txErr) {
+      const msg = txErr instanceof Error ? txErr.message : String(txErr);
+      if (msg.includes('P2002')) {
+        stampCreated = false;
+      } else {
+        throw txErr;
+      }
+    }
+
+    if (stampCreated) {
       stampsToScore.push({ type: 'complete_kyc', xp: 200, timestamp: new Date() });
     }
 
