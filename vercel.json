@@ -7,7 +7,7 @@
   },
   "regions": ["iad1"],
   "framework": "nextjs",
-  "buildCommand": "(test -z \"$DATABASE_URL\" || (prisma generate && prisma migrate deploy)) && npm run build",
+    "buildCommand": "npm run build",
   "installCommand": "npm install",
   "outputDirectory": ".next",
   "cleanUrls": true,
