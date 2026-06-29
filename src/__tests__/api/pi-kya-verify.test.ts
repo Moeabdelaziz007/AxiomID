@@ -41,6 +41,7 @@ jest.mock('@/lib/prisma', () => ({
         create: jest.fn().mockResolvedValue({}),
       },
       user: { update: jest.fn().mockResolvedValue({ xp: 200 }) },
+      xpLedger: { create: jest.fn().mockResolvedValue({}) },
       action: {
         findFirst: jest.fn().mockResolvedValue(null),
         create: jest.fn().mockResolvedValue({}),
@@ -245,6 +246,7 @@ describe('POST /api/pi/kya/verify — idempotency (existing stamp)', () => {
           create: stampCreateMock,
         },
         user: { update: jest.fn().mockResolvedValue({ xp: 0 }) },
+        xpLedger: { create: jest.fn().mockResolvedValue({}) },
         action: {
           findFirst: jest.fn().mockResolvedValue(null),
           create: jest.fn().mockResolvedValue({}),
@@ -327,6 +329,7 @@ describe('POST /api/pi/kya/verify — action hash-chain (PR change)', () => {
           create: jest.fn().mockResolvedValue({}),
         },
         user: { update: jest.fn().mockResolvedValue({ xp: 200 }) },
+        xpLedger: { create: jest.fn().mockResolvedValue({}) },
         action: {
           findFirst: jest.fn().mockResolvedValue(null), // no prior action
           create: jest.fn().mockResolvedValue({}),
@@ -354,6 +357,7 @@ describe('POST /api/pi/kya/verify — action hash-chain (PR change)', () => {
           create: jest.fn().mockResolvedValue({}),
         },
         user: { update: jest.fn().mockResolvedValue({ xp: 200 }) },
+        xpLedger: { create: jest.fn().mockResolvedValue({}) },
         action: {
           findFirst: jest.fn().mockResolvedValue({ hash: previousHash }),
           create: jest.fn().mockResolvedValue({}),
@@ -380,6 +384,7 @@ describe('POST /api/pi/kya/verify — action hash-chain (PR change)', () => {
           create: jest.fn().mockResolvedValue({}),
         },
         user: { update: jest.fn().mockResolvedValue({ xp: 200 }) },
+        xpLedger: { create: jest.fn().mockResolvedValue({}) },
         action: {
           findFirst: jest.fn().mockResolvedValue(null),
           create: actionCreateMock,
@@ -438,6 +443,7 @@ describe('POST /api/pi/kya/verify — tier recalculation (PR change)', () => {
           create: jest.fn().mockResolvedValue({}),
         },
         user: { update: userUpdateMock },
+        xpLedger: { create: jest.fn().mockResolvedValue({}) },
         action: {
           findFirst: jest.fn().mockResolvedValue(null),
           create: jest.fn().mockResolvedValue({}),
@@ -449,10 +455,11 @@ describe('POST /api/pi/kya/verify — tier recalculation (PR change)', () => {
     const res = await POST(req);
 
     expect(res.status).toBe(200);
-    // tx.user.update is called twice: once for XP increment, once for tier promotion (Visitor → Citizen)
-    expect(userUpdateMock).toHaveBeenCalledTimes(2);
-    // Second call should be the tier update
-    expect(userUpdateMock.mock.calls[1][0]).toEqual(
+    // tx.user.update is called three times: KYC status write, XP increment,
+    // then tier promotion (Visitor → Citizen).
+    expect(userUpdateMock).toHaveBeenCalledTimes(3);
+    // Third call should be the tier update
+    expect(userUpdateMock.mock.calls[2][0]).toEqual(
       expect.objectContaining({ data: { tier: 'Citizen' } })
     );
   });
@@ -473,6 +480,7 @@ describe('POST /api/pi/kya/verify — tier recalculation (PR change)', () => {
           create: jest.fn().mockResolvedValue({}),
         },
         user: { update: userUpdateMock },
+        xpLedger: { create: jest.fn().mockResolvedValue({}) },
         action: {
           findFirst: jest.fn().mockResolvedValue(null),
           create: jest.fn().mockResolvedValue({}),
@@ -484,7 +492,8 @@ describe('POST /api/pi/kya/verify — tier recalculation (PR change)', () => {
     const res = await POST(req);
 
     expect(res.status).toBe(200);
-    // Only the XP increment update should happen (calculateTier(300) = 'Citizen' = same as user.tier)
-    expect(userUpdateMock).toHaveBeenCalledTimes(1);
+    // Two updates only: KYC status write + XP increment. No tier update since
+    // calculateTier(300) = 'Citizen' = same as user.tier.
+    expect(userUpdateMock).toHaveBeenCalledTimes(2);
   });
 });
