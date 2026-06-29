@@ -20,5 +20,5 @@ export const ACTIONS: Record<string, ActionDefinition> = {
   VALIDATOR_SERVICE: { id: 'validator_service',  xp: 200, weight: 25, tier: 'critical' },
 };
 
-/** Maximum possible raw trust score (sum of all weights) */
-export const MAX_TRUST_SCORE = Object.values(ACTIONS).reduce((sum, a) => sum + a.weight, 0);
+/** Maximum possible raw trust score (sum of all weights, including up to 5 mining streaks) */
+export const MAX_TRUST_SCORE = Object.values(ACTIONS).reduce((sum, a) => sum + a.weight, 0) + 4 * ACTIONS.MINING_STREAK.weight;

@@ -37,6 +37,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const kycResult = await verifyKycServerSide(parsed.data.accessToken);
+    if (kycResult.uid !== auth.user.piUid) {
+      logger.error(`[KYA-VERIFY] Pi UID mismatch: auth=${auth.user.piUid} token=${kycResult.uid}`);
+      return apiError('FORBIDDEN', 'Pi account mismatch');
+    }
 
     const user = await prisma.user.findUnique({
       where: { piUid: auth.user.piUid },

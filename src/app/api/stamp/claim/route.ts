@@ -157,16 +157,27 @@ export async function POST(request: NextRequest) {
       return { stamp, ledgerEntry, newTier, newBalance };
     });
 
-    const updatedStamps = await prisma.stamp.findMany({
-      where: { userId: authUser.id },
-      select: { type: true, xpAwarded: true, createdAt: true },
-    });
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const user = await tx.user.findUnique({ where: { id: authUser.id } });
+      if (!user) {
+        throw new Error("USER_NOT_FOUND");
+      }
 
-    const computedTrustScore = computeTrustScore(
-      updatedStamps.map(s => ({ type: s.type, xp: s.xpAwarded, timestamp: s.createdAt })),
-      false,
-      new Date(),
-    );
+      // ... existing transaction logic ...
+
+      const updatedStamps = await tx.stamp.findMany({
+        where: { userId: authUser.id },
+        select: { type: true, xpAwarded: true, createdAt: true },
+      });
+
+      const computedTrustScore = computeTrustScore(
+        updatedStamps.map((s) => ({ type: s.type, xp: s.xpAwarded, timestamp: s.createdAt })),
+        false,
+        new Date(),
+      );
+
+      return { stamp, ledgerEntry, newTier, newBalance, computedTrustScore };
+    });
 
     return apiSuccess({
       stampId: result.stamp.id,
@@ -175,7 +186,8 @@ export async function POST(request: NextRequest) {
       tier: result.newTier,
       ledgerEntryId: result.ledgerEntry.id,
       metadata: result.stamp.metadata,
-      computedTrustScore,
+      computedTrustScore: result.computedTrustScore,
+    });
     });
   } catch (error) {
     if (error instanceof Error && error.message === "USER_NOT_FOUND") {

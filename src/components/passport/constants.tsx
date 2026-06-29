@@ -8,7 +8,7 @@ export interface ModuleSlot {
 }
 
 export const MODULE_SLOTS: ModuleSlot[] = [
-  { key: "wallet", icon: <span className="text-neon-green text-xs">W</span>, label: "WALLET", matchTypes: ["connect_wallet"] },
+  { key: "wallet", icon: <span className="text-neon-green text-xs">W</span>, label: "WALLET", matchTypes: ["connect_wallet", "wallet_age"] },
   { key: "kyc", icon: <span className="text-neon-green text-xs">✓</span>, label: "KYC", matchTypes: ["complete_kyc"] },
   { key: "payment", icon: <span className="text-neon-green text-xs">π</span>, label: "PI PAY", matchTypes: ["pi_payment"] },
   { key: "security", icon: <span className="text-neon-green text-xs">🛡</span>, label: "SECURITY", matchTypes: ["security_circle"] },

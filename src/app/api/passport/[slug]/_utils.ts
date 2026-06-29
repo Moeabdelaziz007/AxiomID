@@ -18,7 +18,7 @@ export function getKyaStatus(
   if (kycStatus !== "VERIFIED") return "pending";
   if (!stamps || stamps.length === 0) return "pending";
   const hasIdentityStamp = stamps.some(
-    (s) => s.type === "complete_kyc" || s.provider === "pi"
+    (s) => s.type === "complete_kyc" || s.type === "verify_identity"
   );
   return hasIdentityStamp ? "verified" : "pending";
 }
