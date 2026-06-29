@@ -338,7 +338,9 @@ describe("ClaimPage — handleVerify (real verification)", () => {
       ok: true,
       json: () =>
         Promise.resolve({
-          data: { kycStatus: "VERIFIED", uid: "pi-uid-123", computedTrustScore: 80 },
+          kycStatus: "VERIFIED",
+          uid: "pi-uid-123",
+          computedTrustScore: 80,
         }),
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));

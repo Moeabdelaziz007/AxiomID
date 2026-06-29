@@ -1,4 +1,4 @@
-const CACHE = "axiomid-v3";
+const CACHE = "axiomid-v4";
 const STATIC_ASSET_PATTERN = /\.(?:png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|otf|eot|map)$/;
 const STATIC_ASSETS = [
   "/manifest.webmanifest",

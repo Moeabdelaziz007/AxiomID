@@ -5,6 +5,7 @@ import { getClientIp } from '@/lib/ip';
 import { requireAuth } from '@/lib/auth-middleware';
 import { verifyKycServerSide } from '@/lib/pi-kyc';
 import { computeTrustScore } from '@/lib/trust-score';
+import { calculateTier } from '@/lib/tiers';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
@@ -68,19 +69,46 @@ export async function POST(request: NextRequest) {
       timestamp: s.createdAt,
     }));
 
-    if (kycResult.kycVerified) {
-      await prisma.stamp.create({
-        data: {
-          userId: user.id,
-          type: 'complete_kyc',
-          provider: 'pi_network',
-          xpAwarded: 200,
-        },
-      });
-      stampsToScore.push({ type: 'complete_kyc', xp: 200, timestamp: new Date() });
-    }
-
     const computedTrustScore = computeTrustScore(stampsToScore, false, user.lastActive);
+
+    if (kycResult.kycVerified) {
+      const existingStamp = await prisma.stamp.findUnique({
+        where: { user_stamp_unique: { userId: user.id, type: 'complete_kyc' } },
+      });
+      if (!existingStamp) {
+        await prisma.$transaction(async (tx) => {
+          await tx.stamp.create({
+            data: {
+              userId: user.id,
+              type: 'complete_kyc',
+              provider: 'pi_network',
+              xpAwarded: 200,
+            },
+          });
+          const { xp: totalXp } = await tx.user.update({
+            where: { id: user.id },
+            data: { xp: { increment: 200 } },
+            select: { xp: true },
+          });
+          const nextTier = calculateTier(totalXp);
+          if (nextTier !== user.tier) {
+            await tx.user.update({
+              where: { id: user.id },
+              data: { tier: nextTier },
+            });
+          }
+          await tx.action.create({
+            data: {
+              userId: user.id,
+              type: 'complete_kyc',
+              xp: 200,
+              metadata: '{}',
+            },
+          });
+        });
+        stampsToScore.push({ type: 'complete_kyc', xp: 200, timestamp: new Date() });
+      }
+    }
 
     return apiSuccess({
       kycStatus,
