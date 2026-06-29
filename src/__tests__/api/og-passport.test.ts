@@ -212,9 +212,9 @@ describe('GET /api/og/passport — tier, xp, and stamps params', () => {
     expect(statCellValue('XP')).toBe('1230');
     expect(statCellValue('STAMPS')).toBe('4');
     // Trust score is the 0-100 value from calculateTrustScore(1230, 4):
-    // xpScore = min(100, floor(1230/10)) = 100; stampScore = round((4/6)*100) = 67;
-    // round(100*0.7 + 67*0.3) = round(70 + 20.1) = 90.
-    expect(renderedTrustScore()).toBe('90');
+    // xpScore = min(100, floor(1230/10)) = 100; stampScore = round((4/10)*100) = 40;
+    // round(100*0.7 + 40*0.3) = round(70 + 12) = 82.
+    expect(renderedTrustScore()).toBe('82');
   });
 
   it('normalizes a lowercase tier param to the canonical label', async () => {
@@ -497,21 +497,21 @@ describe('GET /api/og/passport — trust score boundary values', () => {
     expect(renderedTrustScore()).toBe('0');
   });
 
-  it('xp=1000 stamps=6 → trust score 100', async () => {
+  it('xp=1000 stamps=TOTAL_STAMPS → trust score 100', async () => {
     // xpScore = min(100, floor(1000/10)) = 100
-    // stampScore = round((6/6)*100) = 100
+    // stampScore = round((10/10)*100) = 100
     // round(100*0.7 + 100*0.3) = round(70 + 30) = 100
-    const req = makeRequest({ xp: '1000', stamps: '6' });
+    const req = makeRequest({ xp: '1000', stamps: '10' });
     await GET(req);
     expect(renderedTrustScore()).toBe('100');
   });
 
-  it('stamps > TOTAL_STAMPS (6) are clamped to 6 in trust score', async () => {
-    // Use xp=0 so xpScore=0; stamps=10 → clamped to 6 → stampScore=100
+  it('stamps > TOTAL_STAMPS (10) are clamped to 10 in trust score', async () => {
+    // Use xp=0 so xpScore=0; stamps=15 → clamped to 10 → stampScore=100
     // trust = round(0*0.7 + 100*0.3) = round(30) = 30
-    const req = makeRequest({ xp: '0', stamps: '10' });
+    const req = makeRequest({ xp: '0', stamps: '15' });
     await GET(req);
-    // Trust score should be exactly 30 (clamped stamps=6), not higher.
+    // Trust score should be exactly 30 (clamped stamps=10), not higher.
     expect(renderedTrustScore()).toBe('30');
   });
 

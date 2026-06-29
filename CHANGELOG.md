@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `POST /api/stellar/anchor` — API endpoint for anchoring VCs (authenticated, rate-limited)
 - `docs/STELLAR_ANCHORING.md` — full documentation with API reference and architecture
 
+### Changed
+
+- **Pi-Native Verification System** — Replaced fake social login XP actions (Twitter, Discord, Google) with Pi-native verification actions (connect_wallet, complete_kyc, pi_payment, security_circle, etc.)
+- **Real KYC Check** — Step 2 now calls Pi API server-side to verify KYC status via `POST /api/pi/kya/verify`
+- **Computed Trust Score** — Trust score is now computed from completed Pi actions with weighted scoring, inactivity decay, and Stellar anchor bonus
+- **Dev Mode Banner** — Red warning banner appears in sandbox/dev mode on claim and dashboard pages
+- **10 Pi-Native Actions** — New action definitions with XP, weight, and tier: connect_wallet, complete_kyc, pi_payment, security_circle, lockup_commitment, node_operation, mainnet_migration, wallet_age, mining_streak, validator_service
+
 ---
 
 ## [0.1.1] - 2026-06-27

@@ -47,6 +47,8 @@ describe('GET /api/user/status', () => {
       lastActive: new Date(),
       createdAt: new Date(),
       agent: { id: 'agent-1', publicId: 'ag_123', name: 'My Agent', status: 'ACTIVE', mode: 'AUTONOMOUS', personaId: null },
+      actions: [],
+      stamps: [],
       xpLedger: [],
       _count: { actions: 5, xpLedger: 10 },
     } as any);
@@ -59,6 +61,7 @@ describe('GET /api/user/status', () => {
     expect(data.userId).toBe('user-1');
     expect(data.tier).toBe('Citizen');
     expect(data.levelProgress).toBeGreaterThan(0);
+    expect(typeof data.computedTrustScore).toBe('number');
   });
 
   it('returns 404 for non-existent user', async () => {
@@ -85,6 +88,8 @@ describe('GET /api/user/status', () => {
       lastActive: null,
       createdAt: new Date(),
       agent: null,
+      actions: [],
+      stamps: [],
       xpLedger: [],
       _count: { actions: 0, xpLedger: 0 },
     } as any);
@@ -96,5 +101,6 @@ describe('GET /api/user/status', () => {
     expect(res.status).toBe(200);
     expect(data.tier).toBe('Sovereign');
     expect(data.levelProgress).toBe(100);
+    expect(typeof data.computedTrustScore).toBe('number');
   });
 });

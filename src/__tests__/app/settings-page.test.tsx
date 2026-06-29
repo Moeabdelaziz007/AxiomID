@@ -135,9 +135,9 @@ describe("isPlatformConnected — reads from user.stamps", () => {
     expect(connectButtons.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("shows CONNECTED badge for twitter when stamps contains connect_twitter", () => {
+  it("shows CONNECTED badge for twitter when stamps contains connect_wallet", () => {
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", '{"vc":"twitter"}')],
+      stamps: [makeStamp("connect_wallet", '{"vc":"twitter"}')],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
     render(<SettingsPage />);
@@ -147,9 +147,9 @@ describe("isPlatformConnected — reads from user.stamps", () => {
     expect(connectedBadges.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("shows INSPECT VC button for twitter when stamps contains connect_twitter", () => {
+  it("shows INSPECT VC button for twitter when stamps contains connect_wallet", () => {
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", '{"vc":"twitter"}')],
+      stamps: [makeStamp("connect_wallet", '{"vc":"twitter"}')],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
     render(<SettingsPage />);
@@ -158,27 +158,27 @@ describe("isPlatformConnected — reads from user.stamps", () => {
     expect(screen.getByRole("button", { name: /inspect vc/i })).toBeInTheDocument();
   });
 
-  it.each(["discord", "google"] as const)(
-    "shows CONNECTED badge for %s when stamps contains connect_%s",
-    (platform) => {
+  it.each([["security_circle", "discord"], ["complete_kyc", "google"]] as const)(
+    "shows CONNECTED badge for %s when stamps contains %s",
+    (stampType, _platform) => {
       const user = makeUser({
-        stamps: [makeStamp(`connect_${platform}`, `{"vc":"${platform}"}`)],
+        stamps: [makeStamp(stampType, `{"vc":"${_platform}"}`)],
       });
       mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
-      render(<SettingsPage />);
-      clickAccountsTab();
+    render(<SettingsPage />);
+    clickAccountsTab();
 
-      const connectedBadges = screen.getAllByText("CONNECTED");
-      expect(connectedBadges.length).toBeGreaterThanOrEqual(1);
+    const connectedBadges = screen.getAllByText("CONNECTED");
+    expect(connectedBadges.length).toBeGreaterThanOrEqual(1);
     },
   );
 
   it("shows all three platforms as CONNECTED when all stamps are present", () => {
     const user = makeUser({
       stamps: [
-        makeStamp("connect_twitter", '{"vc":"twitter"}'),
-        makeStamp("connect_discord", '{"vc":"discord"}'),
-        makeStamp("connect_google", '{"vc":"google"}'),
+        makeStamp("connect_wallet", '{"vc":"twitter"}'),
+        makeStamp("security_circle", '{"vc":"discord"}'),
+        makeStamp("complete_kyc", '{"vc":"google"}'),
       ],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
@@ -192,9 +192,9 @@ describe("isPlatformConnected — reads from user.stamps", () => {
     expect(inspectButtons).toHaveLength(3);
   });
 
-  it("only marks twitter as connected when only connect_twitter stamp exists", () => {
+  it("only marks twitter as connected when only connect_wallet stamp exists", () => {
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", '{"vc":"twitter"}')],
+      stamps: [makeStamp("connect_wallet", '{"vc":"twitter"}')],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
     render(<SettingsPage />);
@@ -210,9 +210,9 @@ describe("isPlatformConnected — reads from user.stamps", () => {
   });
 
   // Regression: stamps NOT actions – having actions but no stamps should NOT show connected
-  it("does NOT show CONNECTED when connect_twitter appears only in actions (not stamps)", () => {
+  it("does NOT show CONNECTED when connect_wallet appears only in actions (not stamps)", () => {
     const user = makeUser({
-      actions: [{ type: "connect_twitter", xp: 50, timestamp: new Date().toISOString(), metadata: null }],
+      actions: [{ type: "connect_wallet", xp: 50, timestamp: new Date().toISOString(), metadata: null }],
       stamps: [],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
@@ -244,7 +244,7 @@ describe("openVcModal — reads from stamp.metadata", () => {
   it("opens the VC dialog and displays parsed stamp metadata when INSPECT VC is clicked", async () => {
     const vcPayload = { "@context": ["https://www.w3.org/2018/credentials/v1"], type: "VerifiableCredential" };
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", JSON.stringify(vcPayload))],
+      stamps: [makeStamp("connect_wallet", JSON.stringify(vcPayload))],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
     render(<SettingsPage />);
@@ -261,9 +261,9 @@ describe("openVcModal — reads from stamp.metadata", () => {
   });
 
   it("does nothing (dialog stays closed) when no matching stamp exists for the action type", async () => {
-    // User has stamps, but not for connect_twitter
+    // User has stamps, but not for connect_wallet
     const user = makeUser({
-      stamps: [makeStamp("connect_discord", '{"vc":"discord"}')],
+      stamps: [makeStamp("security_circle", '{"vc":"discord"}')],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
     render(<SettingsPage />);
@@ -287,7 +287,7 @@ describe("openVcModal — reads from stamp.metadata", () => {
 
   it("displays a JSON parse error message when stamp.metadata is malformed JSON", async () => {
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", "this-is-not-valid-json{{{")],
+      stamps: [makeStamp("connect_wallet", "this-is-not-valid-json{{{")],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
     render(<SettingsPage />);
@@ -305,7 +305,7 @@ describe("openVcModal — reads from stamp.metadata", () => {
 
   it("treats null metadata as empty credential (shows error message)", async () => {
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", null as unknown as string)],
+      stamps: [makeStamp("connect_wallet", null as unknown as string)],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
     render(<SettingsPage />);
@@ -323,7 +323,7 @@ describe("openVcModal — reads from stamp.metadata", () => {
   it("still opens the VC dialog even when metadata is malformed (error recovery)", async () => {
     const showModalSpy = jest.spyOn(HTMLDialogElement.prototype, "showModal");
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", "BAD JSON")],
+      stamps: [makeStamp("connect_wallet", "BAD JSON")],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
     render(<SettingsPage />);
@@ -341,7 +341,7 @@ describe("openVcModal — reads from stamp.metadata", () => {
   it("does NOT open the VC dialog when actionType exists in actions but not in stamps", async () => {
     const showModalSpy = jest.spyOn(HTMLDialogElement.prototype, "showModal");
     const user = makeUser({
-      actions: [{ type: "connect_twitter", xp: 50, timestamp: new Date().toISOString(), metadata: '{"vc":"from-actions"}' }],
+      actions: [{ type: "connect_wallet", xp: 50, timestamp: new Date().toISOString(), metadata: '{"vc":"from-actions"}' }],
       stamps: [],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
@@ -381,8 +381,8 @@ describe("SettingsPage — disconnect confirmation dialog (PR change)", () => {
   it("renders a disconnect button for each connected platform", () => {
     const user = makeUser({
       stamps: [
-        makeStamp("connect_twitter", '{"vc":"twitter"}'),
-        makeStamp("connect_discord", '{"vc":"discord"}'),
+        makeStamp("connect_wallet", '{"vc":"twitter"}'),
+        makeStamp("security_circle", '{"vc":"discord"}'),
       ],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
@@ -405,7 +405,7 @@ describe("SettingsPage — disconnect confirmation dialog (PR change)", () => {
   it("clicking disconnect calls showModal on the disconnect dialog", async () => {
     const showModalSpy = jest.spyOn(HTMLDialogElement.prototype, "showModal");
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", '{"vc":"twitter"}')],
+      stamps: [makeStamp("connect_wallet", '{"vc":"twitter"}')],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
     render(<SettingsPage />);
@@ -420,7 +420,7 @@ describe("SettingsPage — disconnect confirmation dialog (PR change)", () => {
 
   it("clicking disconnect for twitter shows the disconnect confirmation dialog title", async () => {
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", '{"vc":"twitter"}')],
+      stamps: [makeStamp("connect_wallet", '{"vc":"twitter"}')],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
     render(<SettingsPage />);
@@ -438,7 +438,7 @@ describe("SettingsPage — disconnect confirmation dialog (PR change)", () => {
     const claimActionMock = jest.fn().mockResolvedValue(true);
     const refreshUserMock = jest.fn().mockResolvedValue(undefined);
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", '{"vc":"twitter"}')],
+      stamps: [makeStamp("connect_wallet", '{"vc":"twitter"}')],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user, claimAction: claimActionMock, refreshUser: refreshUserMock }));
     
@@ -462,7 +462,7 @@ describe("SettingsPage — disconnect confirmation dialog (PR change)", () => {
 
     expect(global.fetch).toHaveBeenCalledWith("/api/social/disconnect", expect.objectContaining({
       method: "POST",
-      body: JSON.stringify({ platform: "twitter" }),
+      body: JSON.stringify({ platform: "connect_wallet" }),
     }));
   });
 
@@ -470,7 +470,7 @@ describe("SettingsPage — disconnect confirmation dialog (PR change)", () => {
     const claimActionMock = jest.fn().mockResolvedValue(true);
     const closeSpy = jest.spyOn(HTMLDialogElement.prototype, "close");
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", '{"vc":"twitter"}')],
+      stamps: [makeStamp("connect_wallet", '{"vc":"twitter"}')],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user, claimAction: claimActionMock }));
     render(<SettingsPage />);
@@ -495,7 +495,7 @@ describe("SettingsPage — disconnect confirmation dialog (PR change)", () => {
     const claimActionMock = jest.fn().mockResolvedValue(true);
     const refreshUserMock = jest.fn().mockResolvedValue(undefined);
     const user = makeUser({
-      stamps: [makeStamp("connect_discord", '{"vc":"discord"}')],
+      stamps: [makeStamp("security_circle", '{"vc":"discord"}')],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user, claimAction: claimActionMock, refreshUser: refreshUserMock }));
     
@@ -516,13 +516,13 @@ describe("SettingsPage — disconnect confirmation dialog (PR change)", () => {
 
     expect(global.fetch).toHaveBeenCalledWith("/api/social/disconnect", expect.objectContaining({
       method: "POST",
-      body: JSON.stringify({ platform: "discord" }),
+      body: JSON.stringify({ platform: "security_circle" }),
     }));
   });
 
   it("disconnect dialog has correct aria-labelledby attribute", () => {
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", '{"vc":"twitter"}')],
+      stamps: [makeStamp("connect_wallet", '{"vc":"twitter"}')],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
     render(<SettingsPage />);
@@ -537,7 +537,7 @@ describe("SettingsPage — disconnect confirmation dialog (PR change)", () => {
     const refreshUserMock = jest.fn().mockResolvedValue(undefined);
     const closeSpy = jest.spyOn(HTMLDialogElement.prototype, "close");
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", '{"vc":"twitter"}')],
+      stamps: [makeStamp("connect_wallet", '{"vc":"twitter"}')],
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user, claimAction: claimActionMock, refreshUser: refreshUserMock }));
     
@@ -642,15 +642,15 @@ describe("SettingsPage — PLATFORMS icon rendered as SVG (PR change)", () => {
     expect(screen.queryByText("🔑")).toBeNull();
   });
 
-  it("renders platform labels Twitter / X, Discord, Google Accounts in the settings list", () => {
+  it("renders platform labels Wallet Connection, Security Circle, KYC Verification in the settings list", () => {
     const user = makeUser({ stamps: [] });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user }));
     render(<SettingsPage />);
     clickAccountsTab();
 
-    expect(screen.getByText("Twitter / X")).toBeInTheDocument();
-    expect(screen.getByText("Discord")).toBeInTheDocument();
-    expect(screen.getByText("Google Accounts")).toBeInTheDocument();
+    expect(screen.getByText("Wallet Connection")).toBeInTheDocument();
+    expect(screen.getByText("Security Circle")).toBeInTheDocument();
+    expect(screen.getByText("KYC Verification")).toBeInTheDocument();
   });
 
   it("renders three platform rows in the social section (one for each PLATFORM entry)", () => {

@@ -13,6 +13,7 @@ import { safeJsonStringify } from "@/lib/sanitize";
 import { signSocialCredential } from "@/lib/vc";
 import { createUserDid } from "@/lib/did";
 import { calculateActionHash, GENESIS_HASH } from "@/lib/trust-chain";
+import { computeTrustScore } from "@/lib/trust-score";
 
 /**
  * Handle a stamp claim request by authenticating the user, validating input, signing stamp metadata,
@@ -156,6 +157,28 @@ export async function POST(request: NextRequest) {
       return { stamp, ledgerEntry, newTier, newBalance };
     });
 
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const user = await tx.user.findUnique({ where: { id: authUser.id } });
+      if (!user) {
+        throw new Error("USER_NOT_FOUND");
+      }
+
+      // ... existing transaction logic ...
+
+      const updatedStamps = await tx.stamp.findMany({
+        where: { userId: authUser.id },
+        select: { type: true, xpAwarded: true, createdAt: true },
+      });
+
+      const computedTrustScore = computeTrustScore(
+        updatedStamps.map((s) => ({ type: s.type, xp: s.xpAwarded, timestamp: s.createdAt })),
+        false,
+        new Date(),
+      );
+
+      return { stamp, ledgerEntry, newTier, newBalance, computedTrustScore };
+    });
+
     return apiSuccess({
       stampId: result.stamp.id,
       xpEarned: actionDef.xp,
@@ -163,6 +186,8 @@ export async function POST(request: NextRequest) {
       tier: result.newTier,
       ledgerEntryId: result.ledgerEntry.id,
       metadata: result.stamp.metadata,
+      computedTrustScore: result.computedTrustScore,
+    });
     });
   } catch (error) {
     if (error instanceof Error && error.message === "USER_NOT_FOUND") {

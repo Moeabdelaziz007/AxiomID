@@ -8,10 +8,13 @@ export interface ModuleSlot {
 }
 
 export const MODULE_SLOTS: ModuleSlot[] = [
-  { key: "pi_net", icon: <span className="text-neon-green text-xs">π</span>, label: "PI NET", matchTypes: ["verify_identity"] },
-  { key: "twitter", icon: <span className="text-neon-green text-xs">𝕏</span>, label: "TWITTER", matchTypes: ["connect_twitter"] },
-  { key: "discord", icon: <span className="text-neon-green text-xs">♯</span>, label: "DISCORD", matchTypes: ["connect_discord"] },
-  { key: "google", icon: <span className="text-neon-green text-xs">G</span>, label: "GOOGLE", matchTypes: ["connect_google"] },
-  { key: "wallet", icon: <span className="text-neon-green text-xs">W</span>, label: "WALLET", matchTypes: ["wallet_age"] },
-  { key: "mining", icon: <span className="text-neon-green text-xs">⚡</span>, label: "MINING", matchTypes: ["daily_pow"] },
+  { key: "wallet", icon: <span className="text-neon-green text-xs">W</span>, label: "WALLET", matchTypes: ["connect_wallet", "wallet_age"] },
+  { key: "kyc", icon: <span className="text-neon-green text-xs">✓</span>, label: "KYC", matchTypes: ["complete_kyc"] },
+  { key: "payment", icon: <span className="text-neon-green text-xs">π</span>, label: "PI PAY", matchTypes: ["pi_payment"] },
+  { key: "security", icon: <span className="text-neon-green text-xs">🛡</span>, label: "SECURITY", matchTypes: ["security_circle"] },
+  { key: "lockup", icon: <span className="text-neon-green text-xs">🔒</span>, label: "LOCKUP", matchTypes: ["lockup_commitment"] },
+  { key: "node", icon: <span className="text-neon-green text-xs">⚡</span>, label: "NODE", matchTypes: ["node_operation"] },
+  { key: "mainnet", icon: <span className="text-neon-green text-xs">🌐</span>, label: "MAINNET", matchTypes: ["mainnet_migration"] },
+  { key: "mining", icon: <span className="text-neon-green text-xs">⛏</span>, label: "MINING", matchTypes: ["mining_streak"] },
+  { key: "validator", icon: <span className="text-neon-green text-xs">★</span>, label: "VALIDATOR", matchTypes: ["validator_service"] },
 ];

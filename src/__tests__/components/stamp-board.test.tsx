@@ -78,9 +78,9 @@ function makeStamp(type: string, metadata?: string) {
 
 describe("StampBoard — VC Inspector modal close button touch target (PR change)", () => {
   it("renders a close button with min-h-[44px] class in the VC modal after opening it", async () => {
-    const vcPayload = JSON.stringify({ credentialSubject: { platform: "twitter" } });
+    const vcPayload = JSON.stringify({ credentialSubject: { platform: "wallet" } });
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", vcPayload)],
+      stamps: [makeStamp("connect_wallet", vcPayload)],
     });
     render(
       <StampBoard user={user} claimAction={jest.fn()} connectWallet={jest.fn()} />
@@ -88,7 +88,7 @@ describe("StampBoard — VC Inspector modal close button touch target (PR change
 
     await act(async () => {
       // Click the inspect VC button (rendered by our mock StampCard)
-      const inspectBtn = screen.getByRole("button", { name: /inspect vc twitter stamp/i });
+      const inspectBtn = screen.getByRole("button", { name: /inspect vc wallet connection/i });
       inspectBtn.click();
     });
 
@@ -99,16 +99,16 @@ describe("StampBoard — VC Inspector modal close button touch target (PR change
   });
 
   it("close button has min-w-[44px] class", async () => {
-    const vcPayload = JSON.stringify({ credentialSubject: { platform: "twitter" } });
+    const vcPayload = JSON.stringify({ credentialSubject: { platform: "wallet" } });
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", vcPayload)],
+      stamps: [makeStamp("connect_wallet", vcPayload)],
     });
     render(
       <StampBoard user={user} claimAction={jest.fn()} connectWallet={jest.fn()} />
     );
 
     await act(async () => {
-      screen.getByRole("button", { name: /inspect vc twitter stamp/i }).click();
+      screen.getByRole("button", { name: /inspect vc wallet connection/i }).click();
     });
 
     const closeBtn = screen.getByRole("button", { name: /close/i });
@@ -116,16 +116,16 @@ describe("StampBoard — VC Inspector modal close button touch target (PR change
   });
 
   it("close button has flex items-center justify-center classes (PR change)", async () => {
-    const vcPayload = JSON.stringify({ credentialSubject: { platform: "twitter" } });
+    const vcPayload = JSON.stringify({ credentialSubject: { platform: "wallet" } });
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", vcPayload)],
+      stamps: [makeStamp("connect_wallet", vcPayload)],
     });
     render(
       <StampBoard user={user} claimAction={jest.fn()} connectWallet={jest.fn()} />
     );
 
     await act(async () => {
-      screen.getByRole("button", { name: /inspect vc twitter stamp/i }).click();
+      screen.getByRole("button", { name: /inspect vc wallet connection/i }).click();
     });
 
     const closeBtn = screen.getByRole("button", { name: /close/i });
@@ -135,16 +135,16 @@ describe("StampBoard — VC Inspector modal close button touch target (PR change
   });
 
   it("close button has py-2 padding (PR change from py-0.5)", async () => {
-    const vcPayload = JSON.stringify({ credentialSubject: { platform: "twitter" } });
+    const vcPayload = JSON.stringify({ credentialSubject: { platform: "wallet" } });
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", vcPayload)],
+      stamps: [makeStamp("connect_wallet", vcPayload)],
     });
     render(
       <StampBoard user={user} claimAction={jest.fn()} connectWallet={jest.fn()} />
     );
 
     await act(async () => {
-      screen.getByRole("button", { name: /inspect vc twitter stamp/i }).click();
+      screen.getByRole("button", { name: /inspect vc wallet connection/i }).click();
     });
 
     const closeBtn = screen.getByRole("button", { name: /close/i });
@@ -154,14 +154,14 @@ describe("StampBoard — VC Inspector modal close button touch target (PR change
   it("close button calls dialog.close() when clicked", async () => {
     const vcPayload = JSON.stringify({ type: "VerifiableCredential" });
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", vcPayload)],
+      stamps: [makeStamp("connect_wallet", vcPayload)],
     });
     render(
       <StampBoard user={user} claimAction={jest.fn()} connectWallet={jest.fn()} />
     );
 
     await act(async () => {
-      screen.getByRole("button", { name: /inspect vc twitter stamp/i }).click();
+      screen.getByRole("button", { name: /inspect vc wallet connection/i }).click();
     });
 
     const closeSpy = jest.spyOn(HTMLDialogElement.prototype, "close");
@@ -186,9 +186,9 @@ describe("StampBoard — Trust Score and Progress display", () => {
   it("renders the stamps grid with 6 stamp cards", () => {
     const user = makeUser();
     render(<StampBoard user={user} claimAction={jest.fn()} connectWallet={jest.fn()} />);
-    // 6 stamp definitions: twitter, discord, google, daily_pow, wallet_age, verify_identity
+    // 10 stamp definitions: Pi-native actions
     const stampCards = screen.getAllByTestId(/^stamp-card-/);
-    expect(stampCards).toHaveLength(6);
+    expect(stampCards).toHaveLength(10);
   });
 
   it("shows the CURRENT tier in the progress section", () => {
@@ -201,33 +201,33 @@ describe("StampBoard — Trust Score and Progress display", () => {
 
 describe("StampBoard — VC Inspector modal content", () => {
   it("shows parsed VC JSON in the pre element after opening modal", async () => {
-    const vcPayload = { credentialSubject: { platform: "twitter", handle: "@test" } };
+    const vcPayload = { credentialSubject: { platform: "wallet", handle: "@test" } };
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", JSON.stringify(vcPayload))],
+      stamps: [makeStamp("connect_wallet", JSON.stringify(vcPayload))],
     });
     render(
       <StampBoard user={user} claimAction={jest.fn()} connectWallet={jest.fn()} />
     );
 
     await act(async () => {
-      screen.getByRole("button", { name: /inspect vc twitter stamp/i }).click();
+      screen.getByRole("button", { name: /inspect vc wallet connection/i }).click();
     });
 
     const pre = document.querySelector("pre");
     expect(pre).not.toBeNull();
-    expect(pre?.textContent).toContain("twitter");
+    expect(pre?.textContent).toContain("wallet");
   });
 
   it("shows error message in pre element when stamp metadata is null", async () => {
     const user = makeUser({
-      stamps: [makeStamp("connect_twitter", null as unknown as string)],
+      stamps: [makeStamp("connect_wallet", null as unknown as string)],
     });
     render(
       <StampBoard user={user} claimAction={jest.fn()} connectWallet={jest.fn()} />
     );
 
     await act(async () => {
-      screen.getByRole("button", { name: /inspect vc twitter stamp/i }).click();
+      screen.getByRole("button", { name: /inspect vc wallet connection/i }).click();
     });
 
     const pre = document.querySelector("pre");
