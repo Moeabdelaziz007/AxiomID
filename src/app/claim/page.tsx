@@ -61,7 +61,7 @@ export default function ClaimPage() {
   const [xpGain, setXpGain] = useState<number | null>(null);
   const [connectError, setConnectError] = useState<string | null>(null);
 
-  const { user, connectWallet, isConnecting, isPiBrowser, createAgent, activateAgent } = useWallet();
+  const { user, connectWallet, isConnecting, isPiBrowser, createAgent, activateAgent, piAccessToken } = useWallet();
   const { language } = useLanguage();
 
   const t = (en: string, ar: string) => (language === "en" ? en : ar);
@@ -104,8 +104,11 @@ export default function ClaimPage() {
       // 1. Real Pi KYC check
       const kyaRes = await fetch("/api/pi/kya/verify", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accessToken: "" }),
+        headers: {
+          "Content-Type": "application/json",
+          ...(piAccessToken ? { Authorization: `Bearer ${piAccessToken}` } : {}),
+        },
+        body: JSON.stringify({ accessToken: piAccessToken }),
       });
 
       if (kyaRes.ok) {

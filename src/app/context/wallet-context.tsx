@@ -17,6 +17,7 @@ interface WalletContextType {
   isConnecting: boolean;
   error: string | null;
   isPiBrowser: boolean;
+  piAccessToken: string | null;
   connectWallet: () => Promise<boolean>;
   logout: () => void;
   claimAction: (actionType: string, metadata?: Record<string, unknown>) => Promise<boolean>;
@@ -230,6 +231,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       isConnecting,
       error,
       isPiBrowser,
+      piAccessToken,
       connectWallet,
       logout,
       claimAction,
@@ -252,6 +254,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       isConnecting,
       error,
       isPiBrowser,
+      piAccessToken,
       connectWallet,
       logout,
       claimAction,
@@ -291,6 +294,7 @@ export function useWallet() {
       isConnecting: false,
       error: null,
       isPiBrowser: false,
+      piAccessToken: null,
       connectWallet: async () => false,
       logout: () => {},
       claimAction: async () => false,
