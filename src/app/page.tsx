@@ -10,7 +10,6 @@ import Script from "next/script";
 import LanguageToggle from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import HeroDemo from "@/components/HeroDemo";
-import DemoVideo from "@/components/DemoVideo";
 import StatsBar from "@/components/StatsBar";
 import InteractiveShowcase from "@/components/landing/InteractiveShowcase";
 import TrustTiers from "@/components/TrustTiers";
