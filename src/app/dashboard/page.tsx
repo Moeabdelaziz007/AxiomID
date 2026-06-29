@@ -21,6 +21,7 @@ import { KYAVerificationCard } from "@/components/dashboard/KYAVerificationCard"
 import { AgentControlsCard } from "@/components/dashboard/AgentControlsCard";
 import { CreateAgentCard } from "@/components/dashboard/CreateAgentCard";
 import { PiBrowserGuard, PiBrowserBanner } from "@/components/PiBrowserGuard";
+import { DevModeBanner } from "@/components/DevModeBanner";
 import { QuickStatsRow } from "@/components/dashboard/QuickStatsRow";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import nextDynamic from "next/dynamic";
@@ -198,6 +199,7 @@ export default function Dashboard() {
   return (
     <PiBrowserGuard showSplash={false}>
       <PiBrowserBanner />
+      <DevModeBanner />
       {isLoading ? (
         <div className="space-y-6">
           <div className="bento-card p-8">

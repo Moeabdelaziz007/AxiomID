@@ -19,6 +19,7 @@ import {
   Globe,
 } from "lucide-react";
 import Link from "next/link";
+import { DevModeBanner } from "@/components/DevModeBanner";
 
 const steps = [
   { id: 1, labelKey: "connect", icon: Wallet },
@@ -173,6 +174,7 @@ export default function ClaimPage() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(0,255,136,0.05)_0%,_transparent_50%)]" />
 
       <Header />
+      <DevModeBanner />
 
       <main className="relative z-10 pt-28 pb-20 px-4 sm:px-6">
         <div className="max-w-2xl mx-auto">
