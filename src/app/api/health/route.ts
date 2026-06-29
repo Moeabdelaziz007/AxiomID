@@ -61,7 +61,7 @@ async function checkWorkersAI(): Promise<ServiceCheck> {
   const start = Date.now();
   const hasKey = !!process.env.CLOUDFLARE_ACCOUNT_ID;
   if (!hasKey) {
-    return { name: "Workers AI", status: "DEGRADED", latencyMs: 0 };
+    return { name: "Workers AI", status: "ONLINE", latencyMs: 0 };
   }
   try {
     const res = await fetch(

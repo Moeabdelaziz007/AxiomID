@@ -10,7 +10,7 @@ describe('TrustChain Hashing Utility', () => {
   it('should deterministically compute identical hashes for identical inputs', () => {
     const parentHash = GENESIS_HASH;
     const actionData = {
-      type: 'daily_pow',
+      type: 'mining_streak',
       xp: 10,
       metadata: JSON.stringify({ device: 'pi-browser' }),
       userId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
@@ -27,7 +27,7 @@ describe('TrustChain Hashing Utility', () => {
   it('should compute different hashes when any action attribute changes', () => {
     const parentHash = GENESIS_HASH;
     const actionData1 = {
-      type: 'daily_pow',
+      type: 'mining_streak',
       xp: 10,
       metadata: 'null',
       userId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
@@ -47,7 +47,7 @@ describe('TrustChain Hashing Utility', () => {
 
   it('should throw ZodError if parentHash is invalid (not 64 characters)', () => {
     const actionData = {
-      type: 'daily_pow',
+      type: 'mining_streak',
       xp: 10,
       metadata: null,
       userId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
@@ -59,7 +59,7 @@ describe('TrustChain Hashing Utility', () => {
 
   it('should throw ZodError if userId is not a valid UUID', () => {
     const actionData = {
-      type: 'daily_pow',
+      type: 'mining_streak',
       xp: 10,
       metadata: null,
       userId: 'invalid-uuid',

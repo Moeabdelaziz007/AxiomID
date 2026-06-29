@@ -17,14 +17,14 @@ export default function RoadmapTimeline() {
       phase: "PHASE 1",
       title: "Core Trust Protocol",
       desc: "Establish sovereign identities and cryptographically secure credentials.",
-      status: "completed",
+      status: "active",
       items: ["Stellar & Pi Wallet integration", "Sovereign DID method registry", "ZKP human-verifiable proofs"],
     },
     {
       phase: "PHASE 2",
       title: "Agent Passport System",
       desc: "Provision customizable autonomous agent cards that represent human delegators.",
-      status: "completed",
+      status: "active",
       items: ["Passport credential stamps board", "Dynamic identity progression & tiers", "Pi Browser compliance sandbox"],
     },
     {

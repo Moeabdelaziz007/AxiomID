@@ -8,7 +8,8 @@ import { createUserDid } from "@/lib/did";
 import { calculateTrustScore } from "@/lib/trust";
 import { signPassportCredential } from "@/lib/vc";
 import { publishToIPFS } from "@/lib/storage/ipfs-sync";
-import { PassportSlugParamSchema } from "@/lib/validators";
+import { anchorVcHash } from "@/lib/stellar-anchoring";
+import { SlugParamSchema } from "@/lib/validators";
 import { logger } from "@/lib/logger";
 import { getKyaStatus, getKycStatus } from "../_utils";
 
@@ -26,7 +27,7 @@ export async function POST(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-  const parsedParams = PassportSlugParamSchema.safeParse({ slug });
+  const parsedParams = SlugParamSchema.safeParse({ slug });
   if (!parsedParams.success) {
     return apiError("VALIDATION_ERROR", parsedParams.error.issues[0].message, parsedParams.error.issues);
   }
@@ -98,6 +99,18 @@ export async function POST(
 
     // Publish to the IPFS gateway
     const ipfsResult = await publishToIPFS(vc);
+
+    // Anchor VC hash to Stellar (non-fatal)
+    const SOVEREIGN_KEY = process.env.STELLAR_SECRET_KEY;
+    if (SOVEREIGN_KEY) {
+      try {
+        const anchorResult = await anchorVcHash(vc, SOVEREIGN_KEY);
+        logger.info("VC anchored to Stellar", { txId: anchorResult.stellarTxId });
+      } catch (anchorErr) {
+        // Anchoring failure is non-fatal — VC is still valid on IPFS
+        logger.error("Stellar anchoring failed (non-fatal)", { error: anchorErr });
+      }
+    }
 
     return apiSuccess({
       cid: ipfsResult.cid,

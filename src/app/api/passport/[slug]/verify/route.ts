@@ -70,14 +70,14 @@ function buildVerificationResponse(user: VerifyUser) {
  * @param params - An object whose `slug` (URL-encoded) identifies the identity to resolve; the slug is decoded before lookup
  * @returns A JSON response: the verification payload for the matched user (status 200), `{ error: "RATE_LIMITED" }` (status 429) when rate limited, `{ error: "NOT_FOUND", message: "No passport found for this identity slug" }` (status 404) if no match is found, or `{ error: "INTERNAL_ERROR" }` (status 500) on server/database error
  */
-import { PassportSlugParamSchema } from "@/lib/validators";
+import { SlugParamSchema } from "@/lib/validators";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-  const parsedParams = PassportSlugParamSchema.safeParse({ slug });
+  const parsedParams = SlugParamSchema.safeParse({ slug });
   if (!parsedParams.success) {
     return apiError("VALIDATION_ERROR", parsedParams.error.issues[0].message, parsedParams.error.issues);
   }

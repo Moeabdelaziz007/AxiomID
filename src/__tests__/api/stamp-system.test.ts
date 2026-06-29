@@ -38,6 +38,39 @@ jest.mock("@/lib/rate-limiter", () => ({
   RATE_LIMITS: { authenticated: { windowMs: 60000, maxRequests: 100 } },
 }));
 
+jest.mock("@/lib/actions", () => ({
+  ACTIONS: {
+    CONNECT_WALLET: { id: 'connect_wallet', xp: 100, weight: 15, tier: 'medium' },
+    COMPLETE_KYC: { id: 'complete_kyc', xp: 200, weight: 30, tier: 'critical' },
+    SECURITY_CIRCLE: { id: 'security_circle', xp: 150, weight: 10, tier: 'medium' },
+  },
+}));
+
+jest.mock("@/lib/tiers", () => ({
+  calculateTier: jest.fn().mockReturnValue('Visitor'),
+}));
+
+jest.mock("@/lib/sanitize", () => ({
+  safeJsonStringify: jest.fn().mockReturnValue('{}'),
+}));
+
+jest.mock("@/lib/vc", () => ({
+  signSocialCredential: jest.fn().mockReturnValue({ proof: { jws: 'mock-sig' } }),
+}));
+
+jest.mock("@/lib/did", () => ({
+  createUserDid: jest.fn().mockReturnValue('did:axiom:user-test'),
+}));
+
+jest.mock("@/lib/trust-chain", () => ({
+  calculateActionHash: jest.fn().mockReturnValue('hash-123'),
+  GENESIS_HASH: 'genesis-hash',
+}));
+
+jest.mock("@/lib/trust-score", () => ({
+  computeTrustScore: jest.fn().mockReturnValue(10),
+}));
+
 jest.mock("@/lib/auth-middleware", () => ({
   requireAuth: jest.fn().mockResolvedValue({
     error: null,
@@ -93,7 +126,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
         {
           id: "stamp-1",
           userId: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-          type: "connect_twitter",
+          type: "connect_wallet",
           provider: "twitter",
           xpAwarded: 50,
           metadata: "{}",
@@ -106,7 +139,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
 
       expect(res.status).toBe(200);
       expect(data.stamps).toHaveLength(1);
-      expect(data.trustScore).toBe(5); // calculateTrustScore(0 XP, 1 stamp) = round(0*0.7 + 17*0.3)
+      expect(data.trustScore).toBe(3); // calculateTrustScore(0 XP, 1 stamp) = round(0*0.7 + 10*0.3)
     });
   });
 
@@ -114,14 +147,25 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
     it("claims stamp, signs VC, and registers transaction", async () => {
       mockPrisma.stamp.findUnique.mockResolvedValue(null);
       mockPrisma.user.findUnique.mockResolvedValue({ id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", xp: 0 } as any);
+      mockPrisma.stamp.findMany.mockResolvedValue([
+        {
+          id: "stamp-1",
+          type: "connect_wallet",
+          xpAwarded: 100,
+          createdAt: new Date(),
+        },
+      ] as any);
 
       const tx = {
         stamp: {
           create: jest.fn().mockResolvedValue({
             id: "stamp-1",
-            type: "connect_twitter",
+            type: "connect_wallet",
             metadata: "{}",
           }),
+          findMany: jest.fn().mockResolvedValue([
+            { type: "connect_wallet", xpAwarded: 100, createdAt: new Date() },
+          ]),
         },
         action: {
           create: jest.fn().mockResolvedValue({}),
@@ -139,7 +183,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
       mockPrisma.$transaction.mockImplementation(async (fn: any) => fn(tx));
 
       const req = mockPostRequest({
-        actionType: "connect_twitter",
+        actionType: "connect_wallet",
         metadata: { handle: "cryptojoker" },
       });
 
@@ -147,7 +191,8 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
       const data = await res.json();
 
       expect(res.status).toBe(200);
-      expect(data.xpEarned).toBe(50);
+      expect(data.xpEarned).toBe(100);
+      expect(typeof data.computedTrustScore).toBe('number');
       expect(tx.stamp.create).toHaveBeenCalledTimes(1);
       expect(tx.action.create).toHaveBeenCalledTimes(1);
     });
@@ -166,7 +211,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
         createdAt: new Date(),
         stamps: [
           {
-            type: "connect_twitter",
+            type: "connect_wallet",
             provider: "twitter",
             xpAwarded: 50,
             createdAt: new Date(),
@@ -183,7 +228,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
 
       expect(res.status).toBe(200);
       expect(data.walletAddress).toBe("pi:testuser");
-      expect(data.trustScore).toBe(16);
+      expect(data.trustScore).toBe(14);
       expect(data.stamps).toHaveLength(1);
     });
   });

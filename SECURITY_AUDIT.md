@@ -55,21 +55,20 @@ calling `POST /api/skills/[slug]/install` directly.
 **Fix applied:** The install route now enforces a payment gate for paid skills
 (`skill.pricePi > 0`). It requires a non-`REFUNDED` `PiPayment` belonging to the
 authenticated user whose `metadata.skillId` matches the skill; otherwise it returns
-`PAYMENT_INVALID` (HTTP 402). Verified payments are produced by
-`src/app/api/marketplace/order/create/route.ts`, which performs real Pi Network
-verification (payer-UID match, amount match, status check, replay protection) and lands
-payments in `ESCROWED` status.
+`PAYMENT_INVALID` (HTTP 402). Payment records are created by
+`src/app/api/skills/[slug]/purchase/route.ts`, which creates a `PENDING` purchase
+record, and the install route verifies the corresponding payment before granting access.
 
 **Notes / corrections to the original report:**
 
 - The `PiPayment` model has **no** `COMPLETED`/`APPROVED` status. The actual
   `PaymentStatus` enum is `PENDING | ESCROWED | RELEASED | REFUNDED`
   (`prisma/schema.prisma`).
-- The legacy `purchase/route.ts` is effectively superseded by the marketplace order flow,
-  which is the verified payment path.
+- The `purchase/route.ts` creates a `PENDING` record; the `install/route.ts` enforces the
+  actual payment gate. Together they form the verified payment path.
 
 **Follow-up:** Consider removing or redirecting the legacy `purchase/route.ts` to avoid
-confusion, since the verified flow lives in `marketplace/order/create`.
+confusion, since the verified flow lives in `install/route.ts`.
 
 ---
 
@@ -99,9 +98,6 @@ All user-data routes properly call `requireAuth()`:
 - `api/pi/kya/claim/route.ts` — POST ✅
 - `api/pi/payment/complete/route.ts` — POST ✅
 - `api/pi/payment/approve/route.ts` — POST ✅
-- `api/marketplace/order/create/route.ts` — POST ✅
-- `api/marketplace/order/refund/route.ts` — POST ✅ (via `validateEscrowAction`)
-- `api/marketplace/order/release/route.ts` — POST ✅ (via `validateEscrowAction`)
 - `api/auth/logout/route.ts` — POST ✅
 - `api/presence/heartbeat/route.ts` — POST ✅
 - `api/agents/harvest/route.ts` — POST ✅

@@ -33,4 +33,18 @@ describe("AST Scanner & Payload Validation", () => {
     expect(validatePayloadSize(smallPayload)).toBe(true);
     expect(validatePayloadSize(largePayload)).toBe(false);
   });
+
+  it("allows payload of exactly 8KB limit", () => {
+    const exactPayload = "a".repeat(8192);
+    expect(validatePayloadSize(exactPayload)).toBe(true);
+  });
+
+  it("correctly calculates byte size for multi-byte characters", () => {
+    // A rocket emoji '🚀' is 4 bytes in UTF-8
+    const multiBytePayload = "🚀".repeat(2048); // 2048 * 4 = 8192 bytes
+    expect(validatePayloadSize(multiBytePayload)).toBe(true);
+
+    const tooLargeMultiBytePayload = "🚀".repeat(2049); // 2049 * 4 = 8196 bytes
+    expect(validatePayloadSize(tooLargeMultiBytePayload)).toBe(false);
+  });
 });

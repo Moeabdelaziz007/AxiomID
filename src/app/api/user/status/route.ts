@@ -6,6 +6,7 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { calculateTier, getLevelProgress, getNextLevelXP } from '@/lib/tiers';
 import { requireAuth } from '@/lib/auth-middleware';
+import { computeTrustScore } from '@/lib/trust-score';
 
 /**
  * Handle GET requests for the authenticated user's status, returning identity, XP/tier information, activity, and recent ledger entries.
@@ -85,6 +86,12 @@ export async function GET(request: NextRequest) {
     const progress = getLevelProgress(user.xp, tier);
     const nextLevelXP = getNextLevelXP(tier);
 
+    const computedTrustScore = computeTrustScore(
+      user.stamps.map(s => ({ type: s.type, xp: s.xpAwarded, timestamp: s.createdAt })),
+      false,
+      user.lastActive,
+    );
+
     return apiSuccess({
       userId: user.id,
       walletAddress: user.walletAddress,
@@ -95,6 +102,7 @@ export async function GET(request: NextRequest) {
       xp: user.xp,
       levelProgress: progress,
       nextLevelXP,
+      computedTrustScore,
       agent: user.agent,
       actions: user.actions,
       stamps: user.stamps,

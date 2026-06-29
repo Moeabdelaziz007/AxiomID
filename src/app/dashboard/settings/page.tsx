@@ -44,14 +44,14 @@ export default function SettingsPage() {
   });
 
   // Modal states
-  const [activePlatform, setActivePlatform] = useState<"twitter" | "discord" | "google" | null>(null);
+  const [activePlatform, setActivePlatform] = useState<"connect_wallet" | "security_circle" | "complete_kyc" | null>(null);
   const [handleInput, setHandleInput] = useState("");
   const [submittingClaim, setSubmittingClaim] = useState(false);
   const [activeVc, setActiveVc] = useState<unknown>(null);
   const [copied, setCopied] = useState(false);
 
   // Disconnect confirmation
-  const [disconnectPlatform, setDisconnectPlatform] = useState<"twitter" | "discord" | "google" | null>(null);
+  const [disconnectPlatform, setDisconnectPlatform] = useState<"connect_wallet" | "security_circle" | "complete_kyc" | null>(null);
   const [disconnecting, setDisconnecting] = useState(false);
   const disconnectDialogRef = useRef<HTMLDialogElement>(null);
 
@@ -100,7 +100,7 @@ export default function SettingsPage() {
     }
   };
 
-  const openConnectModal = (platform: "twitter" | "discord" | "google") => {
+  const openConnectModal = (platform: "connect_wallet" | "security_circle" | "complete_kyc") => {
     setActivePlatform(platform);
     setHandleInput("");
     connectDialogRef.current?.showModal();
@@ -111,7 +111,7 @@ export default function SettingsPage() {
     if (!handleInput.trim() || !activePlatform) return;
 
     setSubmittingClaim(true);
-    const actionType = `connect_${activePlatform}`;
+    const actionType = activePlatform;
     const success = await claimAction(actionType, { handle: handleInput.trim() });
     setSubmittingClaim(false);
 
@@ -153,11 +153,11 @@ export default function SettingsPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const isPlatformConnected = (platform: "twitter" | "discord" | "google") => {
-    return !!user?.stamps?.some((s) => s.type === `connect_${platform}`);
+  const isPlatformConnected = (platform: "connect_wallet" | "security_circle" | "complete_kyc") => {
+    return !!user?.stamps?.some((s) => s.type === platform);
   };
 
-  const openDisconnectModal = (platform: "twitter" | "discord" | "google") => {
+  const openDisconnectModal = (platform: "connect_wallet" | "security_circle" | "complete_kyc") => {
     setDisconnectPlatform(platform);
     disconnectDialogRef.current?.showModal();
   };
@@ -223,10 +223,10 @@ export default function SettingsPage() {
     toast.success("Passport data exported");
   };
 
-  const PLATFORMS: { id: "twitter" | "discord" | "google"; icon: React.ReactNode; label: string; xp: number }[] = [
-    { id: "twitter", icon: <AtSign className="w-4 h-4" />, label: "Twitter / X", xp: 50 },
-    { id: "discord", icon: <MessageCircle className="w-4 h-4" />, label: "Discord", xp: 50 },
-    { id: "google", icon: <Key className="w-4 h-4" />, label: "Google Accounts", xp: 50 },
+  const PLATFORMS: { id: "connect_wallet" | "security_circle" | "complete_kyc"; icon: React.ReactNode; label: string; xp: number }[] = [
+    { id: "connect_wallet", icon: <AtSign className="w-4 h-4" />, label: "Wallet Connection", xp: 100 },
+    { id: "security_circle", icon: <MessageCircle className="w-4 h-4" />, label: "Security Circle", xp: 150 },
+    { id: "complete_kyc", icon: <Key className="w-4 h-4" />, label: "KYC Verification", xp: 200 },
   ];
 
   // XP Progress Calculation
@@ -431,9 +431,9 @@ export default function SettingsPage() {
                   {PLATFORMS.map(({ id, icon, label, xp: platformXp }) => {
                     const connected = isPlatformConnected(id);
                     const hoverStyle =
-                      id === "twitter"
+                      id === "connect_wallet"
                         ? "hover:border-sky-500/30 hover:bg-sky-500/[0.01]"
-                        : id === "discord"
+                        : id === "security_circle"
                           ? "hover:border-indigo-500/30 hover:bg-indigo-500/[0.01]"
                           : "hover:border-red-500/30 hover:bg-red-500/[0.01]";
                     return (
@@ -463,7 +463,7 @@ export default function SettingsPage() {
                               <button onClick={() => openDisconnectModal(id)} className="btn-ghost text-[10px] font-mono text-red-400 hover:text-red-300 px-2 py-1">
                                 {t('settings_disconnect_btn')}
                               </button>
-                              <button onClick={() => openVcModal(`connect_${id}`)} className="btn-ghost text-[10px] font-mono py-1">
+                              <button onClick={() => openVcModal(id)} className="btn-ghost text-[10px] font-mono py-1">
                                 {t('inspect_vc')}
                               </button>
                             </>
@@ -590,13 +590,13 @@ export default function SettingsPage() {
           <form onSubmit={handleConnectSubmit} className="space-y-4">
             <div className="space-y-1">
               <label htmlFor="handle-input" className="text-xs text-subtle font-mono">
-                {activePlatform === "google" ? t('settings_link_email_label') : t('settings_link_handle_label')}
+                {activePlatform === "complete_kyc" ? t('settings_link_email_label') : t('settings_link_handle_label')}
               </label>
               <input
                 id="handle-input"
-                type={activePlatform === "google" ? "email" : "text"}
+                type={activePlatform === "complete_kyc" ? "email" : "text"}
                 required
-                placeholder={activePlatform === "google" ? t('settings_link_email_placeholder') : t('settings_link_placeholder')}
+                placeholder={activePlatform === "complete_kyc" ? t('settings_link_email_placeholder') : t('settings_link_placeholder')}
                 value={handleInput}
                 onChange={(e) => setHandleInput(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-surface focus:border-neon-green outline-none font-mono"

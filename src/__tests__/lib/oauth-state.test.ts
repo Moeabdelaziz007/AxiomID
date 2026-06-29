@@ -81,6 +81,25 @@ describe('verifyState', () => {
     expect(verifyState(token)).toBeNull();
   });
 
+
+  it('should return null if signature is intentionally corrupted (same length)', () => {
+    const payload = {
+      walletAddress: '0x123',
+      expiresAt: Date.now() + 10000,
+    };
+    const payloadStr = JSON.stringify(payload);
+    const validSignature = crypto
+      .createHmac('sha256', secret)
+      .update(payloadStr)
+      .digest('hex');
+
+    // Corrupt the signature by changing the first character, keeping the same length
+    const corruptedSignature = (validSignature[0] === 'a' ? 'b' : 'a') + validSignature.slice(1);
+
+    const token = createToken(payload, secret, corruptedSignature);
+    expect(verifyState(token)).toBeNull();
+  });
+
   it('should return null for malformed token', () => {
     expect(verifyState('not-a-token')).toBeNull();
   });

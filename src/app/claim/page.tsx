@@ -5,8 +5,8 @@ import { useWallet } from "@/app/context/wallet-context";
 import { useLanguage } from "@/app/context/language-context";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { DevModeBanner } from "@/components/DevModeBanner";
 import { motion, AnimatePresence } from "framer-motion";
-import { requestKycConsent } from "@/lib/pi-native-features";
 import { determineSandboxMode } from "@/lib/pi-sdk";
 import {
   Wallet,
@@ -51,7 +51,11 @@ export default function ClaimPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [walletConnected, setWalletConnected] = useState(false);
-  const [verificationProgress, setVerificationProgress] = useState(0);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationItems, setVerificationItems] = useState({
+    kyc: false,
+    payment: false,
+  });
   const [verified, setVerified] = useState(false);
   const [deployed, setDeployed] = useState(false);
   const [xpGain, setXpGain] = useState<number | null>(null);
@@ -59,7 +63,7 @@ export default function ClaimPage() {
   const [showBrowserModal, setShowBrowserModal] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const { user, connectWallet, isConnecting, isPiBrowser } = useWallet();
+  const { user, connectWallet, isConnecting, isPiBrowser, createAgent, activateAgent, piAccessToken } = useWallet();
   const { language } = useLanguage();
 
   const t = (en: string, ar: string) => (language === "en" ? en : ar);
@@ -90,59 +94,51 @@ export default function ClaimPage() {
       setShowBrowserModal(true);
       return;
     }
-    try {
-      await connectWallet();
+    const connected = await connectWallet();
+    if (connected) {
       setWalletConnected(true);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : t("Connection failed", "فشل الاتصال");
-      setConnectError(msg);
+    } else {
+      setConnectError(t("Connection failed", "فشل الاتصال"));
     }
   };
 
   const handleVerify = async () => {
-    // In Pi Browser, request native KYC consent before verification
-    const consent = await requestKycConsent({
-      header: t("KYC Consent", "موافقة التحقق"),
-      description: t(
-        "AxiomID needs to verify your Pi Network KYC status to build your trust score. No personal data is stored.",
-        "يحتاج AxiomID للتحقق من حالة KYC على شبكة Pi لبناء نقاط ثقتك. لا يتم تخزين بيانات شخصية."
-      ),
-      consentItems: [
-        {
-          label: t("I consent to KYC verification", "أوافق على التحقق من KYC"),
-          value: true,
+    setIsVerifying(true);
+    try {
+      // 1. Real Pi KYC check
+      const kyaRes = await fetch("/api/pi/kya/verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(piAccessToken ? { Authorization: `Bearer ${piAccessToken}` } : {}),
         },
-        {
-          label: t("I understand my data stays on-chain", "أفهم أن بياناتي تبقى على السلسلة"),
-          value: true,
-        },
-      ],
-    });
-
-    // If native consent dialog returned results, check all items were accepted
-    if (consent) {
-      const allAccepted = Object.values(consent).every(Boolean);
-      if (!allAccepted) return;
-    }
-    // If no native dialog (not in Pi Browser), proceed silently
-
-    setVerificationProgress(0);
-    const interval = setInterval(() => {
-      setVerificationProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setVerified(true);
-          return 100;
-        }
-        return prev + 2;
+        body: JSON.stringify({ accessToken: piAccessToken }),
       });
-    }, 40);
+
+      if (kyaRes.ok) {
+        const kyaData = await kyaRes.json();
+
+        if (kyaData.kycStatus === "VERIFIED") {
+          setVerificationItems({ kyc: true, payment: true });
+          setVerified(true);
+        } else {
+          setVerificationItems((prev) => ({ ...prev, kyc: true }));
+        }
+      }
+    } catch (err) {
+      console.error("Verification failed:", err);
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
-  const handleDeploy = () => {
-    setTimeout(() => {
+  const handleDeploy = async () => {
+    const created = await createAgent();
+    if (!created) return;
+    const activated = await activateAgent();
+    if (activated) {
       setDeployed(true);
-    }, 1500);
+    }
   };
 
   const canProceed = () => {
@@ -164,6 +160,7 @@ export default function ClaimPage() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(0,255,136,0.05)_0%,_transparent_50%)]" />
 
       <Header />
+      <DevModeBanner />
 
       <main className="relative z-10 pt-28 pb-20 px-4 sm:px-6">
         <div className="max-w-2xl mx-auto">
@@ -382,86 +379,63 @@ export default function ClaimPage() {
 
                       {!verified ? (
                         <div className="space-y-4">
-                          {/* Trust Score Visualization */}
-                          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-6 mb-6">
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="font-mono text-xs text-white/50">
-                                {t("TRUST SCORE", "نقاط الثقة")}
-                              </span>
-                              <span className="font-mono text-lg font-bold text-electric-blue">
-                                {verificationProgress}
-                              </span>
-                            </div>
-                            <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
-                              <motion.div
-                                className="h-full bg-gradient-to-r from-electric-blue to-neon-green rounded-full"
-                                style={{ width: `${verificationProgress}%` }}
-                              />
-                            </div>
-                          </div>
-
                           {/* Verification Items */}
                           <div className="space-y-3">
                             {[
                               {
-                                label: t(
-                                  "Wallet Ownership",
-                                  "ملكية المحفظة"
-                                ),
-                                threshold: 30,
+                                key: "kyc" as const,
+                                icon: Shield,
+                                label: t("Pi KYC", "التحقق من هوية Pi"),
+                                status: verificationItems.kyc,
                               },
                               {
-                                label: t(
-                                  "Network Standing",
-                                  "الوضع في الشبكة"
-                                ),
-                                threshold: 60,
+                                key: "payment" as const,
+                                icon: Wallet,
+                                label: t("Payment Proof", "إثبات الدفع"),
+                                status: verificationItems.payment,
                               },
-                              {
-                                label: t(
-                                  "Community Trust",
-                                  "ثقة المجتمع"
-                                ),
-                                threshold: 90,
-                              },
-                            ].map((item) => (
-                              <div
-                                key={item.label}
-                                className="flex items-center justify-between bg-white/[0.03] border border-white/[0.06] rounded-lg px-4 py-3"
-                              >
-                                <div className="flex items-center gap-3">
-                                  {verificationProgress >= item.threshold ? (
-                                    <CheckCircle2 className="w-4 h-4 text-neon-green" />
-                                  ) : (
-                                    <div className="w-4 h-4 rounded-full border border-white/20" />
-                                  )}
-                                  <span className="font-mono text-sm text-white/70">
-                                    {item.label}
+                            ].map((item) => {
+                              const ItemIcon = item.icon;
+                              return (
+                                <div
+                                  key={item.key}
+                                  className="flex items-center justify-between bg-white/[0.03] border border-white/[0.06] rounded-lg px-4 py-3"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    {item.status ? (
+                                      <CheckCircle2 className="w-4 h-4 text-neon-green" />
+                                    ) : (
+                                      <div className="w-4 h-4 rounded-full border border-white/20" />
+                                    )}
+                                    <ItemIcon className="w-4 h-4 text-white/40" />
+                                    <span className="font-mono text-sm text-white/70">
+                                      {item.label}
+                                    </span>
+                                  </div>
+                                  <span
+                                    className={`font-mono text-xs ${
+                                      item.status
+                                        ? "text-neon-green"
+                                        : "text-white/30"
+                                    }`}
+                                  >
+                                    {item.status
+                                      ? t("VERIFIED", "موثق")
+                                      : t("PENDING", "قيد الانتظار")}
                                   </span>
                                 </div>
-                                <span
-                                  className={`font-mono text-xs ${
-                                    verificationProgress >= item.threshold
-                                      ? "text-neon-green"
-                                      : "text-white/30"
-                                  }`}
-                                >
-                                  {verificationProgress >= item.threshold
-                                    ? t("VERIFIED", "موثق")
-                                    : t("PENDING", "قيد الانتظار")}
-                                </span>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
 
                           <motion.button
                             whileHover={{ scale: 1.03, transition: { ease: [0.16, 1, 0.3, 1] as const } }}
                             whileTap={{ scale: 0.97, transition: { ease: [0.16, 1, 0.3, 1] as const } }}
                             onClick={handleVerify}
-                            disabled={verificationProgress > 0}
+                            disabled={isVerifying}
                             className="w-full max-w-sm mx-auto bg-gradient-to-r from-electric-blue to-blue-600 text-white font-sans font-semibold py-4 px-8 rounded-xl backdrop-blur-md shadow-lg shadow-electric-blue/10 border border-white/10 flex items-center justify-center gap-3 hover:shadow-lg hover:shadow-electric-blue/20 transition-shadow disabled:opacity-50"
                           >
-                            {verificationProgress > 0 ? (
+                            {isVerifying ? (
                               <>
                                 <motion.div
                                   animate={{ rotate: 360 }}
@@ -482,8 +456,8 @@ export default function ClaimPage() {
                               <>
                                 <Globe className="w-5 h-5" />
                                 {t(
-                                  "START KYA VERIFICATION",
-                                  "بدء التحقق من KYA"
+                                  "START VERIFICATION",
+                                  "بدء التحقق"
                                 )}
                               </>
                             )}
@@ -503,7 +477,7 @@ export default function ClaimPage() {
                             )}
                           </p>
                           <p className="font-mono text-xs text-white/40 mt-1">
-                            {t("Trust Score: 100", "نقاط الثقة: 100")}
+                            {t("Trust Score: ", "نقاط الثقة: ")}{user?.trustScore ?? 0}
                           </p>
                         </motion.div>
                       )}
@@ -557,7 +531,7 @@ export default function ClaimPage() {
                                     {t("Trust", "الثقة")}
                                   </span>
                                   <span className="font-mono text-xs text-electric-blue">
-                                    100
+                                    {user?.trustScore ?? 0}
                                   </span>
                                 </div>
                                 <div className="flex justify-between">

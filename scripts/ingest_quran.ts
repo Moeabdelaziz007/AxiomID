@@ -14,7 +14,7 @@
  * Requires: CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN in env
  */
 
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import { writeFileSync, unlinkSync } from "fs";
 
 const QURAN_API = "https://api.quran.com/api/v4";
@@ -162,13 +162,14 @@ async function generateEmbeddings(
 // ─── Step 5: Insert into D1 ───────────────────────────────────────────────────
 
 function insertD1(surahs: Surah[], verses: Verse[], translations: Map<number, string>, remote: boolean) {
-  const flag = remote ? "--remote" : "";
   const db = "iqra-db";
 
   console.log("💾 Inserting surahs into D1...");
   for (const s of surahs) {
     const sql = `INSERT OR IGNORE INTO quran_surahs (id, name_ar, name_en, ayat_count, revelation_type) VALUES (${s.id}, '${s.name_arabic.replace(/'/g, "''")}', '${s.name_english.replace(/'/g, "''")}', ${s.number_of_ayahs}, '${s.revelation_type}')`;
-    execSync(`wrangler d1 execute ${db} ${flag} --command "${sql}"`, { stdio: "pipe" });
+    const args = ["d1", "execute", db, "--command", sql];
+    if (remote) args.push("--remote");
+    execFileSync("wrangler", args, { stdio: "pipe" });
   }
   console.log(`  ✓ ${surahs.length} surahs inserted`);
 
@@ -182,7 +183,9 @@ function insertD1(surahs: Surah[], verses: Verse[], translations: Map<number, st
     const juz = Math.ceil(surahNum / 4); // simplified juz mapping
 
     const sql = `INSERT OR IGNORE INTO quran_verses (id, surah_id, verse_number, text_ar, text_en, juz, embedding_id) VALUES (${v.id}, ${surahNum}, ${verseNum}, '${text}', '${trans}', ${juz}, NULL)`;
-    execSync(`wrangler d1 execute ${db} ${flag} --command "${sql}"`, { stdio: "pipe" });
+    const verseArgs = ["d1", "execute", db, "--command", sql];
+    if (remote) verseArgs.push("--remote");
+    execFileSync("wrangler", verseArgs, { stdio: "pipe" });
     inserted++;
     if (inserted % 500 === 0) console.log(`  → ${inserted}/${verses.length} verses`);
   }
@@ -196,8 +199,6 @@ function storeVectors(
   embeddings: number[][],
   remote: boolean
 ) {
-  const flag = remote ? "--remote" : "";
-
   console.log("🔮 Storing vectors in Vectorize...");
   const vectors = verses.map((v, i) => ({
     id: `verse-${v.id}`,
@@ -213,8 +214,9 @@ function storeVectors(
   const batchFile = "/tmp/vectorize-batch.json";
   writeFileSync(batchFile, JSON.stringify({ vectors }));
 
-  execSync(
-    `wrangler vectorize insert ${VECTORIZE_INDEX} ${flag} --file ${batchFile}`,
+  execFileSync(
+    "wrangler",
+    ["vectorize", "insert", VECTORIZE_INDEX, "--file", batchFile, ...(remote ? ["--remote"] : [])],
     { stdio: "pipe" }
   );
 

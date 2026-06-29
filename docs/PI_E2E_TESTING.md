@@ -34,23 +34,28 @@ Use this guide when testing on real devices in Pi Browser.
 
 ---
 
-### 2. Pi Authentication
+### 2. Pi KYC Verification (Real KYC Check)
 
 **Steps:**
 
-1. Navigate to landing page
-2. Click "Connect Pi Wallet" or "Launch Dashboard"
-3. Approve the Pi Browser authentication popup
-4. Verify user data is returned
+1. Navigate to claim page after Pi authentication
+2. Click "Verify Pi Identity" (Step 2)
+3. Server calls `POST /api/pi/kya/verify` with the user's Pi access token
+4. Backend calls Pi API (`GET /v2/me`) to verify KYC status server-side
+5. Verification result is returned with 3 items:
+   - **KYC Verified** — Pi API confirms user has completed KYC
+   - **Payment Proven** — User has completed at least one Pi payment
+   - **On-Chain Proof** — User has a Stellar VC anchored on-chain
 
 **Expected:**
 
-- Pi Browser shows authentication popup
-- After approval, user is redirected to dashboard
-- User's Pi username and wallet address are displayed
-- `piUid` is stored in session
+- `POST /api/pi/kya/verify` endpoint is called (not a cosmetic checkbox)
+- Server-side Pi API call validates the access token against `https://api.minepi.com/v2/me`
+- Each verification item shows a real checkmark based on Pi API response
+- Trust score is computed from completed Pi actions (weighted scoring, inactivity decay, Stellar anchor bonus)
+- If KYC fails, error is shown and verification item stays unchecked
 
-**Pass Criteria:** Full auth flow completes, user data visible in dashboard
+**Pass Criteria:** Real KYC check via Pi API, trust score computed from actions
 
 ---
 
@@ -67,14 +72,13 @@ Use this guide when testing on real devices in Pi Browser.
 **Expected:**
 
 - Pi payment popup shows correct amount and memo
-- After approval, `order/create` endpoint is called
-- Payment status is "completed" (accepted by our API)
+- After approval, Pi SDK callbacks (approve → complete) finalize payment server-side
+- Client calls `POST /api/skills/[slug]/install` after payment resolves
+- Install route verifies a RELEASED PiPayment exists for this skill
 - Skill appears in user's installed skills
 - `installCount` increments on the skill
 
 **Pass Criteria:** Payment completes, skill is installed, no errors
-
-**Known Issue (FIXED):** Previously, `order/create` rejected "completed" status. Now accepts "approved", "created", and "completed".
 
 ---
 
@@ -152,7 +156,7 @@ Use this guide when testing on real devices in Pi Browser.
 
 - Check `PI_API_KEY` is set correctly
 - Verify Pi API endpoint: `https://api.minepi.com/v2/payments/:id`
-- Check server logs for `[ORDER-CREATE]` errors
+- Check server logs for `[SKILL-INSTALL]` or `[PI-PAYMENT]` errors
 
 ### Auth timeout
 

@@ -1,0 +1,115 @@
+name: "🤖 Agent Framework Integration"
+description: "طلب دعم أو إبلاغ مشكلة خاصة بتكامل Agent Frameworks مع AxiomID"
+title: "[AGENT] "
+labels: ["feat", "soul-system", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🤖 تكامل Agent Framework
+        هذا النموذج مخصص للمشكلات والطلبات المتعلقة بتكامل AxiomID مع أطر ونظم AI Agents.
+
+  - type: dropdown
+    id: framework
+    attributes:
+      label: "🛠️ الإطار / النظام"
+      description: "ما هو الإطار الذي تحاول تكامله مع AxiomID؟"
+      options:
+        - LangChain / LangGraph
+        - AutoGen / Microsoft AutoGen
+        - CrewAI
+        - OpenAI Agents SDK
+        - Anthropic Claude Agents
+        - Google Gemini Agents
+        - Elixir / Nx Agents
+        - Custom Agent Framework
+        - غيره
+    validations:
+      required: true
+
+  - type: dropdown
+    id: integration-type
+    attributes:
+      label: "🔗 نوع التكامل"
+      options:
+        - "🔑 تحقق الهوية (DID Authentication)"
+        - "🔐 Trust Score Access للعميل"
+        - "🧠 Soul System Hooks"
+        - "📦 SDK / API Integration"
+        - "🌐 Pi Network للعميل"
+        - تكامل متعدد
+    validations:
+      required: true
+
+  - type: dropdown
+    id: request-type
+    attributes:
+      label: "📌 نوع الطلب"
+      options:
+        - "✨ طلب ميزة جديدة"
+        - "🐛 إبلاغ عن خطأ"
+        - "📚 طلب وثائق تكامل"
+        - "❓ سؤال تقني"
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: "💼 حالة الاستخدام"
+      description: "صف حالة الاستخدام بالتفصيل"
+      placeholder: |
+        مثال: أريد أن يستخدم LangChain agent هوية AxiomID DID لـ...
+        المشكلة: عند محاولة التحقق...
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: "🔄 السلوك الحالي"
+      description: "ماذا يحدث حالياً عند محاولة التكامل؟"
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected-api
+    attributes:
+      label: "📰 الواجهة المتوقعة"
+      description: "ماذا تتوقع من API / SDK للتكامل؟"
+      placeholder: |
+        // مثال:
+        const identity = await axiomid.verifyAgent(agentDID);
+        const trustScore = await axiomid.getTrustScore(agentDID);
+      render: typescript
+    validations:
+      required: false
+
+  - type: textarea
+    id: soul-hooks
+    attributes:
+      label: "🧠 حاجة لـ Soul System Hooks"
+      description: "هل تحتاج إلى استماع لأحداث Soul System (behavioral events, trust changes, etc.)؟"
+    validations:
+      required: false
+
+  - type: input
+    id: sdk-version
+    attributes:
+      label: "📦 إصدار SDK المستخدم"
+      placeholder: "مثال: @axiomid/sdk@2.1.0"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "✔️ قائمة التحقق"
+      options:
+        - label: "قرأت وثائق Agent Integration"
+          required: true
+        - label: "بحثت عن issues مشابهة"
+          required: true
+        - label: "هذا ليس بلاغ أمني (استخدم security_report)"
+          required: true

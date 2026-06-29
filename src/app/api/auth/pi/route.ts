@@ -60,11 +60,8 @@ export async function POST(request: NextRequest) {
   const { accessToken, uid, username } = parsed.data;
   let verifiedStellarAddress: string | null = null;
 
-  const host = request.headers.get("host") || "";
-  const isLocalDev =
-    process.env.NODE_ENV !== "production" ||
-    host.includes("localhost") ||
-    host.includes("127.0.0.1");
+  // ponytail: Rely strictly on NODE_ENV to prevent auth bypass via Host header injection
+  const isLocalDev = process.env.NODE_ENV !== "production";
 
   try {
     // Sandbox dev token only allowed in local development — never in production

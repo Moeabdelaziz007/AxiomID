@@ -5,6 +5,7 @@ import { Tier, getTierColor } from "@/lib/tiers";
 import { useLanguage } from "@/app/context/language-context";
 import { sharePassport } from "@/lib/pi-native-features";
 import { Fingerprint, Award, CheckCircle, Lock, Download, Coins, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import PassportKeyManager from "./PassportKeyManager";
 
 interface InteractivePassportCardProps {
@@ -33,7 +34,7 @@ interface InteractivePassportCardProps {
  * @param onSign - Optional async callback for signing operations, passed to `PassportKeyManager`.
  */
 export default function InteractivePassportCard({ user, readonly = false, locked = false, onSign }: InteractivePassportCardProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const cardRef = useRef<HTMLDivElement>(null);
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
@@ -41,7 +42,7 @@ export default function InteractivePassportCard({ user, readonly = false, locked
 
   const hasUser = !!user && !locked;
   const username = locked ? "" : (user?.piUsername || (user?.walletAddress ? (user.walletAddress.startsWith("pi:") ? user.walletAddress.slice(3) : user.walletAddress) : ""));
-  const displayUsername = locked ? t("passport_locked_preview") : (username || t("passport_anonymous"));
+  const displayUsername = locked ? (language === "en" ? "LOCKED PREVIEW" : "معاينة مقفلة") : (username || (language === "en" ? "Anonymous Pioneer" : "رائد مجهول"));
   const displayAddress = locked ? "did:axiom:locked_credential" : (user?.walletAddress 
     ? (user.walletAddress.length > 22 ? `${user.walletAddress.slice(0, 10)}...${user.walletAddress.slice(-8)}` : user.walletAddress)
     : "did:axiom:unconnected");
@@ -62,11 +63,11 @@ export default function InteractivePassportCard({ user, readonly = false, locked
     if (!cardRef.current || isExporting) return;
 
     setIsExporting(true);
+    // Temporarily remove tilt for clean capture
+    const originalTransform = cardRef.current.style.transform;
+    cardRef.current.style.transform = 'none';
     try {
       const html2canvas = (await import("html2canvas")).default;
-      // Temporarily remove tilt for clean capture
-      const originalTransform = cardRef.current.style.transform;
-      cardRef.current.style.transform = 'none';
 
       const canvas = await html2canvas(cardRef.current, {
         backgroundColor: null,
@@ -75,8 +76,6 @@ export default function InteractivePassportCard({ user, readonly = false, locked
         useCORS: true
       });
 
-      cardRef.current.style.transform = originalTransform;
-
       const image = canvas.toDataURL("image/png");
       const link = document.createElement("a");
       link.href = image;
@@ -84,7 +83,11 @@ export default function InteractivePassportCard({ user, readonly = false, locked
       link.click();
     } catch (err) {
       console.error("Export failed:", err);
+      toast.error(t("passport_export_failed"));
     } finally {
+      if (cardRef.current) {
+        cardRef.current.style.transform = originalTransform;
+      }
       setIsExporting(false);
     }
   };

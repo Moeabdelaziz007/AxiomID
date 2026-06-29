@@ -1,25 +1,41 @@
-import { ACTIONS } from "@/lib/actions";
+/**
+ * @jest-environment node
+ */
 
-describe("ACTIONS configuration", () => {
-  it("should have positive xp for each action", () => {
-    Object.values(ACTIONS).forEach(action => {
-      expect(action.xp).toBeGreaterThan(0);
-    });
+import { ACTIONS } from '@/lib/actions';
+
+describe('Pi-Native ACTIONS', () => {
+  it('has 10 actions defined', () => {
+    expect(Object.keys(ACTIONS)).toHaveLength(10);
   });
 
-  it("should have unique action IDs", () => {
-    const ids = Object.values(ACTIONS).map(action => action.id);
-    const uniqueIds = new Set(ids);
-    expect(uniqueIds.size).toBe(ids.length);
+  it('each action has id, xp, weight, and tier', () => {
+    for (const action of Object.values(ACTIONS)) {
+      expect(action).toHaveProperty('id');
+      expect(action).toHaveProperty('xp');
+      expect(action).toHaveProperty('weight');
+      expect(action).toHaveProperty('tier');
+      expect(typeof action.id).toBe('string');
+      expect(typeof action.xp).toBe('number');
+      expect(typeof action.weight).toBe('number');
+      expect(['low', 'medium', 'high', 'critical']).toContain(action.tier);
+    }
   });
 
-  it("should match exact action configuration values", () => {
-    expect(ACTIONS.CONNECT_TWITTER).toEqual({ id: 'connect_twitter', xp: 50 });
-    expect(ACTIONS.CONNECT_DISCORD).toEqual({ id: 'connect_discord', xp: 50 });
-    expect(ACTIONS.VERIFY_IDENTITY).toEqual({ id: 'verify_identity', xp: 100 });
-    expect(ACTIONS.PROOF_OF_WORK_DAILY).toEqual({ id: 'daily_pow', xp: 20 });
-    expect(ACTIONS.WALLET_ACTIVITY).toEqual({ id: 'wallet_age', xp: 300 });
-    expect(ACTIONS.CONNECT_GOOGLE).toEqual({ id: 'connect_google', xp: 50 });
-    expect(ACTIONS.CONNECT_CRYPTO_WALLET).toEqual({ id: 'connect_crypto_wallet', xp: 100 });
+  it('connect_wallet has id connect_wallet and xp 100', () => {
+    expect(ACTIONS.CONNECT_WALLET.id).toBe('connect_wallet');
+    expect(ACTIONS.CONNECT_WALLET.xp).toBe(100);
+  });
+
+  it('complete_kyc has weight 30 (highest)', () => {
+    expect(ACTIONS.COMPLETE_KYC.weight).toBe(30);
+  });
+
+  it('pi_payment has xp 0 (dynamic)', () => {
+    expect(ACTIONS.PI_PAYMENT.xp).toBe(0);
+  });
+
+  it('mining_streak has xp 50', () => {
+    expect(ACTIONS.MINING_STREAK.xp).toBe(50);
   });
 });

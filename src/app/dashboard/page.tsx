@@ -8,6 +8,7 @@ import { useWallet } from "../context/wallet-context";
 import skillsData from "@/data/skills.json";
 import { AgentCard } from "@/components/AgentCard";
 import { OnboardingModal } from "@/components/dashboard/OnboardingModal";
+import { DonateWithPiCard } from "@/components/dashboard/DonateWithPiCard";
 import { useLanguage } from "../context/language-context";
 import { Fingerprint, Zap, Bot, Terminal, Store } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
@@ -21,12 +22,16 @@ import { KYAVerificationCard } from "@/components/dashboard/KYAVerificationCard"
 import { AgentControlsCard } from "@/components/dashboard/AgentControlsCard";
 import { CreateAgentCard } from "@/components/dashboard/CreateAgentCard";
 import { PiBrowserGuard, PiBrowserBanner } from "@/components/PiBrowserGuard";
+import { DevModeBanner } from "@/components/DevModeBanner";
 import { QuickStatsRow } from "@/components/dashboard/QuickStatsRow";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
-import dynamic from "next/dynamic";
-const InteractivePassportCard = dynamic(() => import("@/components/ui/InteractivePassportCard"), { ssr: false });
-const StampBoard = dynamic(() => import("@/components/StampBoard").then(m => m.StampBoard), { ssr: false });
-const TerminalOverlay = dynamic(() => import("@/components/dashboard/TerminalOverlay").then(m => m.TerminalOverlay), { ssr: false });
+import nextDynamic from "next/dynamic";
+
+export const dynamic = 'force-dynamic';
+
+const InteractivePassportCard = nextDynamic(() => import("@/components/ui/InteractivePassportCard"), { ssr: false });
+const StampBoard = nextDynamic(() => import("@/components/StampBoard").then(m => m.StampBoard), { ssr: false });
+const TerminalOverlay = nextDynamic(() => import("@/components/dashboard/TerminalOverlay").then(m => m.TerminalOverlay), { ssr: false });
 
 type TabId = "passport" | "actions" | "terminal" | "marketplace" | "agent";
 
@@ -195,6 +200,7 @@ export default function Dashboard() {
   return (
     <PiBrowserGuard showSplash={false}>
       <PiBrowserBanner />
+      <DevModeBanner />
       {isLoading ? (
         <div className="space-y-6">
           <div className="bento-card p-8">
@@ -367,6 +373,8 @@ export default function Dashboard() {
                       </button>
                     </div>
                   </div>
+
+                  <DonateWithPiCard />
 
                   <SkillsCard skills={skillsData.skills.slice(0, 3)} />
                 </div>

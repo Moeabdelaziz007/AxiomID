@@ -166,30 +166,45 @@ export async function POST(request: NextRequest) {
       return apiError('CONFLICT', `Skill with slug "${slug}" already exists`);
     }
 
-    const skill = await prisma.skill.create({
-      data: {
-        slug,
-        name: name.slice(0, 200),
-        description: (description as string)?.slice(0, 1000) || null,
-        manifestMd,
-        agentScript: (agentScript as string) || null,
-        testSuite: (testSuite as string) || null,
-        tier: (tier as SkillTier) || 'BASIC_TOOL',
-        pricePi: typeof pricePi === 'number' ? pricePi : 0,
-        version: (version as string) || '1.0.0',
-        status: 'PUBLISHED',
-        isPublished: true,
-        authorId: user.id,
-      },
+    // Create skill + moderation audit record in a single transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const skill = await tx.skill.create({
+        data: {
+          slug,
+          name: name.slice(0, 200),
+          description: (description as string)?.slice(0, 1000) || null,
+          manifestMd,
+          agentScript: (agentScript as string) || null,
+          testSuite: (testSuite as string) || null,
+          tier: (tier as SkillTier) || 'BASIC_TOOL',
+          pricePi: typeof pricePi === 'number' ? pricePi : 0,
+          version: (version as string) || '1.0.0',
+          status: 'PUBLISHED',
+          isPublished: true,
+          authorId: user.id,
+        },
+      });
+
+      // Auto-approve moderation record (audit trail for admin review)
+      await tx.skillModeration.create({
+        data: {
+          skillId: skill.id,
+          status: 'PENDING',
+          reviewerId: null,
+          reason: 'Submitted by author; pending moderator review',
+        },
+      });
+
+      return skill;
     });
 
     return apiSuccess({
-      skillId: skill.id,
-      slug: skill.slug,
-      name: skill.name,
-      tier: skill.tier,
-      version: skill.version,
-      status: skill.status,
+      skillId: result.id,
+      slug: result.slug,
+      name: result.name,
+      tier: result.tier,
+      version: result.version,
+      status: result.status,
     }, 201);
   } catch (error) {
     logger.error('[SKILLS-CREATE] Database error:', error);

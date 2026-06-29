@@ -13,6 +13,7 @@ import { safeJsonStringify } from "@/lib/sanitize";
 import { signSocialCredential } from "@/lib/vc";
 import { createUserDid } from "@/lib/did";
 import { calculateActionHash, GENESIS_HASH } from "@/lib/trust-chain";
+import { computeTrustScore } from "@/lib/trust-score";
 
 /**
  * Handle a stamp claim request by authenticating the user, validating input, signing stamp metadata,
@@ -23,7 +24,7 @@ import { calculateActionHash, GENESIS_HASH } from "@/lib/trust-chain";
  * new balance, new tier, ledger entry id, and the stored metadata.
  *
  * @param request - The incoming NextRequest for the stamp claim endpoint
- * @returns An API response object: on success contains stampId, xpEarned, newBalance, tier, ledgerEntryId, and metadata; on failure contains an API error code and message. 
+ * @returns An API response object: on success contains stampId, xpEarned, newBalance, tier, ledgerEntryId, and metadata; on failure contains an API error code and message.
  */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -49,7 +50,6 @@ export async function POST(request: NextRequest) {
   }
 
   const { actionType, metadata } = parsed.data;
-
   const actionDef = Object.values(ACTIONS).find((a) => a.id === actionType);
   if (!actionDef) {
     return apiError("VALIDATION_ERROR", `Unknown stamp type: ${actionType}`);
@@ -59,7 +59,6 @@ export async function POST(request: NextRequest) {
     const existing = await prisma.stamp.findUnique({
       where: { user_stamp_unique: { userId: authUser.id, type: actionType } },
     });
-
     if (existing) {
       return apiError("CONFLICT", "This stamp has already been claimed");
     }
@@ -109,7 +108,6 @@ export async function POST(request: NextRequest) {
         select: { hash: true },
       });
       const parentHash = lastAction?.hash || GENESIS_HASH;
-
       const actionTimestamp = new Date();
       const actionHash = calculateActionHash(parentHash, {
         type: actionType,
@@ -153,7 +151,17 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      return { stamp, ledgerEntry, newTier, newBalance };
+      const updatedStamps = await tx.stamp.findMany({
+        where: { userId: authUser.id },
+        select: { type: true, xpAwarded: true, createdAt: true },
+      });
+      const computedTrustScore = computeTrustScore(
+        updatedStamps.map((s) => ({ type: s.type, xp: s.xpAwarded, timestamp: s.createdAt })),
+        false,
+        new Date(),
+      );
+
+      return { stamp, ledgerEntry, newTier, newBalance, computedTrustScore };
     });
 
     return apiSuccess({
@@ -163,6 +171,7 @@ export async function POST(request: NextRequest) {
       tier: result.newTier,
       ledgerEntryId: result.ledgerEntry.id,
       metadata: result.stamp.metadata,
+      computedTrustScore: result.computedTrustScore,
     });
   } catch (error) {
     if (error instanceof Error && error.message === "USER_NOT_FOUND") {

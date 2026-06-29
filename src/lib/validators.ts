@@ -127,8 +127,6 @@ export const SlugParamSchema = z.object({
   slug: z.string().min(1, 'slug is required'),
 });
 
-export const PassportSlugParamSchema = SlugParamSchema;
-
 // Type definitions
 export type PiAuthInput = z.infer<typeof PiAuthSchema>;
 export type KyaClaimInput = z.infer<typeof KyaClaimSchema>;
@@ -149,7 +147,6 @@ export type OrderActionInput = z.infer<typeof OrderActionSchema>;
 export type CredentialStatusQueryInput = z.infer<typeof CredentialStatusQuerySchema>;
 export type DidDocumentQueryInput = z.infer<typeof DidDocumentQuerySchema>;
 export type SlugParamInput = z.infer<typeof SlugParamSchema>;
-export type PassportSlugParamInput = z.infer<typeof PassportSlugParamSchema>;
 
 export const AgentIdentitySchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("identity_assertion"), assertion: z.string().min(1) }),

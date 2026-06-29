@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { AtSign, MessageCircle, Key, Pickaxe, Wallet, ShieldCheck } from "lucide-react";
+import { Wallet, Shield, CircleDollarSign, Lock, Server, Globe, Clock, Pickaxe, CheckCircle } from "lucide-react";
 import { StampCard } from "./StampCard";
 import { TrustScoreGauge } from "./TrustScoreGauge";
 import type { Tier } from "@/lib/tiers";
@@ -38,16 +38,20 @@ interface User {
 interface StampBoardProps {
   user: User | null;
   claimAction: (actionType: string, metadata?: Record<string, unknown>) => Promise<boolean>;
-  connectWallet: () => void;
+  connectWallet: () => Promise<boolean>;
 }
 
 const STAMP_DEFS = [
-  { type: "connect_twitter", label: "Twitter Stamp", xp: 50, icon: <AtSign className="w-6 h-6" />, isAutomatic: false },
-  { type: "connect_discord", label: "Discord Stamp", xp: 50, icon: <MessageCircle className="w-6 h-6" />, isAutomatic: false },
-  { type: "connect_google", label: "Google Stamp", xp: 50, icon: <Key className="w-6 h-6" />, isAutomatic: false },
-  { type: "daily_pow", label: "Proof of Work", xp: 20, icon: <Pickaxe className="w-6 h-6" />, isAutomatic: true },
-  { type: "wallet_age", label: "Wallet Activity", xp: 300, icon: <Wallet className="w-6 h-6" />, isAutomatic: true },
-  { type: "verify_identity", label: "KYC Status Stamp", xp: 100, icon: <ShieldCheck className="w-6 h-6" />, isAutomatic: true },
+  { type: "connect_wallet", label: "Wallet Connection", xp: 100, icon: <Wallet className="w-6 h-6" />, isAutomatic: false },
+  { type: "complete_kyc", label: "KYC Verification", xp: 200, icon: <Shield className="w-6 h-6" />, isAutomatic: false },
+  { type: "pi_payment", label: "Pi Payment", xp: 0, icon: <CircleDollarSign className="w-6 h-6" />, isAutomatic: false },
+  { type: "security_circle", label: "Security Circle", xp: 150, icon: <CircleDollarSign className="w-6 h-6" />, isAutomatic: false },
+  { type: "lockup_commitment", label: "Lockup Commitment", xp: 250, icon: <Lock className="w-6 h-6" />, isAutomatic: false },
+  { type: "node_operation", label: "Node Operation", xp: 300, icon: <Server className="w-6 h-6" />, isAutomatic: false },
+  { type: "mainnet_migration", label: "Mainnet Migration", xp: 150, icon: <Globe className="w-6 h-6" />, isAutomatic: false },
+  { type: "wallet_age", label: "Wallet Activity", xp: 300, icon: <Clock className="w-6 h-6" />, isAutomatic: true },
+  { type: "mining_streak", label: "Mining Streak", xp: 50, icon: <Pickaxe className="w-6 h-6" />, isAutomatic: true },
+  { type: "validator_service", label: "Validator Service", xp: 200, icon: <CheckCircle className="w-6 h-6" />, isAutomatic: false },
 ];
 
 /**
@@ -75,8 +79,7 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
 
   const handleConnect = async (type: string, handle: string) => {
     if (!user) {
-      connectWallet();
-      return false;
+      return await connectWallet();
     }
     return await claimAction(type, { handle });
   };

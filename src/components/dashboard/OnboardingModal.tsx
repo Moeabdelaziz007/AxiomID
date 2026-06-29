@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { motion } from "framer-motion";
 import { Fingerprint, Bot, Zap } from "lucide-react";
 import { createUserDid } from "@/lib/did";
 import { User } from "@/app/context/wallet-context";
@@ -91,23 +90,16 @@ export function OnboardingModal({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onSkip]);
   return (
-    <motion.div
+    <div
       ref={dialogRef}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-[fadeIn_0.2s_ease-out]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="onboarding-title"
       tabIndex={-1}
     >
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="bento-card max-w-md w-full p-6 sm:p-8 relative flex flex-col border border-white/10 shadow-2xl"
+      <div
+        className="bento-card max-w-md w-full p-6 sm:p-8 relative flex flex-col border border-white/10 shadow-2xl animate-[scaleIn_0.3s_ease-out]"
       >
         <div className="flex justify-between items-start mb-6">
           <div>
@@ -211,7 +203,7 @@ export function OnboardingModal({
             </div>
           )}
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }

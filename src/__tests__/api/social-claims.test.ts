@@ -15,6 +15,7 @@ jest.mock("@/lib/prisma", () => ({
     },
     stamp: {
       findUnique: jest.fn(),
+      findMany: jest.fn(),
       create: jest.fn(),
     },
     xpLedger: {
@@ -72,7 +73,7 @@ function makeTx(overrides: {
       create: jest.fn().mockResolvedValue(
         overrides.action ?? {
           id: "action-1",
-          type: "connect_twitter",
+          type: "connect_wallet",
           userId: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
           xp: 50,
           metadata: "{}",
@@ -85,12 +86,17 @@ function makeTx(overrides: {
       create: jest.fn().mockResolvedValue(
         overrides.stamp ?? {
           id: "stamp-1",
-          type: "connect_twitter",
+          type: "connect_wallet",
           userId: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
           xpAwarded: 50,
           metadata: "{}",
           timestamp: new Date(),
         }
+      ),
+      findMany: jest.fn().mockResolvedValue(
+        overrides.stamp?.findMany ?? [
+          { type: "connect_wallet", xpAwarded: 100, createdAt: new Date() },
+        ]
       ),
     },
     xpLedger: {
@@ -143,15 +149,18 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
   });
 
   describe("POST /api/stamp/claim route integration", () => {
-    it("saves signed VC inside Action metadata when claiming connect_twitter", async () => {
+    it("saves signed VC inside Action metadata when claiming connect_wallet", async () => {
       mockPrisma.stamp.findUnique.mockResolvedValue(null);
       mockPrisma.user.findUnique.mockResolvedValue({ id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", xp: 0 } as any);
+      mockPrisma.stamp.findMany.mockResolvedValue([
+        { type: "connect_wallet", xpAwarded: 100, createdAt: new Date() },
+      ] as any);
 
       const tx = makeTx();
       mockPrisma.$transaction.mockImplementation(async (fn: any) => fn(tx));
 
       const req = mockRequest({
-        actionType: "connect_twitter",
+        actionType: "connect_wallet",
         metadata: { handle: "cryptojoker" },
       });
 
@@ -159,12 +168,12 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
       const data = await res.json();
 
       expect(res.status).toBe(200);
-      expect(data.xpEarned).toBe(50);
+      expect(data.xpEarned).toBe(100);
 
       // Verify that tx.stamp.create was called with stringified VC as metadata
       expect(tx.stamp.create).toHaveBeenCalledTimes(1);
       const callArgs = tx.stamp.create.mock.calls[0][0];
-      expect(callArgs.data.type).toBe("connect_twitter");
+      expect(callArgs.data.type).toBe("connect_wallet");
       
       const parsedMetadata = JSON.parse(callArgs.data.metadata);
       expect(parsedMetadata.type).toContain("SocialIdentityCredential");
@@ -172,15 +181,18 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
       expect(parsedMetadata.proof.proofValue).toBeDefined();
     });
 
-    it("saves signed VC inside Action metadata when claiming connect_discord", async () => {
+    it("saves signed VC inside Action metadata when claiming security_circle", async () => {
       mockPrisma.stamp.findUnique.mockResolvedValue(null);
       mockPrisma.user.findUnique.mockResolvedValue({ id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", xp: 0 } as any);
+      mockPrisma.stamp.findMany.mockResolvedValue([
+        { type: "security_circle", xpAwarded: 150, createdAt: new Date() },
+      ] as any);
 
       const tx = makeTx();
       mockPrisma.$transaction.mockImplementation(async (fn: any) => fn(tx));
 
       const req = mockRequest({
-        actionType: "connect_discord",
+        actionType: "security_circle",
         metadata: { username: "discord_user#1234" },
       });
 
@@ -190,8 +202,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
       expect(tx.stamp.create).toHaveBeenCalledTimes(1);
       const callArgs = tx.stamp.create.mock.calls[0][0];
       const parsedMetadata = JSON.parse(callArgs.data.metadata);
-      expect(parsedMetadata.credentialSubject.platform).toBe("discord");
-      expect(parsedMetadata.credentialSubject.handle).toBe("discord_user#1234");
+      expect(parsedMetadata.username).toBe("discord_user#1234");
     });
   });
 });

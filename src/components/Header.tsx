@@ -8,6 +8,7 @@ import { useLanguage } from "@/app/context/language-context";
 import LanguageToggle from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ArrowLeft } from "lucide-react";
+import { AxiomLogo } from "@/components/AxiomLogo";
 
 interface HeaderProps {
   showBack?: boolean;
@@ -26,10 +27,11 @@ export default function Header({ showBack = false, showWallet = false }: HeaderP
 
   const handleConnect = async () => {
     setConnectError(null);
-    try {
-      await connectWallet();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Connection failed";
+    // connectWallet swallows its own errors and returns whether it succeeded,
+    // so use the returned flag rather than relying on a throw.
+    const connected = await connectWallet();
+    if (!connected) {
+      const msg = language === "ar" ? "فشل الاتصال" : "Connection failed";
       setConnectError(msg);
       setTimeout(() => setConnectError(null), 6000);
     }
@@ -50,25 +52,8 @@ export default function Header({ showBack = false, showWallet = false }: HeaderP
       <div className="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3 px-4 sm:px-6 py-4 sm:py-6">
         {/* Logo and Brand */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center border border-white/10 bg-black/40 relative group overflow-hidden transition-all duration-300 hover:border-electric-blue/40">
-              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 via-electric-blue/5 to-axiom-purple/5 opacity-50 group-hover:opacity-100 transition-opacity" />
-              <svg className="w-5.5 h-5.5 z-10 filter drop-shadow-[0_0_8px_rgba(0,212,255,0.4)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="42" stroke="url(#logoGrad)" strokeWidth="3" strokeDasharray="4 16 28 6" className="animate-spin" style={{ animationDuration: '24s' }} />
-                <path d="M50 24 L74 74 L62 74 L50 48 L38 74 L26 74 Z" fill="#ffffff" />
-                <path d="M40 64 H60 L58 68 H42 Z" fill="#39FF14" />
-                <defs>
-                  <linearGradient id="logoGrad" x1="0" y1="0" x2="100" y2="100">
-                    <stop offset="0%" stopColor="#39FF14"/>
-                    <stop offset="50%" stopColor="#00d4ff"/>
-                    <stop offset="100%" stopColor="#a855f7"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-            <span className="font-mono text-lg sm:text-xl tracking-tighter text-surface">
-              AXIOM<span className="text-electric-blue">ID</span>
-            </span>
+          <Link href="/" className="group">
+            <AxiomLogo />
           </Link>
           <div className="w-px h-6 bg-white/10 hidden sm:block" />
           <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded bg-white/5 border border-white/10">

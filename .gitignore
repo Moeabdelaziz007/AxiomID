@@ -38,6 +38,9 @@ Desktop.ini
 .qoder/
 .opencode/
 
+# gemini CLI (local tool config)
+.gemini/
+
 # superpowers (local workflow scripts)
 .superpowers/
 
@@ -60,3 +63,14 @@ packages/sdk/dist
 .swc/
 stitch-*.html
 packages/crypto/node_modules/
+ai-report.html
+
+# Sensitive internal files
+memory.graph.json
+scratchpad/
+.jolli/
+
+# Patch/merge artifacts
+*.orig
+*.rej
+.env*.local

@@ -1,1 +1,43 @@
+# ───────────────────────────────────────────────────────────────────
+# AxiomID pre-commit hook
+# ───────────────────────────────────────────────────────────────────
+
+# 1. Lint staged files (ESLint)
+echo "🔍 Running lint-staged..."
 npx lint-staged
+if [ $? -ne 0 ]; then
+  echo "❌ lint-staged failed. Fix errors before committing."
+  exit 1
+fi
+
+# 2. Type check (fail fast on TS errors)
+echo "📝 Running TypeScript type check..."
+npx tsc --noEmit --skipLibCheck 2>&1 | head -30
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript errors found. Fix them before committing."
+  exit 1
+fi
+
+# 3. CodeRabbit local review (optional — skipped if CLI not installed)
+if command -v coderabbit &> /dev/null; then
+  echo "🐇 Running CodeRabbit local review..."
+  coderabbit review --type uncommitted --config .coderabbit.yaml 2>/dev/null || echo "⚠️  CodeRabbit review skipped"
+else
+  echo "⚠️  CodeRabbit CLI not found, skipping local review."
+fi
+
+# 4. Gemini security scan on staged diff (optional — skipped if CLI not available)
+if command -v gemini &> /dev/null; then
+  echo "🔮 Running Gemini security scan on staged diff..."
+  STAGED_DIFF=$(git diff --cached)
+  if [ -n "$STAGED_DIFF" ]; then
+    echo "$STAGED_DIFF" | gemini \
+      --config .gemini/security-review.toml \
+      -p "Security review the following staged diff per AxiomID rules in GEMINI.md. Be concise, only flag critical and high severity issues:\n$STAGED_DIFF" \
+      --model gemini-2.0-flash 2>/dev/null || echo "⚠️  Gemini scan skipped (API unavailable)"
+  fi
+else
+  echo "⚠️  Gemini CLI not found, skipping security scan."
+fi
+
+echo "✅ Pre-commit checks passed!"

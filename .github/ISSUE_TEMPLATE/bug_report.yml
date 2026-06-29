@@ -1,0 +1,130 @@
+name: "🐛 Bug Report"
+description: "إبلاغ عن خطأ أو سلوك غير متوقع في AxiomID"
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 تقرير خطأ
+        شكراً لإبلاغك. يرجى ملء جميع الحقول بدقة لمساعدتنا على إعادة إنتاج المشكلة.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: "🧱 المكون المتأثر"
+      description: "أي جزء من AxiomID يتأثر بهذا الخطأ؟"
+      options:
+        - soul-system
+        - trust-engine
+        - did-passport
+        - pi-network
+        - cloudflare-workers
+        - frontend
+        - sdk
+        - database
+        - غير محدد
+    validations:
+      required: true
+
+  - type: input
+    id: trust-score
+    attributes:
+      label: "🔐 Trust Score عند وقوع الخطأ"
+      description: "إذا كان الخطأ مرتبطاً بالتحقق، أدخل Trust Score الحالي"
+      placeholder: "مثال: 0.87 أو N/A"
+    validations:
+      required: false
+
+  - type: input
+    id: did
+    attributes:
+      label: "🫊 DID / Identifier"
+      description: "معرف الهوية اللامركزية إن كان ذلك مناسباً (يمكن تعميمه)"
+      placeholder: "مثال: did:axiom:abc123... أو pi:user:xxx"
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "📝 وصف الخطأ"
+      description: "وصف واضح ومختصر للخطأ"
+      placeholder: "ماذا حدث؟"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: "🔄 خطوات إعادة الإنتاج"
+      description: "خطوات تفصيلية لإعادة إنتاج الخطأ"
+      placeholder: |
+        1. اذهب إلى...
+        2. اضغط على...
+        3. لاحظ أن...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "✅ السلوك المتوقع"
+      placeholder: "ماذا كان يجب أن يحدث؟"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: "❌ السلوك الفعلي"
+      placeholder: "ماذا حدث بالفعل؟"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: "🔥 الخطورة"
+      options:
+        - "🟢 منخفضة - تجميل بسيط"
+        - "🟡 متوسطة - تأثير جزئي"
+        - "🟠 عالية - تعطيل ميزة"
+        - "🔴 حرجة - تعطيل كامل"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: "💻 بيئة التشغيل"
+      description: "معلومات البيئة"
+      placeholder: |
+        - Node.js version:
+        - OS:
+        - Browser (if applicable):
+        - AxiomID version/commit:
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "📜 سجلات وأخطاء"
+      description: "أي سجلات أو stack traces ذات صلة"
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "✔️ قائمة التحقق"
+      options:
+        - label: "بحثت عن issues مشابهة ولم أجد"
+          required: true
+        - label: "هذا الخطأ ليس ثغرة أمنية (استخدم security_report بدلاً)"
+          required: true
+        - label: "اختبرت على أحدث إصدار"
+          required: false

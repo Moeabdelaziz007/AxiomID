@@ -1,0 +1,97 @@
+name: "✨ Feature Request"
+description: "اقتراح ميزة جديدة أو تحسين لـ AxiomID"
+title: "[FEAT] "
+labels: ["feat", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ✨ طلب ميزة جديدة
+        شكراً لمساهمتك في تحسين AxiomID! يرجى وصف اقتراحك بوضوح.
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: "🎯 نطاق الميزة"
+      description: "أي جزء من النظام تؤثر فيه هذه الميزة؟"
+      options:
+        - soul-system
+        - trust-engine
+        - did-passport
+        - pi-network
+        - cloudflare-workers
+        - frontend
+        - sdk
+        - database
+        - عدة مكونات
+    validations:
+      required: true
+
+  - type: dropdown
+    id: soul-impact
+    attributes:
+      label: "🧠 تأثير على Soul System"
+      description: "هل تؤثر هذه الميزة على منطق الذكاء الاصطناعي أو Soul System؟"
+      options:
+        - "❌ لا تأثير"
+        - "🟡 تأثير غير مباشر"
+        - "🟠 تعديل سلوك جزئي"
+        - "🔴 تغيير جوهري في منطق النظام"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: "🔍 المشكلة / الدافع"
+      description: "ما هي المشكلة التي تحلها هذه الميزة؟"
+      placeholder: "مثال: أجد صعوبة في... / لا يوجد حالياً طريقة لـ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: "💡 الحل المقترح"
+      description: "صف الحل الذي تقترحه بوضوح"
+      placeholder: "أريد أن..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "🔄 بدائل تم النظر فيها"
+      description: "هل فكرت في حلول بديلة؟"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: breaking
+    attributes:
+      label: "🔴 هل تكسر التوافق الخلفي؟"
+      options:
+        - "❌ لا، توافق خلفي كامل"
+        - "⚠️ تغييرات طفيفة في API"
+        - "🔴 نعم، breaking change"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: "📚 سياق إضافي"
+      description: "أي سياق إضافي يساعد على فهم الميزة"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "✔️ قائمة التحقق"
+      options:
+        - label: "بحثت عن طلبات مشابهة ولم أجد"
+          required: true
+        - label: "هذا الاقتراح ليس إصلاح ثغرة أمنية"
+          required: true

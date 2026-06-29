@@ -11,9 +11,28 @@
 /src/lib/sovereign-keys.ts @Moeabdelaziz007
 /src/app/api/oauth2/ @Moeabdelaziz007
 /src/app/api/agent/ @Moeabdelaziz007
+/backend/src/lib/auth.ts @Moeabdelaziz007
+
+# Critical trust and identity paths
+/src/lib/trust.ts @Moeabdelaziz007
+/src/lib/soul/ @Moeabdelaziz007
+/packages/crypto/ @Moeabdelaziz007
 
 # CI/CD
 /.github/ @Moeabdelaziz007
+
+# AI team workflows
+/.github/workflows/ai-*.yml @Moeabdelaziz007
+/.github/workflows/gemini-review.yml @Moeabdelaziz007
+/.github/workflows/ci-intelligence.yml @Moeabdelaziz007
+/.github/workflows/loops.yml @Moeabdelaziz007
+
+# Frontend components — AI-safe zone
+/src/components/ @Moeabdelaziz007
+/src/app/dashboard/ @Moeabdelaziz007
+
+# Tests — AI-safe zone
+/src/__tests__/ @Moeabdelaziz007
 
 # Documentation
 /docs/ @Moeabdelaziz007

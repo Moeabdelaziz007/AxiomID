@@ -47,6 +47,7 @@ function mockRequestWithHeader(headers: Record<string, string> = {}) {
     nextUrl: {
       hostname: "localhost",
     },
+    nextUrl: new URL("https://example.com/"),
   } as any;
 }
 

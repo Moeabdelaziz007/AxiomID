@@ -1,0 +1,114 @@
+name: "🔒 Security Vulnerability Report"
+description: "الإبلاغ عن ثغرة أمنية في AxiomID - يرجى عدم الإفصاح عنها علناً"
+title: "[SECURITY] "
+labels: ["security", "priority:critical"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ⚠️ تحذير هام
+
+        > ❗ **إذا كنت تبلغ عن ثغرة حرجة، يرجى استخدام [البلاغ الخاص](https://github.com/Moeabdelaziz007/AxiomID/security/advisories/new) بدلاً من هذا النموذج**
+        >
+        > هذا النموذج للثغرات الأقل خطورة فقط. للثغرات الحرجة (CVSS ≥ 7.0)، استخدم Private Advisory.
+
+  - type: dropdown
+    id: vuln-type
+    attributes:
+      label: "🔍 نوع الثغرة"
+      description: "صنف الثغرة حسب OWASP"
+      options:
+        - Injection (SQL/NoSQL/Command)
+        - Authentication / Authorization Bypass
+        - DID / Identity Spoofing
+        - Trust Score Manipulation
+        - Cryptographic Weakness
+        - Information Disclosure
+        - Denial of Service
+        - Insecure Direct Object Reference (IDOR)
+        - Cross-Site Scripting (XSS)
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: "🧱 المكون المتأثر"
+      options:
+        - soul-system
+        - trust-engine
+        - did-passport
+        - pi-network
+        - cloudflare-workers
+        - frontend
+        - sdk
+        - database
+        - غير محدد
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: "🚨 خطورة الثغرة (CVSS)"
+      options:
+        - "🟢 منخفضة (0.1 - 3.9)"
+        - "🟡 متوسطة (4.0 - 6.9)"
+        - "🟠 عالية (7.0 - 8.9) → استخدم Private Advisory"
+        - "🔴 حرجة (9.0 - 10.0) → استخدم Private Advisory"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "📝 وصف الثغرة"
+      description: "وصف تقني واضح للثغرة"
+    validations:
+      required: true
+
+  - type: textarea
+    id: poc
+    attributes:
+      label: "🧪 خطوات إعادة الإنتاج (PoC)"
+      description: "خطوات تفصيلية لإعادة استغلال الثغرة"
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: "💥 التأثير المحتمل"
+      description: "ما هو التأثير الأسوأ المحتمل؟"
+    validations:
+      required: true
+
+  - type: textarea
+    id: fix
+    attributes:
+      label: "🔧 اقتراح التصحيح"
+      description: "هل لديك اقتراح للتصحيح؟"
+    validations:
+      required: false
+
+  - type: input
+    id: discovered
+    attributes:
+      label: "📅 تاريخ الاكتشاف"
+      placeholder: "YYYY-MM-DD"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "✔️ تعهدات"
+      options:
+        - label: "لم أفصح عن هذه الثغرة علناً حتى الآن"
+          required: true
+        - label: "الثغرة CVSS < 7.0 (وإلا ستحولني للبلاغ الخاص)"
+          required: true
+        - label: "تحققت من الثغرة بنفسي"
+          required: true

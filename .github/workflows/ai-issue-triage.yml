@@ -1,0 +1,160 @@
+name: AI Issue Triage
+
+on:
+  issues:
+    types: [opened, reopened]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  triage:
+    name: AI Triage
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: AI Triage with Groq
+        id: triage
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python3 << 'PYEOF'
+          import json, urllib.request, urllib.error, os, sys
+
+          GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+
+          if not GROQ_API_KEY:
+              print("⚠️  Skipping AI triage: no API key configured")
+              sys.exit(0)
+
+          title = os.environ.get("ISSUE_TITLE", "")
+          body = os.environ.get("ISSUE_BODY", "")
+          number = os.environ.get("ISSUE_NUMBER", "")
+          repo = os.environ.get("GITHUB_REPOSITORY", "")
+
+          prompt = f"""You are an AI issue triage agent for AxiomID.
+          Classify this GitHub issue and return ONLY valid JSON.
+
+          Available labels:
+          - bug: Something isn't working, unexpected behavior, error
+          - enhancement: Improvement or addition to existing feature
+          - feat: New feature or request
+          - question: Further information is requested
+          - needs-triage: Cannot determine, needs human
+          - priority:critical: Security issue, data loss, production down
+          - priority:high: Blocks existing functionality, major feature broken
+          - priority:medium: Enhancement, nice-to-have
+          - priority:low: Cosmetic, documentation, minor
+          - needs-human-approval: Requires human review before action
+          - good first issue: Easy, good for newcomers
+          - help wanted: Community contribution welcome
+
+          Area labels (pick one if matches):
+          - pi-network: Pi SDK, Pi Browser, Pi authentication
+          - did-passport: DIDs, passports, credentials, VCs
+          - frontend: UI, components, pages
+          - cloudflare-workers: Workers, D1, Vectorize, edge
+          - database: Prisma, PostgreSQL, migrations
+          - documentation: Docs, README, comments
+          - ci/cd: CI/CD pipeline, Actions, deployment
+          - infra: Infrastructure, config, build
+
+          Issue title: {title}
+          Issue body: {body[:3000]}
+
+          Return JSON:
+          {{"labels": ["label1", "label2"], "summary": "One sentence classification", "needs_human": false}}
+          """
+
+          url = "https://api.groq.com/openai/v1/chat/completions"
+          headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
+          payload = json.dumps({"model": "llama-3.3-70b-versatile", "messages": [{"role": "user", "content": prompt}], "max_tokens": 500, "temperature": 0.1}).encode()
+
+          ALLOWED_LABELS = {
+              "bug", "enhancement", "feat", "question", "needs-triage",
+              "priority:critical", "priority:high", "priority:medium", "priority:low",
+              "needs-human-approval", "good first issue", "help wanted",
+              "pi-network", "did-passport", "frontend", "cloudflare-workers",
+              "database", "documentation", "ci/cd", "infra",
+          }
+
+          try:
+              req = urllib.request.Request(url, data=payload, headers=headers)
+              resp = urllib.request.urlopen(req, timeout=30)
+              result = json.loads(resp.read())
+              text = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+
+              json_match = text[text.find("{"):text.rfind("}") + 1] if "{" in text else "{}"
+              classification = json.loads(json_match)
+              labels = [l for l in classification.get("labels", ["needs-triage"]) if l in ALLOWED_LABELS]
+              summary = classification.get("summary", "AI triage completed")[:500]
+              needs_human = classification.get("needs_human", False)
+
+              if not labels:
+                  labels = ["needs-triage"]
+
+              if needs_human and "needs-human-approval" not in labels:
+                  labels.append("needs-human-approval")
+
+              with open("/tmp/ai-triage-result.json", "w") as f:
+                  json.dump({"labels": labels, "summary": summary, "needs_human": needs_human}, f)
+
+              print(f"✅ Triage: {labels} — {summary}")
+
+          except Exception as e:
+              print(f"❌ AI triage failed: {e}")
+              with open("/tmp/ai-triage-result.json", "w") as f:
+                  json.dump({"labels": ["needs-triage"], "summary": "AI triage unavailable", "needs_human": True}, f)
+              sys.exit(0)
+          PYEOF
+
+      - name: Apply Labels
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python3 << 'PYEOF'
+          import json, os, sys, subprocess
+
+          if not os.path.exists("/tmp/ai-triage-result.json"):
+              print("⚠️  No triage result, skipping label step")
+              sys.exit(0)
+
+          with open("/tmp/ai-triage-result.json") as f:
+              result = json.load(f)
+
+          labels = result.get("labels", [])
+          summary = result.get("summary", "")
+          number = os.environ["ISSUE_NUMBER"]
+          repo = os.environ["GITHUB_REPOSITORY"]
+
+          if labels:
+              cmd = ["gh", "issue", "edit", number, "--repo", repo, "--add-label"] + labels
+              proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+              if proc.returncode != 0:
+                  print(f"⚠️  Label command failed: {proc.stderr}")
+              else:
+                  print(f"✅ Labels applied: {labels}")
+
+          if summary:
+              safe_summary = summary.replace("\\", "\\\\").replace('"', '\\"')
+              body = f"## 🤖 AI Triage\n\n**{safe_summary}**\n\n_Automated by AxiomID AI Triage Agent_"
+              cmd = ["gh", "issue", "comment", number, "--repo", repo, "--body", body]
+              proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+              if proc.returncode != 0:
+                  print(f"⚠️  Comment command failed: {proc.stderr}")
+              else:
+                  print(f"✅ Comment posted: {summary}")
+          PYEOF

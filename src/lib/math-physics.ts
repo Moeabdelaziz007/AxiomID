@@ -956,11 +956,9 @@ export function randomWalkTrust(
 ): { visitCounts: Map<string, number>; stationaryDistribution: Map<string, number> } {
   const visitCounts = new Map<string, number>();
   let current = startNode;
-  let totalVisits = 0;
 
   for (let i = 0; i < steps; i++) {
     visitCounts.set(current, (visitCounts.get(current) || 0) + 1);
-    totalVisits++;
     const neighbors = graph.get(current) || [];
     if (neighbors.length === 0) break;
     current = neighbors[Math.floor(Math.random() * neighbors.length)];
@@ -970,8 +968,9 @@ export function randomWalkTrust(
   // visits actually taken so the distribution always sums to 1, even when
   // the walk hits a dead-end before completing all steps.
   const stationaryDistribution = new Map<string, number>();
+  const totalVisitsCalculated = Array.from(visitCounts.values()).reduce((sum, count) => sum + count, 0);
   for (const [node, count] of visitCounts) {
-    stationaryDistribution.set(node, totalVisits > 0 ? count / totalVisits : 0);
+    stationaryDistribution.set(node, totalVisitsCalculated > 0 ? count / totalVisitsCalculated : 0);
   }
 
   return { visitCounts, stationaryDistribution };
@@ -1628,6 +1627,8 @@ export function minCutTrustBottleneck(
       v = u;
     }
 
+    // No finite augmenting path found — stop to avoid adding Infinity to maxFlow.
+    if (!Number.isFinite(pathFlow) || pathFlow <= 0) break;
     // Update residual graph
     v = sink;
     while (v !== source) {
@@ -1791,11 +1792,7 @@ export function fokkerPlanckTrustEvolution(
     const diffusionTerm = (diffusionRight - 2 * diffusionCenter + diffusionLeft) / (dx * dx);
 
     newProbabilities[i] = probabilities[i] + timeStep * (driftTerm + 0.5 * diffusionTerm);
-
-    // Boundary conditions: trust stays in [0, 1]
-    if (i === 0 || i === n - 1) {
-      newProbabilities[i] = Math.max(0, newProbabilities[i]);
-    }
+    newProbabilities[i] = Math.max(0, newProbabilities[i]);
   }
 
   // Normalize

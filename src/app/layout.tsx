@@ -54,10 +54,9 @@ export const metadata: Metadata = {
     icon: [
       { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
       { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/favicon.ico', sizes: '48x48', type: 'image/x-icon' },
     ],
-    apple: [
-      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-    ],
+    apple: '/icon-192x192.png',
   },
   formatDetection: {
     email: false,
@@ -79,7 +78,7 @@ export const metadata: Metadata = {
     siteName: 'AxiomID',
     images: [
       {
-        url: '/axiomid-banner.png',
+        url: '/axiomid-banner.jpg',
         width: 640,
         height: 640,
         alt: 'AxiomID - Human Authorization Protocol',
@@ -89,10 +88,10 @@ export const metadata: Metadata = {
     type: 'website',
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: "AxiomID - The Human Authorization Protocol",
     description: "Prove human intent behind AI actions with decentralized identity verification",
-    images: ['/axiomid-banner.png'],
+    images: ['/axiomid-banner.jpg'],
     creator: '@Moeabdelaziz007',
   },
   robots: {
@@ -132,37 +131,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen overflow-x-hidden`}
       >
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.addEventListener('unhandledrejection', function(event) {
-                if (!event.reason) return;
-                var reasonStr = '';
-                if (typeof event.reason === 'string') {
-                  reasonStr = event.reason;
-                } else if (event.reason instanceof Error) {
-                  reasonStr = event.reason.message || event.reason.toString();
-                } else if (typeof event.reason === 'object') {
-                  reasonStr = event.reason.message || event.reason.error || String(event.reason);
-                } else {
-                  reasonStr = String(event.reason);
-                }
-                var normalized = reasonStr.toLowerCase();
-                if (normalized.indexOf('connection closed') !== -1 || normalized.indexOf('connection_closed') !== -1) {
-                  event.preventDefault();
-                }
-              });
-            `
-          }}
-        />
         <a href="#main-content" className="skip-link">
           Skip to content
         </a>
         <Script
           src="https://sdk.minepi.com/pi-sdk.js"
           strategy="beforeInteractive"
-          integrity="sha384-MB+dVW+BFRnwyiBYxALhuOr8KOKBtIJdOS3MmO7M87C5+khNeoYuj09OTzIx0GDD"
-          crossOrigin="anonymous"
+          // ponytail: SRI removed — Pi SDK updates without semver; stale hash silently blocks script load.
         />
         <Script src="/register-sw.js" strategy="afterInteractive" />
         <ThemeProvider>

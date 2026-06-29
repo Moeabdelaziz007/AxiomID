@@ -1,4 +1,4 @@
-import { KyaClaimSchema, OrderCreateSchema } from "@/lib/validators";
+import { KyaClaimSchema, OrderCreateSchema, SlugParamSchema } from "@/lib/validators";
 import { apiError } from "@/lib/errors";
 
 describe("KyaClaimSchema", () => {
@@ -122,5 +122,22 @@ describe("apiError FORBIDDEN", () => {
     const body = await response.json();
     expect(body.code).toBe("FORBIDDEN");
     expect(body.error).toBe("Access denied");
+  });
+});
+
+describe("SlugParamSchema", () => {
+  it("accepts valid slug string", () => {
+    const result = SlugParamSchema.safeParse({ slug: "test-slug-123" });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects empty slug string", () => {
+    const result = SlugParamSchema.safeParse({ slug: "" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects missing slug param", () => {
+    const result = SlugParamSchema.safeParse({});
+    expect(result.success).toBe(false);
   });
 });

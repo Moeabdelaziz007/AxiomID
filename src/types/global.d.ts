@@ -26,7 +26,12 @@ declare global {
     direction: "user_to_app" | "app_to_user";
     created_at: string;
     network: string;
-    status: string;
+    status: {
+      developer_approved: boolean;
+      transaction_verified: boolean;
+      developer_completed: boolean;
+      paid: boolean;
+    };
     transaction: { txid: string; verified: boolean; _link: string } | null;
   }
 
@@ -65,6 +70,12 @@ declare global {
       scopes: string[],
       onIncompletePaymentFound?: (payment: PiPaymentDTO) => void
     ) => Promise<PiAuthResult>;
+    signIn?: (options: {
+      clientId: string;
+      redirectUri: string;
+      scopes?: string[];
+      state?: string;
+    }) => void;
     createPayment: (
       paymentData: {
         amount: number;

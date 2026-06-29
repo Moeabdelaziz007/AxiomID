@@ -10,9 +10,14 @@ import Script from "next/script";
 import LanguageToggle from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import HeroDemo from "@/components/HeroDemo";
+import DemoVideo from "@/components/DemoVideo";
 import StatsBar from "@/components/StatsBar";
 import InteractiveShowcase from "@/components/landing/InteractiveShowcase";
 import TrustTiers from "@/components/TrustTiers";
+import { AxiomLogo } from "@/components/AxiomLogo";
+
+export const dynamic = 'force-dynamic';
+
 
 /**
  * Renders the AxiomID landing page with hero section, feature overview, identity tiers, and authentication controls.
@@ -60,22 +65,7 @@ export default function Home() {
       <header className="sticky top-0 w-full z-50 bg-[#0c0d14]/95 backdrop-blur-lg border-b border-white/[0.04] shadow-[0_1px_0_0_rgba(255,255,255,0.02)_inset]">
         <div className="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3 px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center border border-white/[0.08] bg-black/40 relative group overflow-hidden transition-all duration-300 hover:border-electric-blue/40">
-              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 via-electric-blue/5 to-axiom-purple/5 opacity-50 group-hover:opacity-100 transition-opacity" />
-              <svg className="w-5 h-5 z-10 filter drop-shadow-[0_0_8px_rgba(0,212,255,0.4)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="42" stroke="url(#logoGrad)" strokeWidth="3" strokeDasharray="4 16 28 6" className="animate-spin" style={{ animationDuration: "24s" }} />
-                <path d="M50 24 L74 74 L62 74 L50 48 L38 74 L26 74 Z" fill="#ffffff" />
-                <path d="M40 64 H60 L58 68 H42 Z" fill="#39FF14" />
-                <defs>
-                  <linearGradient id="logoGrad" x1="0" y1="0" x2="100" y2="100">
-                    <stop offset="0%" stopColor="#39FF14" />
-                    <stop offset="50%" stopColor="#00d4ff" />
-                    <stop offset="100%" stopColor="#a855f7" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-            <span className="font-mono text-lg sm:text-xl tracking-tighter text-surface">AXIOM<span className="text-electric-blue">ID</span></span>
+            <AxiomLogo size="sm" />
             <div className="w-px h-6 bg-white/10 hidden sm:block" />
             <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded bg-white/5 border border-white/10">
               <svg viewBox="0 0 100 100" className="w-4 h-4" fill="currentColor">
@@ -136,8 +126,8 @@ export default function Home() {
         <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center py-12 relative z-10">
           {/* Left: Headline + CTAs */}
           <div className="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left space-y-5">
-            <div className="flex flex-wrap gap-2 justify-center md:justify-start items-center animate-[fadeInUp_0.4s_ease-out_0.1s_both]">
-              <span className="px-3 py-1 rounded-full text-xs font-semibold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-widest">
+            <div className="flex flex-wrap gap-2 justify-center md:justify-start items-center animate-[fade-in-up_0.4s_ease-out_0.1s_both]">
+              <span className="px-3 py-1 rounded-full text-[10px] font-mono bg-neon-green/10 text-neon-green border border-neon-green/20 uppercase tracking-widest">
                 {t("hero_badge")}
               </span>
               <span className="stitch-badge">
@@ -156,25 +146,24 @@ export default function Home() {
               </span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] text-white animate-[fadeInUp_0.6s_ease-out_0.2s_both]">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] text-white animate-[fade-in-up_0.6s_ease-out_0.2s_both]">
               <>{t("landing_headline_en")}<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-electric-blue to-axiom-purple">{t("landing_headline_rules_en")}</span></>
             </h1>
 
-            <p className="text-lg sm:text-xl md:text-2xl font-medium tracking-tight text-zinc-300 max-w-xl animate-[fadeInUp_0.5s_ease-out_0.3s_both]">
+            <p className="text-lg sm:text-xl md:text-2xl font-medium tracking-tight text-zinc-300 max-w-xl animate-[fade-in-up_0.5s_ease-out_0.3s_both]">
               {t("landing_tagline")}
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto pt-2 animate-[fadeInUp_0.5s_ease-out_0.4s_both]">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto pt-2 animate-[fade-in-up_0.5s_ease-out_0.4s_both]">
               {!user ? (
                 isPiBrowser ? (
                   <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} className="flex items-center justify-center gap-2 text-sm font-semibold px-8 py-4 min-h-[52px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
                     {isConnecting ? <><span className="animate-spin">⟳</span> {t("connecting")}</> : <>{t("claim_passport")}<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></>}
                   </button>
                 ) : (
-                  <Link href="/claim" prefetch={false} className="flex items-center justify-center gap-2 text-sm font-semibold px-8 py-4 min-h-[52px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                    {t("claim_passport")}
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                  </Link>
+                  <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} className="flex items-center justify-center gap-2 text-sm font-semibold px-8 py-4 min-h-[52px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                    {isConnecting ? <><span className="animate-spin">⟳</span> {t("connecting")}</> : <>{t("claim_passport")}<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></>}
+                  </button>
                 )
               ) : (
                 <Link href="/dashboard" prefetch={false} className="flex items-center justify-center gap-2 text-sm font-semibold px-8 py-4 min-h-[52px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
@@ -187,7 +176,7 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="flex flex-wrap gap-4 items-center justify-center md:justify-start pt-6 text-[11px] font-mono text-zinc-500 animate-[fadeInUp_0.6s_ease-out_0.5s_both]">
+            <div className="flex flex-wrap gap-4 items-center justify-center md:justify-start pt-6 text-[11px] font-mono text-zinc-400 animate-[fade-in-up_0.6s_ease-out_0.5s_both]">
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 <span className="tracking-wider">100% On-chain</span>
@@ -207,7 +196,7 @@ export default function Home() {
 
           {/* Right: Animated Demo */}
           <div className="md:col-span-5 flex items-center justify-center">
-            <div className="w-full max-w-sm relative animate-[fadeInUp_0.6s_ease-out_0.3s_both]">
+            <div className="w-full max-w-sm relative animate-[fade-in-up_0.6s_ease-out_0.3s_both]">
               <div className="absolute -inset-8 bg-gradient-to-tr from-emerald-500/15 via-electric-blue/15 to-axiom-purple/15 rounded-[48px] blur-3xl opacity-50 animate-pulse pointer-events-none" style={{ animationDuration: "6s" }} />
               <div className="absolute -inset-4 bg-gradient-to-tr from-emerald-500/5 via-electric-blue/5 to-axiom-purple/5 rounded-[32px] blur-xl opacity-40 pointer-events-none" />
               <HeroDemo />
@@ -269,7 +258,7 @@ export default function Home() {
               <p className="text-sm leading-relaxed text-zinc-400">{item.desc}</p>
               <div className="mt-auto pt-4 border-t border-white/5 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-electric-blue animate-pulse" />
-                <span className="text-[11px] font-mono text-zinc-500">{item.badge}</span>
+                <span className="text-[11px] font-mono text-zinc-400">{item.badge}</span>
               </div>
             </div>
           ))}
@@ -281,7 +270,7 @@ export default function Home() {
         <SectionHeader
           label={t("landing_sovereign_advantage")}
           title={t("landing_why_title")}
-          labelColor="text-zinc-500"
+          labelColor="text-zinc-400"
         />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="p-6 rounded-3xl border border-red-500/10 glass-card flex flex-col justify-between min-h-[300px]">
@@ -290,7 +279,7 @@ export default function Home() {
                 <AlertTriangle className="w-4 h-4 text-red-400 animate-pulse" />
                 <h3 className="text-base font-bold text-red-400 font-mono tracking-tight">{t("landing_web2_title")}</h3>
               </div>
-              <ul className="space-y-3 text-xs font-mono text-zinc-500">
+              <ul className="space-y-3 text-xs font-mono text-zinc-400">
                 {[
                   t("landing_web2_item1"),
                   t("landing_web2_item2"),
@@ -304,7 +293,7 @@ export default function Home() {
                 ))}
               </ul>
             </div>
-            <div className="border-t border-red-500/5 pt-4 mt-6 text-[10px] text-zinc-600 font-mono">
+            <div className="border-t border-red-500/5 pt-4 mt-6 text-[10px] text-zinc-400 font-mono">
               {t("landing_web2_result")}
             </div>
           </div>

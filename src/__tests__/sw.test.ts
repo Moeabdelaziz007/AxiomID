@@ -34,15 +34,15 @@ const swSource = fs.readFileSync(SW_PATH, "utf8");
 // ---------------------------------------------------------------------------
 
 /** The expected cache name. Bump whenever sw.js increments its version. */
-const EXPECTED_CACHE = "axiomid-v3";
+const EXPECTED_CACHE = "axiomid-v4";
 
 /** The expected static asset list (filenames only — not full paths). */
 const EXPECTED_STATIC_ASSETS = [
   "/manifest.webmanifest",
   "/icon-192x192.png",
   "/icon-512x512.png",
-  "/axiomid-logo.png",
-  "/axiomid-banner.png",
+  "/axiomid-logo.jpg",
+  "/axiomid-banner.jpg",
   "/favicon.ico",
 ];
 
@@ -122,7 +122,7 @@ function makeRequest(
 // ===========================================================================
 
 describe("sw.js — source constants", () => {
-  it("declares the correct cache version 'axiomid-v3'", () => {
+  it("declares the correct cache version 'axiomid-v4'", () => {
     expect(swSource).toContain(`"${EXPECTED_CACHE}"`);
   });
 
@@ -138,12 +138,12 @@ describe("sw.js — source constants", () => {
     expect(swSource).toContain("/icon-512x512.png");
   });
 
-  it("static assets list includes axiomid-logo.png", () => {
-    expect(swSource).toContain("/axiomid-logo.png");
+  it("static assets list includes axiomid-logo.jpg", () => {
+    expect(swSource).toContain("/axiomid-logo.jpg");
   });
 
-  it("static assets list includes axiomid-banner.png", () => {
-    expect(swSource).toContain("/axiomid-banner.png");
+  it("static assets list includes axiomid-banner.jpg", () => {
+    expect(swSource).toContain("/axiomid-banner.jpg");
   });
 
   it("static assets list includes favicon.ico", () => {

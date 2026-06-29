@@ -4,7 +4,70 @@ All notable changes to the AxiomID project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.5.0] - 2026-06-24
+## [0.1.2] - 2026-06-28
+
+### Added
+
+- Stellar VC anchoring — hash VCs on Stellar testnet/mainnet for tamper-proof on-chain verification
+- `computeVcHash()` — deterministic SHA-256 of canonicalized VCs
+- `anchorVcHash()` — full flow: hash → build tx → sign → submit to Horizon
+- `verifyVcOnChain()` — fetch memo from Horizon and compare with presented VC
+- `POST /api/stellar/anchor` — API endpoint for anchoring VCs (authenticated, rate-limited)
+- `docs/STELLAR_ANCHORING.md` — full documentation with API reference and architecture
+
+### Changed
+
+- **Pi-Native Verification System** — Replaced fake social login XP actions (Twitter, Discord, Google) with Pi-native verification actions (connect_wallet, complete_kyc, pi_payment, security_circle, etc.)
+- **Real KYC Check** — Step 2 now calls Pi API server-side to verify KYC status via `POST /api/pi/kya/verify`
+- **Computed Trust Score** — Trust score is now computed from completed Pi actions with weighted scoring, inactivity decay, and Stellar anchor bonus
+- **Dev Mode Banner** — Red warning banner appears in sandbox/dev mode on claim and dashboard pages
+- **10 Pi-Native Actions** — New action definitions with XP, weight, and tier: connect_wallet, complete_kyc, pi_payment, security_circle, lockup_commitment, node_operation, mainnet_migration, wallet_age, mining_streak, validator_service
+
+---
+
+## [0.1.1] - 2026-06-27
+
+### Added
+
+- Issue templates: bug report, feature request, security vulnerability (`.github/ISSUE_TEMPLATE/`)
+- Label sync config (`.github/labels.yml`) — 35+ labels (area:*, priority:*, type, status)
+- CI Status, Version, and PRs Welcome badges in README
+- CONTRIBUTING.md link in README
+- Wider architecture diagram (graph TB, 8 styled nodes)
+- Arabic release notes for all versions
+
+### Fixed
+
+- Duplicate `logger` import in `src/app/api/agent/manifest/route.ts`
+- Prisma migration `20260620_marketplace_tables` — made idempotent (`ON CONFLICT DO NOTHING`)
+- README test count accuracy (2855 tests, 122 suites)
+- README Next.js version (16, not 15)
+- README API routes list (24+ routes documented)
+- AGENTS.md telemetry contradiction (must use real `/api/monitor`)
+- AI Issue Triage workflow trigger (added `if: github.event_name == 'issues'`)
+- Pre-commit hook — removed deprecated husky shebang, fixed CodeRabbit `--staged` → `--type uncommitted`
+- Version consistency — all references unified to `v0.1.0`
+
+### Changed
+
+- Merged `performance` label into `perf` ( eliminated duplicate)
+- Applied labels to all 9 open issues (#130–#153)
+- Added due dates to all 4 milestones (Jul 15 → Sep 1, 2026)
+- Closed Issue #135 (agent framework integration) — bounty cancelled, no external PRs accepted
+- Closed Issue #135 (agent framework integration) — bounty cancelled, no external PRs accepted
+- N+1 query fix in sync route — chunked `Promise.allSettled` (40x faster)
+- Sprint 3 refactoring — CSS animations, wallet decomposition, memory leak fixes
+
+### Security
+
+- Idempotent marketplace migration prevents duplicate seed failures
+- Vercel deploy gate rule added to AGENTS.md (never merge if deploy failing)
+- Host header injection prevention
+- Rate limiter using Upstash Redis in production
+
+---
+
+## [0.1.0] - 2026-06-24
 
 ### Added
 
@@ -103,3 +166,51 @@ This release marks a massive pivot from a "Student Project" to a "Unicorn-Level 
 ---
 
 _Built in the Agent-First Era using Google Antigravity._
+
+---
+
+## ملاحظات الإصدار بالعربية
+
+### الإصدار 0.1.1 — 2026-06-27
+
+#### ما تم إضافته
+- قوالب Issues جاهزة (تقرير خطأ، طلب ميزة، ثغرة أمنية)
+- نظام تسميات موحد (35+ تسمية) لتتبع أفضل للمشروع
+- شارات CI والإصدار في README
+- رابط دليل المساهمة (CONTRIBUTING.md)
+- مخطط معماري أكبر وأوضح
+- ملاحظات إصدار بالعربية
+
+#### ما تم إصلاحه
+- استيراد مكرر لـ logger في مسار API
+- هجرة قاعدة البيانات — متوافقة مع الإنتاج
+- دقة أرقام الاختبارات في README
+- إصدار Next.js في README (16، ليس 15)
+- تناقض遥测 في AGENTS.md
+- توحيد جميع الإصدارات إلى v0.1.0
+
+#### التحسينات
+- إصلاح مشكلة N+1 في مزامنة قاعدة البيانات (40x أسرع)
+- تحسين الأداء CSS وفك تحليل مكونات المحفظة
+- حماية من حقن Host header
+- قاعدة Vercel deploy — لا دمج إذا كان النشر فاشلاً
+
+---
+
+### الإصدار 0.1.0 — 2026-06-24
+
+#### الميزات الرئيسية
+- **هوية موحدة** — `did:axiom` متوافقة مع W3C
+- **شهادات قابلة للتحقق** — Ed25519 VCs مشفرة كشفياً
+- **محرك الثقة** — XP (70%) + stamps (30%)
+- **جوازات الوكلاء** — بطاقات هوية عامة مع شارات التحقق
+- **سوق المهارات** — تثبيت قدرات للوكلاء في بيئات معزولة
+- **Quran RAG** — بحث دلالي عبر 6236 آية
+- **نظام الروح** — خمسة بوابات تقييم أخلاقي
+
+#### الأطراف المعتمدة
+- **الزوار** (0 XP) → **المواطنون** (100) → **المحققون** (500) → **السيادة** (1000)
+
+#### الحزم
+- `@axiomid/sdk` — MIT، صفر تبعيات
+- `@axiomid/crypto` — MIT، إدارة المفاتيح السيادية

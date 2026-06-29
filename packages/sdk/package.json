@@ -1,10 +1,14 @@
 {
   "name": "@axiomid/sdk",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "AxiomID SDK — Verify passports, resolve DIDs, query trust scores",
   "main": "src/index.ts",
   "types": "src/index.ts",
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "jest --runInBand --forceExit",

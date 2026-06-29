@@ -36,11 +36,12 @@
   ```javascript
   const CACHE = "axiomid-v2"; // Increment cache version
   const STATIC_ASSETS = [
+    "/manifest.webmanifest",
     "/manifest.json",
     "/icon-192x192.png",
     "/icon-512x512.png",
-    "/axiomid-logo.png",
-    "/axiomid-banner.png",
+    "/axiomid-logo.jpg",
+    "/axiomid-banner.jpg",
     "/favicon.ico",
   ];
 
@@ -221,6 +222,7 @@ The redundant default export of the Pi Browser Guard has been dissolved, enforci
   Run:
   ```bash
   git add src/lib/validators.ts "src/app/api/passport/[slug]/" src/__tests__/lib/validators.test.ts
+  git add src/lib/validators.ts src/app/api/passport/[slug]/ src/__tests__/lib/validators.test.ts
   git commit -m "refactor(validation): consolidate PassportSlugParamSchema to SlugParamSchema ۞
 
 [THE CHRONICLE OF THE ALCHEMICAL EXTRACTION]

@@ -35,8 +35,8 @@ body {
 
   /* ── Typography ──────────────────────────────────────── */
   --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
+  --text-secondary: #d4d4d8;
+  --text-muted: #a1a1aa;
   --font-mono: var(--font-geist-mono), 'SF Mono', monospace;
 
   /* ── Semantic Tokens ─────────────────────────────────── */
@@ -1204,7 +1204,7 @@ a:focus-visible {
   box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
 
-@keyframes fadeInUp {
+@keyframes fade-in-up {
   from {
     opacity: 0;
     transform: translateY(15px);
@@ -1260,3 +1260,35 @@ a:focus-visible {
 [dir="rtl"] th, [dir="rtl"] td {
   text-align: start;
 }
+
+/* ── Onboarding step transitions ──────────────────────── */
+@keyframes onboardingFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fadeInUp {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* ── Modal transitions ────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+

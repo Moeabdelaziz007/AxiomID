@@ -1,0 +1,39 @@
+name: Publish npm packages
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build @axiomid/crypto
+        run: cd packages/crypto && npm run build
+
+      - name: Build @axiomid/sdk
+        run: cd packages/sdk && npm run build
+
+      - name: Publish @axiomid/crypto
+        run: cd packages/crypto && npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @axiomid/sdk
+        run: cd packages/sdk && npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

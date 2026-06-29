@@ -506,8 +506,8 @@ model Stake {
   id         String   @id @default(uuid())
   userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount     Float
-  status     StakeStatus @default(STAKED)
+  amount     Decimal  @db.Decimal(20, 8)
+  status     String   @default("staked") // staked | unstaked
   createdAt  DateTime @default(now())
 
   @@index([userId])
@@ -517,15 +517,10 @@ model SlashingEvent {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amount    Float
+  amount    Decimal  @db.Decimal(20, 8)
   reason    String   @db.VarChar(500)
   createdAt DateTime @default(now())
 
   @@index([userId])
-}
-
-enum StakeStatus {
-  STAKED
-  UNSTAKED
 }
 

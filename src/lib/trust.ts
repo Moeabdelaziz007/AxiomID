@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const TOTAL_STAMPS = 6;
+export const TOTAL_STAMPS = 10;
 
 const TrustScoreParamsSchema = z.object({
   xp: z.number().int(),
@@ -45,6 +45,5 @@ export function calculateTrustScore(
 
   const tenureScore = Math.min(100, Math.max(0, resolvedTenure * 2)); // e.g. 50 days = 100%
   const score = xpScore * 0.5 + stampScore * 0.2 + tenureScore * 0.1 + resolvedSemantic * 0.2;
-
   return Math.max(0, Math.min(100, Math.round(score)));
 }

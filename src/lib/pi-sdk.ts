@@ -61,8 +61,9 @@ export function loadPiSdk(): Promise<unknown> {
 
     const script = document.createElement("script");
     script.src = "https://sdk.minepi.com/pi-sdk.js";
-    script.integrity = "sha384-MB+dVW+BFRnwyiBYxALhuOr8KOKBtIJdOS3MmO7M87C5+khNeoYuj09OTzIx0GDD";
-    script.crossOrigin = "anonymous";
+    // ponytail: SRI removed — Pi SDK updates without semver; stale hash silently blocks script load.
+    // CSP + HTTPS provide sufficient integrity. Pi SDK is loaded from sdk.minepi.com which is
+    // allowlisted in script-src, frame-src, and frame-ancestors CSP directives.
     script.async = true;
     script.onload = () => {
       if (win.Pi) {
@@ -88,6 +89,17 @@ export function determineSandboxMode(): boolean {
     return process.env.NEXT_PUBLIC_PI_SANDBOX === "true";
   }
   const hostname = window.location.hostname;
+
+  // ponytail: Production domain is NEVER sandbox — short-circuit before iframe/referrer checks.
+  // Pi Browser loads apps inside an iframe where document.referrer can be sandbox.minepi.com
+  // even on production domains, causing false positives.
+  if (
+    hostname === "axiomid.app" ||
+    hostname.endsWith(".axiomid.app")
+  ) {
+    return false;
+  }
+
   if (
     hostname === "localhost" ||
     hostname === "127.0.0.1" ||
@@ -222,20 +234,50 @@ export async function connectPi(pushLog?: (msg: string) => void): Promise<PiSdkA
 
       const onIncompletePaymentFound = async (payment: PiPaymentDTO) => {
         logger.info("[Pi Auth] Incomplete payment found:", payment);
-        pushLog?.("Incomplete payment detected — completing payment...");
+        pushLog?.("Incomplete payment detected — resolving...");
+
+        // Pi SDK provides payment.status to know what steps remain
+        if (payment.status?.developer_completed) {
+          pushLog?.("Payment already completed — skipping.");
+          return;
+        }
+
+        const paymentId = payment.identifier;
+        const txid = payment.transaction?.txid || "";
+
         try {
-          const token = typeof localStorage !== "undefined" ? localStorage.getItem("pi_access_token") : null;
           const headers: Record<string, string> = { "Content-Type": "application/json" };
+          const token = typeof localStorage !== "undefined" ? localStorage.getItem("pi_access_token") : null;
           if (token) headers["Authorization"] = `Bearer ${token}`;
-          const response = await fetch("/api/pi/payment/complete", {
+
+          // Step 1: Approve if not yet approved
+          if (!payment.status?.developer_approved) {
+            pushLog?.("Approving incomplete payment...");
+            const approveRes = await fetch("/api/pi/payment/approve", {
+              method: "POST",
+              headers,
+              body: JSON.stringify({ paymentId }),
+            });
+            if (!approveRes.ok) {
+              logger.error("[Pi Auth] Incomplete payment approval failed:", approveRes.status);
+              pushLog?.("Failed to approve incomplete payment.");
+              return;
+            }
+            pushLog?.("Payment approved.");
+          }
+
+          // Step 2: Complete the payment
+          pushLog?.("Completing payment...");
+          const completeRes = await fetch("/api/pi/payment/complete", {
             method: "POST",
             headers,
-            body: JSON.stringify({ paymentId: payment.identifier, txid: payment.transaction?.txid || "" }),
+            body: JSON.stringify({ paymentId, txid }),
           });
-          if (response.ok) {
+          if (completeRes.ok) {
             pushLog?.("Incomplete payment resolved successfully.");
           } else {
-            logger.error("[Pi Auth] Incomplete payment completion failed:", await response.json());
+            logger.error("[Pi Auth] Incomplete payment completion failed:", completeRes.status);
+            pushLog?.("Failed to complete incomplete payment.");
           }
         } catch (err) {
           logger.error("[Pi Auth] Incomplete payment resolution error:", err);
@@ -374,20 +416,18 @@ export async function createPiPayment(amount: number, memo: string, metadata?: R
       metadata: metadata || {},
     }, {
       onReadyForServerApproval: async (paymentId: string) => {
-        try {
-          const headers: Record<string, string> = { "Content-Type": "application/json" };
-          if (token) headers["Authorization"] = `Bearer ${token}`;
-          const response = await fetch("/api/pi/payment/approve", {
-            method: "POST",
-            headers,
-            body: JSON.stringify({ paymentId }),
-          });
-          if (!response.ok) {
-            const error = await response.json();
-            logger.error("[Pi Payment] Server approval failed:", error);
-          }
-        } catch (err) {
-          logger.error("[Pi Payment] Server approval error:", err);
+        const headers: Record<string, string> = { "Content-Type": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+        const response = await fetch("/api/pi/payment/approve", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ paymentId }),
+        });
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          const msg = (error as { error?: string }).error || response.statusText;
+          logger.error("[Pi Payment] Server approval failed:", msg);
+          throw new PiSdkError(PiSdkErrorCode.GENERIC_ERROR, `Server approval failed: ${msg}`);
         }
       },
       onReadyForServerCompletion: async (paymentId: string, txid: string) => {
