@@ -29,7 +29,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           python3 << 'PYEOF'
-          import json, urllib.request, urllib.error, os, sys, subprocess
+          import json, urllib.request, urllib.error, os, sys
 
           GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 
@@ -103,10 +103,8 @@ jobs:
               if not labels:
                   labels = ["needs-triage"]
 
-              output_path = os.environ.get("GITHUB_OUTPUT", "")
-              if output_path:
-                  with open(output_path, "a") as f:
-                      f.write(f"labels={json.dumps(labels)}\n")
+              if needs_human and "needs-human-approval" not in labels:
+                  labels.append("needs-human-approval")
 
               with open("/tmp/ai-triage-result.json", "w") as f:
                   json.dump({"labels": labels, "summary": summary, "needs_human": needs_human}, f)
@@ -124,6 +122,8 @@ jobs:
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           python3 << 'PYEOF'
           import json, os, sys, subprocess
@@ -137,21 +137,22 @@ jobs:
 
           labels = result.get("labels", [])
           summary = result.get("summary", "")
-          number = os.environ.get("ISSUE_NUMBER", "${{ github.event.issue.number }}")
-          repo = os.environ.get("GITHUB_REPOSITORY", "${{ github.repository }}")
+          number = os.environ["ISSUE_NUMBER"]
+          repo = os.environ["GITHUB_REPOSITORY"]
 
           if labels:
               cmd = ["gh", "issue", "edit", number, "--repo", repo, "--add-label"] + labels
-              proc = subprocess.run(cmd, capture_output=True, text=True)
+              proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
               if proc.returncode != 0:
                   print(f"⚠️  Label command failed: {proc.stderr}")
               else:
                   print(f"✅ Labels applied: {labels}")
 
           if summary:
-              body = f"## 🤖 AI Triage\n\n**{summary}**\n\n_Automated by AxiomID AI Triage Agent_"
+              safe_summary = summary.replace("\\", "\\\\").replace('"', '\\"')
+              body = f"## 🤖 AI Triage\n\n**{safe_summary}**\n\n_Automated by AxiomID AI Triage Agent_"
               cmd = ["gh", "issue", "comment", number, "--repo", repo, "--body", body]
-              proc = subprocess.run(cmd, capture_output=True, text=True)
+              proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
               if proc.returncode != 0:
                   print(f"⚠️  Comment command failed: {proc.stderr}")
               else:
