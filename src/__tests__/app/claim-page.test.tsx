@@ -20,6 +20,21 @@ jest.mock("@/lib/pi-native-features", () => ({
   requestKycConsent: jest.fn().mockResolvedValue(null),
 }));
 
+// Mock DevModeBanner
+jest.mock("@/components/DevModeBanner", () => ({
+  DevModeBanner: () => null,
+}));
+
+// Mock fetch for /api/pi/kya/verify
+const mockFetch = jest.fn().mockResolvedValue({
+  ok: true,
+  json: () =>
+    Promise.resolve({
+      data: { kycStatus: "VERIFIED", uid: "pi-uid-123", computedTrustScore: 80 },
+    }),
+});
+global.fetch = mockFetch;
+
 // Mock Header and Footer to isolate test surface
 jest.mock("@/components/Header", () => {
   const Header = () => null;
@@ -149,11 +164,11 @@ describe("ClaimPage — step 2 (KYA verify)", () => {
     expect(screen.getByText("Know Your Agent")).toBeInTheDocument();
   });
 
-  it("renders 'START KYA VERIFICATION' button on step 2", () => {
+  it("renders 'START VERIFICATION' button on step 2", () => {
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));
     render(<ClaimPage />);
     fireEvent.click(screen.getByText("Continue"));
-    expect(screen.getByText("START KYA VERIFICATION")).toBeInTheDocument();
+    expect(screen.getByText("START VERIFICATION")).toBeInTheDocument();
   });
 
   it("does NOT render 'Pi Testnet' on step 2", () => {
@@ -177,9 +192,8 @@ describe("ClaimPage — step 3 (deploy — PR change: Pi Testnet)", () => {
    * Navigate to step 3 by:
    * 1. Mock user with walletAddress
    * 2. Click Continue → step 2
-   * 3. Click "START KYA VERIFICATION" → starts interval
-   * 4. Run all timers to complete verification
-   * 5. Click Continue → step 3
+   * 3. Click "START VERIFICATION" → calls API, items light up
+   * 4. Click Continue → step 3
    */
   async function navigateToStep3() {
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));
@@ -188,14 +202,9 @@ describe("ClaimPage — step 3 (deploy — PR change: Pi Testnet)", () => {
     // Step 1 → Step 2
     fireEvent.click(screen.getByText("Continue"));
 
-    // Trigger verification (async — requestKycConsent mock resolves immediately)
+    // Trigger real verification (fetch mock resolves immediately)
     await act(async () => {
-      fireEvent.click(screen.getByText("START KYA VERIFICATION"));
-    });
-
-    // Run interval: 50 ticks at 40ms each = 2000ms total to reach 100
-    act(() => {
-      jest.advanceTimersByTime(5000); // 50 * 40ms = 2000ms, advance 5s to be safe
+      fireEvent.click(screen.getByText("START VERIFICATION"));
     });
 
     await waitFor(() => {
@@ -301,82 +310,112 @@ describe("ClaimPage — handleConnect (PR change: no try/catch)", () => {
   });
 });
 
-// ─── PR change: handleVerify now wraps everything in try/catch ───────────────
-describe("ClaimPage — handleVerify (PR change: try/catch for KYC consent)", () => {
-  const { requestKycConsent } = jest.requireMock("@/lib/pi-native-features");
-
-  it("does not complete verification when requestKycConsent throws", async () => {
-    requestKycConsent.mockRejectedValueOnce(new Error("User dismissed consent"));
+// ─── PR change: handleVerify now calls POST /api/pi/kya/verify ────────────────
+describe("ClaimPage — handleVerify (real verification)", () => {
+  it("shows 'Pi KYC' verification item on step 2", () => {
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));
     render(<ClaimPage />);
+    fireEvent.click(screen.getByText("Continue"));
+    expect(screen.getByText("Pi KYC")).toBeInTheDocument();
+  });
 
-    // Navigate to step 2
+  it("shows 'Payment Proof' verification item on step 2", () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));
+    render(<ClaimPage />);
+    fireEvent.click(screen.getByText("Continue"));
+    expect(screen.getByText("Payment Proof")).toBeInTheDocument();
+  });
+
+  it("shows 'On-Chain Anchor' verification item on step 2", () => {
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));
+    render(<ClaimPage />);
+    fireEvent.click(screen.getByText("Continue"));
+    expect(screen.getByText("On-Chain Anchor")).toBeInTheDocument();
+  });
+
+  it("calls POST /api/pi/kya/verify when START VERIFICATION is clicked", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: { kycStatus: "VERIFIED", uid: "pi-uid-123", computedTrustScore: 80 },
+        }),
+    });
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));
+    render(<ClaimPage />);
     fireEvent.click(screen.getByText("Continue"));
 
     await act(async () => {
-      fireEvent.click(screen.getByText("START KYA VERIFICATION"));
+      fireEvent.click(screen.getByText("START VERIFICATION"));
     });
 
-    // Advance timers (but no interval should run)
-    act(() => {
-      jest.advanceTimersByTime(5000);
-    });
-
-    // Should NOT show VERIFICATION COMPLETE
-    expect(screen.queryByText("VERIFICATION COMPLETE")).toBeNull();
-    // Continue button remains disabled (not verified)
-    expect(screen.getByText("Continue")).toBeDisabled();
-  });
-
-  it("proceeds to set progress=0 silently when consent rejected", async () => {
-    requestKycConsent.mockRejectedValueOnce(new Error("Consent dismissed"));
-    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));
-    render(<ClaimPage />);
-
-    fireEvent.click(screen.getByText("Continue"));
-
-    // Clicking START KYA VERIFICATION should not throw
-    await expect(
-      act(async () => {
-        fireEvent.click(screen.getByText("START KYA VERIFICATION"));
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/pi/kya/verify",
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
       })
-    ).resolves.not.toThrow();
+    );
   });
 
-  it("does not complete verification when consent returns all-rejected values", async () => {
-    // consent dialog returned but all items false
-    requestKycConsent.mockResolvedValueOnce({ item1: false, item2: false });
+  it("completes verification when API returns OK", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: { kycStatus: "VERIFIED", uid: "pi-uid-123", computedTrustScore: 80 },
+        }),
+    });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));
     render(<ClaimPage />);
-
     fireEvent.click(screen.getByText("Continue"));
 
     await act(async () => {
-      fireEvent.click(screen.getByText("START KYA VERIFICATION"));
+      fireEvent.click(screen.getByText("START VERIFICATION"));
     });
 
-    act(() => {
-      jest.advanceTimersByTime(5000);
+    await waitFor(() => {
+      expect(screen.queryByText("VERIFICATION COMPLETE")).not.toBeNull();
+    });
+  });
+
+  it("does not complete verification when API fails", async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false });
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));
+    render(<ClaimPage />);
+    fireEvent.click(screen.getByText("Continue"));
+
+    await act(async () => {
+      fireEvent.click(screen.getByText("START VERIFICATION"));
     });
 
-    // Not verified because allAccepted = false
-    expect(screen.queryByText("VERIFICATION COMPLETE")).toBeNull();
+    await waitFor(() => {
+      expect(screen.queryByText("VERIFICATION COMPLETE")).toBeNull();
+    });
     expect(screen.getByText("Continue")).toBeDisabled();
   });
 
-  it("completes verification when requestKycConsent resolves with null (not in Pi Browser)", async () => {
-    requestKycConsent.mockResolvedValueOnce(null); // simulates non-Pi Browser
+  it("shows PENDING status before verification starts", () => {
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));
     render(<ClaimPage />);
+    fireEvent.click(screen.getByText("Continue"));
+    expect(screen.getAllByText("PENDING").length).toBe(3);
+  });
 
+  it("shows VERIFIED on items during verification, then VERIFICATION COMPLETE", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: { kycStatus: "VERIFIED", uid: "pi-uid-123", computedTrustScore: 80 },
+        }),
+    });
+    mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));
+    render(<ClaimPage />);
     fireEvent.click(screen.getByText("Continue"));
 
     await act(async () => {
-      fireEvent.click(screen.getByText("START KYA VERIFICATION"));
-    });
-
-    act(() => {
-      jest.advanceTimersByTime(5000);
+      fireEvent.click(screen.getByText("START VERIFICATION"));
     });
 
     await waitFor(() => {
