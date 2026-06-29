@@ -23,7 +23,7 @@ jest.mock("@/components/XPBurst", () => ({
 
 // PR change: icon is now React.ReactNode (JSX element), no longer a string emoji
 const defaultProps = {
-  type: "connect_twitter",
+  type: "connect_wallet",
   label: "Twitter Stamp",
   xp: 50,
   icon: <AtSign className="w-6 h-6" data-testid="stamp-icon" />,

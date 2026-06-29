@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const TOTAL_STAMPS = 6;
+export const TOTAL_STAMPS = 10;
 
 const TrustScoreParamsSchema = z.object({
   xp: z.number().int(),

@@ -145,10 +145,10 @@ describe("AgentPassport — SYSTEM MODULES Zap icon (PR change: emoji → Lucide
 describe("AgentPassport — Dynamic System Modules", () => {
   it("renders all module slots (active and inactive)", () => {
     render(<AgentPassport {...defaultProps} />);
-    expect(screen.getByText("PI NET")).toBeInTheDocument();
-    expect(screen.getByText("TWITTER")).toBeInTheDocument();
-    expect(screen.getByText("DISCORD")).toBeInTheDocument();
-    expect(screen.getByText("GOOGLE")).toBeInTheDocument();
+    expect(screen.getByText("WALLET")).toBeInTheDocument();
+    expect(screen.getByText("KYC")).toBeInTheDocument();
+    expect(screen.getByText("PI PAY")).toBeInTheDocument();
+    expect(screen.getByText("SECURITY")).toBeInTheDocument();
   });
 
   it("renders inactive slot with Eye icon for unconnected modules", () => {
@@ -159,8 +159,8 @@ describe("AgentPassport — Dynamic System Modules", () => {
 
   it("renders active modules when stamps are provided", () => {
     const stamps = [
-      { type: "verify_identity", provider: "pi" },
-      { type: "connect_twitter", provider: "twitter" },
+      { type: "complete_kyc", provider: "pi" },
+      { type: "connect_wallet", provider: "wallet" },
     ];
     render(<AgentPassport {...defaultProps} stamps={stamps} />);
     const onLabels = screen.getAllByText("ON");
@@ -168,9 +168,9 @@ describe("AgentPassport — Dynamic System Modules", () => {
   });
 
   it("shows correct active/total count", () => {
-    const stamps = [{ type: "verify_identity", provider: "pi" }];
+    const stamps = [{ type: "complete_kyc", provider: "pi" }];
     render(<AgentPassport {...defaultProps} stamps={stamps} />);
-    expect(screen.getByText("ACTIVE: 1/6")).toBeInTheDocument();
+    expect(screen.getByText("ACTIVE: 1/9")).toBeInTheDocument();
   });
 
   it("does not render '👁️' emoji text in module slots", () => {

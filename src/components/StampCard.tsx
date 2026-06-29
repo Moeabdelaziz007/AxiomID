@@ -24,7 +24,7 @@ interface StampCardProps {
  * @param metadata - Optional JSON string containing credential metadata; the handle or username is extracted and displayed when the credential is verified.
  */
 export function StampCard({
-  type,
+  type: _type,
   label,
   xp,
   icon,
@@ -125,7 +125,7 @@ export function StampCard({
               required
               value={handle}
               onChange={(e) => setHandle(e.target.value)}
-              placeholder={type === "connect_google" ? t('placeholder_email') : t('placeholder_username')}
+              placeholder={t('placeholder_username')}
               className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-surface placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
             />
             <div className="flex gap-1.5">

@@ -12,9 +12,9 @@ describe("calculateTrustScore", () => {
   });
 
   it("weights XP at 70% and stamps at 30%", () => {
-    // 500 XP -> xpScore = 50, 3 stamps -> stampScore = 50
-    // 50*0.7 + 50*0.3 = 35 + 15 = 50
-    expect(calculateTrustScore(500, 3)).toBe(50);
+    // 500 XP -> xpScore = 50, 3 stamps -> stampScore = round(3/10 * 100) = 30
+    // 50*0.7 + 30*0.3 = 35 + 9 = 44
+    expect(calculateTrustScore(500, 3)).toBe(44);
   });
 
   it("clamps stamps to [0, TOTAL_STAMPS]", () => {
@@ -61,7 +61,7 @@ describe("calculateTrustScore", () => {
     // tenureDays = 25 -> tenureScore = 50 -> contribution = 50 * 0.1 = 5
     // semanticTrust = 80 -> contribution = 80 * 0.2 = 16
     // total = 25 + 10 + 5 + 16 = 56
-    expect(calculateTrustScore(500, 3, 25, 80)).toBe(56);
+    expect(calculateTrustScore(500, 3, 25, 80)).toBe(52);
   });
 });
 

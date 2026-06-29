@@ -365,13 +365,13 @@ describe("useWalletActions — claimAction", () => {
     );
 
     await act(async () => {
-      await result.current.claimAction("connect_twitter");
+      await result.current.claimAction("connect_wallet");
     });
 
     const updaterCall = setUser.mock.calls[0][0];
     const updatedUser = updaterCall(userRef.current!);
     const lastStamp = updatedUser.stamps[updatedUser.stamps.length - 1];
-    expect(lastStamp.provider).toBe("twitter");
+    expect(lastStamp.provider).toBe("wallet");
   });
 
   it("uses 'system' provider for non-connect_ action types", async () => {
@@ -771,7 +771,7 @@ describe("useWalletActions — claimAction with metadata", () => {
     );
 
     await act(async () => {
-      await result.current.claimAction("connect_twitter", metadata);
+      await result.current.claimAction("connect_wallet", metadata);
     });
 
     const callBody = JSON.parse(mockFetch.mock.calls[0][1].body);

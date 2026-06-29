@@ -83,7 +83,7 @@ describe('POST /api/passport/[slug]/publish', () => {
       xp: 150,
       kycStatus: 'VERIFIED',
       createdAt: new Date(),
-      stamps: [{ type: 'verify_identity', provider: 'pi' }],
+      stamps: [{ type: 'complete_kyc', provider: 'pi' }],
     } as any);
 
     const req = mockPostRequest({});
@@ -130,7 +130,7 @@ describe('POST /api/passport/[slug]/publish', () => {
         xp: 150,
         kycStatus: 'VERIFIED',
         createdAt: new Date(),
-        stamps: [{ type: 'verify_identity', provider: 'pi' }],
+        stamps: [{ type: 'complete_kyc', provider: 'pi' }],
       } as any);
 
       const req = mockPostRequest({});
