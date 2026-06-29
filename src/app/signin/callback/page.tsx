@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { parsePiSignInCallback, fetchPiUser } from "@/lib/pi-signin";
 
+/**
+ * Completes the Pi sign-in callback flow.
+ *
+ * @returns The sign-in callback page content.
+ */
 export default function PiSignInCallbackPage() {
   const router = useRouter();
   const [status, setStatus] = useState<"processing" | "error">("processing");

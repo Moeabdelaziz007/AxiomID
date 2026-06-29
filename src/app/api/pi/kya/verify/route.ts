@@ -14,6 +14,11 @@ const VerifyKycSchema = z.object({
   accessToken: z.string().min(1),
 });
 
+/**
+ * Verifies a user's KYC status and updates their account.
+ *
+ * @returns The API response containing the resulting KYC status, Pi UID, and computed trust score.
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`kya-verify:${ip}`, RATE_LIMITS.authenticated);

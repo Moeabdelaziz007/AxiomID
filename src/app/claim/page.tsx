@@ -46,6 +46,9 @@ const stepVariants = {
   }),
 };
 
+/**
+ * Renders the identity claim wizard page.
+ */
 export default function ClaimPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1);

@@ -29,6 +29,11 @@ interface UseWalletAuthReturn {
   connectDemo: () => Promise<void>;
 }
 
+/**
+ * Manages wallet authentication, logout, disconnection, and demo mode state.
+ *
+ * @returns The wallet auth actions exposed by the hook.
+ */
 export function useWalletAuth({
   setUser,
   setPiAccessToken,

@@ -6,11 +6,23 @@ export interface PiSignInOptions {
   state?: string;
 }
 
+/**
+ * Gets the configured Pi OAuth client ID.
+ *
+ * @returns The value of `process.env.NEXT_PUBLIC_PI_OAUTH_CLIENT_ID`, or `null` when it is unavailable.
+ */
 export function getPiOAuthClientId(): string | null {
   if (typeof process === "undefined") return null;
   return process.env.NEXT_PUBLIC_PI_OAUTH_CLIENT_ID || null;
 }
 
+/**
+ * Builds the Pi OAuth authorization URL.
+ *
+ * @param options - Sign-in options used to set the redirect URI, scopes, and state.
+ * @returns The complete Pi authorization URL.
+ * @throws If the Pi OAuth client ID is not configured.
+ */
 export function buildPiSignInUrl(options: PiSignInOptions): string {
   const clientId = getPiOAuthClientId();
   if (!clientId) throw new Error("NEXT_PUBLIC_PI_OAUTH_CLIENT_ID not configured");
@@ -26,6 +38,11 @@ export function buildPiSignInUrl(options: PiSignInOptions): string {
   return url.toString();
 }
 
+/**
+ * Starts the Pi sign-in flow.
+ *
+ * @param options - Sign-in settings such as redirect URI, scopes, and state.
+ */
 export function initiatePiSignIn(options?: PiSignInOptions): void {
   try {
     if (typeof window !== "undefined" && window.Pi?.signIn && getPiOAuthClientId()) {
@@ -46,6 +63,11 @@ export interface PiSignInCallbackResult {
   error?: string;
 }
 
+/**
+ * Parses the Pi OAuth sign-in callback from the URL fragment.
+ *
+ * @returns The access token on success, or an error message if sign-in failed or the callback is invalid.
+ */
 export function parsePiSignInCallback(): PiSignInCallbackResult {
   const params = new URLSearchParams(window.location.hash.slice(1));
   const expectedState = sessionStorage.getItem("pi_oauth_state");
@@ -75,6 +97,12 @@ export function parsePiSignInCallback(): PiSignInCallbackResult {
   return { accessToken };
 }
 
+/**
+ * Fetches the Pi profile for an access token.
+ *
+ * @param accessToken - The Pi OAuth access token.
+ * @returns The user's Pi ID and username.
+ */
 export async function fetchPiUser(accessToken: string): Promise<{ uid: string; username: string }> {
   const res = await fetch("https://api.minepi.com/v2/me", {
     headers: { Authorization: `Bearer ${accessToken}` },
