@@ -111,22 +111,24 @@ export async function POST(request: NextRequest) {
               select: { hash: true },
             });
             const parentHash = lastAction?.hash || GENESIS_HASH;
+            const actionTimestamp = new Date();
             const actionHash = calculateActionHash(parentHash, {
               type: 'complete_kyc',
               xp: 200,
               metadata: '{}',
               userId: user.id,
-              timestamp: new Date(),
+              timestamp: actionTimestamp,
             });
 
             await tx.action.create({
-              data: {
+              data: { 
                 userId: user.id,
                 type: 'complete_kyc',
                 xp: 200,
                 metadata: '{}',
                 hash: actionHash,
                 parentHash,
+                timestamp: actionTimestamp,
               },
             });
 
