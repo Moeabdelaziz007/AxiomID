@@ -9,7 +9,7 @@ import { ACTIONS } from '@/lib/actions';
 import { calculateTier } from '@/lib/tiers';
 import { requireAuth } from '@/lib/auth-middleware';
 
-const DISCONNECTABLE = new Set(['twitter', 'discord', 'google']);
+const DISCONNECTABLE = new Set(['connect_wallet', 'security_circle', 'complete_kyc']);
 
 /**
  * POST /api/social/disconnect — Remove a connected social account for the authenticated user.
@@ -41,10 +41,10 @@ export async function POST(request: NextRequest) {
 
   const platform = (body as { platform?: unknown })?.platform;
   if (typeof platform !== 'string' || !DISCONNECTABLE.has(platform)) {
-    return apiError('VALIDATION_ERROR', 'platform must be one of: twitter, discord, google');
+    return apiError('VALIDATION_ERROR', 'platform must be one of: connect_wallet, security_circle, complete_kyc');
   }
 
-  const actionType = `connect_${platform}`;
+  const actionType = platform;
   const actionDef = Object.values(ACTIONS).find((a) => a.id === actionType);
   const awardedXp = actionDef?.xp ?? 0;
 
