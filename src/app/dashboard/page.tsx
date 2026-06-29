@@ -8,6 +8,7 @@ import { useWallet } from "../context/wallet-context";
 import skillsData from "@/data/skills.json";
 import { AgentCard } from "@/components/AgentCard";
 import { OnboardingModal } from "@/components/dashboard/OnboardingModal";
+import { DonateWithPiCard } from "@/components/dashboard/DonateWithPiCard";
 import { useLanguage } from "../context/language-context";
 import { Fingerprint, Zap, Bot, Terminal, Store } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
@@ -372,6 +373,8 @@ export default function Dashboard() {
                       </button>
                     </div>
                   </div>
+
+                  <DonateWithPiCard />
 
                   <SkillsCard skills={skillsData.skills.slice(0, 3)} />
                 </div>

@@ -326,11 +326,11 @@ describe("ClaimPage — handleVerify (real verification)", () => {
     expect(screen.getByText("Payment Proof")).toBeInTheDocument();
   });
 
-  it("shows 'On-Chain Anchor' verification item on step 2", () => {
+  it("shows 'Pi KYC' verification item on step 2", () => {
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));
     render(<ClaimPage />);
     fireEvent.click(screen.getByText("Continue"));
-    expect(screen.getByText("On-Chain Anchor")).toBeInTheDocument();
+    expect(screen.getByText("Pi KYC")).toBeInTheDocument();
   });
 
   it("calls POST /api/pi/kya/verify when START VERIFICATION is clicked", async () => {
