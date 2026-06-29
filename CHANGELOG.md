@@ -4,6 +4,19 @@ All notable changes to the AxiomID project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.1.2] - 2026-06-28
+
+### Added
+
+- Stellar VC anchoring — hash VCs on Stellar testnet/mainnet for tamper-proof on-chain verification
+- `computeVcHash()` — deterministic SHA-256 of canonicalized VCs
+- `anchorVcHash()` — full flow: hash → build tx → sign → submit to Horizon
+- `verifyVcOnChain()` — fetch memo from Horizon and compare with presented VC
+- `POST /api/stellar/anchor` — API endpoint for anchoring VCs (authenticated, rate-limited)
+- `docs/STELLAR_ANCHORING.md` — full documentation with API reference and architecture
+
+---
+
 ## [0.1.1] - 2026-06-27
 
 ### Added
