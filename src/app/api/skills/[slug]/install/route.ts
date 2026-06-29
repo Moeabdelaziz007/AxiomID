@@ -97,10 +97,17 @@ export async function POST(
           data: { installCount: { increment: 1 } },
         });
         if (consumablePaymentId) {
-          await tx.piPayment.update({
-            where: { id: consumablePaymentId },
+          // Atomically claim the payment: only succeeds if it is still
+          // unconsumed. Guards against a TOCTOU race where two concurrent
+          // installs select the same RELEASED payment before either consumes
+          // it. A zero-row result means another request won — roll back.
+          const claimed = await tx.piPayment.updateMany({
+            where: { id: consumablePaymentId, consumedByInstallationId: null },
             data: { consumedByInstallationId: existingInstallation.id },
           });
+          if (claimed.count !== 1) {
+            throw new Error('PAYMENT_ALREADY_CONSUMED');
+          }
         }
       });
     } else {
@@ -117,10 +124,17 @@ export async function POST(
           data: { installCount: { increment: 1 } },
         });
         if (consumablePaymentId) {
-          await tx.piPayment.update({
-            where: { id: consumablePaymentId },
+          // Atomically claim the payment: only succeeds if it is still
+          // unconsumed. Guards against a TOCTOU race where two concurrent
+          // installs select the same RELEASED payment before either consumes
+          // it. A zero-row result means another request won — roll back.
+          const claimed = await tx.piPayment.updateMany({
+            where: { id: consumablePaymentId, consumedByInstallationId: null },
             data: { consumedByInstallationId: created.id },
           });
+          if (claimed.count !== 1) {
+            throw new Error('PAYMENT_ALREADY_CONSUMED');
+          }
         }
       });
     }

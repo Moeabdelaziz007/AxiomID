@@ -60,15 +60,6 @@ export async function POST(request: NextRequest) {
 
     const kycStatus = kycResult.kycVerified ? 'VERIFIED' : 'PENDING';
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        kycStatus,
-        kycProvider: 'pi_network',
-        kycVerifiedAt: kycResult.kycVerified ? new Date() : null,
-      },
-    });
-
     const stampsToScore = user.stamps.map(s => ({
       type: s.type as string,
       xp: s.xpAwarded,
@@ -78,6 +69,20 @@ export async function POST(request: NextRequest) {
     if (kycResult.kycVerified) {
       try {
         await prisma.$transaction(async (tx) => {
+          // Persist KYC status inside the transaction so it is atomic with the
+          // stamp/XP/ledger/action writes — a failure must not leave the user
+          // marked VERIFIED without the corresponding records. Done before the
+          // idempotency early-return so status is repaired even if the stamp
+          // already exists.
+          await tx.user.update({
+            where: { id: user.id },
+            data: {
+              kycStatus,
+              kycProvider: 'pi_network',
+              kycVerifiedAt: new Date(),
+            },
+          });
+
           const existingStamp = await tx.stamp.findUnique({
             where: { user_stamp_unique: { userId: user.id, type: 'complete_kyc' } },
           });
@@ -95,6 +100,17 @@ export async function POST(request: NextRequest) {
             where: { id: user.id },
             data: { xp: { increment: 200 } },
             select: { xp: true },
+          });
+          // Record the XP grant in the ledger so the audit chain stays complete,
+          // matching every other XP-awarding route (e.g. stamp/claim).
+          await tx.xpLedger.create({
+            data: {
+              userId: user.id,
+              amount: 200,
+              reason: 'action_claim',
+              reference: JSON.stringify({ type: 'complete_kyc' }),
+              balance: totalXp,
+            },
           });
           const nextTier = calculateTier(totalXp);
           if (nextTier !== user.tier) {
@@ -135,6 +151,17 @@ export async function POST(request: NextRequest) {
         const code = (txErr as { code?: string })?.code;
         if (code !== 'P2002') throw txErr;
       }
+    } else {
+      // Not verified: persist the PENDING status outside a transaction since
+      // there are no accompanying stamp/XP writes on this path.
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          kycStatus,
+          kycProvider: 'pi_network',
+          kycVerifiedAt: null,
+        },
+      });
     }
 
     const computedTrustScore = computeTrustScore(stampsToScore, false, user.lastActive);
