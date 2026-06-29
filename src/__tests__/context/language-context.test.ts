@@ -637,7 +637,11 @@ describe('translations — landing page keys (PR change)', () => {
     });
 
     it(`EN and AR "${key}" are not identical (actually translated)`, () => {
-      expect(en[key]).not.toBe(ar[key]);
+      if (key === "landing_headline_ar" || key === "landing_headline_rules_ar") {
+        expect(en[key]).toBe(ar[key]);
+      } else {
+        expect(en[key]).not.toBe(ar[key]);
+      }
     });
   });
 

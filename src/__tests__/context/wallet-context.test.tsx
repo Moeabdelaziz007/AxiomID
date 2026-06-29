@@ -150,6 +150,7 @@ describe("WalletProvider & WalletContext", () => {
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith("/api/user/status", {
         headers: { Authorization: "Bearer token123" },
+        signal: expect.any(AbortSignal),
       });
       expect(contextValue.isLoading).toBe(false);
     });

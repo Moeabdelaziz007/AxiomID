@@ -363,6 +363,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
     removeLocalStorageItem("axiomid_logged_out");
 
+    if (!checkPiBrowser() && !determineSandboxMode()) {
+      setIsConnecting(false);
+      connectingRef.current = false;
+      throw new Error("Pi Browser required. Open this app inside Pi Browser to connect your wallet.");
+    }
+
     try {
       if (typeof window !== "undefined") {
         let result;
@@ -665,7 +671,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         headers["Authorization"] = `Bearer ${storedToken}`;
       }
 
-      fetch(`/api/user/status`, { headers }).then(res => {
+      fetch(`/api/user/status`, { headers, signal: AbortSignal.timeout(2000) }).then(res => {
         if (!res.ok) {
           removeLocalStorageItem("axiomid_wallet");
           removeLocalStorageItem("pi_access_token");

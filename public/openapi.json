@@ -1,260 +1,143 @@
 {
-  "openapi": "3.1.0",
+  "openapi": "3.0.3",
   "info": {
-    "title": "AxiomID API",
-    "description": "W3C DID-based identity layer for humans delegating authority to AI agents on Pi Network and Stellar.",
+    "title": "AxiomID Developer API Reference",
+    "description": "Cryptographic proof of humanity, decentralized identity resolver (did:axiom), verifiable credential signing, and autonomous agent coordination endpoints for Pi Network.",
     "version": "1.0.0",
     "contact": {
-      "name": "AxiomID",
+      "name": "AxiomID Support",
       "url": "https://axiomid.app"
     }
   },
   "servers": [
     {
       "url": "https://axiomid.app",
-      "description": "Production"
+      "description": "Production Endpoint"
     }
   ],
   "paths": {
-    "/api": {
+    "/api/passport/{slug}": {
       "get": {
-        "summary": "API Root Discovery",
-        "description": "Returns list of all available endpoints and discovery information.",
-        "tags": ["Discovery"],
+        "summary": "Retrieve public passport profile",
+        "description": "Returns the verification badges, trust score, XP, user tier, and associated agent for a given username slug.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "description": "The pioneer's username registration slug",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "API catalog",
+            "description": "Passport fetched successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "name": { "type": "string" },
-                    "version": { "type": "string" },
-                    "endpoints": { "type": "object" },
-                    "discovery": { "type": "object" }
-                  }
+                  "$ref": "#/components/schemas/PassportResponse"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Passport not found"
           }
         }
       }
     },
     "/api/did-document": {
       "get": {
-        "summary": "DID Document Resolution",
-        "description": "Returns W3C DID document for a given DID or the issuer DID.",
-        "tags": ["Identity"],
+        "summary": "Resolve DID identifier",
+        "description": "Resolves a did:axiom identifier to its corresponding W3C DID document.",
         "parameters": [
           {
             "name": "did",
             "in": "query",
-            "schema": { "type": "string" },
-            "description": "DID to resolve (e.g., did:axiom:username)"
+            "required": true,
+            "description": "The target did:axiom identifier",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "DID Document",
+            "description": "W3C DID document returned successfully",
             "content": {
-              "application/did+ld+json": {
-                "schema": { "$ref": "#/components/schemas/DidDocument" }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DidDocument"
+                }
               }
             }
           }
         }
       }
     },
-    "/.well-known/jwks.json": {
+    "/api/status": {
       "get": {
-        "summary": "JSON Web Key Set",
-        "description": "Returns Ed25519 public keys for signature verification.",
-        "tags": ["Discovery"],
+        "summary": "Real-time protocol metrics",
+        "description": "Returns stats on active users, total registered agents, total XP, and verification rates.",
         "responses": {
           "200": {
-            "description": "JWKS",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "keys": {
-                      "type": "array",
-                      "items": { "$ref": "#/components/schemas/JsonWebKey" }
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Current status statistics"
           }
         }
       }
     },
-    "/api/agent/identity": {
-      "post": {
-        "summary": "Verify Agent Identity",
-        "description": "Verify Pi ID-JAG token and create/update agent identity.",
-        "tags": ["Agent"],
-        "security": [{ "bearerAuth": [] }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["idToken"],
-                "properties": {
-                  "idToken": { "type": "string", "description": "Pi Network ID-JAG token" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Identity verified",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "user": { "$ref": "#/components/schemas/User" },
-                    "agent": { "$ref": "#/components/schemas/Agent" },
-                    "did": { "type": "string" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/agent/sign": {
-      "post": {
-        "summary": "Sign Payload",
-        "description": "Sign a payload with the agent's sovereign Ed25519 key.",
-        "tags": ["Agent"],
-        "security": [{ "bearerAuth": [] }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["payload", "did"],
-                "properties": {
-                  "payload": { "type": "string", "description": "Base64-encoded payload to sign" },
-                  "did": { "type": "string", "description": "DID to sign with" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Signature created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "signature": { "type": "string" },
-                    "kid": { "type": "string" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/oauth2/token": {
-      "post": {
-        "summary": "Token Exchange",
-        "description": "Exchange Pi token for AxiomID access token via JWT bearer grant.",
-        "tags": ["OAuth2"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["grant_type", "assertion"],
-                "properties": {
-                  "grant_type": { "type": "string", "enum": ["urn:ietf:params:oauth:grant-type:jwt-bearer"] },
-                  "assertion": { "type": "string", "description": "Pi Network JWT token" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Access token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "access_token": { "type": "string" },
-                    "token_type": { "type": "string" },
-                    "expires_in": { "type": "integer" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/oauth2/revoke": {
-      "post": {
-        "summary": "Revoke Token",
-        "description": "Revoke an access or refresh token.",
-        "tags": ["OAuth2"],
-        "security": [{ "bearerAuth": [] }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["token"],
-                "properties": {
-                  "token": { "type": "string" },
-                  "token_type_hint": { "type": "string", "enum": ["access_token", "refresh_token"] }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": { "description": "Token revoked" }
-        }
-      }
-    },
-    "/api/skills": {
+    "/api/health": {
       "get": {
-        "summary": "Search Skills",
-        "description": "Search and list available skills in the marketplace.",
-        "tags": ["Marketplace"],
+        "summary": "System health verification",
+        "description": "Performs checks on critical systems: PostgreSQL, Stellar, Pi API gateway, and Workers AI.",
+        "responses": {
+          "200": {
+            "description": "System health status"
+          }
+        }
+      }
+    },
+    "/api/explorer": {
+      "get": {
+        "summary": "Live Explorer stats",
+        "description": "Fetches a paginated distribution of registered users, agents, and trust tiers.",
+        "responses": {
+          "200": {
+            "description": "Explorer data"
+          }
+        }
+      }
+    },
+    "/api/leaderboard": {
+      "get": {
+        "summary": "Retrieve XP leaderboard",
+        "description": "Returns the top 50 users ranked by total XP earnings with their verified trust scores.",
+        "responses": {
+          "200": {
+            "description": "Leaderboard statistics"
+          }
+        }
+      }
+    },
+    "/api/credential-status": {
+      "get": {
+        "summary": "Check credential status",
+        "description": "Verifies the revocation status of a verifiable credential.",
         "parameters": [
-          { "name": "q", "in": "query", "schema": { "type": "string" }, "description": "Search query" },
-          { "name": "tag", "in": "query", "schema": { "type": "string" }, "description": "Filter by tag" },
-          { "name": "sort", "in": "query", "schema": { "type": "string", "enum": ["price", "name", "created"] } }
+          {
+            "name": "did",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
-            "description": "Skills list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": { "$ref": "#/components/schemas/Skill" }
-                }
-              }
-            }
+            "description": "Credential status evaluation"
           }
         }
       }
@@ -262,61 +145,69 @@
   },
   "components": {
     "securitySchemes": {
-      "bearerAuth": {
+      "BearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT"
+        "bearerFormat": "JWT",
+        "description": "Secure Pi Network access token verification header."
       }
     },
     "schemas": {
+      "PassportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "did": {
+                "type": "string"
+              },
+              "walletAddress": {
+                "type": "string"
+              },
+              "tier": {
+                "type": "string"
+              },
+              "trustScore": {
+                "type": "number"
+              },
+              "xp": {
+                "type": "number"
+              },
+              "stamps": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
       "DidDocument": {
         "type": "object",
         "properties": {
-          "@context": { "type": "array", "items": { "type": "string" } },
-          "id": { "type": "string" },
-          "controller": { "type": "string" },
-          "verificationMethod": { "type": "array" },
-          "authentication": { "type": "array" },
-          "service": { "type": "array" }
-        }
-      },
-      "JsonWebKey": {
-        "type": "object",
-        "properties": {
-          "kty": { "type": "string" },
-          "crv": { "type": "string" },
-          "x": { "type": "string" },
-          "kid": { "type": "string" }
-        }
-      },
-      "User": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string" },
-          "piUsername": { "type": "string" },
-          "walletAddress": { "type": "string" },
-          "tier": { "type": "string", "enum": ["Visitor", "Citizen", "Validator", "Sovereign"] },
-          "xp": { "type": "integer" },
-          "trustScore": { "type": "integer" }
-        }
-      },
-      "Agent": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string" },
-          "name": { "type": "string" },
-          "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE", "PAUSED"] },
-          "lastActive": { "type": "string", "format": "date-time" }
-        }
-      },
-      "Skill": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string" },
-          "name": { "type": "string" },
-          "description": { "type": "string" },
-          "price": { "type": "number" },
-          "tag": { "type": "string" }
+          "@context": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "verificationMethod": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "authentication": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       }
     }

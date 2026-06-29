@@ -1032,7 +1032,8 @@ export function fickTrustFlux(
   distance: number = 1,
 ): number {
   const gradient = (targetTrust - sourceTrust) / distance;
-  return -diffusivity * gradient;
+  const flux = -diffusivity * gradient;
+  return flux === 0 ? 0 : flux;
 }
 
 /**

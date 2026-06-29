@@ -8,8 +8,8 @@ jest.mock("@/lib/auth-middleware", () => ({
   requireAuth: jest.fn(),
 }));
 
-jest.mock("@/lib/prisma", () => ({
-  prisma: {
+jest.mock("@/lib/prisma", () => {
+  const mockPrisma = {
     stake: {
       findMany: jest.fn(),
       findFirst: jest.fn(),
@@ -17,8 +17,17 @@ jest.mock("@/lib/prisma", () => ({
       update: jest.fn(),
       updateMany: jest.fn(),
     },
-  },
-}));
+    user: {
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
+    xpLedger: {
+      create: jest.fn(),
+    },
+    $transaction: jest.fn((callback) => callback(mockPrisma)),
+  };
+  return { prisma: mockPrisma };
+});
 
 jest.mock("@/lib/rate-limiter", () => ({
   checkRateLimit: jest.fn(),
@@ -39,6 +48,7 @@ import { GET, POST } from "@/app/api/vault/stake/route";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-middleware";
 import { checkRateLimit } from "@/lib/rate-limiter";
+import { StakeStatus } from "@prisma/client";
 
 const mockRequireAuth = requireAuth as jest.Mock;
 const mockCheckRateLimit = checkRateLimit as jest.Mock;
@@ -65,7 +75,7 @@ describe("GET /api/vault/stake", () => {
 
   it("returns user stakes successfully", async () => {
     const mockStakes = [
-      { id: "stake-1", userId: "user-123", amount: 100, status: "staked", createdAt: new Date() },
+      { id: "stake-1", userId: "user-123", amount: 100, status: StakeStatus.STAKED, createdAt: new Date() },
     ];
     mockPrisma.stake.findMany.mockResolvedValue(mockStakes as any);
 
@@ -99,11 +109,13 @@ describe("POST /api/vault/stake", () => {
     jest.clearAllMocks();
     mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 99, resetAt: Date.now() + 60000 });
     mockRequireAuth.mockResolvedValue({ error: null, user: mockUser });
+    mockPrisma.user.findUnique.mockResolvedValue({ id: "user-123", xp: 1000 } as any);
   });
 
   it("stakes successfully", async () => {
-    const mockStake = { id: "stake-123", userId: "user-123", amount: 50, status: "staked" };
+    const mockStake = { id: "stake-123", userId: "user-123", amount: 50, status: StakeStatus.STAKED };
     mockPrisma.stake.create.mockResolvedValue(mockStake as any);
+    mockPrisma.user.update.mockResolvedValue({ id: "user-123", xp: 950 } as any);
 
     const req = mockRequest("POST", { action: "stake", amount: 50 });
     const res = await POST(req);
@@ -115,35 +127,66 @@ describe("POST /api/vault/stake", () => {
       data: {
         userId: "user-123",
         amount: 50,
-        status: "staked",
+        status: StakeStatus.STAKED,
+      },
+    });
+    expect(mockPrisma.user.update).toHaveBeenCalledWith({
+      where: { id: "user-123" },
+      data: { xp: { decrement: 50 } },
+    });
+    expect(mockPrisma.xpLedger.create).toHaveBeenCalledWith({
+      data: {
+        userId: "user-123",
+        amount: -50,
+        reason: "vault_stake",
+        reference: JSON.stringify({ stakeId: "stake-123" }),
+        balance: 950,
       },
     });
   });
 
   it("unstakes a specific stakeId successfully", async () => {
     const validUuid = "4ef60647-f509-4ed8-a873-c1519c7246ea";
-    const mockStake = { id: validUuid, userId: "user-123", amount: 50, status: "staked" };
-    const mockUpdatedStake = { ...mockStake, status: "unstaked" };
+    const mockStake = { id: validUuid, userId: "user-123", amount: 50, status: StakeStatus.STAKED };
+    const mockUpdatedStake = { ...mockStake, status: StakeStatus.UNSTAKED };
     mockPrisma.stake.findFirst.mockResolvedValue(mockStake as any);
     mockPrisma.stake.update.mockResolvedValue(mockUpdatedStake as any);
+    mockPrisma.user.update.mockResolvedValue({ id: "user-123", xp: 1050 } as any);
 
     const req = mockRequest("POST", { action: "unstake", stakeId: validUuid });
     const res = await POST(req);
     const data = await res.json();
 
     expect(res.status).toBe(200);
-    expect(data.stake.status).toBe("unstaked");
+    expect(data.stake.status).toBe(StakeStatus.UNSTAKED);
     expect(mockPrisma.stake.findFirst).toHaveBeenCalledWith({
       where: { id: validUuid, userId: "user-123" },
     });
     expect(mockPrisma.stake.update).toHaveBeenCalledWith({
       where: { id: validUuid },
-      data: { status: "unstaked" },
+      data: { status: StakeStatus.UNSTAKED },
+    });
+    expect(mockPrisma.user.update).toHaveBeenCalledWith({
+      where: { id: "user-123" },
+      data: { xp: { increment: 50 } },
+    });
+    expect(mockPrisma.xpLedger.create).toHaveBeenCalledWith({
+      data: {
+        userId: "user-123",
+        amount: 50,
+        reason: "vault_unstake",
+        reference: JSON.stringify({ stakeId: validUuid }),
+        balance: 1050,
+      },
     });
   });
 
   it("unstakes all active stakes successfully", async () => {
-    mockPrisma.stake.updateMany.mockResolvedValue({ count: 2 } as any);
+    mockPrisma.stake.findMany.mockResolvedValue([
+      { id: "stake-1", amount: 10, status: StakeStatus.STAKED },
+      { id: "stake-2", amount: 15, status: StakeStatus.STAKED },
+    ] as any);
+    mockPrisma.user.update.mockResolvedValue({ id: "user-123", xp: 1025 } as any);
 
     const req = mockRequest("POST", { action: "unstake" });
     const res = await POST(req);
@@ -152,12 +195,45 @@ describe("POST /api/vault/stake", () => {
     expect(res.status).toBe(200);
     expect(data.message).toContain("Successfully unstaked 2 stakes");
     expect(mockPrisma.stake.updateMany).toHaveBeenCalledWith({
-      where: { userId: "user-123", status: "staked" },
-      data: { status: "unstaked" },
+      where: { userId: "user-123", status: StakeStatus.STAKED },
+      data: { status: StakeStatus.UNSTAKED },
+    });
+    expect(mockPrisma.user.update).toHaveBeenCalledWith({
+      where: { id: "user-123" },
+      data: { xp: { increment: 25 } },
     });
   });
 
-  // ─── PR change: edge cases for new vault/stake route ────────────────────────
+  it("returns 400 VALIDATION_ERROR when staking with insufficient balance", async () => {
+    mockPrisma.user.findUnique.mockResolvedValue({ id: "user-123", xp: 20 } as any);
+
+    const req = mockRequest("POST", { action: "stake", amount: 50 });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(data.code).toBe("VALIDATION_ERROR");
+    expect(data.error).toContain("Insufficient XP balance");
+  });
+
+  it("returns 400 VALIDATION_ERROR when staking below minimum limit", async () => {
+    const req = mockRequest("POST", { action: "stake", amount: 0 });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(data.code).toBe("VALIDATION_ERROR");
+  });
+
+  it("returns 400 VALIDATION_ERROR when staking above maximum limit", async () => {
+    const req = mockRequest("POST", { action: "stake", amount: 10001 });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(data.code).toBe("VALIDATION_ERROR");
+    expect(data.error).toContain("must be between");
+  });
 
   it("returns 401 when user is not authenticated (POST)", async () => {
     mockRequireAuth.mockResolvedValue({
@@ -227,7 +303,7 @@ describe("POST /api/vault/stake", () => {
       id: validUuid,
       userId: "user-123",
       amount: 50,
-      status: "unstaked",
+      status: StakeStatus.UNSTAKED,
     } as any);
 
     const req = mockRequest("POST", { action: "unstake", stakeId: validUuid });
@@ -239,7 +315,7 @@ describe("POST /api/vault/stake", () => {
   });
 
   it("returns 400 VALIDATION_ERROR when bulk unstake finds no active stakes", async () => {
-    mockPrisma.stake.updateMany.mockResolvedValue({ count: 0 } as any);
+    mockPrisma.stake.findMany.mockResolvedValue([]);
 
     const req = mockRequest("POST", { action: "unstake" });
     const res = await POST(req);
@@ -260,8 +336,6 @@ describe("POST /api/vault/stake", () => {
     expect(data.code).toBe("INTERNAL_ERROR");
   });
 });
-
-// ─── Additional GET edge cases ───────────────────────────────────────────────
 
 describe("GET /api/vault/stake — edge cases", () => {
   beforeEach(() => {

@@ -142,7 +142,7 @@ export async function requireAuth(request: NextRequest): Promise<
   if (isProduction) {
     // Skip sandbox entirely in production. No env var can override this.
   } else {
-    const hostname = request.nextUrl.hostname;
+    const hostname = request.nextUrl?.hostname || "localhost";
     const isLoopbackHost =
       hostname === "localhost" ||
       hostname === "127.0.0.1" ||
@@ -184,6 +184,20 @@ export async function requireAuth(request: NextRequest): Promise<
       };
     } catch {
       // Fallback: Verify Pi token via online API
+      const userAgent = request.headers.get("user-agent") || "";
+      const isPiBrowserReq = /Pi Browser|minepi|PiApp/i.test(userAgent);
+      
+      const isSandboxOrDev = !isProduction &&
+        process.env.SANDBOX_AUTH_BYPASS === "true" &&
+        (request.nextUrl?.hostname === "localhost" ||
+         request.nextUrl?.hostname === "127.0.0.1" ||
+         request.nextUrl?.hostname === "::1");
+
+      if (!isPiBrowserReq && !isSandboxOrDev) {
+        invalidateCachedToken(tokenHash);
+        return { error: apiError('UNAUTHORIZED', 'Invalid Pi access token (Pi Browser required)'), user: null };
+      }
+
       const piResponse = await fetch('https://api.minepi.com/v2/me', {
         headers: { Authorization: `Bearer ${accessToken}` },
         signal: AbortSignal.timeout(5000),

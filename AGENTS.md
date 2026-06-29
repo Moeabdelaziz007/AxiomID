@@ -185,6 +185,8 @@ These are not "nice to have." They are the operating system of every agent that 
 - **Strict API Error Codes:** Only use pre-registered error categories defined in the `ErrorCode` union inside `src/lib/errors.ts`. Never pass ad-hoc strings (like `BAD_REQUEST`) to `apiError()`, as they trigger a fallback HTTP status code of `500`. For input validation errors, always use `VALIDATION_ERROR` (which maps to HTTP `400`).
 - **Zod UUID Validation in Tests:** When writing unit or integration tests that validate UUID fields under Zod schemas (which use `.uuid()`), always use a syntactically valid v4 UUID format. A valid v4 UUID has `4` as the first character of the third segment (e.g. `"f47ac10b-58cc-4372-a567-0e02b2c3d479"` or `"550e8400-e29b-41d4-a716-446655440000"`). Never use v1 UUIDs (third segment starting with `1`) or custom non-conforming mock strings (e.g., `"stake-123"`) as they will cause validation schemas to reject the input.
 - **Dynamic PWA Manifest (`manifest.ts`):** When generating metadata routes using Next.js `MetadataRoute.Manifest`, the `purpose` property inside icon objects strictly accepts `'any' | 'maskable' | 'monochrome'` individual literals. Do not use standard PWA space-separated `"any maskable"` values as they will trigger compile-time TypeScript errors.
+- **Standard Jest Matchers Only:** Do not use non-standard Jest matchers like `.toBeFinite()`. Standard Jest does not include `.toBeFinite()` out-of-the-box. Instead, use `expect(Number.isFinite(value)).toBe(true)` in all unit/integration tests.
+- **Floating Point Negative Zero Control:** Pure mathematical utility functions (such as trust evolution, heat propagation, or Fick flux) that can result in negative zero (`-0`) due to subtraction operations should explicitly clamp zero outputs to prevent test assertion failures: `const result = -diffusivity * gradient; return result === 0 ? 0 : result;`.
 
 ### 🩺 Nostics Diagnostic Catalog Rules (`src/diagnostics/catalog.ts`)
 
@@ -208,6 +210,7 @@ These are not "nice to have." They are the operating system of every agent that 
 - **Server-Side Cryptography Isolation:** Cryptographic key derivations (`deriveSovereignAgentKeypair`) and payload signing rely on Node's native `crypto` module. This execution must reside strictly in Next.js API routes or Server Components, never in Client Components due to browser environment incompatibility.
 - **SOVEREIGN_KEY_SALT Required:** `deriveSovereignAgentKeypair` MUST incorporate `process.env.SOVEREIGN_KEY_SALT` as HMAC key material. Never use public inputs alone.
 - **Pi Ads Integration & Verification:** Always verify rewarded ads server-side. Use `window.Pi.Ads` client-side API (`isAdReady`, `requestAd`, `showAd`) which resolves to `{ result, adId }`. Always verify `adId` server-side via `GET https://api.minepi.com/v2/ads_network/status/:adId` with the `Authorization: Key <PI_API_KEY>` header. Verify ledger records (e.g. `xpLedger` matching `adId` reference) to prevent double-claiming.
+- **Mock Authentication Requests:** When creating mock requests for `requireAuth` in tests, specify a Pi Browser `User-Agent` header (e.g., `Pi Browser / AxiomID Testing`) and `nextUrl.hostname` (e.g., `localhost`) by default, as the fail-fast authorization check rejects non-Pi-Browser requests when sandbox mode is disabled.
 
 ### 🏗️ Next.js 16 / App Router Patterns
 
@@ -215,6 +218,7 @@ These are not "nice to have." They are the operating system of every agent that 
 - **Server Components are the default** — add `"use client"` only when you need browser APIs or React hooks.
 - **Vercel Functions are stateless** — no in-memory state, no `setInterval`, no background daemons. Use `waitUntil` for post-response async work.
 - `outputFileTracingRoot` warning from Next.js about multiple `package-lock.json` is benign — ignore it.
+- **Bilingual Language Translation Helper:** The `t` function destructured from the global `useLanguage()` hook strictly takes a single key. When rendering custom components that require dynamic bilingual English/Arabic values side-by-side (such as interactive widgets), define a local translation helper: `const t = (en: string, ar: string) => (language === "en" ? en : ar)` to prevent compiler type conflicts.
 
 ### 🌐 PWA & Service Worker Caching Constraints (non-negotiable)
 

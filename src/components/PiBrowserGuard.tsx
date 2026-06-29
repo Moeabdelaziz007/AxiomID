@@ -3,7 +3,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Smartphone, Globe, Loader2, ExternalLink } from "lucide-react";
-import { checkPiBrowser } from "@/lib/pi-sdk";
+import { checkPiBrowser, determineSandboxMode } from "@/lib/pi-sdk";
 
 interface PiBrowserContextType {
   isPiBrowser: boolean;
@@ -25,24 +25,6 @@ interface PiBrowserGuardProps {
   showSplash?: boolean;
 }
 
-function detectSandbox(): boolean {
-  if (typeof window === "undefined") return false;
-  
-  const win = window as unknown as { Pi?: { sandbox?: boolean } };
-  if (win.Pi?.sandbox) return true;
-  
-  if (typeof navigator !== "undefined" && /sandbox/i.test(navigator.userAgent)) return true;
-  
-  try {
-    if (typeof window.location !== "undefined") {
-      const host = window.location.hostname.toLowerCase();
-      if (host.includes("sandbox")) return true;
-    }
-  } catch {}
-  
-  return false;
-}
-
 export function PiBrowserGuard({ 
   children, 
   fallback,
@@ -55,7 +37,7 @@ export function PiBrowserGuard({
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsPiBrowser(checkPiBrowser());
-      setIsSandbox(detectSandbox());
+      setIsSandbox(determineSandboxMode());
       setIsDetecting(false);
     }, 500);
     

@@ -556,7 +556,7 @@ describe("ucb1 (PR sync)", () => {
     const child = createMCTSNode("child", {}, root);
     child.visits = 5;
     child.wins = 3;
-    expect(ucb1(child)).toBeFinite();
+    expect(Number.isFinite(ucb1(child))).toBe(true);
   });
 
   it("prefers node with higher win rate", () => {
@@ -1076,7 +1076,7 @@ describe("shannonHartleyCapacity (PR sync)", () => {
   it("returns finite positive value for valid inputs", () => {
     const result = shannonHartleyCapacity(10, 5, 1);
     expect(result).toBeGreaterThan(0);
-    expect(result).toBeFinite();
+    expect(Number.isFinite(result)).toBe(true);
   });
 });
 

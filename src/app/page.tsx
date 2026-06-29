@@ -11,6 +11,7 @@ import LanguageToggle from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import HeroDemo from "@/components/HeroDemo";
 import StatsBar from "@/components/StatsBar";
+import InteractiveShowcase from "@/components/landing/InteractiveShowcase";
 import TrustTiers from "@/components/TrustTiers";
 
 /**
@@ -136,7 +137,7 @@ export default function Home() {
           {/* Left: Headline + CTAs */}
           <div className="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left space-y-5">
             <div className="flex flex-wrap gap-2 justify-center md:justify-start items-center animate-[fadeInUp_0.4s_ease-out_0.1s_both]">
-              <span className="px-3 py-1 rounded-full text-[10px] font-mono bg-neon-green/10 text-neon-green border border-neon-green/20 uppercase tracking-widest">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-widest">
                 {t("hero_badge")}
               </span>
               <span className="stitch-badge">
@@ -146,7 +147,7 @@ export default function Home() {
                 </svg>
                 {t("landing_pi_badge")}
               </span>
-              <span className="px-3 py-1 rounded-full text-[10px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-widest">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-widest">
                 <svg viewBox="0 0 100 100" className="w-3 h-3 inline me-1 -mt-0.5 align-middle" fill="currentColor">
                   <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.3" />
                   <text x="50" y="68" textAnchor="middle" fontSize="60" fontWeight="bold" fill="currentColor" fontFamily="serif">π</text>
@@ -220,27 +221,9 @@ export default function Home() {
         <StatsBar />
       </div>
 
-      {/* Video Demo Placeholder */}
+      {/* Interactive Showcase Section */}
       <div className="w-full max-w-6xl px-4 sm:px-6 mt-16 sm:mt-24 z-10">
-        <SectionHeader
-          label={t("landing_watch_demo")}
-          title={t("watch_demo_title")}
-          labelColor="text-electric-blue"
-        />
-        <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-transparent group cursor-pointer">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center group-hover:bg-white/20 group-hover:scale-110 transition-all duration-300">
-              <svg className="w-8 h-8 text-white ms-1" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </div>
-          </div>
-          <div className="absolute bottom-4 start-4 end-4 text-center">
-            <p className="text-sm text-zinc-400 font-mono">{t("watch_demo_desc")}</p>
-          </div>
-          {/* Subtle gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-        </div>
+        <InteractiveShowcase />
       </div>
 
       {/* Features Section */}

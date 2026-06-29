@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { motion, AnimatePresence } from "framer-motion";
 import { requestKycConsent } from "@/lib/pi-native-features";
+import { determineSandboxMode } from "@/lib/pi-sdk";
 import {
   Wallet,
   Shield,
@@ -55,6 +56,8 @@ export default function ClaimPage() {
   const [deployed, setDeployed] = useState(false);
   const [xpGain, setXpGain] = useState<number | null>(null);
   const [connectError, setConnectError] = useState<string | null>(null);
+  const [showBrowserModal, setShowBrowserModal] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const { user, connectWallet, isConnecting, isPiBrowser } = useWallet();
   const { language } = useLanguage();
@@ -83,6 +86,10 @@ export default function ClaimPage() {
 
   const handleConnect = async () => {
     setConnectError(null);
+    if (!isPiBrowser && !determineSandboxMode()) {
+      setShowBrowserModal(true);
+      return;
+    }
     try {
       await connectWallet();
       setWalletConnected(true);
@@ -728,6 +735,79 @@ export default function ClaimPage() {
           )}
         </div>
       </main>
+
+      <AnimatePresence>
+        {showBrowserModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowBrowserModal(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            />
+            {/* Content Container */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ ease: [0.16, 1, 0.3, 1], duration: 0.4 }}
+              className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/90 p-6 shadow-2xl backdrop-blur-xl"
+            >
+              <div className="flex flex-col items-center text-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+                  <Globe className="w-6 h-6 animate-pulse" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-bold text-white font-sans">
+                    {t("Pi Browser Required", "يتطلب متصفح Pi")}
+                  </h3>
+                  <p className="text-sm text-zinc-400 font-sans">
+                    {t(
+                      "To authenticate with the sovereign key protocol, you must access this page from inside the official Pi Browser application.",
+                      "للتوثيق بمستندات الهوية السيادية، يجب عليك زيارة هذه الصفحة من داخل تطبيق متصفح Pi الرسمي."
+                    )}
+                  </p>
+                </div>
+
+                <div className="w-full space-y-3 pt-2">
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-black/40 border border-white/5 font-mono text-xs text-zinc-300">
+                    <span className="truncate flex-1 select-all">
+                      {typeof window !== "undefined" ? window.location.href : "https://www.axiomid.app/claim"}
+                    </span>
+                    <button
+                      onClick={() => {
+                        const url = typeof window !== "undefined" ? window.location.href : "https://www.axiomid.app/claim";
+                        navigator.clipboard.writeText(url);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      className="p-1.5 hover:bg-white/5 rounded-lg text-zinc-400 hover:text-white transition-colors"
+                      title={t("Copy link", "نسخ الرابط")}
+                    >
+                      {copied ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => setShowBrowserModal(false)}
+                    className="w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-sm border border-white/10 transition-colors"
+                  >
+                    {t("Got it", "فهمت")}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <Footer />
     </div>
