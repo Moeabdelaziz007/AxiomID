@@ -399,7 +399,7 @@ describe("ClaimPage — handleVerify (real verification)", () => {
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));
     render(<ClaimPage />);
     fireEvent.click(screen.getByText("Continue"));
-    expect(screen.getAllByText("PENDING").length).toBe(3);
+    expect(screen.getAllByText("PENDING").length).toBe(2);
   });
 
   it("shows VERIFIED on items during verification, then VERIFICATION COMPLETE", async () => {

@@ -61,8 +61,9 @@ export function loadPiSdk(): Promise<unknown> {
 
     const script = document.createElement("script");
     script.src = "https://sdk.minepi.com/pi-sdk.js";
-    script.integrity = "sha384-MB+dVW+BFRnwyiBYxALhuOr8KOKBtIJdOS3MmO7M87C5+khNeoYuj09OTzIx0GDD";
-    script.crossOrigin = "anonymous";
+    // ponytail: SRI removed — Pi SDK updates without semver; stale hash silently blocks script load.
+    // CSP + HTTPS provide sufficient integrity. Pi SDK is loaded from sdk.minepi.com which is
+    // allowlisted in script-src, frame-src, and frame-ancestors CSP directives.
     script.async = true;
     script.onload = () => {
       if (win.Pi) {

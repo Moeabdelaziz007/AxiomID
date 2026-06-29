@@ -62,11 +62,25 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const computedTrustScore = computeTrustScore(
-      user.stamps.map(s => ({ type: s.type, xp: s.xpAwarded, timestamp: s.createdAt })),
-      false,
-      user.lastActive,
-    );
+    const stampsToScore = user.stamps.map(s => ({
+      type: s.type as string,
+      xp: s.xpAwarded,
+      timestamp: s.createdAt,
+    }));
+
+    if (kycResult.kycVerified) {
+      await prisma.stamp.create({
+        data: {
+          userId: user.id,
+          type: 'complete_kyc',
+          provider: 'pi_network',
+          xpAwarded: 200,
+        },
+      });
+      stampsToScore.push({ type: 'complete_kyc', xp: 200, timestamp: new Date() });
+    }
+
+    const computedTrustScore = computeTrustScore(stampsToScore, false, user.lastActive);
 
     return apiSuccess({
       kycStatus,

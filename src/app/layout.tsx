@@ -137,8 +137,7 @@ export default function RootLayout({
         <Script
           src="https://sdk.minepi.com/pi-sdk.js"
           strategy="beforeInteractive"
-          integrity="sha384-MB+dVW+BFRnwyiBYxALhuOr8KOKBtIJdOS3MmO7M87C5+khNeoYuj09OTzIx0GDD"
-          crossOrigin="anonymous"
+          // ponytail: SRI removed — Pi SDK updates without semver; stale hash silently blocks script load.
         />
         <Script src="/register-sw.js" strategy="afterInteractive" />
         <ThemeProvider>

@@ -12,13 +12,11 @@ export interface PiKycResult {
  *
  * @param piAccessToken - The user's Pi access token from Pi SDK authenticate()
  * @returns PiKycResult with KYC status and user info
- * @throws If PI_API_KEY is not configured, Pi API returns error, or network fails
+ * @throws If Pi API returns error or network fails
  */
 export async function verifyKycServerSide(piAccessToken: string): Promise<PiKycResult> {
-  const PI_API_KEY = process.env.PI_API_KEY;
-  if (!PI_API_KEY) {
-    throw new Error('PI_API_KEY not configured — cannot verify KYC server-side');
-  }
+  // ponytail: GET /v2/me only needs the user's Bearer token (Pi SDK authenticate() result).
+  // PI_API_KEY is for server-to-server payment endpoints (/v2/payments/...) — not needed here.
 
   const response = await fetch('https://api.minepi.com/v2/me', {
     headers: { Authorization: `Bearer ${piAccessToken}` },

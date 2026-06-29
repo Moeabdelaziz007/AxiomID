@@ -227,7 +227,7 @@ export function useWalletAuth({
       walletAddress: "pi:demo_alice",
       stellarAddress: "GD5TJZNKPNFSSXN7XF26NNDAOVDN57S7LNJ6FSL2X5D62N676572N4Y2",
       piUsername: "AliceDemo",
-      kycStatus: "verified",
+      kycStatus: "VERIFIED",
       did: "did:axiom:demo_alice_did_hash_12345",
       xp: 450,
       tier: "Citizen",
@@ -235,11 +235,11 @@ export function useWalletAuth({
       createdAt: new Date().toISOString(),
       actions: [
         { type: "connect_wallet", xp: 100, timestamp: new Date(Date.now() - 86400000).toISOString() },
-        { type: "verify_kya", xp: 150, timestamp: new Date(Date.now() - 3600000).toISOString() }
+        { type: "complete_kyc", xp: 200, timestamp: new Date(Date.now() - 3600000).toISOString() }
       ],
       stamps: [
         { type: "connect_wallet", provider: "pi_network", xpAwarded: 100, createdAt: new Date(Date.now() - 86400000).toISOString() },
-        { type: "verify_kya", provider: "axiom_protocol", xpAwarded: 150, createdAt: new Date(Date.now() - 3600000).toISOString() }
+        { type: "complete_kyc", provider: "pi_network", xpAwarded: 200, createdAt: new Date(Date.now() - 3600000).toISOString() }
       ],
       agent: {
         id: "demo-agent-id",

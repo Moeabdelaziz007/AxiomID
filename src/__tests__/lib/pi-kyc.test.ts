@@ -13,7 +13,7 @@ describe('verifyKycServerSide', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env = { ...originalEnv, PI_API_KEY: 'test-api-key' };
+    process.env = { ...originalEnv };
   });
 
   afterAll(() => {
@@ -62,10 +62,5 @@ describe('verifyKycServerSide', () => {
     mockFetch.mockRejectedValueOnce(new Error('timeout'));
 
     await expect(verifyKycServerSide('token')).rejects.toThrow('timeout');
-  });
-
-  it('throws when PI_API_KEY is not set', async () => {
-    process.env.PI_API_KEY = '';
-    await expect(verifyKycServerSide('token')).rejects.toThrow('PI_API_KEY');
   });
 });

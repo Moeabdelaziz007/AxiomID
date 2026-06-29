@@ -54,7 +54,6 @@ export default function ClaimPage() {
   const [verificationItems, setVerificationItems] = useState({
     kyc: false,
     payment: false,
-    stellar: false,
   });
   const [verified, setVerified] = useState(false);
   const [deployed, setDeployed] = useState(false);
@@ -113,27 +112,13 @@ export default function ClaimPage() {
 
       if (kyaRes.ok) {
         const kyaData = await kyaRes.json();
-        setVerificationItems((prev) => ({ ...prev, kyc: true }));
 
-        if (kyaData.kycStatus === "VERIFIED") {
-          setVerificationItems((prev) => ({ ...prev, payment: true }));
+        if (kyaData.data?.kycStatus === "VERIFIED") {
+          setVerificationItems({ kyc: true, payment: true });
+          setVerified(true);
+        } else {
+          setVerificationItems((prev) => ({ ...prev, kyc: true }));
         }
-
-        // 2. Stellar anchoring (optional, non-blocking)
-        try {
-          const anchorRes = await fetch("/api/stellar/anchor", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ signedVc: {}, userSecretKey: "" }),
-          });
-          if (anchorRes.ok) {
-            setVerificationItems((prev) => ({ ...prev, stellar: true }));
-          }
-        } catch {
-          // Stellar anchoring is optional
-        }
-
-        setVerified(true);
       }
     } catch (err) {
       console.error("Verification failed:", err);
@@ -403,12 +388,6 @@ export default function ClaimPage() {
                                 icon: Wallet,
                                 label: t("Payment Proof", "إثبات الدفع"),
                                 status: verificationItems.payment,
-                              },
-                              {
-                                key: "stellar" as const,
-                                icon: Globe,
-                                label: t("On-Chain Anchor", "الترسيم على السلسلة"),
-                                status: verificationItems.stellar,
                               },
                             ].map((item) => {
                               const ItemIcon = item.icon;
