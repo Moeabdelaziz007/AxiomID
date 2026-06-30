@@ -1,15 +1,25 @@
 // Mock nostics so Jest doesn't try to load the ESM module
 jest.mock("nostics", () => ({
-  defineDiagnostics: (config: any) => config
+  defineDiagnostics: (config: unknown) => config
 }));
 
+interface DiagnosticCode {
+  why: (...args: unknown[]) => string;
+  fix: string;
+}
+
+interface Diagnostics {
+  docsBase: (code: string) => string;
+  codes: Record<string, DiagnosticCode>;
+}
+
 describe("Diagnostics Catalog", () => {
-  let diagnostics: any;
+  let diagnostics: Diagnostics;
 
   beforeAll(() => {
     // Unmock to test the actual catalog implementation
     jest.unmock("@/diagnostics/catalog");
-    diagnostics = require("@/diagnostics/catalog").diagnostics;
+    diagnostics = require("@/diagnostics/catalog").diagnostics as Diagnostics;
   });
 
   it("generates correct docsBase URL", () => {
