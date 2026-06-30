@@ -37,7 +37,7 @@ function mockRequestWithHeader(headers: Record<string, string> = {}) {
   Object.keys(headers).forEach(k => {
     allHeaders[k.toLowerCase()] = headers[k];
   });
-  if (!allHeaders["user-agent"]) {
+  if (allHeaders["user-agent"] === undefined) {
     allHeaders["user-agent"] = "Pi Browser / AxiomID Testing";
   }
   return {
