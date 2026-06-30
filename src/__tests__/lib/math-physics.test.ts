@@ -1056,6 +1056,33 @@ describe("fickTrustFlux (PR sync)", () => {
   it("is zero when source and target trust are equal", () => {
     expect(fickTrustFlux(0.5, 0.5)).toBeCloseTo(0);
   });
+
+  // PR change: negative zero clamp — -diffusivity * 0 yields IEEE 754 -0; must
+  // be clamped to +0 so that strict equality and Object.is checks pass.
+  it("never returns negative zero when source and target trust are equal (negative zero clamp)", () => {
+    const result = fickTrustFlux(0.5, 0.5, 0.5, 1);
+    // Object.is(-0, 0) === false, so this verifies the PR clamp is effective
+    expect(Object.is(result, 0)).toBe(true);
+    expect(Object.is(result, -0)).toBe(false);
+  });
+
+  it("never returns negative zero with non-default diffusivity (negative zero clamp)", () => {
+    // -1.0 * (0 / 1) = -0 in IEEE 754; PR clamp must convert to +0
+    const result = fickTrustFlux(0.7, 0.7, 1.0, 2.0);
+    expect(Object.is(result, 0)).toBe(true);
+    expect(result).toBe(0);
+  });
+
+  it("returns exact value +0.25 for canonical high-to-low case", () => {
+    // gradient = (0.3 - 0.8) / 1 = -0.5; flux = -0.5 * (-0.5) = 0.25
+    // Regression: verifies the computation hasn't been broken by the clamp
+    expect(fickTrustFlux(0.8, 0.3, 0.5, 1)).toBeCloseTo(0.25, 10);
+  });
+
+  it("returns exact value -0.25 for canonical low-to-high case", () => {
+    // gradient = (0.8 - 0.3) / 1 = 0.5; flux = -0.5 * 0.5 = -0.25
+    expect(fickTrustFlux(0.3, 0.8, 0.5, 1)).toBeCloseTo(-0.25, 10);
+  });
 });
 
 describe("fickTrustEvolution (PR sync)", () => {

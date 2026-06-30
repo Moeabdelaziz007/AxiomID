@@ -235,7 +235,7 @@ git commit -m "fix(db): seed default skill tags via upsert script ۞"
 - [ ] **Step 1: Audit README for overclaiming**
 
 Read `README.md` lines 35-48 (the "What It Does" feature table). Identify features that claim production readiness:
-- "Quran RAG — AI-powered Quranic Q&A..." — ✅ This actually works (verified)
+- "Truth RAG — AI-powered Q&A..." — ✅ This actually works (verified)
 - "Soul System — Five-gate ethical evaluation loop" — ❓ Verify if this is deployed
 - "Skills Marketplace — Install capabilities for agents" — ✅ Works (but empty)
 - "Agent Passports — Public identity cards..." — ✅ Verified working

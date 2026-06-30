@@ -37,7 +37,7 @@ function mockRequestWithHeader(headers: Record<string, string> = {}) {
   Object.keys(headers).forEach(k => {
     allHeaders[k.toLowerCase()] = headers[k];
   });
-  if (!allHeaders["user-agent"]) {
+  if (allHeaders["user-agent"] === undefined) {
     allHeaders["user-agent"] = "Pi Browser / AxiomID Testing";
   }
   return {
@@ -416,5 +416,235 @@ describe('requireAuth — revocation check (PR change: uses revocation-store)', 
     expect(result2.error).toBeDefined();
     // Pi API still not called — revocation short-circuits before cache check
     expect(mockFetch).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// requireAuth — Pi Browser user-agent enforcement (PR change)
+// When JWKS verification fails, the fallback now checks the User-Agent header
+// for Pi Browser identity before calling the Pi API. Non-Pi-Browser requests
+// are rejected unless SANDBOX_AUTH_BYPASS is set and hostname is loopback.
+// ---------------------------------------------------------------------------
+describe('requireAuth — Pi Browser user-agent enforcement (PR change)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockFetch.mockReset();
+    clearAuthCache();
+  });
+
+  it('rejects non-Pi-Browser user-agent when JWKS fails (no sandbox bypass)', async () => {
+    // Chrome UA, no SANDBOX_AUTH_BYPASS — must be rejected before the Pi API is called
+    const req = mockRequestWithHeader({
+      authorization: 'Bearer chrome-only-token',
+      'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/537.36 Chrome/120.0',
+    });
+
+    const result = await requireAuth(req);
+
+    expect(result.user).toBeNull();
+    expect(result.error).toBeDefined();
+    // Pi API must NOT be called — the middleware short-circuits before fetch
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('rejects empty user-agent when JWKS fails (no sandbox bypass)', async () => {
+    const req = mockRequestWithHeader({
+      authorization: 'Bearer empty-ua-token',
+      'user-agent': '',
+    });
+
+    const result = await requireAuth(req);
+
+    expect(result.user).toBeNull();
+    expect(result.error).toBeDefined();
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('accepts Pi Browser user-agent when JWKS fails (falls through to Pi API)', async () => {
+    const mockUser = {
+      id: 'user-pi-browser',
+      walletAddress: '0xaaa',
+      piUid: 'pi-ua-test-1',
+      piUsername: 'pibrowseruser',
+      did: null,
+      xp: 0,
+      tier: 'Visitor',
+    };
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid: 'pi-ua-test-1', username: 'pibrowseruser' }),
+    });
+    mockPrisma.user.findUnique.mockResolvedValue(mockUser as any);
+
+    const req = mockRequestWithHeader({
+      authorization: 'Bearer pi-browser-ua-token',
+      'user-agent': 'Pi Browser v4.2',
+    });
+
+    const result = await requireAuth(req);
+
+    expect(result.error).toBeNull();
+    expect(result.user).toEqual(mockUser);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('accepts minepi user-agent variant (case-insensitive match)', async () => {
+    const mockUser = {
+      id: 'user-minepi',
+      walletAddress: '0xbbb',
+      piUid: 'pi-ua-test-2',
+      piUsername: 'minepiuser',
+      did: null,
+      xp: 0,
+      tier: 'Visitor',
+    };
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid: 'pi-ua-test-2', username: 'minepiuser' }),
+    });
+    mockPrisma.user.findUnique.mockResolvedValue(mockUser as any);
+
+    const req = mockRequestWithHeader({
+      authorization: 'Bearer minepi-ua-token',
+      'user-agent': 'minepi/2.0 Mobile Safari',
+    });
+
+    const result = await requireAuth(req);
+
+    expect(result.error).toBeNull();
+    expect(result.user).toEqual(mockUser);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('accepts PiApp user-agent variant (case-insensitive match)', async () => {
+    const mockUser = {
+      id: 'user-piapp',
+      walletAddress: '0xccc',
+      piUid: 'pi-ua-test-3',
+      piUsername: 'piappuser',
+      did: null,
+      xp: 0,
+      tier: 'Visitor',
+    };
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid: 'pi-ua-test-3', username: 'piappuser' }),
+    });
+    mockPrisma.user.findUnique.mockResolvedValue(mockUser as any);
+
+    const req = mockRequestWithHeader({
+      authorization: 'Bearer piapp-ua-token',
+      'user-agent': 'PiApp/3.1 iOS',
+    });
+
+    const result = await requireAuth(req);
+
+    expect(result.error).toBeNull();
+    expect(result.user).toEqual(mockUser);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows non-Pi-Browser UA when SANDBOX_AUTH_BYPASS=true and hostname is localhost', async () => {
+    const originalBypass = process.env.SANDBOX_AUTH_BYPASS;
+    process.env.SANDBOX_AUTH_BYPASS = 'true';
+
+    try {
+      const mockUser = {
+        id: 'user-sandbox-bypass',
+        walletAddress: '0xddd',
+        piUid: 'pi-sandbox-bypass',
+        piUsername: 'sandboxbypassuser',
+        did: null,
+        xp: 0,
+        tier: 'Visitor',
+      };
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ uid: 'pi-sandbox-bypass', username: 'sandboxbypassuser' }),
+      });
+      mockPrisma.user.findUnique.mockResolvedValue(mockUser as any);
+
+      // Chrome UA but SANDBOX_AUTH_BYPASS=true + localhost → isSandboxOrDev=true → Pi Browser check bypassed
+      const req = mockRequestWithHeader({
+        authorization: 'Bearer sandbox-chrome-token',
+        'user-agent': 'Mozilla/5.0 Chrome/120.0',
+      });
+
+      const result = await requireAuth(req);
+
+      expect(result.error).toBeNull();
+      expect(result.user).toEqual(mockUser);
+      // fetch WAS called because the Pi Browser check was bypassed
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    } finally {
+      if (originalBypass === undefined) {
+        delete process.env.SANDBOX_AUTH_BYPASS;
+      } else {
+        process.env.SANDBOX_AUTH_BYPASS = originalBypass;
+      }
+    }
+  });
+
+  it('does NOT allow SANDBOX_AUTH_BYPASS=false non-Pi-Browser requests', async () => {
+    const originalBypass = process.env.SANDBOX_AUTH_BYPASS;
+    process.env.SANDBOX_AUTH_BYPASS = 'false';
+
+    try {
+      const req = mockRequestWithHeader({
+        authorization: 'Bearer bypass-false-token',
+        'user-agent': 'Mozilla/5.0 Chrome/120.0',
+      });
+
+      const result = await requireAuth(req);
+
+      expect(result.user).toBeNull();
+      expect(result.error).toBeDefined();
+      expect(mockFetch).not.toHaveBeenCalled();
+    } finally {
+      if (originalBypass === undefined) {
+        delete process.env.SANDBOX_AUTH_BYPASS;
+      } else {
+        process.env.SANDBOX_AUTH_BYPASS = originalBypass;
+      }
+    }
+  });
+
+  it('does not crash when nextUrl is null — falls back to "localhost" hostname', async () => {
+    // Tests the null-safety fix: request.nextUrl?.hostname || "localhost"
+    const mockUser = {
+      id: 'user-null-url',
+      walletAddress: '0xeee',
+      piUid: 'pi-null-url',
+      piUsername: 'nullurluser',
+      did: null,
+      xp: 0,
+      tier: 'Visitor',
+    };
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid: 'pi-null-url', username: 'nullurluser' }),
+    });
+    mockPrisma.user.findUnique.mockResolvedValue(mockUser as any);
+
+    // Manually build a request with null nextUrl and a Pi Browser UA
+    const req = {
+      headers: {
+        get: (name: string) => {
+          const h: Record<string, string> = {
+            authorization: 'Bearer null-nexturl-token',
+            'user-agent': 'Pi Browser / AxiomID Testing',
+          };
+          return h[name.toLowerCase()] ?? null;
+        },
+      },
+      nextUrl: null,
+    } as any;
+
+    // Should not throw even when nextUrl is null
+    const result = await requireAuth(req);
+
+    // With Pi Browser UA it should proceed normally and succeed
+    expect(result.error).toBeNull();
+    expect(result.user).toEqual(mockUser);
   });
 });

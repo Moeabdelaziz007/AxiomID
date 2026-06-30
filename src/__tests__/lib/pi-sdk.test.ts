@@ -116,6 +116,155 @@ describe('pi-sdk', () => {
 
       delete (global as any).window.Pi;
     });
+
+    // PR change: connectPi now emits structured [DEBUG] prefixed log messages
+    // at each stage of the authentication flow for easier console filtering.
+    it('emits [DEBUG] Starting Pi authentication flow as the first log message', async () => {
+      (global as any).window = (global as any).window || {};
+      (global as any).window.Pi = {
+        authenticate: jest.fn().mockResolvedValue({
+          user: { uid: 'debug-uid', username: 'debuguser', name: 'Debug User' },
+          accessToken: 'debug-token',
+        }),
+      };
+      const pushLog = jest.fn();
+
+      await connectPi(pushLog);
+
+      const messages: string[] = pushLog.mock.calls.map(([msg]: [string]) => msg);
+      expect(messages[0]).toBe('[DEBUG] Starting Pi authentication flow...');
+
+      delete (global as any).window.Pi;
+    });
+
+    it('emits [DEBUG] Browser environment detected log after flow start', async () => {
+      (global as any).window = (global as any).window || {};
+      (global as any).window.Pi = {
+        authenticate: jest.fn().mockResolvedValue({
+          user: { uid: 'debug-uid2', username: 'debuguser2', name: 'Debug User 2' },
+          accessToken: 'debug-token-2',
+        }),
+      };
+      const pushLog = jest.fn();
+
+      await connectPi(pushLog);
+
+      const messages: string[] = pushLog.mock.calls.map(([msg]: [string]) => msg);
+      expect(messages.some((m) => m.includes('[DEBUG] Browser environment detected'))).toBe(true);
+
+      delete (global as any).window.Pi;
+    });
+
+    it('emits [DEBUG] Pi SDK loaded successfully and sandbox mode logs', async () => {
+      (global as any).window = (global as any).window || {};
+      (global as any).window.Pi = {
+        authenticate: jest.fn().mockResolvedValue({
+          user: { uid: 'debug-uid3', username: 'debuguser3', name: 'Debug User 3' },
+          accessToken: 'debug-token-3',
+        }),
+      };
+      const pushLog = jest.fn();
+
+      await connectPi(pushLog);
+
+      const messages: string[] = pushLog.mock.calls.map(([msg]: [string]) => msg);
+      expect(messages.some((m) => m === '[DEBUG] Pi SDK loaded successfully')).toBe(true);
+      expect(messages.some((m) => m.startsWith('[DEBUG] Sandbox mode:'))).toBe(true);
+      expect(messages.some((m) => m === '[DEBUG] Environment variables check:')).toBe(true);
+
+      delete (global as any).window.Pi;
+    });
+
+    it('emits [DEBUG] Calling Pi.authenticate() and [DEBUG] returned successfully on success', async () => {
+      (global as any).window = (global as any).window || {};
+      (global as any).window.Pi = {
+        authenticate: jest.fn().mockResolvedValue({
+          user: { uid: 'debug-uid4', username: 'debuguser4', name: 'Debug User 4' },
+          accessToken: 'debug-token-4',
+        }),
+      };
+      const pushLog = jest.fn();
+
+      await connectPi(pushLog);
+
+      const messages: string[] = pushLog.mock.calls.map(([msg]: [string]) => msg);
+      expect(messages.some((m) => m.includes('[DEBUG] Calling Pi.authenticate() with timeout'))).toBe(true);
+      expect(messages.some((m) => m === '[DEBUG] Pi.authenticate() returned successfully')).toBe(true);
+
+      delete (global as any).window.Pi;
+    });
+
+    it('emits [DEBUG] PiSdkError: prefix (not old "Auth error:") when authentication fails', async () => {
+      // When a PiSdkError is thrown (e.g. no user data), the new log format uses
+      // "[DEBUG] PiSdkError: {code} - {message}" instead of the old "Auth error:" prefix.
+      (global as any).window = (global as any).window || {};
+      (global as any).window.Pi = {
+        authenticate: jest.fn().mockResolvedValue({ user: null, accessToken: 'tok' }),
+      };
+      const pushLog = jest.fn();
+
+      await expect(connectPi(pushLog)).rejects.toThrow('no user data received');
+
+      const messages: string[] = pushLog.mock.calls.map(([msg]: [string]) => msg);
+      const pisdk = messages.find((m) => m.startsWith('[DEBUG] PiSdkError:'));
+      expect(pisdk).toBeDefined();
+      // Verify it contains both the error code and a dash separator
+      expect(pisdk).toMatch(/\[DEBUG\] PiSdkError: \w+ - .+/);
+
+      delete (global as any).window.Pi;
+    });
+
+    it('emits [DEBUG] Authentication failed log when no user is returned', async () => {
+      (global as any).window = (global as any).window || {};
+      (global as any).window.Pi = {
+        authenticate: jest.fn().mockResolvedValue({ user: null, accessToken: 'tok' }),
+      };
+      const pushLog = jest.fn();
+
+      await expect(connectPi(pushLog)).rejects.toThrow();
+
+      const messages: string[] = pushLog.mock.calls.map(([msg]: [string]) => msg);
+      expect(messages.some((m) => m === '[DEBUG] Authentication failed - no user data received')).toBe(true);
+
+      delete (global as any).window.Pi;
+    });
+
+    it('emits [DEBUG] Authentication failed - no token received when token is missing', async () => {
+      (global as any).window = (global as any).window || {};
+      (global as any).window.Pi = {
+        authenticate: jest.fn().mockResolvedValue({
+          user: { uid: 'u-no-tok', username: 'notok', name: 'No Token' },
+          accessToken: null,
+        }),
+      };
+      const pushLog = jest.fn();
+
+      await expect(connectPi(pushLog)).rejects.toThrow('no token received');
+
+      const messages: string[] = pushLog.mock.calls.map(([msg]: [string]) => msg);
+      expect(messages.some((m) => m === '[DEBUG] Authentication failed - no token received')).toBe(true);
+
+      delete (global as any).window.Pi;
+    });
+
+    it('emits [DEBUG] Generic error log for non-PiSdkError exceptions', async () => {
+      // When authenticate() throws a plain Error (not a PiSdkError), the catch block
+      // uses "[DEBUG] Generic error: {message}" before wrapping it in a PiSdkError.
+      (global as any).window = (global as any).window || {};
+      (global as any).window.Pi = {
+        authenticate: jest.fn().mockRejectedValue(new Error('Network timeout')),
+      };
+      const pushLog = jest.fn();
+
+      await expect(connectPi(pushLog)).rejects.toThrow();
+
+      const messages: string[] = pushLog.mock.calls.map(([msg]: [string]) => msg);
+      const genericMsg = messages.find((m) => m.startsWith('[DEBUG] Generic error:'));
+      expect(genericMsg).toBeDefined();
+      expect(genericMsg).toContain('Network timeout');
+
+      delete (global as any).window.Pi;
+    });
   });
 
   describe('checkPiBrowser', () => {
