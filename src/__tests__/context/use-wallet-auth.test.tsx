@@ -2,6 +2,7 @@ import React from "react";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useWalletAuth } from "@/app/context/use-wallet-auth";
 import { connectPi, checkPiBrowser, PiSdkError, PiSdkErrorCode, determineSandboxMode } from "@/lib/pi-sdk";
+import "jest-location-mock";
 
 jest.mock("@/lib/pi-sdk", () => {
   const actual = jest.requireActual("@/lib/pi-sdk");
@@ -12,6 +13,15 @@ jest.mock("@/lib/pi-sdk", () => {
     determineSandboxMode: jest.fn(),
   };
 });
+
+jest.mock("@/lib/pi-signin", () => ({
+  getPiOAuthClientId: jest.fn(),
+  buildPiSignInUrl: jest.fn().mockReturnValue("https://accounts.pinet.com/oauth/authorize?client_id=test"),
+}));
+
+import { getPiOAuthClientId, buildPiSignInUrl } from "@/lib/pi-signin";
+const mockGetPiOAuthClientId = getPiOAuthClientId as jest.MockedFunction<typeof getPiOAuthClientId>;
+const mockBuildPiSignInUrl = buildPiSignInUrl as jest.MockedFunction<typeof buildPiSignInUrl>;
 
 const mockConnectPi = connectPi as jest.MockedFunction<typeof connectPi>;
 const mockCheckPiBrowser = checkPiBrowser as jest.MockedFunction<typeof checkPiBrowser>;
@@ -748,5 +758,174 @@ describe("useWalletAuth — connectDemo idempotency", () => {
 
     const demoUser = params.setUser.mock.calls[0][0];
     expect(demoUser.trustScore).toBe(85);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// useWalletAuth — OAuth redirect (PR change: Pi Sign-in for regular browsers)
+// ---------------------------------------------------------------------------
+
+describe("useWalletAuth — connectWallet OAuth redirect when Pi SDK unavailable", () => {
+  let mockFetch: jest.Mock;
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorage.clear();
+    sessionStorage.clear();
+    mockFetch = jest.fn();
+    global.fetch = mockFetch;
+    mockCheckPiBrowser.mockReturnValue(false);
+    mockDetermineSandboxMode.mockReturnValue(false);
+
+    // Use jest-location-mock
+    window.location.assign("https://axiomid.app/");
+    window.location.hash = "";
+    (window.location.assign as jest.Mock).mockClear();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("redirects to Pi Sign-in URL when clientId is configured and SDK is unavailable", async () => {
+    mockGetPiOAuthClientId.mockReturnValue("my-client-id");
+    mockBuildPiSignInUrl.mockReturnValue(
+      "https://accounts.pinet.com/oauth/authorize?client_id=my-client-id"
+    );
+    const sdkError = new PiSdkError(PiSdkErrorCode.NOT_IN_PI_BROWSER, "Not in Pi Browser");
+    mockConnectPi.mockRejectedValueOnce(sdkError);
+
+    const params = makeAuthParams();
+    const { result } = renderHook(() => useWalletAuth(params));
+
+    await act(async () => {
+      await result.current.connectWallet();
+    });
+
+    expect(window.location.assign).toHaveBeenCalledWith(
+      "https://accounts.pinet.com/oauth/authorize?client_id=my-client-id"
+    );
+  });
+
+  it("returns true when redirecting to Pi Sign-in URL", async () => {
+    mockGetPiOAuthClientId.mockReturnValue("my-client-id");
+    mockBuildPiSignInUrl.mockReturnValue("https://accounts.pinet.com/oauth/authorize");
+    const sdkError = new PiSdkError(PiSdkErrorCode.NOT_IN_PI_BROWSER, "Not in Pi Browser");
+    mockConnectPi.mockRejectedValueOnce(sdkError);
+
+    const params = makeAuthParams();
+    const { result } = renderHook(() => useWalletAuth(params));
+
+    let returnValue: boolean | undefined;
+    await act(async () => {
+      returnValue = await result.current.connectWallet();
+    });
+
+    expect(returnValue).toBe(true);
+  });
+
+  it("stores pi_oauth_state in sessionStorage before redirect", async () => {
+    mockGetPiOAuthClientId.mockReturnValue("my-client-id");
+    mockBuildPiSignInUrl.mockReturnValue("https://accounts.pinet.com/oauth/authorize");
+    const sdkError = new PiSdkError(PiSdkErrorCode.NOT_IN_PI_BROWSER, "Not in Pi Browser");
+    mockConnectPi.mockRejectedValueOnce(sdkError);
+
+    const params = makeAuthParams();
+    const { result } = renderHook(() => useWalletAuth(params));
+
+    await act(async () => {
+      await result.current.connectWallet();
+    });
+
+    expect(sessionStorage.getItem("pi_oauth_state")).toBeTruthy();
+  });
+
+  it("calls buildPiSignInUrl with correct scopes and redirectUri", async () => {
+    mockGetPiOAuthClientId.mockReturnValue("my-client-id");
+    mockBuildPiSignInUrl.mockReturnValue("https://accounts.pinet.com/oauth/authorize");
+    const sdkError = new PiSdkError(PiSdkErrorCode.SDK_NOT_AVAILABLE, "SDK not available");
+    mockConnectPi.mockRejectedValueOnce(sdkError);
+
+    const params = makeAuthParams();
+    const { result } = renderHook(() => useWalletAuth(params));
+
+    await act(async () => {
+      await result.current.connectWallet();
+    });
+
+    expect(mockBuildPiSignInUrl).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scopes: ["username"],
+      })
+    );
+  });
+
+  it("logs redirect message before calling window.location.assign", async () => {
+    mockGetPiOAuthClientId.mockReturnValue("my-client-id");
+    mockBuildPiSignInUrl.mockReturnValue("https://accounts.pinet.com/oauth/authorize");
+    const sdkError = new PiSdkError(PiSdkErrorCode.SDK_SCRIPT_LOAD_FAILED, "Script failed");
+    mockConnectPi.mockRejectedValueOnce(sdkError);
+
+    const params = makeAuthParams();
+    const { result } = renderHook(() => useWalletAuth(params));
+
+    await act(async () => {
+      await result.current.connectWallet();
+    });
+
+    expect(params.pushLog).toHaveBeenCalledWith(
+      expect.stringMatching(/redirecting to pi sign-in/i)
+    );
+  });
+
+  it("falls through to Pi Browser required error when no clientId is configured", async () => {
+    jest.useFakeTimers();
+    mockGetPiOAuthClientId.mockReturnValue(null);
+    const sdkError = new PiSdkError(PiSdkErrorCode.NOT_IN_PI_BROWSER, "Not in Pi Browser");
+    mockConnectPi.mockRejectedValueOnce(sdkError);
+
+    const params = makeAuthParams();
+    const { result } = renderHook(() => useWalletAuth(params));
+
+    await act(async () => {
+      await result.current.connectWallet();
+    });
+
+    expect(window.location.assign).not.toHaveBeenCalled();
+    expect(params.setError).toHaveBeenCalledWith(
+      expect.stringContaining("Pi Browser required")
+    );
+    jest.useRealTimers();
+  });
+
+  it("redirects for SDK_SCRIPT_TIMEOUT error when clientId is set", async () => {
+    mockGetPiOAuthClientId.mockReturnValue("client-xyz");
+    mockBuildPiSignInUrl.mockReturnValue("https://accounts.pinet.com/oauth/authorize");
+    const sdkError = new PiSdkError(PiSdkErrorCode.SDK_SCRIPT_TIMEOUT, "Timeout");
+    mockConnectPi.mockRejectedValueOnce(sdkError);
+
+    const params = makeAuthParams();
+    const { result } = renderHook(() => useWalletAuth(params));
+
+    await act(async () => {
+      await result.current.connectWallet();
+    });
+
+    expect(window.location.assign).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not set setError when redirecting (OAuth redirect is success path)", async () => {
+    mockGetPiOAuthClientId.mockReturnValue("my-client-id");
+    mockBuildPiSignInUrl.mockReturnValue("https://accounts.pinet.com/oauth/authorize");
+    const sdkError = new PiSdkError(PiSdkErrorCode.NOT_IN_PI_BROWSER, "Not in Pi Browser");
+    mockConnectPi.mockRejectedValueOnce(sdkError);
+
+    const params = makeAuthParams();
+    const { result } = renderHook(() => useWalletAuth(params));
+
+    await act(async () => {
+      await result.current.connectWallet();
+    });
+
+    expect(params.setError).not.toHaveBeenCalledWith(expect.any(String));
   });
 });

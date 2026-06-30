@@ -99,22 +99,26 @@ export async function POST(request: NextRequest) {
       return apiError('PI_PAYMENT_FAILED', `Pi API error: ${piResponse.status}`);
     }
 
-    const approveData = await piResponse.json();
+    await piResponse.json().catch(() => ({}));
 
+    // Persist the canonical payment fields from the verified GET response
+    // (paymentData), not the approve response — Pi's approve payload may omit
+    // amount/memo/metadata, which would otherwise store amount: 0 and break the
+    // downstream install payment gate (amount >= price).
     await prisma.piPayment.upsert({
       where: { paymentId },
       update: {
         status: 'ESCROWED',
-        amount: approveData.amount || 0,
-        memo: approveData.memo || null,
-        metadata: safeJsonStringify(approveData.metadata),
+        amount: paymentData.amount || 0,
+        memo: paymentData.memo || null,
+        metadata: safeJsonStringify(paymentData.metadata),
       },
       create: {
         paymentId,
         userId: auth.user.id,
-        amount: approveData.amount || 0,
-        memo: approveData.memo || null,
-        metadata: safeJsonStringify(approveData.metadata),
+        amount: paymentData.amount || 0,
+        memo: paymentData.memo || null,
+        metadata: safeJsonStringify(paymentData.metadata),
         status: 'ESCROWED',
         network: 'pi',
       },

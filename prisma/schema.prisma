@@ -166,11 +166,18 @@ model PiPayment {
   toAddress   String?
   network     String        @default("pi")
 
+  // Set when this payment has been redeemed for a skill install, so a single
+  // RELEASED payment cannot be reused to reinstall a skill for free after an
+  // uninstall. References SkillInstallation.id (no FK: installations may be
+  // deleted on uninstall while the consumption record is retained).
+  consumedByInstallationId String? @db.VarChar(36)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([status])
+  @@index([userId, status, consumedByInstallationId])
 }
 
 // ─────────────────────────────────────────────

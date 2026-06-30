@@ -15,6 +15,11 @@ const VerifyKycSchema = z.object({
   accessToken: z.string().min(1),
 });
 
+/**
+ * Verifies a user's KYC status and updates their account.
+ *
+ * @returns The API response containing the resulting KYC status, Pi UID, and computed trust score.
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   const rateLimit = await checkRateLimit(`kya-verify:${ip}`, RATE_LIMITS.authenticated);
@@ -63,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     let stampCreated = false;
 
-    // Atomic: persist KYC status + stamp + XP + tier + audit record together
+    // Atomic: persist KYC status + stamp + XP + tier + audit record + ledger together
     try {
       await prisma.$transaction(async (tx) => {
         // Persist KYC status inside the transaction so it rolls back on failure
@@ -95,6 +100,17 @@ export async function POST(request: NextRequest) {
               where: { id: user.id },
               data: { xp: { increment: 200 } },
               select: { xp: true },
+            });
+
+            // Record the XP grant in the ledger so the audit chain stays complete
+            await tx.xpLedger.create({
+              data: {
+                userId: user.id,
+                amount: 200,
+                reason: 'action_claim',
+                reference: JSON.stringify({ type: 'complete_kyc' }),
+                balance: totalXp,
+              },
             });
 
             const nextTier = calculateTier(totalXp);
@@ -137,8 +153,9 @@ export async function POST(request: NextRequest) {
         }
       });
     } catch (txErr) {
+      const code = (txErr as { code?: string })?.code;
       const msg = txErr instanceof Error ? txErr.message : String(txErr);
-      if (msg.includes('P2002')) {
+      if (code === 'P2002' || msg.includes('P2002')) {
         stampCreated = false;
       } else {
         throw txErr;

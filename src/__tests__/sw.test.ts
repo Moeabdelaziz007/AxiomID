@@ -51,7 +51,7 @@ const EXPECTED_STATIC_ASSETS = [
  * Must stay in sync with the regex in the source file.
  */
 const STATIC_ASSET_PATTERN =
-  /\.(?:js|css|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot)$/i;
+  /\.(?:png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|otf|eot|map)$/;
 
 // ---------------------------------------------------------------------------
 // Pure helpers that mirror the fetch handler's branch decisions
@@ -196,8 +196,6 @@ describe("sw.js — source constants", () => {
 
 describe("STATIC_ASSET_PATTERN regex", () => {
   const shouldMatch = [
-    "/app.js",
-    "/style.css",
     "/icon.png",
     "/photo.jpg",
     "/photo.jpeg",
@@ -208,10 +206,9 @@ describe("STATIC_ASSET_PATTERN regex", () => {
     "/font.woff",
     "/font.woff2",
     "/font.ttf",
+    "/font.otf",
     "/font.eot",
-    "/_next/static/chunks/main.js",
-    "/path/to/image.PNG", // case insensitive
-    "/style.CSS",
+    "/chunk.js.map",
   ];
 
   const shouldNotMatch = [
@@ -219,10 +216,14 @@ describe("STATIC_ASSET_PATTERN regex", () => {
     "/about",
     "/dashboard",
     "/api/user",
+    "/app.js", // bare .js is served via /_next/static/ branch, not this pattern
+    "/style.css", // bare .css likewise
     "/page.html",
     "/data.json",
     "/feed.xml",
     "/doc.pdf",
+    "/path/to/image.PNG", // pattern is case-sensitive
+    "/style.CSS",
     "",
   ];
 
@@ -326,16 +327,16 @@ describe("sw.js fetch routing — Network-First strategy", () => {
 // ---------------------------------------------------------------------------
 
 describe("sw.js fetch routing — Stale-While-Revalidate strategy", () => {
-  it("uses SWR for .js asset files", () => {
+  it("does NOT SWR bare .js files (only /_next/static/ js is cached)", () => {
     const req = makeRequest("/chunk.js");
     expect(shouldBypass(req)).toBe(false);
     expect(isNetworkFirst(req)).toBe(false);
-    expect(isStaleWhileRevalidate(req)).toBe(true);
+    expect(isStaleWhileRevalidate(req)).toBe(false);
   });
 
-  it("uses SWR for .css files", () => {
+  it("does NOT SWR bare .css files (only /_next/static/ css is cached)", () => {
     const req = makeRequest("/styles.css");
-    expect(isStaleWhileRevalidate(req)).toBe(true);
+    expect(isStaleWhileRevalidate(req)).toBe(false);
   });
 
   it("uses SWR for .png images", () => {
@@ -404,8 +405,8 @@ describe("sw.js fetch routing — full decision matrix", () => {
     ["/onboarding", "network-first"],
     ["/about", "network-first", "navigate"],
     ["/icon.png", "swr"],
-    ["/style.css", "swr"],
-    ["/chunk.js", "swr"],
+    ["/style.css", "passthrough"], // bare .css cached only under /_next/static/
+    ["/chunk.js", "passthrough"], // bare .js cached only under /_next/static/
     ["/_next/static/chunks/page.js", "swr"],
     ["/manifest.webmanifest", "passthrough"], // .webmanifest not in pattern
     ["/data.json", "passthrough"],

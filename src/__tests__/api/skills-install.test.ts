@@ -9,9 +9,8 @@ jest.mock("@/lib/auth-middleware", () => ({
   requireAuth: jest.fn(),
 }));
 
-jest.mock("@/lib/prisma", () => ({
-  prisma: {
-    $transaction: jest.fn((ops: unknown[]) => Promise.all(ops)),
+jest.mock("@/lib/prisma", () => {
+  const prismaMock: Record<string, unknown> = {
     skill: {
       findUnique: jest.fn(),
       update: jest.fn(),
@@ -25,8 +24,22 @@ jest.mock("@/lib/prisma", () => ({
       update: jest.fn(),
       delete: jest.fn(),
     },
-  },
-}));
+    piPayment: {
+      findMany: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+    },
+    // Support both the array form ($transaction([...])) and the interactive
+    // callback form ($transaction(async (tx) => {...})). The callback receives
+    // the same mocked prisma client as the transaction client.
+    $transaction: jest.fn((arg: unknown) =>
+      typeof arg === "function"
+        ? (arg as (tx: unknown) => unknown)(prismaMock)
+        : Promise.all(arg as unknown[])
+    ),
+  };
+  return { prisma: prismaMock };
+});
 
 jest.mock("@/lib/rate-limiter", () => ({
   checkRateLimit: jest.fn().mockResolvedValue({ allowed: true, remaining: 9, resetAt: Date.now() + 60000 }),
@@ -423,5 +436,342 @@ describe("DELETE /api/skills/[slug]/install — business logic", () => {
 
     expect(res.status).toBe(500);
     expect(data.code).toBe("INTERNAL_ERROR");
+  });
+});
+
+// ─── POST /api/skills/[slug]/install — paid skill payment gate (PR change) ──
+
+// Paid skill fixture
+const PAID_SKILL = {
+  ...PUBLISHED_SKILL,
+  pricePi: 1.5,
+};
+
+describe("POST /api/skills/[slug]/install — paid skill: payment gate (PR change)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 9, resetAt: Date.now() + 60000 });
+    mockGetClientIp.mockReturnValue("127.0.0.1");
+    mockRequireAuth.mockResolvedValue({ error: null, user: mockUser });
+    mockPrisma.skill.findUnique.mockResolvedValue(PAID_SKILL);
+    mockPrisma.userAgent.findUnique.mockResolvedValue(AGENT);
+    mockPrisma.skillInstallation.findFirst.mockResolvedValue(null);
+    mockPrisma.skillInstallation.create.mockResolvedValue({ id: "inst-new" } as any);
+    mockPrisma.skill.update.mockResolvedValue(PAID_SKILL);
+  });
+
+  it("returns 402 PAYMENT_INVALID when no RELEASED payments exist for user", async () => {
+    (mockPrisma.piPayment.findMany as jest.Mock).mockResolvedValue([]);
+
+    const req = makeInstallRequest("POST");
+    const res = await POST(req, makeParams());
+    const data = await res.json();
+
+    expect(res.status).toBe(402);
+    expect(data.code).toBe("PAYMENT_INVALID");
+  });
+
+  it("returns 402 PAYMENT_INVALID when payment is for a different skill", async () => {
+    (mockPrisma.piPayment.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: "pay-1",
+        userId: mockUser.id,
+        status: "RELEASED",
+        consumedByInstallationId: null,
+        amount: 2.0,
+        metadata: JSON.stringify({ skillId: "different-skill-id" }),
+      },
+    ]);
+
+    const req = makeInstallRequest("POST");
+    const res = await POST(req, makeParams());
+    const data = await res.json();
+
+    expect(res.status).toBe(402);
+    expect(data.code).toBe("PAYMENT_INVALID");
+  });
+
+  it("returns 402 PAYMENT_INVALID when payment amount is below skill price", async () => {
+    (mockPrisma.piPayment.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: "pay-1",
+        userId: mockUser.id,
+        status: "RELEASED",
+        consumedByInstallationId: null,
+        amount: 0.5, // below pricePi=1.5
+        metadata: JSON.stringify({ skillId: PUBLISHED_SKILL.id }),
+      },
+    ]);
+
+    const req = makeInstallRequest("POST");
+    const res = await POST(req, makeParams());
+    const data = await res.json();
+
+    expect(res.status).toBe(402);
+    expect(data.code).toBe("PAYMENT_INVALID");
+  });
+
+  it("queries piPayment.findMany with consumedByInstallationId: null filter (PR change)", async () => {
+    // Return an unconsumed payment matching the skill
+    (mockPrisma.piPayment.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: "pay-unconsumed",
+        userId: mockUser.id,
+        status: "RELEASED",
+        consumedByInstallationId: null,
+        amount: 2.0,
+        metadata: JSON.stringify({ skillId: PUBLISHED_SKILL.id }),
+      },
+    ]);
+    (mockPrisma.piPayment.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+
+    const req = makeInstallRequest("POST");
+    await POST(req, makeParams());
+
+    expect(mockPrisma.piPayment.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          userId: mockUser.id,
+          status: "RELEASED",
+          consumedByInstallationId: null,
+        }),
+      })
+    );
+  });
+
+  it("skips consumed payments (consumedByInstallationId non-null) and finds the next valid one", async () => {
+    // First payment is already consumed; second is unconsumed and valid
+    (mockPrisma.piPayment.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: "pay-consumed",
+        userId: mockUser.id,
+        status: "RELEASED",
+        consumedByInstallationId: "old-install-id", // already consumed
+        amount: 2.0,
+        metadata: JSON.stringify({ skillId: PUBLISHED_SKILL.id }),
+      },
+      {
+        id: "pay-unconsumed",
+        userId: mockUser.id,
+        status: "RELEASED",
+        consumedByInstallationId: null, // available
+        amount: 2.0,
+        metadata: JSON.stringify({ skillId: PUBLISHED_SKILL.id }),
+      },
+    ]);
+    (mockPrisma.piPayment.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+
+    const req = makeInstallRequest("POST");
+    const res = await POST(req, makeParams());
+    const data = await res.json();
+
+    // Should succeed using the unconsumed payment
+    expect(res.status).toBe(200);
+    expect(data.installed).toBe(true);
+  });
+
+  it("succeeds and marks payment consumed on new install (PR change)", async () => {
+    const validPaymentId = "pay-valid";
+    (mockPrisma.piPayment.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: validPaymentId,
+        userId: mockUser.id,
+        status: "RELEASED",
+        consumedByInstallationId: null,
+        amount: 2.0,
+        metadata: JSON.stringify({ skillId: PUBLISHED_SKILL.id }),
+      },
+    ]);
+    (mockPrisma.piPayment.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+
+    const req = makeInstallRequest("POST");
+    const res = await POST(req, makeParams());
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.installed).toBe(true);
+
+    // The payment must be atomically claimed inside the transaction
+    expect(mockPrisma.piPayment.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          id: validPaymentId,
+          consumedByInstallationId: null,
+        }),
+        data: expect.objectContaining({
+          consumedByInstallationId: "inst-new",
+        }),
+      })
+    );
+  });
+
+  it("marks payment consumed with new installation id on first-time install (PR change)", async () => {
+    const newInstallId = "inst-brand-new";
+    mockPrisma.skillInstallation.create.mockResolvedValue({ id: newInstallId } as any);
+
+    (mockPrisma.piPayment.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: "pay-first",
+        userId: mockUser.id,
+        status: "RELEASED",
+        consumedByInstallationId: null,
+        amount: 2.0,
+        metadata: JSON.stringify({ skillId: PUBLISHED_SKILL.id }),
+      },
+    ]);
+    (mockPrisma.piPayment.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+
+    const req = makeInstallRequest("POST");
+    await POST(req, makeParams());
+
+    expect(mockPrisma.piPayment.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { consumedByInstallationId: newInstallId },
+      })
+    );
+  });
+});
+
+describe("POST /api/skills/[slug]/install — paid skill: TOCTOU guard on new install (PR change)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 9, resetAt: Date.now() + 60000 });
+    mockGetClientIp.mockReturnValue("127.0.0.1");
+    mockRequireAuth.mockResolvedValue({ error: null, user: mockUser });
+    mockPrisma.skill.findUnique.mockResolvedValue(PAID_SKILL);
+    mockPrisma.userAgent.findUnique.mockResolvedValue(AGENT);
+    mockPrisma.skillInstallation.findFirst.mockResolvedValue(null);
+    mockPrisma.skillInstallation.create.mockResolvedValue({ id: "inst-new" } as any);
+    mockPrisma.skill.update.mockResolvedValue(PAID_SKILL);
+  });
+
+  it("returns 500 when concurrent install claims the payment first (TOCTOU: count=0)", async () => {
+    (mockPrisma.piPayment.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: "pay-race",
+        userId: mockUser.id,
+        status: "RELEASED",
+        consumedByInstallationId: null,
+        amount: 2.0,
+        metadata: JSON.stringify({ skillId: PUBLISHED_SKILL.id }),
+      },
+    ]);
+    // Simulate another request won the race — updateMany returns count=0
+    (mockPrisma.piPayment.updateMany as jest.Mock).mockResolvedValue({ count: 0 });
+
+    const req = makeInstallRequest("POST");
+    const res = await POST(req, makeParams());
+    const data = await res.json();
+
+    expect(res.status).toBe(409);
+    expect(data.code).toBe("CONFLICT");
+  });
+});
+
+describe("POST /api/skills/[slug]/install — paid skill: TOCTOU guard on reinstall (PR change)", () => {
+  const INACTIVE_INSTALL = {
+    id: "inst-inactive",
+    skillId: PUBLISHED_SKILL.id,
+    agentId: AGENT.id,
+    status: "inactive",
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 9, resetAt: Date.now() + 60000 });
+    mockGetClientIp.mockReturnValue("127.0.0.1");
+    mockRequireAuth.mockResolvedValue({ error: null, user: mockUser });
+    mockPrisma.skill.findUnique.mockResolvedValue(PAID_SKILL);
+    mockPrisma.userAgent.findUnique.mockResolvedValue(AGENT);
+    mockPrisma.skillInstallation.findFirst.mockResolvedValue(INACTIVE_INSTALL as any);
+    mockPrisma.skillInstallation.update.mockResolvedValue({} as any);
+    mockPrisma.skill.update.mockResolvedValue(PAID_SKILL);
+  });
+
+  it("marks payment consumed with existing installation id on reinstall (PR change)", async () => {
+    (mockPrisma.piPayment.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: "pay-reinstall",
+        userId: mockUser.id,
+        status: "RELEASED",
+        consumedByInstallationId: null,
+        amount: 2.0,
+        metadata: JSON.stringify({ skillId: PUBLISHED_SKILL.id }),
+      },
+    ]);
+    (mockPrisma.piPayment.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+
+    const req = makeInstallRequest("POST");
+    const res = await POST(req, makeParams());
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.installed).toBe(true);
+
+    // Payment must be consumed with the EXISTING (inactive) installation id
+    expect(mockPrisma.piPayment.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          id: "pay-reinstall",
+          consumedByInstallationId: null,
+        }),
+        data: expect.objectContaining({
+          consumedByInstallationId: INACTIVE_INSTALL.id,
+        }),
+      })
+    );
+  });
+
+  it("returns 500 when concurrent reinstall claims the payment first (TOCTOU)", async () => {
+    (mockPrisma.piPayment.findMany as jest.Mock).mockResolvedValue([
+      {
+        id: "pay-race-reinstall",
+        userId: mockUser.id,
+        status: "RELEASED",
+        consumedByInstallationId: null,
+        amount: 2.0,
+        metadata: JSON.stringify({ skillId: PUBLISHED_SKILL.id }),
+      },
+    ]);
+    (mockPrisma.piPayment.updateMany as jest.Mock).mockResolvedValue({ count: 0 });
+
+    const req = makeInstallRequest("POST");
+    const res = await POST(req, makeParams());
+    const data = await res.json();
+
+    expect(res.status).toBe(409);
+    expect(data.code).toBe("CONFLICT");
+  });
+});
+
+describe("POST /api/skills/[slug]/install — free skill: no payment required (baseline)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 9, resetAt: Date.now() + 60000 });
+    mockGetClientIp.mockReturnValue("127.0.0.1");
+    mockRequireAuth.mockResolvedValue({ error: null, user: mockUser });
+    // Free skill (pricePi=0)
+    mockPrisma.skill.findUnique.mockResolvedValue(PUBLISHED_SKILL);
+    mockPrisma.userAgent.findUnique.mockResolvedValue(AGENT);
+    mockPrisma.skillInstallation.findFirst.mockResolvedValue(null);
+    mockPrisma.skillInstallation.create.mockResolvedValue({ id: "inst-free" } as any);
+    mockPrisma.skill.update.mockResolvedValue(PUBLISHED_SKILL);
+  });
+
+  it("installs free skill without querying payments", async () => {
+    const req = makeInstallRequest("POST");
+    const res = await POST(req, makeParams());
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.installed).toBe(true);
+    expect(mockPrisma.piPayment.findMany).not.toHaveBeenCalled();
+  });
+
+  it("does not call piPayment.updateMany for free skills", async () => {
+    const req = makeInstallRequest("POST");
+    await POST(req, makeParams());
+
+    expect(mockPrisma.piPayment.updateMany).not.toHaveBeenCalled();
   });
 });

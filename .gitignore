@@ -44,10 +44,6 @@ Desktop.ini
 # superpowers (local workflow scripts)
 .superpowers/
 
-# gemini/scratchpad
-.gemini/
-scratchpad/
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts

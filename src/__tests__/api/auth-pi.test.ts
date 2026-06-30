@@ -220,6 +220,60 @@ describe('POST /api/auth/pi', () => {
     expect(res.status).toBe(401);
     expect(data.code).toBe('PI_AUTH_FAILED');
   });
+
+  it('returns 401 PI_AUTH_FAILED with timeout message when AbortSignal fires (PR change: 10s timeout)', async () => {
+    // Simulate the abort/timeout error that AbortSignal.timeout(10000) raises
+    const abortError = new DOMException('The operation was aborted.', 'AbortError');
+    (global.fetch as jest.Mock).mockRejectedValue(abortError);
+
+    const req = mockRequest({
+      accessToken: 'slow-token',
+      uid: 'pi-uid-timeout',
+      username: 'slowuser',
+    });
+
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(401);
+    expect(data.code).toBe('PI_AUTH_FAILED');
+    expect(data.error).toMatch(/timed out/i);
+  });
+
+  it('calls Pi API with AbortSignal (10s) — PR change from 5s', async () => {
+    // Spy on AbortSignal.timeout to verify 10000ms is passed
+    const timeoutSpy = jest.spyOn(AbortSignal, 'timeout');
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ uid: 'pi-uid-123', username: 'testuser' }),
+    });
+
+    mockPrisma.user.findUnique.mockResolvedValue(null);
+    mockPrisma.user.create.mockResolvedValue({
+      id: 'user-timeout-test',
+      walletAddress: 'pi:pi-uid-123',
+      stellarAddress: null,
+      piUid: 'pi-uid-123',
+      piUsername: 'testuser',
+      xp: 0,
+      tier: 'Visitor',
+      did: 'did:axiom:axiomid.app:pi:testuser',
+      kycStatus: 'NONE',
+      agent: null,
+    } as any);
+
+    const req = mockRequest({
+      accessToken: 'valid-token',
+      uid: 'pi-uid-123',
+      username: 'testuser',
+    });
+
+    await POST(req);
+
+    expect(timeoutSpy).toHaveBeenCalledWith(10000);
+    timeoutSpy.mockRestore();
+  });
 });
 
 const SANDBOX_TEST_TOKEN = 'sandbox-dev-token-abc-123';
@@ -352,6 +406,36 @@ describe('POST /api/auth/pi — sandbox dev token bypass (PR change)', () => {
         }),
       })
     );
+  });
+
+  it('sandbox token is NOT accepted in production (NODE_ENV=production)', async () => {
+    const origNodeEnv = process.env.NODE_ENV;
+    Object.defineProperty(process.env, 'NODE_ENV', { value: 'production', writable: true, configurable: true });
+
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 401,
+      text: async () => 'Unauthorized',
+    });
+
+    const req = mockRequest({
+      accessToken: SANDBOX_TEST_TOKEN,
+      uid: 'sandbox-developer',
+      username: 'developer',
+    });
+
+    const res = await POST(req);
+    const data = await res.json();
+
+    // In production the sandbox bypass is not active — Pi API is always called
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://api.minepi.com/v2/me',
+      expect.anything()
+    );
+    // And the invalid token should result in a PI_AUTH_FAILED error
+    expect(data.code).toBe('PI_AUTH_FAILED');
+
+    Object.defineProperty(process.env, 'NODE_ENV', { value: origNodeEnv, writable: true, configurable: true });
   });
 
   it('sandbox bypass updates existing user without calling Pi API', async () => {

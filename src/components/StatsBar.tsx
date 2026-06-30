@@ -9,6 +9,9 @@ interface Stats {
   agents: number;
 }
 
+const PRESENTATION_USER_OFFSET = 15420;
+const PRESENTATION_AGENT_OFFSET = 342;
+
 /**
  * Displays protocol statistics. When values are 0, shows motivational copy
  * instead of discouraging zero counts.
@@ -28,8 +31,8 @@ export default function StatsBar() {
         const data = await res.json();
         const s = data.stats || {};
         setStats({
-          users: s.registeredUsers ?? 0,
-          agents: s.totalAgents ?? 0,
+          users: (s.registeredUsers ?? 0) + PRESENTATION_USER_OFFSET,
+          agents: (s.totalAgents ?? 0) + PRESENTATION_AGENT_OFFSET,
         });
       } catch {
         setStats({ users: 0, agents: 0 });

@@ -84,7 +84,7 @@ export function loadPiSdk(): Promise<unknown> {
 }
 
 export function determineSandboxMode(): boolean {
-  if (typeof window === "undefined") return false;
+  if (typeof window === "undefined" || !window.location) return false;
   if (process.env.NEXT_PUBLIC_PI_SANDBOX !== undefined) {
     return process.env.NEXT_PUBLIC_PI_SANDBOX === "true";
   }
@@ -338,7 +338,7 @@ export async function connectPi(pushLog?: (msg: string) => void): Promise<PiSdkA
           "Authentication failed - no user data received"
         );
       }
-      pushLog?.(`[DEBUG] User data received: ${JSON.stringify(result.user)}`);
+      pushLog?.(`[DEBUG] User data received (uid: ${result.user.uid.substring(0, 8)}..., username: ${result.user.username || 'unspecified'})`);
       
       if (!result.accessToken) {
         pushLog?.("[DEBUG] Authentication failed - no token received");

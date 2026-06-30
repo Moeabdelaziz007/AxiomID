@@ -69,10 +69,14 @@ export async function POST(request: NextRequest) {
     if (isLocalDev && sandboxToken && accessToken === sandboxToken) {
       verifiedStellarAddress = "GD5TJZNKPNFSSXN7XF26NNDAOVDN57S7LNJ6FSL2X5D62N676572N4Y2";
     } else {
-      // Production: always verify against Pi API
+      // Production: always verify against Pi API.
+      // 10s timeout matches verifyKycServerSide (src/lib/pi-kyc.ts) and the
+      // client handoff in use-wallet-auth.ts — the previous 5s cap frequently
+      // tripped on Vercel cold starts and surfaced as a generic "Pi auth
+      // failing" timeout error.
       const piResponse = await fetch('https://api.minepi.com/v2/me', {
         headers: { Authorization: `Bearer ${accessToken}` },
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(10000),
       });
 
       if (!piResponse.ok) {

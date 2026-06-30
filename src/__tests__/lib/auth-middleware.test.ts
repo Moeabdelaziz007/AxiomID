@@ -44,9 +44,7 @@ function mockRequestWithHeader(headers: Record<string, string> = {}) {
     headers: {
       get: (name: string) => allHeaders[name.toLowerCase()] ?? null,
     },
-    nextUrl: Object.assign(new URL("http://localhost/"), {
-      hostname: "localhost",
-    }),
+    nextUrl: new URL("http://localhost/"),
   } as any;
 }
 

@@ -30,7 +30,9 @@ const mockFetch = jest.fn().mockResolvedValue({
   ok: true,
   json: () =>
     Promise.resolve({
-      kycStatus: "VERIFIED", uid: "pi-uid-123", computedTrustScore: 80,
+      kycStatus: "VERIFIED",
+      uid: "pi-uid-123",
+      computedTrustScore: 80,
     }),
 });
 global.fetch = mockFetch;
@@ -364,7 +366,11 @@ describe("ClaimPage — handleVerify (real verification)", () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
-        Promise.resolve({ kycStatus: "VERIFIED", uid: "pi-uid-123", computedTrustScore: 80 }),
+        Promise.resolve({
+          kycStatus: "VERIFIED",
+          uid: "pi-uid-123",
+          computedTrustScore: 80,
+        }),
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));
     render(<ClaimPage />);
@@ -406,7 +412,11 @@ describe("ClaimPage — handleVerify (real verification)", () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
-        Promise.resolve({ kycStatus: "VERIFIED", uid: "pi-uid-123", computedTrustScore: 80 }),
+        Promise.resolve({
+          kycStatus: "VERIFIED",
+          uid: "pi-uid-123",
+          computedTrustScore: 80,
+        }),
     });
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user: connectedUser as any }));
     render(<ClaimPage />);

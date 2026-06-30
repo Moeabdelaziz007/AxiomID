@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Fingerprint,
@@ -24,13 +24,30 @@ export default function InteractiveShowcase() {
   const [trustScore, setTrustScore] = useState(0);
   const [stampsCount, setStampsCount] = useState(0);
 
+  const changeState = useCallback((state: DemoState) => {
+    if (state === "stamps" || state === "did") {
+      setTrustScore(0);
+      setStampsCount(0);
+    } else if (state === "agent") {
+      setTrustScore(95);
+      setStampsCount(3);
+    }
+    setActiveState(state);
+  }, []);
+
   // Loop through showcase states
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveState((prev) => {
-        if (prev === "did") return "stamps";
-        if (prev === "stamps") return "agent";
-        return "did";
+        const next = prev === "did" ? "stamps" : prev === "stamps" ? "agent" : "did";
+        if (next === "stamps" || next === "did") {
+          setTrustScore(0);
+          setStampsCount(0);
+        } else if (next === "agent") {
+          setTrustScore(95);
+          setStampsCount(3);
+        }
+        return next;
       });
     }, 6000);
     return () => clearInterval(interval);
@@ -38,11 +55,8 @@ export default function InteractiveShowcase() {
 
   // Animate trust score counting up during "stamps" state
   useEffect(() => {
-    if (activeState === "did") {
-      setTrustScore(0);
-      setStampsCount(0);
-    } else if (activeState === "stamps") {
-      // Step 1: Start at 0 stamps, 0 score
+    if (activeState === "stamps") {
+      // Step 1: Start at 0 stamps, 0 score (handled by state change reset)
       // Step 2: 1s -> 1 stamp, 35 score
       // Step 3: 2.5s -> 2 stamps, 70 score
       // Step 4: 4s -> 3 stamps, 95 score
@@ -61,9 +75,6 @@ export default function InteractiveShowcase() {
         }, 4000),
       ];
       return () => timers.forEach(clearTimeout);
-    } else if (activeState === "agent") {
-      setTrustScore(95);
-      setStampsCount(3);
     }
   }, [activeState]);
 
@@ -98,7 +109,8 @@ export default function InteractiveShowcase() {
             return (
               <button
                 key={state}
-                onClick={() => setActiveState(state)}
+                onClick={() => changeState(state)}
+                aria-pressed={isActive}
                 className={`flex flex-col lg:flex-row items-center gap-3 p-3 rounded-xl border text-left transition-all ${
                   isActive
                     ? "bg-electric-blue/10 border-electric-blue/30 text-white shadow-lg shadow-electric-blue/5"

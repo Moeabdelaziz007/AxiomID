@@ -149,15 +149,15 @@ describe("vercel.json — static asset caching rules", () => {
     expect(cc).toContain("immutable");
   });
 
-  it("common static asset file extensions get long-lived immutable cache", () => {
+  it("common static asset file extensions get a revalidating cache (not immutable, since public/ files are not content-hashed)", () => {
     const rule = (vercelConfig.headers as HeaderRule[]).find((r) =>
       r.source.includes("css|js|png"),
     );
     expect(rule).toBeDefined();
     const cc = findHeader(rule!, "Cache-Control");
     expect(cc).toContain("public");
-    expect(cc).toContain("max-age=31536000");
-    expect(cc).toContain("immutable");
+    expect(cc).toContain("max-age=86400");
+    expect(cc).toContain("stale-while-revalidate");
   });
 });
 

@@ -174,8 +174,10 @@ export default function MarketplacePage() {
         );
       }
 
+      const token = typeof localStorage !== "undefined" ? localStorage.getItem("pi_access_token") : null;
       const res = await fetch(`/api/skills/${skill.slug}/install`, {
         method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       if (!res.ok) {
         const data = await res.json();

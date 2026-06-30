@@ -10,7 +10,6 @@ import Script from "next/script";
 import LanguageToggle from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import HeroDemo from "@/components/HeroDemo";
-import DemoVideo from "@/components/DemoVideo";
 import StatsBar from "@/components/StatsBar";
 import InteractiveShowcase from "@/components/landing/InteractiveShowcase";
 import TrustTiers from "@/components/TrustTiers";
@@ -62,11 +61,20 @@ export default function Home() {
       <ErrorBanner />
 
       {/* Header */}
-      <header className="sticky top-0 w-full z-50 bg-[#0c0d14]/95 backdrop-blur-lg border-b border-white/[0.04] shadow-[0_1px_0_0_rgba(255,255,255,0.02)_inset]">
+      <header
+        className="sticky top-0 w-full z-50 backdrop-blur-lg border-b shadow-[0_1px_0_0_rgba(255,255,255,0.02)_inset]"
+        style={{
+          // Theme-aware solid background. Avoids color-mix() so older browsers
+          // without support still render an opaque header; backdrop-blur-lg
+          // already provides the glassy effect over scrolled content.
+          backgroundColor: "var(--bg-deep)",
+          borderColor: "var(--card-border)",
+        }}
+      >
         <div className="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3 px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center gap-2 sm:gap-3">
             <AxiomLogo size="sm" />
-            <div className="w-px h-6 bg-white/10 hidden sm:block" />
+            <div className="w-px h-6 hidden sm:block" style={{ background: "var(--card-border)" }} />
             <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded bg-white/5 border border-white/10">
               <svg viewBox="0 0 100 100" className="w-4 h-4" fill="currentColor">
                 <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.3" />
@@ -101,7 +109,7 @@ export default function Home() {
                 <Link href="/dashboard" prefetch={false} className="btn-ghost text-xs px-3 sm:px-4 py-1.5">
                   {t("nav_dashboard")}
                 </Link>
-                <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} aria-label={isConnecting ? t("connecting") : t("connect")} className="btn-primary text-xs px-3 sm:px-4 py-1.5">
+                <button onClick={() => connectWallet()} disabled={isConnecting} aria-busy={isConnecting} aria-label={isConnecting ? t("connecting") : t("connect")} className="btn-primary text-xs px-3 sm:px-4 py-1.5">
                   {isConnecting ? t("connecting") : t("connect")}
                 </button>
               </div>
@@ -157,7 +165,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto pt-2 animate-[fade-in-up_0.5s_ease-out_0.4s_both]">
               {!user ? (
                 isPiBrowser ? (
-                  <button onClick={connectWallet} disabled={isConnecting} aria-busy={isConnecting} className="flex items-center justify-center gap-2 text-sm font-semibold px-8 py-4 min-h-[52px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                  <button onClick={() => connectWallet()} disabled={isConnecting} aria-busy={isConnecting} aria-label={isConnecting ? t("connecting") : t("claim_passport")} className="flex items-center justify-center gap-2 text-sm font-semibold px-8 py-4 min-h-[52px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
                     {isConnecting ? <><span className="animate-spin">⟳</span> {t("connecting")}</> : <>{t("claim_passport")}<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></>}
                   </button>
                 ) : (

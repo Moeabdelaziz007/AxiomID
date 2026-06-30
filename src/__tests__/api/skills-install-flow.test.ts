@@ -8,9 +8,8 @@ import { POST as PurchasePOST } from '@/app/api/skills/[slug]/purchase/route';
 import { requireAuth } from '@/lib/auth-middleware';
 
 // Mocks
-jest.mock('@/lib/prisma', () => ({
-  prisma: {
-    $transaction: jest.fn((ops: unknown[]) => Promise.all(ops)),
+jest.mock('@/lib/prisma', () => {
+  const prismaMock: Record<string, unknown> = {
     skill: {
       findUnique: jest.fn(),
       update: jest.fn(),
@@ -26,9 +25,20 @@ jest.mock('@/lib/prisma', () => ({
     },
     piPayment: {
       create: jest.fn(),
+      findMany: jest.fn(),
+      update: jest.fn(),
     },
-  },
-}));
+    // Support both the array form ($transaction([...])) used by uninstall and
+    // the interactive callback form ($transaction(async (tx) => {...})) used by
+    // install. The callback receives the same mocked prisma client.
+    $transaction: jest.fn((arg: unknown) =>
+      typeof arg === 'function'
+        ? (arg as (tx: unknown) => unknown)(prismaMock)
+        : Promise.all(arg as unknown[])
+    ),
+  };
+  return { prisma: prismaMock };
+});
 jest.mock('@/lib/auth-middleware');
 jest.mock('@/lib/rate-limiter', () => ({
   checkRateLimit: jest.fn().mockResolvedValue({ allowed: true }),

@@ -47,6 +47,9 @@ const stepVariants = {
   }),
 };
 
+/**
+ * Renders the identity claim wizard page.
+ */
 export default function ClaimPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1);
@@ -57,6 +60,7 @@ export default function ClaimPage() {
     payment: false,
   });
   const [verified, setVerified] = useState(false);
+  const [verifiedTrustScore, setVerifiedTrustScore] = useState<number | null>(null);
   const [deployed, setDeployed] = useState(false);
   const [xpGain, setXpGain] = useState<number | null>(null);
   const [connectError, setConnectError] = useState<string | null>(null);
@@ -120,6 +124,9 @@ export default function ClaimPage() {
 
         if (kyaData.kycStatus === "VERIFIED") {
           setVerificationItems({ kyc: true, payment: true });
+          if (typeof kyaData.computedTrustScore === "number") {
+            setVerifiedTrustScore(kyaData.computedTrustScore);
+          }
           setVerified(true);
         } else {
           setVerificationItems((prev) => ({ ...prev, kyc: true }));
@@ -477,7 +484,7 @@ export default function ClaimPage() {
                             )}
                           </p>
                           <p className="font-mono text-xs text-white/40 mt-1">
-                            {t("Trust Score: ", "نقاط الثقة: ")}{user?.trustScore ?? 0}
+                            {t("Trust Score: ", "نقاط الثقة: ")}{verifiedTrustScore ?? user?.trustScore ?? 0}
                           </p>
                         </motion.div>
                       )}
@@ -531,7 +538,7 @@ export default function ClaimPage() {
                                     {t("Trust", "الثقة")}
                                   </span>
                                   <span className="font-mono text-xs text-electric-blue">
-                                    {user?.trustScore ?? 0}
+                                    {verifiedTrustScore ?? user?.trustScore ?? 0}
                                   </span>
                                 </div>
                                 <div className="flex justify-between">
@@ -751,11 +758,15 @@ export default function ClaimPage() {
                       {typeof window !== "undefined" ? window.location.href : "https://www.axiomid.app/claim"}
                     </span>
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         const url = typeof window !== "undefined" ? window.location.href : "https://www.axiomid.app/claim";
-                        navigator.clipboard.writeText(url);
-                        setCopied(true);
-                        setTimeout(() => setCopied(false), 2000);
+                        try {
+                          await navigator.clipboard.writeText(url);
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2000);
+                        } catch (err) {
+                          console.error("Failed to copy link: ", err);
+                        }
                       }}
                       className="p-1.5 hover:bg-white/5 rounded-lg text-zinc-400 hover:text-white transition-colors"
                       title={t("Copy link", "نسخ الرابط")}
