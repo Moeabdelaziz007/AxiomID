@@ -97,7 +97,7 @@ Open [`axiomid.app/claim`](https://axiomid.app/claim) in **Pi Browser** or any m
 | **Trust Engine** | Physics-inspired algorithm — trust score = `XP (70%) + stamps (30%)` |
 | **Agent Passports** | Public identity cards with verification badges, trust scores, and attestation history |
 | **Skills Marketplace** | Install capabilities for agents. Agents execute skills in isolated sandboxes. |
-| **Quran RAG** | AI-powered Q&A over 6236 Quranic verses via Vectorize + Workers AI |
+| **Truth RAG** | AI-powered Q&A over 6236 verses via Vectorize + Workers AI |
 | **Soul System** | Five-gate ethical evaluation loop — Muraqabah, Ethical, Sab'iyyah, Tawbah, Self-Review |
 
 ---

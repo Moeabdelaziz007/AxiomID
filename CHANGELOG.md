@@ -73,7 +73,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Pi Browser native features (share, KYC consent, payments)
 - Passport Export as Image + Mint as SBT + Share
-- Truth RAG Pipeline (6236 Quran verses, Vectorize + Workers AI)
+- Truth RAG Pipeline (6236 verses, Vectorize + Workers AI)
 - @axiomid/sdk npm package (zero dependencies)
 - @axiomid/crypto package (sovereign key management, MIT licensed)
 - QuickStatsRow dashboard widget with SVG gauge + sparkline
@@ -205,7 +205,7 @@ _Built in the Agent-First Era using Google Antigravity._
 - **محرك الثقة** — XP (70%) + stamps (30%)
 - **جوازات الوكلاء** — بطاقات هوية عامة مع شارات التحقق
 - **سوق المهارات** — تثبيت قدرات للوكلاء في بيئات معزولة
-- **Quran RAG** — بحث دلالي عبر 6236 آية
+- **Truth RAG** — بحث دلالي عبر 6236 آية
 - **نظام الروح** — خمسة بوابات تقييم أخلاقي
 
 #### الأطراف المعتمدة

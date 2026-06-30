@@ -1,7 +1,7 @@
 -- iqra-core/schema.sql
--- Quran verses storage for D1 + Vectorize RAG pipeline
+-- Truth verses storage for D1 + Vectorize RAG pipeline
 
-CREATE TABLE IF NOT EXISTS quran_surahs (
+CREATE TABLE IF NOT EXISTS truth_surahs (
   id INTEGER PRIMARY KEY,          -- Surah number (1-114)
   name_ar TEXT NOT NULL,           -- Arabic name
   name_en TEXT NOT NULL,           -- English name
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS quran_surahs (
   revelation_type TEXT NOT NULL    -- 'meccan' or 'medinan'
 );
 
-CREATE TABLE IF NOT EXISTS quran_verses (
+CREATE TABLE IF NOT EXISTS truth_verses (
   id INTEGER PRIMARY KEY,          -- Global verse ID
   surah_id INTEGER NOT NULL,       -- Surah number
   verse_number INTEGER NOT NULL,   -- Verse number within surah
@@ -19,13 +19,13 @@ CREATE TABLE IF NOT EXISTS quran_verses (
   page INTEGER,                    -- Mushaf page number
   embedding_id TEXT,               -- Vectorize vector ID (for lookup)
   created_at TEXT DEFAULT (datetime('now')),
-  FOREIGN KEY (surah_id) REFERENCES quran_surahs(id),
+  FOREIGN KEY (surah_id) REFERENCES truth_surahs(id),
   UNIQUE(surah_id, verse_number)
 );
 
 -- Index for fast surah/verse lookup
-CREATE INDEX IF NOT EXISTS idx_verses_surah ON quran_verses(surah_id);
-CREATE INDEX IF NOT EXISTS idx_verses_juz ON quran_verses(juz);
+CREATE INDEX IF NOT EXISTS idx_verses_surah ON truth_verses(surah_id);
+CREATE INDEX IF NOT EXISTS idx_verses_juz ON truth_verses(juz);
 
 -- Daily ayah rotation
 CREATE TABLE IF NOT EXISTS daily_ayah (
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS daily_ayah (
   verse_id INTEGER NOT NULL,
   date TEXT NOT NULL UNIQUE,       -- YYYY-MM-DD
   featured_at TEXT DEFAULT (datetime('now')),
-  FOREIGN KEY (verse_id) REFERENCES quran_verses(id)
+  FOREIGN KEY (verse_id) REFERENCES truth_verses(id)
 );
 
 -- RAG query cache (mirrors KV but persisted)
