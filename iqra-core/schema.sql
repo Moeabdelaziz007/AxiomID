@@ -1,8 +1,8 @@
 -- iqra-core/schema.sql
 -- Truth verses storage for D1 + Vectorize RAG pipeline
 
-CREATE TABLE IF NOT EXISTS truth_surahs (
-  id INTEGER PRIMARY KEY,          -- Surah number (1-114)
+CREATE TABLE IF NOT EXISTS truth_chapters (
+  id INTEGER PRIMARY KEY,          -- Chapter number (1-114)
   name_ar TEXT NOT NULL,           -- Arabic name
   name_en TEXT NOT NULL,           -- English name
   ayat_count INTEGER NOT NULL,     -- Number of verses
@@ -11,24 +11,24 @@ CREATE TABLE IF NOT EXISTS truth_surahs (
 
 CREATE TABLE IF NOT EXISTS truth_verses (
   id INTEGER PRIMARY KEY,          -- Global verse ID
-  surah_id INTEGER NOT NULL,       -- Surah number
-  verse_number INTEGER NOT NULL,   -- Verse number within surah
+  chapter_id INTEGER NOT NULL,     -- Chapter number
+  verse_number INTEGER NOT NULL,   -- Verse number within chapter
   text_ar TEXT NOT NULL,           -- Arabic text
   text_en TEXT NOT NULL,           -- English translation
-  juz INTEGER,                     -- Juz number (1-30)
+  section INTEGER,                 -- Section number
   page INTEGER,                    -- Mushaf page number
   embedding_id TEXT,               -- Vectorize vector ID (for lookup)
   created_at TEXT DEFAULT (datetime('now')),
-  FOREIGN KEY (surah_id) REFERENCES truth_surahs(id),
-  UNIQUE(surah_id, verse_number)
+  FOREIGN KEY (chapter_id) REFERENCES truth_chapters(id),
+  UNIQUE(chapter_id, verse_number)
 );
 
--- Index for fast surah/verse lookup
-CREATE INDEX IF NOT EXISTS idx_verses_surah ON truth_verses(surah_id);
-CREATE INDEX IF NOT EXISTS idx_verses_juz ON truth_verses(juz);
+-- Index for fast chapter/verse lookup
+CREATE INDEX IF NOT EXISTS idx_verses_chapter ON truth_verses(chapter_id);
+CREATE INDEX IF NOT EXISTS idx_verses_section ON truth_verses(section);
 
--- Daily ayah rotation
-CREATE TABLE IF NOT EXISTS daily_ayah (
+-- Daily truth rotation
+CREATE TABLE IF NOT EXISTS daily_truth (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   verse_id INTEGER NOT NULL,
   date TEXT NOT NULL UNIQUE,       -- YYYY-MM-DD
