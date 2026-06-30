@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     const duplicateResult = await prisma.$queryRaw`
       SELECT id FROM "XpLedger"
       WHERE reason = 'watch_ad'
-      AND (CASE WHEN reference ~ '^\\s*\\{.*\\}\\s*$' THEN reference::jsonb ->> 'adId' ELSE NULL END) = ${adId}
+      AND reference LIKE '%"adId":"' || ${adId} || '"%'
       LIMIT 1
     `;
     const duplicate = Array.isArray(duplicateResult) && duplicateResult.length > 0;
