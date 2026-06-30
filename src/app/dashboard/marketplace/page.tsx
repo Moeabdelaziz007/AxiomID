@@ -84,7 +84,7 @@ const TIER_LABEL_KEYS: Record<string, string> = {
 };
 
 export default function MarketplacePage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user, connectWallet, isConnecting } = useWallet();
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);

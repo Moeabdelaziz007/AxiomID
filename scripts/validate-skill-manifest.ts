@@ -6,7 +6,6 @@
  *
  * Usage:
  *   npx tsx scripts/validate-skill-manifest.ts --changed   (CI default, only PR-changed skills)
- *   npx tsx scripts/validate-skill-manifest.ts --strict    (all skills)
  *   npx tsx scripts/validate-skill-manifest.ts --db        (all skills in the database)
  */
 
@@ -15,9 +14,7 @@ import { execSync } from 'child_process';
 import { validateManifest } from '../src/lib/validators';
 
 const args = process.argv.slice(2);
-const mode = args.includes('--strict') ? 'strict' :
-             args.includes('--db') ? 'db' :
-             'changed';
+const mode = args.includes('--db') ? 'db' : 'changed';
 
 /**
  * Validates the selected skill manifests and prints a summary of the results.
@@ -30,7 +27,7 @@ async function main() {
     const changedFiles = diffOutput ? diffOutput.split('\n').filter(Boolean) : [];
 
     for (const file of changedFiles) {
-      if (file.endsWith('.md') && existsSync(file)) {
+      if (file.startsWith('skills/') && file.endsWith('.md') && existsSync(file)) {
         const content = readFileSync(file, 'utf-8');
         const name = file.replace(/^skills\//, '').replace(/\.md$/, '');
         skills.push({ name, slug: name, manifestMd: content });
@@ -41,7 +38,7 @@ async function main() {
       console.log('No skill files changed in this PR. ✓');
       process.exit(0);
     }
-  } else if (mode === 'db' || mode === 'strict') {
+  } else if (mode === 'db') {
     const { PrismaClient } = await import('@prisma/client');
     const prisma = new PrismaClient();
     const dbSkills = await prisma.skill.findMany({

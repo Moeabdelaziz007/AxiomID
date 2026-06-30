@@ -114,6 +114,10 @@ function isStubBody(body: string): boolean {
   if (!body) return true;
   const stripped = body.replace(/<!--[\s\S]*?-->/g, '').trim();
   if (!stripped) return true;
+  // Detect any unmatched HTML comment opener.
+  const lastOpen = body.lastIndexOf('<!--');
+  const lastClose = body.lastIndexOf('-->');
+  if (lastOpen !== -1 && lastOpen > lastClose) return true;
   const lines = stripped.split('\n').filter(l => l.trim());
   if (lines.length === 0) return true;
   if (STUB_PATTERNS.some(p => p.test(stripped))) return true;

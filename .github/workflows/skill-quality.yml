@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -17,5 +19,3 @@ jobs:
       - run: npm ci
       - name: Validate skill manifests
         run: npx tsx scripts/validate-skill-manifest.ts --changed
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
