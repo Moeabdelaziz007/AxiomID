@@ -60,10 +60,10 @@ Strategically integrate AIX-Format/aix-agent-skills patterns into AxiomID while 
 - Every 7 published skills: review marketplace holistically
 - Balance opposites: Free ↔ Paid, Simple ↔ Complex, Fast ↔ Thorough
 
-**Barakah Protocol**:
-- Track cumulative skill installations and successful executions
-- At 700 successes: document milestone and compound learnings
-- "ادْعُونِي أَسْتَجِبْ لَكُمْ" — consistency compounds blessings
+**Self-Review Protocol**:
+- Autonomously critique execution performance and log quality metrics
+- Identify optimization opportunities and update the local memory bridge
+- "وَقُلِ اعْمَلُوا فَسَيَرَى اللَّهُ عَمَلَكُمْ وَرَسُولُهُ وَالْمُؤْمِنُونَ" — continuous self-audit drives excellence
 
 ## Files
 
