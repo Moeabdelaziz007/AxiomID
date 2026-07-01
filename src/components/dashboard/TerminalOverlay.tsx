@@ -56,7 +56,7 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       className="fixed bottom-[calc(64px+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-40 backdrop-blur-xl h-[60vh] sm:h-[45vh] overflow-hidden flex flex-col border-t border-white/10"
       style={{ 
-        paddingBottom: "0px", 
+        paddingBottom: "0px",
         background: "rgba(3, 3, 5, 0.98)",
         boxShadow: "0 -12px 50px -15px rgba(0, 212, 255, 0.2)"
       }}

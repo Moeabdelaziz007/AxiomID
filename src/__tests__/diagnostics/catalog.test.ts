@@ -1,3 +1,4 @@
+jest.unmock("@/diagnostics/catalog");
 // Mock nostics so Jest doesn't try to load the ESM module
 jest.mock("nostics", () => ({
   defineDiagnostics: (config: unknown) => config

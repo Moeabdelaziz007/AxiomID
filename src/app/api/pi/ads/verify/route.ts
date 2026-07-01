@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     const duplicateResult = await prisma.$queryRaw`
       SELECT id FROM "XpLedger"
       WHERE reason = 'watch_ad'
-      AND reference LIKE '%"adId":"' || ${adId} || '"%'
+      AND reference::jsonb ->> 'adId' = ${adId}
       LIMIT 1
     `;
     const duplicate = Array.isArray(duplicateResult) && duplicateResult.length > 0;

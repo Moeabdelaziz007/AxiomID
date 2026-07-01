@@ -141,4 +141,3 @@ export function signAgentAttestationCredential(
     credentialSubject: { id: agentDid, ...attestation },
   });
 }
-

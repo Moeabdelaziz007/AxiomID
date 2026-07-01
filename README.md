@@ -40,7 +40,7 @@
 
 ## Trust Score at a Glance
 
-Every identity on AxiomID has a **Trust Score** — an algorithmic reputation built from verified stamps and experience points (XP). 
+Every identity on AxiomID has a **Trust Score** — an algorithmic reputation built from verified stamps and experience points (XP).
 
 ### Trust Calculation Formulas
 AxiomID uses a dual-calculation mode based on input parameters (defined in [trust.ts](file:///Users/cryptojoker710/Desktop/AxiomID/src/lib/trust.ts)):

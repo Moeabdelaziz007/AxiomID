@@ -210,7 +210,7 @@ export default function MarketplacePage() {
       const headers: Record<string, string> = {};
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
-      const res = await fetch(`/api/skills/${slug}`, { 
+      const res = await fetch(`/api/skills/${slug}`, {
         signal: controller.signal,
         headers
       });
@@ -344,7 +344,7 @@ export default function MarketplacePage() {
     try {
       const token = typeof localStorage !== "undefined" ? localStorage.getItem("pi_access_token") : null;
       if (!token) throw new Error(t("marketplace_login_required") || "Authentication required");
-      
+
       const res = await fetch(`/api/skills/${selectedSkill.slug}/review`, {
         method: "POST",
         headers: {
@@ -357,7 +357,7 @@ export default function MarketplacePage() {
         const data = await res.json();
         throw new Error(data?.message || data?.error || "Failed to submit review");
       }
-      
+
       const savedReview = await res.json();
       const reviewObj = savedReview.data || savedReview;
       setReviews(prev => [reviewObj, ...prev]);
