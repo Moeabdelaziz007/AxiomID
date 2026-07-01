@@ -741,9 +741,9 @@ export default function ClaimPage() {
                         try {
                           if (navigator.clipboard) {
                             await navigator.clipboard.writeText(url);
+                            setCopied(true);
+                            setTimeout(() => setCopied(false), 2000);
                           }
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 2000);
                         } catch (err) {
                           console.error("Failed to copy link: ", err);
                         }
