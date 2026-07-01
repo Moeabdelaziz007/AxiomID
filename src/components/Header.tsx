@@ -66,7 +66,7 @@ export default function Header({ showBack = false, showWallet = false }: HeaderP
         </div>
 
         {/* Navigation & Controls */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <nav aria-label="Main navigation" className="flex items-center gap-2 sm:gap-3">
           {showBack && (
             <Link href="/" className="btn-ghost text-xs font-mono px-3 py-1.5 flex items-center gap-1.5">
               <ArrowLeft className="w-3.5 h-3.5" />
@@ -117,7 +117,7 @@ export default function Header({ showBack = false, showWallet = false }: HeaderP
               )}
             </>
           )}
-        </div>
+        </nav>
       </div>
     </motion.header>
   );

@@ -261,6 +261,36 @@ body {
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* ── Page Transitions ─────────────────────────────────── */
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-in {
+  animation: pageIn 0.3s ease forwards;
+}
+
+/* ── Premium Card Gradient Border ─────────────────────── */
+.card-premium {
+  position: relative;
+  border: 1px solid transparent;
+  background: var(--bg-card);
+  border-radius: 1rem;
+}
+.card-premium::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #3b82f6, #6366f1, #a855f7);
+  z-index: -1;
+  opacity: 0.3;
+  transition: opacity 0.3s;
+}
+.card-premium:hover::before {
+  opacity: 0.6;
+}
+
 /* Stitch UI components */
 .stitch-badge {
   display: inline-flex;

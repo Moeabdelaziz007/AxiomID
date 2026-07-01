@@ -163,7 +163,7 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
           </div>
  
           {/* Scrollable Logs Output */}
-          <div ref={scrollRef} className="overflow-y-auto flex-1 p-4 font-mono text-[10px] leading-relaxed scrollbar-thin space-y-1.5 selection:bg-neon-green/20">
+          <div ref={scrollRef} role="log" aria-live="polite" aria-label="System logs" className="overflow-y-auto flex-1 p-4 font-mono text-[10px] leading-relaxed scrollbar-thin space-y-1.5 selection:bg-neon-green/20">
             {visibleLogs.map((line, i) => (
               <div key={`init-${i}`} className="flex items-start gap-2 border-l border-white/5 pl-2">
                 <span className="text-electric-blue select-none shrink-0">⎔</span>

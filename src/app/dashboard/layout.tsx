@@ -39,7 +39,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       <Header pathname={pathname} navItems={NAV_ITEMS} />
 
-      <div className="max-w-7xl mx-auto px-4 py-8 pb-24">
+      <div className="max-w-7xl mx-auto px-4 py-8 pb-24 animate-in">
         <ErrorBoundary>
           <Suspense fallback={
             <div className="animate-pulse space-y-4 p-8">
