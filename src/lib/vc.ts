@@ -109,3 +109,36 @@ export function signPassportCredential(
     credentialSubject: { id: userDid, ...passportData },
   });
 }
+
+const SignAgentAttestationCredentialParamsSchema = z.object({
+  agentDid: z.string().min(1),
+  codeHash: z.string().regex(/^[a-fA-F0-9]{64}$/, "Must be a valid SHA-256 hash"),
+  astAuditStatus: z.enum(["passed", "failed"]),
+  unsafeFunctionsCount: z.number().int().nonnegative(),
+});
+
+export function signAgentAttestationCredential(
+  agentDid: string,
+  attestation: {
+    codeHash: string;
+    astAuditStatus: "passed" | "failed";
+    unsafeFunctionsCount: number;
+  }
+) {
+  SignAgentAttestationCredentialParamsSchema.parse({
+    agentDid,
+    ...attestation,
+  });
+
+  const issuanceDate = new Date().toISOString();
+  const issuerDid = createIssuerDid();
+
+  return signCredential({
+    id: `${agentDid}#agent-attestation`,
+    type: ["VerifiableCredential", "AxiomAgentAttestationCredential"],
+    issuer: issuerDid,
+    issuanceDate,
+    credentialSubject: { id: agentDid, ...attestation },
+  });
+}
+

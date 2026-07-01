@@ -21,7 +21,7 @@ jest.mock("@/lib/sanitize", () => {
   return actual;
 });
 
-import { signSocialCredential, signPassportCredential } from "@/lib/vc";
+import { signSocialCredential, signPassportCredential, signAgentAttestationCredential } from "@/lib/vc";
 import { createIssuerDid } from "@/lib/did";
 
 const mockCreateIssuerDid = createIssuerDid as jest.Mock;
@@ -304,5 +304,69 @@ describe("@context inclusion in signed payload (PR fix: prevents signature verif
       "https://www.w3.org/2018/credentials/v1",
       "https://w3id.org/security/suites/ed25519-2020/v1",
     ]);
+  });
+});
+
+// ─── signAgentAttestationCredential ───────────────────────────────────────────
+
+describe("signAgentAttestationCredential", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCreateIssuerDid.mockReturnValue("did:axiom:issuer-test-key");
+  });
+
+  const validAttestation = {
+    codeHash: "a1b2c3d4e5f60718293a4b5c6d7e8f900112233445566778899aabbccddeeff0",
+    astAuditStatus: "passed" as const,
+    unsafeFunctionsCount: 0,
+  };
+
+  it("throws when agentDid is empty", () => {
+    expect(() =>
+      signAgentAttestationCredential("", validAttestation)
+    ).toThrow();
+  });
+
+  it("throws when codeHash is not a valid 64-char SHA-256 hash", () => {
+    expect(() =>
+      signAgentAttestationCredential("did:axiom:agent123", {
+        ...validAttestation,
+        codeHash: "invalid-hash",
+      })
+    ).toThrow();
+  });
+
+  it("throws when astAuditStatus is invalid", () => {
+    expect(() =>
+      signAgentAttestationCredential("did:axiom:agent123", {
+        ...validAttestation,
+        astAuditStatus: "unknown" as any,
+      })
+    ).toThrow();
+  });
+
+  it("throws when unsafeFunctionsCount is negative", () => {
+    expect(() =>
+      signAgentAttestationCredential("did:axiom:agent123", {
+        ...validAttestation,
+        unsafeFunctionsCount: -1,
+      })
+    ).toThrow();
+  });
+
+  it("returns a valid VC with AxiomAgentAttestationCredential type", () => {
+    const vc = signAgentAttestationCredential("did:axiom:agent123", validAttestation);
+    expect(vc["@context"]).toEqual(EXPECTED_CONTEXT);
+    expect(vc.type).toEqual(["VerifiableCredential", "AxiomAgentAttestationCredential"]);
+    expect(vc.id).toBe("did:axiom:agent123#agent-attestation");
+    expect(vc.credentialSubject).toEqual({
+      id: "did:axiom:agent123",
+      ...validAttestation,
+    });
+  });
+
+  it("produces a valid proof signature", () => {
+    const vc = signAgentAttestationCredential("did:axiom:agent123", validAttestation);
+    expect(vc.proof.proofValue).toMatch(/^[0-9a-f]+$/i);
   });
 });
