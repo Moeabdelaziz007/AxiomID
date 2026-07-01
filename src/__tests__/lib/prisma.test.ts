@@ -50,6 +50,20 @@ describe('Prisma Client Singleton', () => {
     expect(globalForPrisma.prisma).toBeUndefined()
   })
 
+  it('should instantiate PrismaClient with correct log levels in test', () => {
+    process.env.NODE_ENV = 'test'
+
+    require('../../../src/lib/prisma')
+    const { PrismaClient } = require('@prisma/client')
+
+    expect(PrismaClient).toHaveBeenCalledWith({
+      datasourceUrl: process.env.DATABASE_URL,
+      log: ['error'],
+    })
+
+    expect(globalForPrisma.prisma).toBeDefined()
+  })
+
   it('should reuse existing PrismaClient instance if globalThis.prisma is defined', () => {
     process.env.NODE_ENV = 'development'
 
