@@ -28,7 +28,9 @@ export default function PassportKeyManager({ did, onSign }: PassportKeyManagerPr
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(did);
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(did);
+      }
       setCopied(true);
       toast.success("DID copied to clipboard");
       setTimeout(() => setCopied(false), 2000);

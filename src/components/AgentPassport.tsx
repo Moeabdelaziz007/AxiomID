@@ -59,7 +59,9 @@ export function AgentPassport({
   const activeModules = MODULE_SLOTS.filter((m) => m.matchTypes.some((type) => activeStampTypes.has(type)));
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+    }
   };
 
   return (

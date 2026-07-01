@@ -109,7 +109,9 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
 
   const copyVcPayload = () => {
     if (!activeVc) return;
-    navigator.clipboard.writeText(JSON.stringify(activeVc, null, 2));
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(JSON.stringify(activeVc, null, 2));
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

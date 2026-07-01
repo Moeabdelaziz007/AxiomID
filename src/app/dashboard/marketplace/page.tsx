@@ -515,11 +515,13 @@ export default function MarketplacePage() {
                   </button>
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(JSON.stringify({
-                        slug: selectedSkill.slug,
-                        manifest: selectedSkill.manifestMd,
-                        script: selectedSkill.agentScript,
-                      }, null, 2));
+                      if (navigator.clipboard) {
+                        navigator.clipboard.writeText(JSON.stringify({
+                          slug: selectedSkill.slug,
+                          manifest: selectedSkill.manifestMd,
+                          script: selectedSkill.agentScript,
+                        }, null, 2));
+                      }
                     }}
                     className="btn-ghost py-2.5 text-xs font-mono px-4"
                   >

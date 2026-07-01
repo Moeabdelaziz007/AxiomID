@@ -62,7 +62,7 @@ export default function ClaimPage() {
   const [verified, setVerified] = useState(false);
   const [verifiedTrustScore, setVerifiedTrustScore] = useState<number | null>(null);
   const [deployed, setDeployed] = useState(false);
-  const [xpGain, setXpGain] = useState<number | null>(null);
+
   const [connectError, setConnectError] = useState<string | null>(null);
   const [showBrowserModal, setShowBrowserModal] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -72,15 +72,10 @@ export default function ClaimPage() {
 
   const t = (en: string, ar: string) => (language === "en" ? en : ar);
 
-  const grantXP = (amount: number) => {
-    setXpGain(amount);
-    setTimeout(() => setXpGain(null), 2000);
-  };
 
   const nextStep = () => {
     if (currentStep < 3) {
       setDirection(1);
-      grantXP(100);
       setCurrentStep((prev) => prev + 1);
     }
   };
@@ -171,24 +166,7 @@ export default function ClaimPage() {
 
       <main className="relative z-10 pt-28 pb-20 px-4 sm:px-6">
         <div className="max-w-2xl mx-auto">
-          {/* XP Badge */}
-          <AnimatePresence>
-            {xpGain && (
-              <motion.div
-                initial={{ opacity: 0, y: -20, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -40, scale: 0.6 }}
-                className="fixed top-24 left-1/2 -translate-x-1/2 z-50"
-              >
-                <div className="bg-neon-green/20 border border-neon-green/40 rounded-full px-5 py-2 backdrop-blur-xl flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-neon-green" />
-                  <span className="text-neon-green font-mono font-bold text-sm">
-                    +{xpGain} XP
-                  </span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+
 
           {/* Title */}
           <motion.div
@@ -761,7 +739,9 @@ export default function ClaimPage() {
                       onClick={async () => {
                         const url = typeof window !== "undefined" ? window.location.href : "https://www.axiomid.app/claim";
                         try {
-                          await navigator.clipboard.writeText(url);
+                          if (navigator.clipboard) {
+                            await navigator.clipboard.writeText(url);
+                          }
                           setCopied(true);
                           setTimeout(() => setCopied(false), 2000);
                         } catch (err) {
