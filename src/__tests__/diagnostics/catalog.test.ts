@@ -18,6 +18,26 @@ import { diagnostics } from "@/diagnostics/catalog";
 
 describe("Diagnostics Catalog", () => {
 
+  it("uses the real catalog module rather than the global jest.setup mock", () => {
+    // jest.setup.js registers a global jest.mock("@/diagnostics/catalog", ...)
+    // that replaces every code with a bare jest.fn() (returning undefined) and
+    // exposes the codes directly on `diagnostics` (no `.codes` wrapper, no
+    // `docsBase`). This test fails if `jest.unmock("@/diagnostics/catalog")`
+    // at the top of this file is ever removed or stops taking effect.
+    expect(typeof diagnostics.docsBase).toBe("function");
+    expect(typeof diagnostics.codes).toBe("object");
+    const diag = diagnostics.codes.AXIOMID_E002;
+    expect(diag.why()).toBe("Request body is not valid JSON.");
+    expect(diag.why()).not.toBeUndefined();
+  });
+
+  it("returns undefined when accessing an unknown diagnostic code (no Proxy guard on the real module)", () => {
+    // The global mock's Proxy throws on unknown codes; the real catalog
+    // object has no such guard, so an unknown key simply resolves to undefined.
+    const codes = diagnostics.codes as Record<string, unknown>;
+    expect(codes.AXIOMID_E999).toBeUndefined();
+  });
+
   it("generates correct docsBase URL", () => {
     expect(diagnostics.docsBase("AXIOMID_E001")).toBe(
       "https://axiomid.app/docs/diagnostics/axiomid_e001"

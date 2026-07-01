@@ -25,6 +25,7 @@ import { POST } from "@/app/api/agent/identity/route";
 import { checkRateLimit } from "@/lib/rate-limiter";
 import { createIdentityAssertion, verifyPiTokenWithJwks } from "@/lib/auth-tokens";
 import { createClaimToken } from "@/lib/claim-ceremony";
+import { logger } from "@/lib/logger";
 
 const mockCheckRateLimit = checkRateLimit as jest.Mock;
 const mockCreateAssertion = createIdentityAssertion as jest.Mock;
@@ -238,5 +239,108 @@ describe("POST /api/agent/identity - Pi JWT verification", () => {
     expect(res.status).toBe(200);
     expect(data.identity_assertion).toBe("mock-jwt-token");
     expect(data.did).toContain("did:axiom:user:");
+  });
+
+  it("falls back to derived DID in the default test environment when Pi JWKS verification fails", async () => {
+    // NODE_ENV is "test" while running Jest, which is a non-production
+    // environment and should therefore also trigger the dev fallback path.
+    expect(process.env.NODE_ENV).not.toBe("production");
+
+    (verifyPiTokenWithJwks as jest.Mock).mockRejectedValue(new Error("Invalid token"));
+    (createIdentityAssertion as jest.Mock).mockResolvedValue("mock-jwt-token");
+
+    const req = mockPostRequest({ type: "identity_assertion", assertion: "invalid-pi-jwt" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.did).toContain("did:axiom:user:");
+  });
+
+  it("derives the same fallback DID for the same assertion (deterministic)", async () => {
+    (verifyPiTokenWithJwks as jest.Mock).mockRejectedValue(new Error("Invalid token"));
+    (createIdentityAssertion as jest.Mock).mockResolvedValue("mock-jwt-token");
+
+    const req1 = mockPostRequest({ type: "identity_assertion", assertion: "same-assertion" });
+    const res1 = await POST(req1);
+    const data1 = await res1.json();
+
+    const req2 = mockPostRequest({ type: "identity_assertion", assertion: "same-assertion" });
+    const res2 = await POST(req2);
+    const data2 = await res2.json();
+
+    expect(data1.did).toBe(data2.did);
+  });
+
+  it("calls verifyPiTokenWithJwks with the provided assertion", async () => {
+    mockVerifyPiToken.mockResolvedValue({ sub: "user-abc" });
+    mockCreateAssertion.mockResolvedValue("mock-jwt-token");
+
+    const req = mockPostRequest({ type: "identity_assertion", assertion: "the-pi-assertion" });
+    await POST(req);
+
+    expect(mockVerifyPiToken).toHaveBeenCalledWith("the-pi-assertion");
+  });
+
+  it("builds the did from the Pi token's sub claim and passes it to createIdentityAssertion", async () => {
+    mockVerifyPiToken.mockResolvedValue({ sub: "pi-user-999" });
+    mockCreateAssertion.mockResolvedValue("mock-jwt-token");
+
+    const req = mockPostRequest({ type: "identity_assertion", assertion: "valid-pi-jwt" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(data.did).toBe("did:axiom:axiomid.app:pi:pi-user-999");
+    expect(mockCreateAssertion).toHaveBeenCalledWith("did:axiom:axiomid.app:pi:pi-user-999", ["api.read", "api.write"]);
+  });
+
+  it("logs an error and does not fall back when Pi JWKS verification fails in production", async () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "production";
+    const verificationError = new Error("signature mismatch");
+    (verifyPiTokenWithJwks as jest.Mock).mockRejectedValue(verificationError);
+
+    const req = mockPostRequest({ type: "identity_assertion", assertion: "invalid-pi-jwt" });
+    const res = await POST(req);
+    const data = await res.json();
+
+    process.env.NODE_ENV = originalEnv;
+
+    expect(res.status).toBe(401);
+    expect(data.error).toBe("Invalid identity assertion");
+    expect(createIdentityAssertion).not.toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalledWith(
+      "[AGENT-IDENTITY] Pi JWKS verification failed:",
+      verificationError
+    );
+  });
+
+  it("logs a warning when falling back to the deterministic DID outside production", async () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "development";
+    (verifyPiTokenWithJwks as jest.Mock).mockRejectedValue(new Error("Invalid token"));
+    (createIdentityAssertion as jest.Mock).mockResolvedValue("mock-jwt-token");
+
+    const req = mockPostRequest({ type: "identity_assertion", assertion: "invalid-pi-jwt" });
+    await POST(req);
+
+    process.env.NODE_ENV = originalEnv;
+
+    expect(logger.warn).toHaveBeenCalledWith(
+      "[AGENT-IDENTITY] Pi JWKS verification failed, falling back to deterministic DID for dev"
+    );
+  });
+
+  it("does not call createIdentityAssertion when verification fails in production", async () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "production";
+    (verifyPiTokenWithJwks as jest.Mock).mockRejectedValue(new Error("Invalid token"));
+
+    const req = mockPostRequest({ type: "identity_assertion", assertion: "invalid-pi-jwt" });
+    await POST(req);
+
+    process.env.NODE_ENV = originalEnv;
+
+    expect(createIdentityAssertion).not.toHaveBeenCalled();
   });
 });
