@@ -1565,13 +1565,27 @@ describe("langevinTrustDynamics (PR sync)", () => {
 
 describe("langevinSimulation (PR sync)", () => {
   it("returns trustHistory and finalTrust", () => {
-    const result = langevinSimulation(0.5, 0.1, 0.1, 0.01, 1, 0.1);
+    const result = langevinSimulation({
+      initialTrust: 0.5,
+      externalForce: 0.1,
+      damping: 0.1,
+      noiseStrength: 0.01,
+      totalTime: 1,
+      timeStep: 0.1,
+    });
     expect(Array.isArray(result.trustHistory)).toBe(true);
     expect(typeof result.finalTrust).toBe("number");
   });
 
   it("all trust values stay in [0, 1]", () => {
-    const result = langevinSimulation(0.5, 0.2, 0.1, 0.05, 2, 0.1);
+    const result = langevinSimulation({
+      initialTrust: 0.5,
+      externalForce: 0.2,
+      damping: 0.1,
+      noiseStrength: 0.05,
+      totalTime: 2,
+      timeStep: 0.1,
+    });
     for (const v of result.trustHistory) {
       expect(v).toBeGreaterThanOrEqual(0);
       expect(v).toBeLessThanOrEqual(1);
@@ -1579,7 +1593,10 @@ describe("langevinSimulation (PR sync)", () => {
   });
 
   it("trustHistory starts with initialTrust", () => {
-    const result = langevinSimulation(0.7, 0.1);
+    const result = langevinSimulation({
+      initialTrust: 0.7,
+      externalForce: 0.1,
+    });
     expect(result.trustHistory[0]).toBe(0.7);
   });
 });

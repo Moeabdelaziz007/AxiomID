@@ -1716,29 +1716,44 @@ export function langevinTrustDynamics(
 }
 
 /**
- * Simulates trust evolution with a decaying external force.
+ * Options for simulating trust evolution over time using the Langevin equation.
+ */
+export interface LangevinSimulationOptions {
+  initialTrust: number;
+  externalForce: number;
+  damping?: number;
+  noiseStrength?: number;
+  totalTime?: number;
+  timeStep?: number;
+}
+
+/**
+ * Simulates trust evolution over time using the Langevin equation.
  *
- * @param initialTrust - Starting trust value
- * @param externalForce - Initial driving force applied at each step
+ * @param options - The simulation parameters including initial trust and external force.
  * @returns The trust history and the final trust value
  */
 export function langevinSimulation(
-  initialTrust: number,
-  externalForce: number,
-  damping: number = 0.1,
-  noiseStrength: number = 0.05,
-  totalTime: number = 10,
-  timeStep: number = 0.1,
+  options: LangevinSimulationOptions
 ): { trustHistory: number[]; finalTrust: number } {
+  const {
+    initialTrust,
+    damping = 0.1,
+    noiseStrength = 0.05,
+    totalTime = 10,
+    timeStep = 0.1,
+  } = options;
+  let currentExternalForce = options.externalForce;
+
   const trustHistory = [initialTrust];
   let trust = initialTrust;
 
   for (let t = 0; t < totalTime; t += timeStep) {
-    const result = langevinTrustDynamics(trust, externalForce, damping, noiseStrength, 1, timeStep);
+    const result = langevinTrustDynamics(trust, currentExternalForce, damping, noiseStrength, 1, timeStep);
     trust = result.newTrust;
 
     // External force decays with time (evidence ages)
-    externalForce *= (1 - damping * timeStep);
+    currentExternalForce *= (1 - damping * timeStep);
 
     trustHistory.push(trust);
   }

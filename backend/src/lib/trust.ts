@@ -150,14 +150,14 @@ export class TrustEngine {
   ): Promise<TrustResult> {
     const base = await this.compute(did);
     const force = externalForce ?? base.score * 0.5;
-    const { finalTrust } = langevinSimulation(
-      base.score,
-      force,
-      0.1,
-      0.05,
-      10,
-      0.1,
-    );
+    const { finalTrust } = langevinSimulation({
+      initialTrust: base.score,
+      externalForce: force,
+      damping: 0.1,
+      noiseStrength: 0.05,
+      totalTime: 10,
+      timeStep: 0.1,
+    });
 
     return {
       did,
