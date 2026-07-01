@@ -52,14 +52,13 @@ export async function POST(request: NextRequest) {
   try {
     // 1. Check for double claiming
     // 1. Check for double claiming
-    const duplicate = await prisma.xpLedger.findFirst({
-      where: {
-        reason: "watch_ad",
-        reference: {
-          contains: `"adId":"${adId}"`,
-        },
-      },
-    });
+    const duplicateResult = await prisma.$queryRaw`
+      SELECT id FROM "XpLedger"
+      WHERE reason = 'watch_ad'
+      AND reference LIKE '%"adId":"' || ${adId} || '"%'
+      LIMIT 1
+    `;
+    const duplicate = Array.isArray(duplicateResult) && duplicateResult.length > 0;
 
     if (duplicate) {
       return apiError("CONFLICT", "This ad reward has already been claimed");
