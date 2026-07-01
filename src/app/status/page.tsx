@@ -276,10 +276,9 @@ export default function StatusPage() {
                 {t("status_manifest_desc")}
               </p>
               <div className="bg-black/80 border border-white/5 rounded-xl p-4 font-mono text-[11px]">
-                <span className="text-faint">{t("status_get")}</span> {" "}
-                <span className="text-neon-green">https://axiomid.app/api/agent/manifest</span>
-                <span className="text-faint">?userId=</span>
-                <span className="text-electric-blue">your-username</span>
+                <span className="text-faint">{t("status_get")}</span>{" "}
+                <span className="text-neon-green">https://axiomid.app/api/passport/</span>
+                <span className="text-electric-blue">{"<piUsername>"}</span>
               </div>
             </div>
           </>

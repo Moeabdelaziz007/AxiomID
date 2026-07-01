@@ -77,15 +77,6 @@ export default function LeaderboardPage() {
   const tableUsers = allTableUsers.slice(0, visibleCount);
   const hasMore = visibleCount < allTableUsers.length;
 
-  const getTierBorderColor = (tier: string) => {
-    switch (tier) {
-      case "Visitor": return "#3b82f6";
-      case "Citizen": return "#22c55e";
-      case "Validator": return "#a855f7";
-      case "Sovereign": return "#f59e0b";
-      default: return "#64748b";
-    }
-  };
 
   return (
     <main className="min-h-screen bg-grid relative pb-20">
@@ -263,7 +254,7 @@ export default function LeaderboardPage() {
                 <tbody className="divide-y divide-white/5">
                   {tableUsers.map((user) => {
                     const tierColor = getTierColor(user.tier as Tier);
-                    const borderColor = getTierBorderColor(user.tier);
+                    const borderColor = tierColor;
                     return (
                       <tr key={user.id} className="group relative hover:bg-white/[0.02] transition-all hover:scale-[1.005] hover:shadow-[0_2px_12px_rgba(0,0,0,0.2)]" style={{ borderLeft: `3px solid ${borderColor}` }}>
                         <td className="py-3 px-4 text-center font-bold text-zinc-400">

@@ -93,9 +93,7 @@ export default function MarketplacePage() {
           const newSkills = data.skills || [];
           setSkills((prev) => offset === 0 ? newSkills : [...prev, ...newSkills]);
           setHasMore(newSkills.length === PAGE_SIZE);
-          if (data.stats) {
-            setServerStats(data.stats);
-          }
+          setServerStats(data.stats ?? null);
         }
       } catch (err) {
         if (!cancelled) {
