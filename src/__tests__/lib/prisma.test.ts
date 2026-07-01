@@ -8,12 +8,12 @@ jest.mock('@prisma/client', () => {
 
 describe('Prisma Client Singleton', () => {
   const originalEnv = process.env
-  let globalForPrisma: any
+  let globalForPrisma: { prisma?: unknown }
 
   beforeEach(() => {
     jest.resetModules()
     process.env = { ...originalEnv }
-    globalForPrisma = globalThis as unknown as { prisma: any }
+    globalForPrisma = globalThis as unknown as { prisma?: unknown }
     delete globalForPrisma.prisma
   })
 
