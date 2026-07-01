@@ -197,6 +197,9 @@ export default function MarketplacePage() {
     setVersions([]);
     setNewRating(5);
     setNewReviewText("");
+    if (!selectedSkill || selectedSkill.slug !== slug) {
+      setSelectedSkill(null);
+    }
     try {
       const token = typeof localStorage !== "undefined" ? localStorage.getItem("pi_access_token") : null;
       const headers: Record<string, string> = {};

@@ -76,7 +76,7 @@ const fetchProxyImplementation = (url: string, init?: unknown) => {
     if (url.includes("/review") && !url.includes("/install")) {
       return Promise.resolve({
         ok: true,
-        json: async () => ({ data: [] }),
+        json: async () => [],
       });
     }
     if (url.includes("/versions")) {
