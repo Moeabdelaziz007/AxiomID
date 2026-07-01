@@ -65,7 +65,7 @@ const mockUseWallet = useWallet as jest.MockedFunction<typeof useWallet>;
 
 // Mock fetch
 const mockFetch = jest.fn();
-const fetchProxy = jest.fn().mockImplementation((url: string, init?: any) => {
+const fetchProxyImplementation = (url: string, init?: unknown) => {
   if (typeof url === "string") {
     if (url.includes("/api/skills/tags")) {
       return Promise.resolve({
@@ -87,7 +87,9 @@ const fetchProxy = jest.fn().mockImplementation((url: string, init?: any) => {
     }
   }
   return mockFetch(url, init);
-});
+};
+
+const fetchProxy = jest.fn().mockImplementation(fetchProxyImplementation);
 
 // Sync jest mock resets and clears
 const originalClear = mockFetch.mockClear.bind(mockFetch);
@@ -98,6 +100,7 @@ mockFetch.mockClear = () => {
 const originalReset = mockFetch.mockReset.bind(mockFetch);
 mockFetch.mockReset = () => {
   fetchProxy.mockReset();
+  fetchProxy.mockImplementation(fetchProxyImplementation);
   return originalReset();
 };
 

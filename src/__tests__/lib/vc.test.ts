@@ -340,7 +340,8 @@ describe("signAgentAttestationCredential", () => {
     expect(() =>
       signAgentAttestationCredential("did:axiom:agent123", {
         ...validAttestation,
-        astAuditStatus: "unknown" as any,
+        // @ts-expect-error testing invalid astAuditStatus
+        astAuditStatus: "unknown",
       })
     ).toThrow();
   });
