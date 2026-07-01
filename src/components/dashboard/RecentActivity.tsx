@@ -19,7 +19,9 @@ const ICON_MAP = {
 };
 
 function getRelativeTime(dateStr: string, lang: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
+  const parsed = new Date(dateStr).getTime();
+  if (Number.isNaN(parsed)) return lang === "ar" ? "الآن" : "just now";
+  const diff = Date.now() - parsed;
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return lang === "ar" ? "الآن" : "just now";
   if (mins < 60) return lang === "ar" ? `منذ ${mins} دقيقة` : `${mins}m ago`;
