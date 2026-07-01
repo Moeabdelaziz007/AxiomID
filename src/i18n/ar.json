@@ -567,7 +567,6 @@
   "tier_advanced_infrastructure": "بنية تحتية",
   "tier_pro": "محترف",
   "tier_sovereign": "سيادي",
-  "language": "Language;",
-  "setLanguage": "(lang: Language) => void;",
-  "t": "(key: TranslationsKey | string) => string;"
+  "tier_sovereign": "سيادي"
+}
 }
