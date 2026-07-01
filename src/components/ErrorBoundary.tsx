@@ -39,10 +39,11 @@ function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   );
 }
 
-export function ErrorBoundary({ children }: Props) {
+export function ErrorBoundary({ children, fallback }: Props) {
   return (
     <ReactErrorBoundary
-      FallbackComponent={ErrorFallback}
+      fallback={fallback}
+      FallbackComponent={fallback ? undefined : ErrorFallback}
       onReset={() => window.location.reload()}
     >
       {children}
