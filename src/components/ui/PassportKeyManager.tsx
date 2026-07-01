@@ -30,10 +30,10 @@ export default function PassportKeyManager({ did, onSign }: PassportKeyManagerPr
     try {
       if (navigator.clipboard) {
         await navigator.clipboard.writeText(did);
+        setCopied(true);
+        toast.success("DID copied to clipboard");
+        setTimeout(() => setCopied(false), 2000);
       }
-      setCopied(true);
-      toast.success("DID copied to clipboard");
-      setTimeout(() => setCopied(false), 2000);
     } catch {
       // clipboard unavailable (HTTP context, permissions denied)
     }
