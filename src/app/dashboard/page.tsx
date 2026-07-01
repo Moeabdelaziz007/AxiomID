@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useWallet } from "../context/wallet-context";
 import skillsData from "@/data/skills.json";
 import { AgentCard } from "@/components/AgentCard";
+import { STAMP_DEFS } from "@/components/StampBoard";
 import { OnboardingModal } from "@/components/dashboard/OnboardingModal";
 import { DonateWithPiCard } from "@/components/dashboard/DonateWithPiCard";
 import { useLanguage } from "../context/language-context";
@@ -468,7 +469,7 @@ export default function Dashboard() {
       {user && (
         <nav className="flex items-center gap-1.5 mb-6 overflow-x-auto no-scrollbar px-1" role="tablist" aria-label="Dashboard sections">
           {(() => {
-            const totalStamps = 6;
+            const totalStamps = STAMP_DEFS.length;
             const claimedStamps = user.stamps?.length ?? 0;
             const unclaimedStamps = Math.max(0, totalStamps - claimedStamps);
             const tabs = [

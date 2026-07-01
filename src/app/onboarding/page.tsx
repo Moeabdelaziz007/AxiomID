@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useWallet } from "../context/wallet-context";
 import { useLanguage } from "../context/language-context";
@@ -18,6 +18,18 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [agentName, setAgentName] = useState("");
   const [creatingAgent, setCreatingAgent] = useState(false);
+
+  // Auto-advance returning users past completed steps
+  useEffect(() => {
+    if (!user) return;
+    const targetStep = user.agent ? 4 : 2;
+    if (step !== targetStep) {
+      const timer = setTimeout(() => {
+        setStep(targetStep);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [user, step]);
 
   const handleNextStep = () => {
     setStep((prev) => prev + 1);
@@ -143,10 +155,19 @@ export default function OnboardingPage() {
                     <p className="text-xs text-zinc-500 font-mono">
                       {t("onboarding_connect_desc")}
                     </p>
-                    {user ? (
-                      <div className="flex items-center gap-2 text-emerald-400 text-xs font-mono font-bold bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">
-                        <CheckCircle2 className="w-4 h-4" />
-                        <span>{t("onboarding_wallet_connected")}</span>
+                     {user ? (
+                      <div className="space-y-4 animate-fadeInUp">
+                        <div className="flex items-center gap-2 text-emerald-400 text-xs font-mono font-bold bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>{t("onboarding_wallet_connected")}</span>
+                        </div>
+                        <button
+                          onClick={handleNextStep}
+                          className="btn-primary w-full py-3 text-xs font-mono font-bold flex items-center justify-center gap-2"
+                        >
+                          {t("onboarding_continue") || "Continue"}
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
                       </div>
                     ) : (
                       <button onClick={connectWallet} disabled={isConnecting} className="btn-primary w-full py-3 text-xs font-mono font-bold flex items-center justify-center gap-2">
