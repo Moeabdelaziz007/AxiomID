@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Shield, Zap, Eye } from "lucide-react";
 import { type Tier, getTierColor } from "@/lib/tiers";
+import { useLanguage } from "@/app/context/language-context";
 
 interface AgentCardProps {
   name: string;
@@ -53,6 +54,8 @@ export function AgentCard({
 }: AgentCardProps) {
   const tierColor = getTierColor(tier);
   const statusConfig = getStatusConfig(status);
+  const { language } = useLanguage();
+  const t = (en: string, ar: string) => (language === "en" ? en : ar);
 
   if (compact) {
     return (
@@ -105,7 +108,7 @@ export function AgentCard({
                 {trustScore}
               </span>
             </div>
-            <span className="text-[7px] font-mono text-faint">TRUST</span>
+            <span className="text-[7px] font-mono text-faint">{t("TRUST", "الثقة")}</span>
           </div>
         </div>
       </motion.div>
@@ -156,17 +159,17 @@ export function AgentCard({
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="rounded-lg p-2.5 border border-white/5 bg-white/[0.02] text-center">
           <Eye className="w-3 h-3 mx-auto mb-1 text-faint" />
-          <span className="text-[9px] font-mono text-faint block">TRUST</span>
+          <span className="text-[9px] font-mono text-faint block">{t("TRUST", "الثقة")}</span>
           <span className="text-sm font-bold font-mono" style={{ color: tierColor }}>{trustScore}%</span>
         </div>
         <div className="rounded-lg p-2.5 border border-white/5 bg-white/[0.02] text-center">
           <Zap className="w-3 h-3 mx-auto mb-1 text-electric-blue" />
-          <span className="text-[9px] font-mono text-faint block">XP</span>
+          <span className="text-[9px] font-mono text-faint block">{t("XP", "نقاط XP")}</span>
           <span className="text-sm font-bold font-mono text-electric-blue">{xp.toLocaleString()}</span>
         </div>
         <div className="rounded-lg p-2.5 border border-white/5 bg-white/[0.02] text-center">
           <Shield className="w-3 h-3 mx-auto mb-1 text-axiom-purple" />
-          <span className="text-[9px] font-mono text-faint block">STATUS</span>
+          <span className="text-[9px] font-mono text-faint block">{t("STATUS", "الحالة")}</span>
           <span className={`text-sm font-bold font-mono ${statusConfig.color}`}>{status}</span>
         </div>
       </div>
@@ -181,7 +184,7 @@ export function AgentCard({
 
       {/* Hover indicator */}
       <div className="flex items-center justify-center mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-        <span className="text-[9px] font-mono text-faint">Click to view passport →</span>
+        <span className="text-[9px] font-mono text-faint">{t("Click to view passport →", "انقر لعرض الجواز →")}</span>
       </div>
     </motion.div>
   );

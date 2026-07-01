@@ -2,48 +2,69 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { useLanguage } from "@/app/context/language-context";
 
 interface TierInfo {
-  name: string;
+  key: string;
   xp: string;
   letter: string;
   color: string;
-  desc: string;
-  perks: string[];
+  nameEn: string;
+  nameAr: string;
+  descEn: string;
+  descAr: string;
+  perksEn: string[];
+  perksAr: string[];
 }
 
 const tiers: TierInfo[] = [
   {
-    name: "Visitor",
+    key: "visitor",
     xp: "0",
     letter: "V",
     color: "#64748b",
-    desc: "Connect your wallet to begin",
-    perks: ["Basic DID Passport", "Community access", "Protocol explorer"],
+    nameEn: "Visitor",
+    nameAr: "زائر",
+    descEn: "Connect your wallet to begin",
+    descAr: "اربط محفظتك للبدء",
+    perksEn: ["Basic DID Passport", "Community access", "Protocol explorer"],
+    perksAr: ["جواز DID أساسي", "الوصول للمجتمع", "مستكشف البروتوكول"],
   },
   {
-    name: "Citizen",
+    key: "citizen",
     xp: "100",
     letter: "C",
     color: "#00ff41",
-    desc: "Social verification + actions",
-    perks: ["Marketplace access", "Agent deployment", "KYA verification", "XP rewards"],
+    nameEn: "Citizen",
+    nameAr: "مواطن",
+    descEn: "Social verification + actions",
+    descAr: "التوثيق الاجتماعي والإجراءات",
+    perksEn: ["Marketplace access", "Agent deployment", "KYA verification", "XP rewards"],
+    perksAr: ["الوصول للسوق", "نشر العملاء", "توثيق KYA", "مكافآت XP"],
   },
   {
-    name: "Validator",
+    key: "validator",
     xp: "500",
     letter: "V",
     color: "#00d4ff",
-    desc: "KYC verified identity",
-    perks: ["Revenue share", "Governance voting", "Priority support", "Custom stamps"],
+    nameEn: "Validator",
+    nameAr: "مدقق",
+    descEn: "KYC verified identity",
+    descAr: "هوية موثقة بـ KYC",
+    perksEn: ["Revenue share", "Governance voting", "Priority support", "Custom stamps"],
+    perksAr: ["مشاركة الأرباح", "التصويت على الحوكمة", "دعم ذو أولوية", "طوابع مخصصة"],
   },
   {
-    name: "Sovereign",
+    key: "sovereign",
     xp: "1000",
     letter: "S",
     color: "#a855f7",
-    desc: "Full protocol control",
-    perks: ["Full delegation", "Custom agents", "Protocol governance", "Maximum trust score"],
+    nameEn: "Sovereign",
+    nameAr: "سيادي",
+    descEn: "Full protocol control",
+    descAr: "تحكم كامل في البروتوكول",
+    perksEn: ["Full delegation", "Custom agents", "Protocol governance", "Maximum trust score"],
+    perksAr: ["تفويض كامل", "عملاء مخصصون", "حوكمة البروتوكول", "أعلى نقاط ثقة"],
   },
 ];
 
@@ -54,14 +75,16 @@ const tiers: TierInfo[] = [
  */
 export default function TrustTiers() {
   const [expanded, setExpanded] = useState<string | null>(null);
+  const { language } = useLanguage();
+  const t = (en: string, ar: string) => (language === "en" ? en : ar);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4" role="list">
       {tiers.map((tier) => {
-        const isExpanded = expanded === tier.name;
+        const isExpanded = expanded === tier.key;
         return (
           <div
-            key={tier.name}
+            key={tier.key}
             role="listitem"
             className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 transition-all duration-300 hover:border-white/[0.12] hover:bg-white/[0.04] cursor-pointer text-left"
             style={{
@@ -70,10 +93,10 @@ export default function TrustTiers() {
             }}
           >
             <button
-              onClick={() => setExpanded(isExpanded ? null : tier.name)}
+              onClick={() => setExpanded(isExpanded ? null : tier.key)}
               aria-expanded={isExpanded}
-              aria-controls={`tier-perks-${tier.name}`}
-              aria-label={`${tier.name} tier — ${tier.xp} XP — ${tier.desc}`}
+              aria-controls={`tier-perks-${tier.key}`}
+              aria-label={`${t(tier.nameEn, tier.nameAr)} tier — ${tier.xp} XP — ${t(tier.descEn, tier.descAr)}`}
               className="w-full text-left"
             >
               <div
@@ -87,11 +110,11 @@ export default function TrustTiers() {
                 <span className="font-bold text-lg font-mono">{tier.letter}</span>
               </div>
 
-              <h3 className="text-sm font-bold text-white mb-1">{tier.name}</h3>
+              <h3 className="text-sm font-bold text-white mb-1">{t(tier.nameEn, tier.nameAr)}</h3>
               <span className="text-[11px] font-mono block mb-2" style={{ color: tier.color }}>
                 {tier.xp} XP
               </span>
-              <p className="text-[11px] text-zinc-400 leading-relaxed">{tier.desc}</p>
+              <p className="text-[11px] text-zinc-400 leading-relaxed">{t(tier.descEn, tier.descAr)}</p>
 
               <div className="mt-3 flex justify-center">
                 <ChevronDown
@@ -103,12 +126,12 @@ export default function TrustTiers() {
 
             {isExpanded && (
               <div
-                id={`tier-perks-${tier.name}`}
+                id={`tier-perks-${tier.key}`}
                 className="mt-3 pt-3 border-t border-white/[0.06] space-y-1.5"
                 role="region"
-                aria-label={`${tier.name} perks`}
+                aria-label={`${t(tier.nameEn, tier.nameAr)} perks`}
               >
-                {tier.perks.map((perk) => (
+                {(language === "en" ? tier.perksEn : tier.perksAr).map((perk) => (
                   <div key={perk} className="flex items-center gap-2 text-[10px] font-mono text-zinc-400">
                     <span className="w-1 h-1 rounded-full" style={{ backgroundColor: tier.color }} />
                     {perk}

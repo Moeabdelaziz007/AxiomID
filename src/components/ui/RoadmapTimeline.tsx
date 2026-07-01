@@ -2,44 +2,63 @@
 
 import React from "react";
 import { CheckCircle2, Circle } from "lucide-react";
+import { useLanguage } from "@/app/context/language-context";
 
 interface TimelineItem {
   phase: string;
-  title: string;
-  desc: string;
+  titleEn: string;
+  titleAr: string;
+  descEn: string;
+  descAr: string;
   status: "completed" | "active" | "future";
-  items: string[];
+  itemsEn: string[];
+  itemsAr: string[];
 }
 
 export default function RoadmapTimeline() {
+  const { language } = useLanguage();
+  const t = (en: string, ar: string) => (language === "en" ? en : ar);
+
   const items: TimelineItem[] = [
     {
       phase: "PHASE 1",
-      title: "Core Trust Protocol",
-      desc: "Establish sovereign identities and cryptographically secure credentials.",
+      titleEn: "Core Trust Protocol",
+      titleAr: "بروتوكول الثقة الأساسي",
+      descEn: "Establish sovereign identities and cryptographically secure credentials.",
+      descAr: "تأسيس الهويات السيادية وبيانات الاعتماد الآمنة تشفيرياً.",
       status: "active",
-      items: ["Stellar & Pi Wallet integration", "Sovereign DID method registry", "ZKP human-verifiable proofs"],
+      itemsEn: ["Stellar & Pi Wallet integration", "Sovereign DID method registry", "ZKP human-verifiable proofs"],
+      itemsAr: ["تكامل Stellar و Pi Wallet", "سجل طريقة DID السيادية", "إثباتات ZKP قابلة للتحقق بشرياً"],
     },
     {
       phase: "PHASE 2",
-      title: "Agent Passport System",
-      desc: "Provision customizable autonomous agent cards that represent human delegators.",
+      titleEn: "Agent Passport System",
+      titleAr: "نظام جواز العميل",
+      descEn: "Provision customizable autonomous agent cards that represent human delegators.",
+      descAr: "إنشاء بطاقات عملاء مستقلة قابلة للتعديل تمثل المفوّضين البشريين.",
       status: "active",
-      items: ["Passport credential stamps board", "Dynamic identity progression & tiers", "Pi Browser compliance sandbox"],
+      itemsEn: ["Passport credential stamps board", "Dynamic identity progression & tiers", "Pi Browser compliance sandbox"],
+      itemsAr: ["لوحة طوابع بيانات اعتماد الجواز", "تقدم الهوية الديناميكي والفئات", "بيئة امتثال متصفح Pi"],
     },
     {
       phase: "PHASE 3",
-      title: "Marketplace & Tooling",
-      desc: "Enable third-party developers to upload, secure, and monetize agent skills.",
+      titleEn: "Marketplace & Tooling",
+      titleAr: "السوق والأدوات",
+      descEn: "Enable third-party developers to upload, secure, and monetize agent skills.",
+      descAr: "تمكين المطورين من تحميل وتأمين وتحصيل أرباح مهارات العملاء.",
       status: "active",
-      items: ["Genomic skills repository", "E2E automated sandbox script validation", "Confined runtime playground"],
+      itemsEn: ["Genomic skills repository", "E2E automated sandbox script validation", "Confined runtime playground"],
+      itemsAr: ["مستودع المهارات الجينومية", "تحقق آلي من نصوص السكريبتات", "بيئة تشغيل محصّنة"],
     },
     {
       phase: "PHASE 4",
-      title: "Decentralized Governance",
-      desc: "Delegate system adjustments and authority governance to sovereign token holders.",
+      titleEn: "Decentralized Governance",
+      titleAr: "الحوكمة اللامركزية",
+      descEn: "Delegate system adjustments and authority governance to sovereign token holders.",
+      descAr: "تفويض تعديلات النظام والحوكمة لحملة الرموز السياديين.",
       status: "future",
-      items: ["Sovereign voting DAO consensus", "Trust circle validation delegation", "Inter-agent payment clearing"],
+      itemsEn: ["Sovereign voting DAO consensus", "Trust circle validation delegation", "Inter-agent payment clearing"],
+      itemsAr: ["إجماع التصويت السيادي DAO", "تفويض التحقق من دائرة الثقة", "تسوية المدفوعات بين العملاء"],
     },
   ];
 
@@ -87,16 +106,16 @@ export default function RoadmapTimeline() {
                   {item.phase}
                 </span>
                 <span className="text-[10px] font-mono text-zinc-500 uppercase">
-                  {isCompleted ? "Completed" : isActive ? "Active Development" : "Future Goal"}
+                  {isCompleted ? t("Completed", "مكتمل") : isActive ? t("Active Development", "تطوير نشط") : t("Future Goal", "هدف مستقبلي")}
                 </span>
               </div>
 
-              <h3 className="text-sm font-bold text-white font-mono mt-3">{item.title}</h3>
-              <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{item.desc}</p>
+              <h3 className="text-sm font-bold text-white font-mono mt-3">{t(item.titleEn, item.titleAr)}</h3>
+              <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{t(item.descEn, item.descAr)}</p>
 
               {/* Sub items checklist */}
               <ul className="mt-4 space-y-2 border-t border-white/5 pt-4 text-[11px] font-mono text-zinc-500">
-                {item.items.map((sub, i) => (
+                {(language === "en" ? item.itemsEn : item.itemsAr).map((sub, i) => (
                   <li key={i} className="flex items-center gap-2">
                     <span className={isCompleted ? "text-emerald-400" : isActive ? "text-electric-blue" : "text-zinc-600"}>
                       {isCompleted ? "✓" : "•"}

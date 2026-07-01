@@ -40,12 +40,15 @@ function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 }
 
 export function ErrorBoundary({ children, fallback }: Props) {
+  if (fallback) {
+    return (
+      <ReactErrorBoundary fallback={fallback} onReset={() => window.location.reload()}>
+        {children}
+      </ReactErrorBoundary>
+    );
+  }
   return (
-    <ReactErrorBoundary
-      fallback={fallback}
-      FallbackComponent={fallback ? undefined : ErrorFallback}
-      onReset={() => window.location.reload()}
-    >
+    <ReactErrorBoundary FallbackComponent={ErrorFallback} onReset={() => window.location.reload()}>
       {children}
     </ReactErrorBoundary>
   );
