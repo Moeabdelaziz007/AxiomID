@@ -94,7 +94,7 @@
     "jest-environment-jsdom": "^30.4.1",
     "jest-location-mock": "^4.0.1",
     "knip": "^6.23.0",
-    "prisma": "^6.0.0",
+    "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5",
