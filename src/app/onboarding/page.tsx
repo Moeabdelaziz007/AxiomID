@@ -24,9 +24,8 @@ export default function OnboardingPage() {
   // Auto-advance returning users who have already provisioned an agent.
   // First-time connections stay on step 1 so the "Continue" button is used.
   useEffect(() => {
-    if (!user || didAutoAdvance.current) return;
+    if (!user || !user.agent || didAutoAdvance.current) return;
     didAutoAdvance.current = true;
-    if (!user.agent) return;
     const targetStep = user.kycStatus === "VERIFIED" ? 4 : 3;
     const timer = setTimeout(() => {
       setStep((prev) => (prev !== targetStep ? targetStep : prev));

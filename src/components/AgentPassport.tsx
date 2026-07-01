@@ -60,7 +60,9 @@ export function AgentPassport({
 
   const copyToClipboard = (text: string) => {
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(text);
+      navigator.clipboard.writeText(text).catch(() => {
+        // clipboard write failed silently
+      });
     }
   };
 
