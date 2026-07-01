@@ -143,6 +143,7 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
                 className="text-[10px] font-mono transition-all px-2.5 py-1.5 rounded border border-white/5 hover:border-white/20 hover:bg-white/5 flex items-center gap-1.5"
                 style={{ color: "var(--text-muted)" }}
                 title={t('terminal_clear')}
+                aria-label={t('terminal_clear')}
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">{t('terminal_clear')}</span>
@@ -151,6 +152,7 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
                 onClick={onRunTest}
                 className="text-[10px] font-mono text-neon-green transition-all px-2.5 py-1.5 rounded border border-neon-green/20 hover:border-neon-green/40 hover:bg-neon-green/10 flex items-center gap-1.5"
                 title={t('terminal_run_test')}
+                aria-label={t('terminal_run_test')}
               >
                 <Play className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">{t('terminal_run_test')}</span>
@@ -159,6 +161,8 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
                 onClick={onClose}
                 className="transition-colors ms-1 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5"
                 style={{ color: 'var(--text-muted)' }}
+                title={t('close')}
+                aria-label={t('close')}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
