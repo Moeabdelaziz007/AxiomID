@@ -365,9 +365,9 @@ export default function SandboxPage() {
       navigator.clipboard.writeText(
         JSON.stringify({ manifest, inputData }, null, 2)
       );
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
