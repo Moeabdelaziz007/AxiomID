@@ -218,22 +218,38 @@ export default function MarketplacePage() {
       fetch(`/api/skills/${slug}/review`, { signal: controller.signal })
         .then(r => r.ok ? r.json() : { data: [] })
         .then(revData => {
+          if (fetchAbortRef.current !== controller || controller.signal.aborted) return;
           const revs = Array.isArray(revData) ? revData : revData.data || [];
           setReviews(revs);
         })
-        .catch(err => console.error("Failed to load reviews:", err))
-        .finally(() => setReviewsLoading(false));
+        .catch(err => {
+          if (err instanceof DOMException && err.name === "AbortError") return;
+          console.error("Failed to load reviews:", err);
+        })
+        .finally(() => {
+          if (fetchAbortRef.current === controller && !controller.signal.aborted) {
+            setReviewsLoading(false);
+          }
+        });
 
       // Fetch Versions in background
       setVersionsLoading(true);
       fetch(`/api/skills/${slug}/versions`, { signal: controller.signal })
         .then(r => r.ok ? r.json() : { versions: [] })
         .then(verData => {
+          if (fetchAbortRef.current !== controller || controller.signal.aborted) return;
           const vers = verData.versions || verData.data?.versions || [];
           setVersions(vers);
         })
-        .catch(err => console.error("Failed to load versions:", err))
-        .finally(() => setVersionsLoading(false));
+        .catch(err => {
+          if (err instanceof DOMException && err.name === "AbortError") return;
+          console.error("Failed to load versions:", err);
+        })
+        .finally(() => {
+          if (fetchAbortRef.current === controller && !controller.signal.aborted) {
+            setVersionsLoading(false);
+          }
+        });
 
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
@@ -341,11 +357,13 @@ export default function MarketplacePage() {
       setNewReviewText("");
       setSelectedSkill(prev => {
         if (!prev) return null;
-        const newCount = prev.reviewCount + 1;
-        const newAvg = ((prev.avgRating * prev.reviewCount) + newRating) / newCount;
+        const previousCount = prev.ratingCount || 0;
+        const newCount = previousCount + 1;
+        const newAvg = ((prev.avgRating * previousCount) + newRating) / newCount;
         return {
           ...prev,
           reviewCount: newCount,
+          ratingCount: newCount,
           avgRating: newAvg,
         };
       });
@@ -795,7 +813,9 @@ export default function MarketplacePage() {
                               key={star}
                               type="button"
                               onClick={() => setNewRating(star)}
-                              className="focus:outline-none"
+                              aria-label={`Set rating to ${star} out of 5`}
+                              aria-pressed={newRating === star}
+                              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded"
                             >
                               <Star className={`w-3.5 h-3.5 ${star <= newRating ? "text-amber-400 fill-amber-400" : "text-gray-600"}`} />
                             </button>
