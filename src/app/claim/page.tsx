@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import { DevModeBanner } from "@/components/DevModeBanner";
 import { motion, AnimatePresence } from "framer-motion";
 import { determineSandboxMode } from "@/lib/pi-sdk";
+import { logger } from "@/lib/logger";
 import {
   Wallet,
   Shield,
@@ -128,7 +129,7 @@ export default function ClaimPage() {
         }
       }
     } catch (err) {
-      console.error("Verification failed:", err);
+      logger.error("Verification failed:", err);
     } finally {
       setIsVerifying(false);
     }
@@ -745,7 +746,7 @@ export default function ClaimPage() {
                             setTimeout(() => setCopied(false), 2000);
                           }
                         } catch (err) {
-                          console.error("Failed to copy link: ", err);
+                          logger.error("Failed to copy link: ", err);
                         }
                       }}
                       className="p-1.5 hover:bg-white/5 rounded-lg text-zinc-400 hover:text-white transition-colors"

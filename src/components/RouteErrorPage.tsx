@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import * as Sentry from "@sentry/nextjs";
+import { logger } from "@/lib/logger";
 
 interface RouteErrorPageProps {
   title: string;
@@ -21,7 +22,7 @@ interface RouteErrorPageProps {
  */
 export function RouteErrorPage({ title, fallbackMessage, error, reset }: RouteErrorPageProps) {
   useEffect(() => {
-    console.error(`${title}:`, error);
+    logger.error(`${title}:`, error);
     Sentry.captureException(error, { extra: { title } });
   }, [title, error]);
 

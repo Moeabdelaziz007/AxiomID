@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/app/context/language-context";
+import { logger } from "@/lib/logger";
 
 /**
  * Displays an error page for passport loading failures with localized text and recovery options.
@@ -17,7 +18,7 @@ export default function PassportError({
   const { t } = useLanguage();
 
   useEffect(() => {
-    console.error("[PASSPORT-ERROR]", error);
+    logger.error("[PASSPORT-ERROR]", error);
   }, [error]);
 
   return (

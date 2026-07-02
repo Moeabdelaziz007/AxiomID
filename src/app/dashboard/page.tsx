@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useWallet } from "../context/wallet-context";
-import skillsData from "@/data/skills.json";
 import { AgentCard } from "@/components/AgentCard";
 import { STAMP_DEFS } from "@/components/StampBoard";
 import { OnboardingModal } from "@/components/dashboard/OnboardingModal";
@@ -71,6 +70,7 @@ export default function Dashboard() {
   const [logs, setLogs] = useState<string[]>([]);
   const [agentName, setAgentName] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [marketplaceSkills, setMarketplaceSkills] = useState<Array<{ name: string; description: string; tier?: string }>>([]);
 
   const onboardingStep = !user ? 1 : !user.agent ? 2 : 3;
 
@@ -79,6 +79,13 @@ export default function Dashboard() {
     if (onboardingCompleted !== "true") {
       queueMicrotask(() => setShowOnboarding(true));
     }
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/skills?limit=6")
+      .then((res) => res.json())
+      .then((json) => setMarketplaceSkills(json.skills ?? []))
+      .catch(() => {});
   }, []);
 
   const shouldShowPiBrowserPrompt = !isPiBrowser;
@@ -377,7 +384,7 @@ export default function Dashboard() {
 
                   <DonateWithPiCard />
 
-                  <SkillsCard skills={skillsData.skills.slice(0, 3)} />
+                  <SkillsCard skills={marketplaceSkills.slice(0, 3)} />
                 </div>
 
               </div>
@@ -407,7 +414,7 @@ export default function Dashboard() {
                   </Link>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {skillsData.skills.slice(0, 6).map((skill: { name: string; description: string; tier?: string }) => (
+                  {marketplaceSkills.slice(0, 6).map((skill: { name: string; description: string; tier?: string }) => (
                     <div
                       key={skill.name}
                       className="p-3 rounded-xl border border-white/5 bg-white/[0.02] hover:border-axiom-purple/30 transition-colors cursor-default"

@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Wallet, ShieldCheck, CheckCircle2, ChevronRight, Zap } from "lucide-react";
 import InteractivePassportCard from "@/components/ui/InteractivePassportCard";
+import { logger } from "@/lib/logger";
 import { toast } from "sonner";
 
 export default function OnboardingPage() {
@@ -51,7 +52,7 @@ export default function OnboardingPage() {
         toast.error(t("onboarding_agent_failed"));
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err);
     } finally {
       setCreatingAgent(false);
     }

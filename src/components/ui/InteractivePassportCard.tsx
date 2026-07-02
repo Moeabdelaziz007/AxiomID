@@ -7,6 +7,7 @@ import { sharePassport } from "@/lib/pi-native-features";
 import { Fingerprint, Award, CheckCircle, Lock, Download, Coins, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import PassportKeyManager from "./PassportKeyManager";
+import { logger } from "@/lib/logger";
 
 interface InteractivePassportCardProps {
   user: {
@@ -82,7 +83,7 @@ export default function InteractivePassportCard({ user, readonly = false, locked
       link.download = `axiom-passport-${displayUsername}.png`;
       link.click();
     } catch (err) {
-      console.error("Export failed:", err);
+      logger.error("Export failed:", err);
       toast.error(t("passport_export_failed"));
     } finally {
       if (cardRef.current) {
@@ -102,7 +103,7 @@ export default function InteractivePassportCard({ user, readonly = false, locked
       await new Promise(resolve => setTimeout(resolve, 1500));
       alert(t("mint_success") || "Soulbound Token minted successfully on Stellar!");
     } catch (err) {
-      console.error("Minting failed:", err);
+      logger.error("Minting failed:", err);
       alert("Failed to mint SBT.");
     } finally {
       setIsMinting(false);

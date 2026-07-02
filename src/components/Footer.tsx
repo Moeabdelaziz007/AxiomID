@@ -41,7 +41,7 @@ export default function Footer({ minimal = false, copyright }: FooterProps) {
       <div className="flex flex-wrap gap-4 justify-center">
         <Link href="/privacy" className="text-subtle hover:text-surface transition-colors">{t("nav_privacy")}</Link>
         <Link href="/terms" className="text-subtle hover:text-surface transition-colors">{t("nav_terms")}</Link>
-        <span style={{ color: 'var(--text-muted)' }}>v0.1.0</span>
+        <span style={{ color: 'var(--text-muted)' }}>v{process.env.NEXT_PUBLIC_APP_VERSION || "0.1.2"}</span>
       </div>
     </motion.footer>
   );
