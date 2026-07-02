@@ -2,7 +2,7 @@
  
 import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Terminal, Trash2, Play, Cpu, Activity, HardDrive } from "lucide-react";
+import { Terminal, Trash2, Play, Activity } from "lucide-react";
 import { useLanguage } from "@/app/context/language-context";
 import { useWallet } from "@/app/context/wallet-context";
  
@@ -19,21 +19,11 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
   const { t, language } = useLanguage();
   const { user } = useWallet();
  
-  const cpuLoad = 0;
-  const memUsage = 0;
- 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [logs, walletLogs]);
- 
-  const getProgressBar = (value: number) => {
-    const totalBlocks = 10;
-    const filledBlocks = Math.round((value / 100) * totalBlocks);
-    const emptyBlocks = totalBlocks - filledBlocks;
-    return `[${"█".repeat(filledBlocks)}${"░".repeat(emptyBlocks)}]`;
-  };
 
   const MAX_LOGS = 200;
   const visibleLogs = logs.slice(-MAX_LOGS);
@@ -58,14 +48,6 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
           <span className="flex items-center gap-1 text-emerald-400">
             <Activity className="w-3 h-3 animate-pulse" />
             <span>SYS: ACTIVE</span>
-          </span>
-          <span className="flex items-center gap-1 text-electric-blue">
-            <Cpu className="w-3 h-3" />
-            <span>CPU: {getProgressBar(cpuLoad)} {Math.round(cpuLoad)}%</span>
-          </span>
-          <span className="flex items-center gap-1 text-axiom-purple font-semibold">
-            <HardDrive className="w-3 h-3" />
-            <span>MEM: {getProgressBar(memUsage)} {Math.round(memUsage)}%</span>
           </span>
         </div>
         <div className="flex items-center gap-3">
