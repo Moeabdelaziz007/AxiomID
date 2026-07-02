@@ -37,8 +37,8 @@ Every skill manifest MUST follow this structure:
 ## الغرض — Purpose
 What does this skill do? (1-2 sentences)
 
-## التوافق الروحي — SOUL Alignment
-How this skill serves: Muraqabah / Tawbah / TrustChain / Tasbih / Sab'iyyah / Barakah
+## مبدأ التوافق — Principle Alignment
+How this skill serves: Vigilance / Correction / Ledger / Triad / Septet / Compounding
 
 ## سير التشغيل — Operational Flow
 1. Step one
@@ -55,7 +55,7 @@ tag1, tag2, tag3
 
 ### Validation Rules (`ManifestSchema`)
 
-1. Must contain all 4 required sections (Purpose, SOUL Alignment, Operational Flow, Failure Modes)
+1. Must contain all 4 required sections (Purpose, Principle Alignment, Operational Flow, Failure Modes)
 2. Section bodies must be non-empty
 3. Rejects stub patterns: `TODO:`, `TBD`, `...`, `<fill in>`
 4. Rejects single-paragraph placeholders followed by next heading
@@ -147,12 +147,12 @@ Every skill declares which SOUL principle it serves. This is AxiomID's different
 
 ```typescript
 export const SOUL_PRINCIPLES = {
-  MURAQABAH:  { en: "Muraqabah",  ar: "المراقبة",   icon: "eye",     color: "#22c55e" },
-  TAWBAH:     { en: "Tawbah",     ar: "التوبة",      icon: "refresh", color: "#3b82f6" },
-  TRUSTCHAIN: { en: "TrustChain", ar: "الحارس",      icon: "link",    color: "#6366f1" },
-  TASBIH:     { en: "Tasbih",     ar: "التثليث",     icon: "repeat",  color: "#f59e0b" },
-  SABIYYAH:   { en: "Sab'iyyah",  ar: "حكمة السبع",  icon: "layers",  color: "#ec4899" },
-  BARAKAH:    { en: "Barakah",    ar: "البركة",       icon: "sparkle", color: "#14b8a6" },
+  MURAQABAH:  { en: "Vigilance",  ar: "اليقظة",   icon: "eye",     color: "#22c55e" },
+  TAWBAH:     { en: "Correction",     ar: "التصحيح",      icon: "refresh", color: "#3b82f6" },
+  TRUSTCHAIN: { en: "Ledger", ar: "السجل",      icon: "link",    color: "#6366f1" },
+  TASBIH:     { en: "Triad",     ar: "الثلاثية",     icon: "repeat",  color: "#f59e0b" },
+  SABIYYAH:   { en: "Septet",  ar: "السباعية",  icon: "layers",  color: "#ec4899" },
+  BARAKAH:    { en: "Compounding",    ar: "التراكم",       icon: "sparkle", color: "#14b8a6" },
 };
 ```
 

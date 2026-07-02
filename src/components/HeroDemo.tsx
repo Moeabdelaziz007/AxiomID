@@ -1,13 +1,18 @@
 "use client";
 
+import { useLanguage } from "@/app/context/language-context";
+
 /**
  * Displays an animated claim flow demo showing wallet connection and passport generation.
  * 
  * Animations pause when hovering over the component.
  */
 export default function HeroDemo() {
+  const { language } = useLanguage();
+  const t = (en: string, ar: string) => (language === "en" ? en : ar);
+
   return (
-    <div className="w-full max-w-sm mx-auto group" aria-label="Claim flow demo">
+    <div className="w-full max-w-sm mx-auto group" aria-label={t("Claim flow demo", "عرض تدفق المطالبة")}>
       <style>{`
         @keyframes hero-fade-in {
           from { opacity: 0; transform: translateY(8px); }
@@ -73,7 +78,7 @@ export default function HeroDemo() {
             </svg>
           </div>
           <div className="flex-1">
-            <p className="text-[11px] font-mono text-zinc-400">Connect Wallet</p>
+            <p className="text-[11px] font-mono text-zinc-400">{t("Connect Wallet", "ربط المحفظة")}</p>
           </div>
           <div className="hero-pulse w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
             <svg className="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -89,7 +94,7 @@ export default function HeroDemo() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </div>
-          <p className="text-[11px] font-mono text-zinc-400">Generating Sovereign Passport...</p>
+          <p className="text-[11px] font-mono text-zinc-400">{t("Generating Sovereign Passport...", "جاري إنشاء الجواز السيادي...")}</p>
         </div>
 
         {/* Passport Card */}
@@ -100,7 +105,7 @@ export default function HeroDemo() {
                 <span className="text-xs font-bold font-mono text-purple-400">A</span>
               </div>
               <div>
-                <p className="text-[11px] font-mono font-semibold text-white">Pioneer.Axiom</p>
+                <p className="text-[11px] font-mono font-semibold text-white">{t("Pioneer.Axiom", "رائد.Axiom")}</p>
                 <p className="text-[9px] font-mono text-zinc-500">did:axiom:0x1234...a77x</p>
               </div>
             </div>
@@ -114,7 +119,7 @@ export default function HeroDemo() {
               <span className="text-white font-semibold">1,250</span>
             </div>
             <div>
-              <span className="text-zinc-500 block">TIER</span>
+              <span className="text-zinc-500 block">{t("TIER", "الفئة")}</span>
               <span className="text-purple-400 font-semibold">SOVEREIGN</span>
             </div>
           </div>
@@ -127,7 +132,7 @@ export default function HeroDemo() {
               <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-              <span className="text-[11px] font-mono text-zinc-400">Trust Score</span>
+              <span className="text-[11px] font-mono text-zinc-400">{t("Trust Score", "نقاط الثقة")}</span>
             </div>
             <span className="text-sm font-bold font-mono text-emerald-400">94<span className="text-zinc-500 font-normal text-[10px]">/100</span></span>
           </div>

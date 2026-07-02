@@ -1,8 +1,8 @@
 "use client";
  
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Terminal, Trash2, Play, Cpu, Activity, HardDrive } from "lucide-react";
+import { Terminal, Trash2, Play, Activity } from "lucide-react";
 import { useLanguage } from "@/app/context/language-context";
 import { useWallet } from "@/app/context/wallet-context";
  
@@ -19,30 +19,11 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
   const { t, language } = useLanguage();
   const { user } = useWallet();
  
-  // Simulated state for live telemetry vibes
-  const [cpuLoad, setCpuLoad] = useState(42);
-  const [memUsage, setMemUsage] = useState(68);
- 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCpuLoad((prev) => Math.max(10, Math.min(95, prev + (Math.random() * 12 - 6))));
-      setMemUsage((prev) => Math.max(50, Math.min(90, prev + (Math.random() * 4 - 2))));
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
- 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [logs, walletLogs]);
- 
-  const getProgressBar = (value: number) => {
-    const totalBlocks = 10;
-    const filledBlocks = Math.round((value / 100) * totalBlocks);
-    const emptyBlocks = totalBlocks - filledBlocks;
-    return `[${"█".repeat(filledBlocks)}${"░".repeat(emptyBlocks)}]`;
-  };
 
   const MAX_LOGS = 200;
   const visibleLogs = logs.slice(-MAX_LOGS);
@@ -67,14 +48,6 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
           <span className="flex items-center gap-1 text-emerald-400">
             <Activity className="w-3 h-3 animate-pulse" />
             <span>SYS: ACTIVE</span>
-          </span>
-          <span className="flex items-center gap-1 text-electric-blue">
-            <Cpu className="w-3 h-3" />
-            <span>CPU: {getProgressBar(cpuLoad)} {Math.round(cpuLoad)}%</span>
-          </span>
-          <span className="flex items-center gap-1 text-axiom-purple font-semibold">
-            <HardDrive className="w-3 h-3" />
-            <span>MEM: {getProgressBar(memUsage)} {Math.round(memUsage)}%</span>
           </span>
         </div>
         <div className="flex items-center gap-3">
@@ -172,7 +145,7 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
           </div>
  
           {/* Scrollable Logs Output */}
-          <div ref={scrollRef} className="overflow-y-auto flex-1 p-4 font-mono text-[10px] leading-relaxed scrollbar-thin space-y-1.5 selection:bg-neon-green/20">
+          <div ref={scrollRef} role="log" aria-live="polite" aria-label="System logs" className="overflow-y-auto flex-1 p-4 font-mono text-[10px] leading-relaxed scrollbar-thin space-y-1.5 selection:bg-neon-green/20">
             {visibleLogs.map((line, i) => (
               <div key={`init-${i}`} className="flex items-start gap-2 border-l border-white/5 pl-2">
                 <span className="text-electric-blue select-none shrink-0">⎔</span>

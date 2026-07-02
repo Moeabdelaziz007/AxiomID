@@ -12,6 +12,7 @@ body {
   --color-primary: #3b82f6; /* Blue-500 — professional, trusted */
   --color-primary-hover: #2563eb; /* Blue-600 */
   --color-success: #22c55e; /* Green-500 — subtle, not neon */
+  --color-success-hover: #16a34a; /* Green-600 */
   --color-warning: #f59e0b; /* Amber-500 */
   --color-danger: #ef4444; /* Red-500 */
   --color-info: #06b6d4; /* Cyan-500 */
@@ -232,6 +233,65 @@ body {
   top: 0;
 }
 
+/* ── Card Micro-Interactions ──────────────────────────── */
+.card-interactive {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.08);
+}
+.card-interactive:active {
+  transform: translateY(0);
+}
+
+/* ── Toast Notifications ──────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--card-border);
+  animation: slideUp 0.3s ease;
+  z-index: 9999;
+}
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Page Transitions ─────────────────────────────────── */
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-in {
+  animation: pageIn 0.3s ease forwards;
+}
+
+/* ── Premium Card Gradient Border ─────────────────────── */
+.card-premium {
+  position: relative;
+  border: 1px solid transparent;
+  background: var(--bg-card);
+  border-radius: 1rem;
+}
+.card-premium::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--color-primary), var(--axiom-purple), #a855f7);
+  z-index: -1;
+  opacity: 0.3;
+  transition: opacity 0.3s;
+}
+.card-premium:hover::before {
+  opacity: 0.6;
+}
+
 /* Stitch UI components */
 .stitch-badge {
   display: inline-flex;
@@ -402,7 +462,7 @@ body {
 }
 
 [data-theme='light'] .scanline {
-  background: linear-gradient(to bottom, rgba(5, 150, 105, 0.04), transparent);
+  background: linear-gradient(to bottom, rgba(22, 163, 74, 0.04), transparent);
   opacity: 0.15;
 }
 
@@ -513,7 +573,7 @@ body {
 
 [data-theme='light'] .btn-primary:hover {
   background: color-mix(in srgb, var(--neon-green) 90%, black);
-  box-shadow: 0 2px 12px rgba(5, 150, 105, 0.25);
+  box-shadow: 0 2px 12px rgba(22, 163, 74, 0.25);
 }
 
 .btn-secondary {
@@ -636,9 +696,9 @@ body {
 }
 
 [data-theme='light'] .passport-card:hover {
-  border-color: rgba(5, 150, 105, 0.2);
+  border-color: rgba(22, 163, 74, 0.2);
   box-shadow:
-    0 0 20px rgba(5, 150, 105, 0.04),
+    0 0 20px rgba(22, 163, 74, 0.04),
     0 10px 30px -8px rgba(0, 0, 0, 0.1);
 }
 
@@ -688,8 +748,8 @@ body {
 }
 
 [data-theme='light'] .badge-verified {
-  background: rgba(5, 150, 105, 0.08);
-  border-color: rgba(5, 150, 105, 0.2);
+  background: rgba(22, 163, 74, 0.08);
+  border-color: rgba(22, 163, 74, 0.2);
 }
 
 .badge-pending {
@@ -831,10 +891,6 @@ body {
 /* ============================================
    ACCESSIBILITY: FOCUS VISIBLE
    ============================================ */
-:focus-visible {
-  outline: 2px solid var(--neon-green);
-  outline-offset: 2px;
-}
 
 button:focus-visible {
   outline: 2px solid var(--neon-green);
@@ -1056,7 +1112,7 @@ a:focus-visible {
   position: absolute;
   inset: -1px;
   border-radius: inherit;
-  background: conic-gradient(from 0deg, #3b82f6, #6366f1, #22c55e, #3b82f6);
+  background: conic-gradient(from 0deg, var(--color-primary), var(--axiom-purple), var(--color-success), #3b82f6);
   animation: spin 4s linear infinite;
   opacity: 0;
   transition: opacity 0.3s;
@@ -1128,16 +1184,16 @@ a:focus-visible {
 }
 
 .stat-card-glow.blue::after {
-  background: #3b82f6;
+  background: var(--color-primary);
 }
 .stat-card-glow.green::after {
-  background: #22c55e;
+  background: var(--color-success);
 }
 .stat-card-glow.purple::after {
-  background: #6366f1;
+  background: var(--axiom-purple);
 }
 .stat-card-glow.amber::after {
-  background: #f59e0b;
+  background: var(--color-warning);
 }
 
 /* ============================================
@@ -1177,7 +1233,7 @@ a:focus-visible {
 .tier-progress-fill {
   height: 100%;
   border-radius: 3px;
-  background: linear-gradient(90deg, #22c55e, #3b82f6);
+  background: linear-gradient(90deg, var(--color-success), var(--color-primary));
   transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1192,15 +1248,15 @@ a:focus-visible {
 }
 
 .activity-dot.active {
-  background: #22c55e;
+  background: var(--color-success);
   box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
 }
 .activity-dot.pending {
-  background: #f59e0b;
+  background: var(--color-warning);
   box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
 }
 .activity-dot.error {
-  background: #ef4444;
+  background: var(--color-danger);
   box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
 
@@ -1273,7 +1329,7 @@ a:focus-visible {
   }
 }
 .animate-fadeInUp {
-  animation: fadeInUp 0.3s ease-out;
+  animation: onboardingFadeInUp 0.3s ease-out;
 }
 
 /* ── Modal transitions ────────────────────────────────── */

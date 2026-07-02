@@ -322,7 +322,7 @@ export default function Dashboard() {
                         xp: user.xp,
                         trustScore: user.trustScore,
                         kyaStatus: user.kycStatus ? "verified" : "pending",
-                        kycStatus: user.kycStatus ? "verified" : "pending"
+                        kycStatus: user.kycStatus ? "verified" : "pending",
                       }}
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl flex items-center justify-center pointer-events-none">

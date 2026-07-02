@@ -1,0 +1,13 @@
+{
+  "urls": [
+    "http://localhost:3000",
+    "http://localhost:3000/dashboard",
+    "http://localhost:3000/dashboard/marketplace",
+    "http://localhost:3000/dashboard/settings"
+  ],
+  "defaults": {
+    "standard": "WCAG2AA",
+    "timeout": 10000,
+    "wait": 2000
+  }
+}

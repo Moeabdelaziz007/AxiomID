@@ -73,7 +73,7 @@ export function AgentStatsCard({ tier, xp, agentName, agentStatus, trustScore }:
       {/* Sparkline */}
       <div className="mt-3 pt-3 border-t border-white/[0.06] relative z-10">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider">{language === "ar" ? "آخر 7 أيام" : "Last 7 days"}</span>
+          <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider">{language === "ar" ? "تقدم النقاط" : "XP Progress"}</span>
         </div>
         <Sparkline xp={xp} />
       </div>

@@ -1,19 +1,17 @@
-import Link from "next/link";
+"use client";
 
-/**
- * Renders a styled 404 Page Not Found page for the AxiomID application.
- *
- * Displays an error message indicating the requested route does not exist in the AxiomID namespace
- * and the identity layer has not been provisioned. Provides navigation links to return home or
- * access the dashboard.
- */
+import Link from "next/link";
+import { useLanguage } from "./context/language-context";
+
 export default function NotFound() {
+  const { language } = useLanguage();
+  const t = (en: string, ar: string) => (language === "en" ? en : ar);
+
   return (
     <main className="min-h-screen bg-grid flex flex-col items-center justify-center p-6">
       <div className="scanline" />
       
       <div className="flex flex-col items-center gap-6 text-center z-10">
-        {/* Error Code */}
         <div className="relative">
           <span className="text-8xl md:text-9xl font-mono font-bold text-neon-green/10">404</span>
           <div className="absolute inset-0 flex items-center justify-center">
@@ -21,32 +19,27 @@ export default function NotFound() {
           </div>
         </div>
 
-        {/* Message */}
         <div className="flex flex-col gap-2">
-          <h1 className="text-xl font-bold text-surface">Page Not Found</h1>
+          <h1 className="text-xl font-bold text-surface">{t("Page Not Found", "الصفحة غير موجودة")}</h1>
           <p className="text-sm text-subtle max-w-md">
-            This route does not exist in the AxiomID namespace. 
-            The identity layer you&apos;re looking for has not been provisioned.
+            {t("This route does not exist in the AxiomID namespace. The identity layer you're looking for has not been provisioned.", "هذا المسار غير موجود في نطاق AxiomID. طبقة الهوية التي تبحث عنها لم يتم توفيرها.")}
           </p>
         </div>
 
-        {/* DID-style error */}
         <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 font-mono text-[10px] text-faint">
           <span className="text-neon-green">ERROR</span>: did:axiom:not-found:404
         </div>
 
-        {/* Actions */}
         <div className="flex gap-3 mt-2">
           <Link href="/" className="btn-primary">
-            RETURN HOME
+            {t("RETURN HOME", "العودة إلى الرئيسية")}
           </Link>
           <Link href="/dashboard" className="btn-ghost">
-            DASHBOARD
+            {t("DASHBOARD", "لوحة التحكم")}
           </Link>
         </div>
       </div>
 
-      {/* Footer */}
       <footer className="absolute bottom-6 text-[9px] font-mono text-faint">
         &copy; 2026 AxiomID
       </footer>

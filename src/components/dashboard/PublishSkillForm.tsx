@@ -17,7 +17,7 @@ interface PublishSkillFormProps {
 
 const MANIFEST_FIELDS = [
   { key: "purpose", label: "PURPOSE", arLabel: "الغرض", header: "## الغرض — Purpose", placeholder: "What does this skill do? 1-2 sentences." },
-  { key: "soulAlignment", label: "SOUL ALIGNMENT", arLabel: "التوافق الروحي", header: "## التوافق الروحي — SOUL Alignment", placeholder: "Which SOUL principle does this skill serve? Muraqabah, Tawbah, TrustChain, Tasbih, Sab'iyyah, Barakah." },
+  { key: "soulAlignment", label: "PRINCIPLE ALIGNMENT", arLabel: "مبدأ التوافق", header: "## مبدأ التوافق — Principle Alignment", placeholder: "Which principle does this skill serve? Vigilance, Correction, Ledger, Triad, Septet, Compounding." },
   { key: "operationalFlow", label: "OPERATIONAL FLOW", arLabel: "سير التشغيل", header: "## سير التشغيل — Operational Flow", placeholder: "1. Step one\n2. Step two\n3. Step three" },
   { key: "failureModes", label: "FAILURE MODES", arLabel: "أنماط الفشل", header: "## أنماط الفشل — Failure Modes", placeholder: "| Mode | Detection | Recovery |" },
 ] as const;

@@ -4,7 +4,7 @@ import React, { useState, useRef } from "react";
 import { Tier, getTierColor } from "@/lib/tiers";
 import { useLanguage } from "@/app/context/language-context";
 import { sharePassport } from "@/lib/pi-native-features";
-import { Fingerprint, Award, CheckCircle, Lock, Download, Coins, Share2 } from "lucide-react";
+import { Fingerprint, Award, CheckCircle, Lock, Download, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import PassportKeyManager from "./PassportKeyManager";
 
@@ -56,7 +56,6 @@ export default function InteractivePassportCard({ user, readonly = false, locked
 
 
   const [isExporting, setIsExporting] = useState(false);
-  const [isMinting, setIsMinting] = useState(false);
 
   const handleExportImage = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -89,23 +88,6 @@ export default function InteractivePassportCard({ user, readonly = false, locked
         cardRef.current.style.transform = originalTransform;
       }
       setIsExporting(false);
-    }
-  };
-
-  const handleMintSBT = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isMinting) return;
-
-    setIsMinting(true);
-    try {
-      // Simulate SBT Minting on Stellar
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      alert(t("mint_success") || "Soulbound Token minted successfully on Stellar!");
-    } catch (err) {
-      console.error("Minting failed:", err);
-      alert("Failed to mint SBT.");
-    } finally {
-      setIsMinting(false);
     }
   };
 
@@ -322,14 +304,7 @@ export default function InteractivePassportCard({ user, readonly = false, locked
           >
             <Download className="w-4 h-4 text-white" />
           </button>
-          <button
-            onClick={handleMintSBT}
-            disabled={isMinting}
-            className="p-2 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md border border-white/10 transition-colors tooltip-trigger"
-            title={t("mint_sbt") || "Mint as SBT (Stellar)"}
-          >
-            <Coins className="w-4 h-4 text-amber-400" />
-          </button>
+
           <button
             onClick={handleShare}
             className="p-2 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md border border-white/10 transition-colors tooltip-trigger"

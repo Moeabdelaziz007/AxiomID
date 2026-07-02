@@ -83,7 +83,7 @@ export const diagnostics = defineDiagnostics({
     AXIOMID_E050: {
       why: (p: { skill: string }) =>
         `Skill manifest for "${p.skill}" is incomplete or contains stub content.`,
-      fix: `Fill all 4 required sections (Purpose, SOUL Alignment, Operational Flow, Failure Modes) with real content. Remove TODO/TBD/placeholder text.`,
+      fix: `Fill all 4 required sections (Purpose, Principle Alignment, Operational Flow, Failure Modes) with real content. Remove TODO/TBD/placeholder text.`,
     },
 
     // ── Internal Errors ────────────────────────────────────────

@@ -2,8 +2,9 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { motion } from "framer-motion";
-import { Smartphone, Globe, Loader2, ExternalLink } from "lucide-react";
+import { Smartphone } from "lucide-react";
 import { checkPiBrowser, determineSandboxMode } from "@/lib/pi-sdk";
+import { useLanguage } from "@/app/context/language-context";
 
 interface PiBrowserContextType {
   isPiBrowser: boolean;
@@ -33,6 +34,8 @@ export function PiBrowserGuard({
   const [isDetecting, setIsDetecting] = useState(true);
   const [isPiBrowser, setIsPiBrowser] = useState(false);
   const [isSandbox, setIsSandbox] = useState(false);
+  const { language } = useLanguage();
+  const t = (en: string, ar: string) => (language === "en" ? en : ar);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -52,8 +55,12 @@ export function PiBrowserGuard({
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center gap-4"
         >
-          <Loader2 className="w-8 h-8 text-electric-blue animate-spin" />
-          <p className="text-sm text-[var(--text-secondary)]">Detecting environment...</p>
+          <div className="animate-pulse space-y-3 w-48">
+            <div className="h-4 bg-white/5 rounded w-3/4" />
+            <div className="h-4 bg-white/5 rounded w-1/2" />
+            <div className="h-8 bg-white/5 rounded w-full" />
+          </div>
+          <p className="text-sm text-[var(--text-secondary)]">{t("Detecting environment...", "جاري اكتشاف البيئة...")}</p>
         </motion.div>
       </div>
     );
@@ -80,6 +87,8 @@ export function PiBrowserGuard({
 
 export function PiBrowserBanner() {
   const { isPiBrowser, isSandbox } = usePiBrowser();
+  const { language } = useLanguage();
+  const t = (en: string, ar: string) => (language === "en" ? en : ar);
   
   if (isPiBrowser) {
     return (
@@ -92,12 +101,12 @@ export function PiBrowserBanner() {
           <div className="flex items-center gap-2">
             <Smartphone className="w-4 h-4 text-neon-green" />
             <span className="text-xs font-mono text-neon-green">
-              {isSandbox ? "Pi Sandbox" : "Pi Browser"} Connected
+              {isSandbox ? "Pi Sandbox" : "Pi Browser"} {t("Connected", "متصل")}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-neon-green/70">
-              Full functionality available
+              {t("Full functionality available", "جميع الوظائف متاحة")}
             </span>
           </div>
         </div>
@@ -108,67 +117,5 @@ export function PiBrowserBanner() {
   return null;
 }
 
-interface PiBrowserPromptProps {
-  onConnect?: () => void;
-  onDismiss?: () => void;
-  onConnectDemo?: () => void;
-}
 
-export function PiBrowserPrompt({ onConnect, onDismiss, onConnectDemo }: PiBrowserPromptProps) {
-  const { isPiBrowser } = usePiBrowser();
-  
-  if (isPiBrowser) return null;
-  
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-      className="fixed bottom-4 left-4 right-4 z-50 sm:left-auto sm:right-4 sm:w-96"
-    >
-      <div className="bg-[var(--bg-card)] border border-[var(--card-border)] rounded-xl p-4 shadow-xl">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-electric-blue/10 flex items-center justify-center flex-shrink-0">
-            <Globe className="w-5 h-5 text-electric-blue" />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-              Open in Pi Browser
-            </h3>
-            <p className="text-xs text-[var(--text-secondary)] mt-1">
-              For full functionality, open this app in Pi Browser.
-            </p>
-            <div className="flex gap-2 mt-3 flex-wrap">
-              {onConnect && (
-                <button
-                  onClick={onConnect}
-                  className="text-xs px-3 py-1.5 rounded-lg bg-electric-blue/10 text-electric-blue border border-electric-blue/20 hover:bg-electric-blue/20 transition-colors"
-                >
-                  <ExternalLink className="w-3 h-3 inline mr-1" />
-                  Open in Pi
-                </button>
-              )}
-              {onConnectDemo && (
-                <button
-                  onClick={onConnectDemo}
-                  className="text-xs px-3 py-1.5 rounded-lg bg-gradient-to-r from-axiom-purple to-electric-blue text-white hover:opacity-90 transition-opacity"
-                >
-                  Demo Mode
-                </button>
-              )}
-              {onDismiss && (
-                <button
-                  onClick={onDismiss}
-                  className="text-xs px-3 py-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                >
-                  Continue anyway
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
 

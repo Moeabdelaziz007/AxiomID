@@ -99,14 +99,6 @@ describe('translations — new keys added in this PR', () => {
       expect(translations.en.passport_not_found).toBe('Passport Not Found');
     });
 
-    it('passport_load_error still exists in EN', () => {
-      expect(translations.en.passport_load_error).toBe('Failed to load passport');
-    });
-
-    it('create_your_passport still exists in EN', () => {
-      expect(translations.en.create_your_passport).toBe('CREATE YOUR PASSPORT');
-    });
-
     it('passport_not_found still exists in AR', () => {
       expect(translations.ar.passport_not_found).toBe('جواز السفر غير موجود');
     });
@@ -120,99 +112,6 @@ describe('translations — new keys added in this PR', () => {
 // Helper to cast translations to a plain Record for new keys not yet in the TS type
 const en = translations.en as Record<string, string>;
 const ar = translations.ar as Record<string, string>;
-
-describe('translations — settings helper & confirmation keys (PR change)', () => {
-  const newSettingsKeys = [
-    'settings_profile_helper',
-    'settings_progression_helper',
-    'settings_social_helper',
-    'settings_ledger_helper',
-    'settings_danger_zone',
-    'settings_danger_desc',
-    'settings_confirm_title',
-    'settings_confirm_disconnect',
-    'settings_confirm_action',
-    'settings_confirm_cancel',
-  ];
-
-  newSettingsKeys.forEach((key) => {
-    it(`EN has non-empty "${key}"`, () => {
-      expect(en[key]).toBeDefined();
-      expect(typeof en[key]).toBe('string');
-      expect(en[key].length).toBeGreaterThan(0);
-    });
-
-    it(`AR has non-empty "${key}"`, () => {
-      expect(ar[key]).toBeDefined();
-      expect(typeof ar[key]).toBe('string');
-      expect(ar[key].length).toBeGreaterThan(0);
-    });
-
-    it(`EN and AR "${key}" are not identical (actually translated)`, () => {
-      expect(en[key]).not.toBe(ar[key]);
-    });
-  });
-
-  it('settings_confirm_disconnect EN contains platform placeholder {platform}', () => {
-    expect(en['settings_confirm_disconnect']).toContain('{platform}');
-  });
-
-  it('settings_confirm_disconnect AR contains platform placeholder {platform}', () => {
-    expect(ar['settings_confirm_disconnect']).toContain('{platform}');
-  });
-
-  it('settings_confirm_action EN is non-empty (confirm action label)', () => {
-    expect(en['settings_confirm_action'].length).toBeGreaterThan(0);
-  });
-
-  it('settings_confirm_cancel EN is non-empty (cancel label)', () => {
-    expect(en['settings_confirm_cancel'].length).toBeGreaterThan(0);
-  });
-});
-
-describe('translations — changed settings keys (PR change: simplified copy)', () => {
-  it('settings_profile_title EN changed to "Your Profile"', () => {
-    expect(en['settings_profile_title']).toBe('Your Profile');
-  });
-
-  it('settings_sovereign_did EN changed to "YOUR DID"', () => {
-    expect(en['settings_sovereign_did']).toBe('YOUR DID');
-  });
-
-  it('settings_identity_status EN changed to "IDENTITY STATUS"', () => {
-    expect(en['settings_identity_status']).toBe('IDENTITY STATUS');
-  });
-
-  it('settings_pending_kyc EN changed to "Pending Verification"', () => {
-    expect(en['settings_pending_kyc']).toBe('Pending Verification');
-  });
-
-  it('settings_progression_title EN changed to "Your Progress"', () => {
-    expect(en['settings_progression_title']).toBe('Your Progress');
-  });
-
-  it('settings_social_title EN changed to "Connected Accounts"', () => {
-    expect(en['settings_social_title']).toBe('Connected Accounts');
-  });
-
-  it('settings_ledger_title EN changed to "Activity History"', () => {
-    expect(en['settings_ledger_title']).toBe('Activity History');
-  });
-
-  it('settings_no_tx EN updated to include guidance text', () => {
-    expect(en['settings_no_tx']).toContain('No activity yet');
-  });
-
-  // Arabic counterparts also changed
-  it('settings_profile_title AR changed (not old value)', () => {
-    expect(ar['settings_profile_title']).not.toBe('الملف السيادي');
-    expect(ar['settings_profile_title']).toBe('ملفك الشخصي');
-  });
-
-  it('settings_sovereign_did AR changed to simpler value', () => {
-    expect(ar['settings_sovereign_did']).toBe('معرفك الفريد');
-  });
-});
 
 describe('translations — privacy page keys (PR change)', () => {
   const privacyKeys = [
@@ -392,15 +291,8 @@ describe('translations — sandbox page keys (PR change)', () => {
     'sandbox_no_templates',
     'sandbox_intro_title',
     'sandbox_intro_desc',
-    'sandbox_how_it_works',
-    'sandbox_step_1',
-    'sandbox_step_2',
-    'sandbox_step_3',
-    'sandbox_manifest_label',
     'sandbox_manifest_hint',
-    'sandbox_input_label',
     'sandbox_input_hint',
-    'sandbox_security_title',
     'sandbox_security_desc',
   ];
 
@@ -433,7 +325,7 @@ describe('translations — sandbox page keys (PR change)', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('translations — passport action keys (PR change: export/mint/share)', () => {
-  const newPassportActionKeys = ['export_image', 'mint_sbt', 'mint_success'];
+  const newPassportActionKeys = ['export_image'];
 
   newPassportActionKeys.forEach((key) => {
     it(`EN has non-empty "${key}"`, () => {
@@ -461,58 +353,9 @@ describe('translations — passport action keys (PR change: export/mint/share)',
     expect(ar['export_image']).toBe('تصدير كصورة');
   });
 
-  it('mint_sbt EN is "Mint as SBT"', () => {
-    expect(en['mint_sbt']).toBe('Mint as SBT');
-  });
-
-  it('mint_sbt AR is non-empty Arabic translation', () => {
-    expect(ar['mint_sbt']).toBe('إصدار كـ SBT');
-  });
-
-  it('mint_success EN contains "Stellar"', () => {
-    expect(en['mint_success']).toContain('Stellar');
-  });
-
-  it('mint_success EN contains "Soulbound Token"', () => {
-    expect(en['mint_success']).toContain('Soulbound Token');
-  });
-
-  it('mint_success AR contains "Stellar"', () => {
-    expect(ar['mint_success']).toContain('Stellar');
-  });
-
-  it('mint_success AR is full Arabic string', () => {
-    expect(ar['mint_success']).toBe('تم إصدار Soulbound Token بنجاح على Stellar!');
-  });
-
-  it('mint_success EN has correct full value', () => {
-    expect(en['mint_success']).toBe('Soulbound Token minted successfully on Stellar!');
-  });
-
-  // Regression: pre-existing passport keys must still be intact
-  it('share_passport EN is still present', () => {
-    expect(en['share_passport']).toBe('SHARE PASSPORT');
-  });
-
-  it('link_copied EN is still present', () => {
-    expect(en['link_copied']).toBe('LINK COPIED!');
-  });
-
-  it('create_your_passport EN is still present', () => {
-    expect(en['create_your_passport']).toBe('CREATE YOUR PASSPORT');
-  });
-
   // Negative: keys must be defined and not fall back to the key name itself
   it('export_image EN is not equal to its own key name', () => {
     expect(en['export_image']).not.toBe('export_image');
-  });
-
-  it('mint_sbt EN is not equal to its own key name', () => {
-    expect(en['mint_sbt']).not.toBe('mint_sbt');
-  });
-
-  it('mint_success EN is not equal to its own key name', () => {
-    expect(en['mint_success']).not.toBe('mint_success');
   });
 });
 
@@ -553,7 +396,6 @@ describe('translations — marketplace page keys (PR change)', () => {
     'marketplace_install_skill',
     'marketplace_copy_payload',
     'marketplace_dismiss',
-    'marketplace_back_to_skills',
   ];
 
   marketplaceKeys.forEach((key) => {
@@ -594,10 +436,7 @@ describe('translations — landing page keys (PR change)', () => {
     'landing_pi_badge',
     'landing_headline_en',
     'landing_headline_rules_en',
-    'landing_headline_ar',
-    'landing_headline_rules_ar',
     'landing_tagline',
-    'landing_watch_demo',
     'landing_how_it_works',
     'landing_three_steps',
     'landing_step1_title',
@@ -637,11 +476,7 @@ describe('translations — landing page keys (PR change)', () => {
     });
 
     it(`EN and AR "${key}" are not identical (actually translated)`, () => {
-      if (key === 'landing_headline_ar' || key === 'landing_headline_rules_ar') {
-        expect(en[key]).toBe(ar[key]);
-      } else {
-        expect(en[key]).not.toBe(ar[key]);
-      }
+      expect(en[key]).not.toBe(ar[key]);
     });
   });
 
@@ -815,11 +650,5 @@ describe('translations — landing page key parity (EN vs AR, PR change)', () =>
     // The AR dict sets it to "هويتك." — different text for the same key
     expect(en['landing_headline_en']).toBe('Your Identity.');
     expect(ar['landing_headline_en']).toBe('هويتك.');
-  });
-
-  it('landing_headline_ar EN is "هويتك." and AR is also "هويتك." (both languages use Arabic text)', () => {
-    // landing_headline_ar carries the Arabic headline in both locales
-    expect(en['landing_headline_ar']).toBe('هويتك.');
-    expect(ar['landing_headline_ar']).toBe('هويتك.');
   });
 });

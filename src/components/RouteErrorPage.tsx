@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import * as Sentry from "@sentry/nextjs";
+import { useLanguage } from "@/app/context/language-context";
 
 interface RouteErrorPageProps {
   title: string;
@@ -11,15 +12,10 @@ interface RouteErrorPageProps {
   reset: () => void;
 }
 
-/**
- * Error page for a failed route with retry and navigation options.
- *
- * @param title - Heading text for the error page
- * @param fallbackMessage - Message displayed when error details should not be exposed
- * @param error - The error object that caused the route to fail
- * @param reset - Callback to retry rendering the route
- */
 export function RouteErrorPage({ title, fallbackMessage, error, reset }: RouteErrorPageProps) {
+  const { language } = useLanguage();
+  const t = (en: string, ar: string) => (language === "en" ? en : ar);
+
   useEffect(() => {
     console.error(`${title}:`, error);
     Sentry.captureException(error, { extra: { title } });
@@ -39,10 +35,10 @@ export function RouteErrorPage({ title, fallbackMessage, error, reset }: RouteEr
         </p>
         <div className="flex gap-3 justify-center">
           <button onClick={reset} className="btn-primary text-xs px-4 py-2">
-            RETRY
+            {t("RETRY", "إعادة المحاولة")}
           </button>
           <Link href="/dashboard" className="btn-ghost text-xs px-4 py-2">
-            BACK TO DASHBOARD
+            {t("BACK TO DASHBOARD", "العودة للوحة التحكم")}
           </Link>
         </div>
       </div>

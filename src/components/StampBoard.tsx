@@ -240,13 +240,14 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
       {/* VC Inspector Modal */}
       <dialog
         ref={vcDialogRef}
+        aria-labelledby="vc-dialog-title"
         onClick={handleBackdropClick}
         className="bg-transparent p-4 focus:outline-none"
       >
         <div className="bento-card max-w-lg w-full p-6 border border-white/10 shadow-2xl bg-black">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h3 className="text-base font-bold text-surface font-mono">
+              <h3 id="vc-dialog-title" className="text-base font-bold text-surface font-mono">
                 {t('w3c_vc_title')}
               </h3>
               <p className="text-[9px] text-faint font-mono mt-0.5">

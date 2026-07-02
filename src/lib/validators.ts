@@ -52,7 +52,7 @@ export const AgentMainSchema = z.object({
 
 const REQUIRED_MANIFEST_SECTIONS = [
   { en: 'Purpose', ar: 'الغرض', header: 'الغرض — Purpose' },
-  { en: 'SOUL Alignment', ar: 'التوافق الروحي', header: 'التوافق الروحي — SOUL Alignment' },
+  { en: 'Principle Alignment', ar: 'مبدأ التوافق', header: 'مبدأ التوافق — Principle Alignment' },
   { en: 'Operational Flow', ar: 'سير التشغيل', header: 'سير التشغيل — Operational Flow' },
   { en: 'Failure Modes', ar: 'أنماط الفشل', header: 'أنماط الفشل — Failure Modes' },
 ] as const;
