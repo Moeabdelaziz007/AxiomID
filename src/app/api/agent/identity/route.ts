@@ -5,7 +5,7 @@ import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { logger } from "@/lib/logger";
 import { AgentIdentitySchema } from "@/lib/validators";
-import { createIdentityAssertion } from "@/lib/auth-tokens";
+import { createIdentityAssertion, verifyPiTokenWithJwks } from "@/lib/auth-tokens";
 import { createClaimToken } from "@/lib/claim-ceremony";
 
 /**
@@ -20,6 +20,11 @@ function deriveDid(assertion: string): string {
 
 /**
  * Processes an agent identity request and returns either a scoped identity assertion or a claim token.
+ *
+ * This endpoint intentionally does NOT use the requireAuth middleware because it must
+ * handle both authenticated (identity_assertion) and unauthenticated (anonymous) flows
+ * in a single route. The identity_assertion path performs its own Pi token verification,
+ * while the anonymous path is for pre-registration users.
  *
  * @returns An API response containing either an identity assertion with its derived DID and scopes, or a claim token with verification details.
  */
@@ -44,7 +49,20 @@ export async function POST(request: NextRequest) {
 
   try {
     if (parsed.data.type === "identity_assertion") {
-      const did = deriveDid(parsed.data.assertion);
+      let did: string;
+      try {
+        const payload = await verifyPiTokenWithJwks(parsed.data.assertion);
+        did = "did:axiom:axiomid.app:pi:" + payload.sub;
+      } catch (err) {
+        if (process.env.NODE_ENV !== "production") {
+          logger.warn("[AGENT-IDENTITY] Pi JWKS verification failed, falling back to deterministic DID for dev");
+          did = deriveDid(parsed.data.assertion);
+        } else {
+          logger.error("[AGENT-IDENTITY] Pi JWKS verification failed:", err);
+          return apiError("UNAUTHORIZED", "Invalid identity assertion");
+        }
+      }
+
       const scopes = ["api.read", "api.write"];
       const identityAssertion = await createIdentityAssertion(did, scopes);
       return apiSuccess({ identity_assertion: identityAssertion, did, scopes });

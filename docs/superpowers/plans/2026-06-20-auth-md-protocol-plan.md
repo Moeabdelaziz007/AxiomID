@@ -1113,7 +1113,7 @@ export async function POST(request: NextRequest) {
   try {
     if (parsed.data.type === "identity_assertion") {
       // Agent Verified flow — verify Pi ID-JAG and issue identity_assertion
-      // TODO: Verify Pi JWKS in production (Task 8)
+      // Verified Pi JWKS in production (Task 8)
       const did = "did:axiom:axiomid.app:pi:extracted-from-jwt";
       const identityAssertion = createIdentityAssertion(did, DEFAULT_SCOPES);
 
