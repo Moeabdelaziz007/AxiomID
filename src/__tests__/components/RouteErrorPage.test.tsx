@@ -7,12 +7,13 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { RouteErrorPage } from "@/components/RouteErrorPage";
+import { logger } from "@/lib/logger";
 
-// Suppress console.error calls from the component
-const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+// Suppress logger.error calls from the component
+const loggerErrorSpy = jest.spyOn(logger, "error").mockImplementation(() => {});
 
 afterAll(() => {
-  consoleErrorSpy.mockRestore();
+  loggerErrorSpy.mockRestore();
 });
 
 function makeError(message: string, digest?: string): Error & { digest?: string } {
@@ -145,8 +146,8 @@ describe("RouteErrorPage — interaction", () => {
   });
 });
 
-describe("RouteErrorPage — console.error logging", () => {
-  it("logs the error to console.error with the title", () => {
+describe("RouteErrorPage — logger.error logging", () => {
+  it("logs the error to logger.error with the title", () => {
     const error = makeError("Test error message");
 
     render(
@@ -158,7 +159,7 @@ describe("RouteErrorPage — console.error logging", () => {
       />
     );
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith("My Title:", error);
+    expect(loggerErrorSpy).toHaveBeenCalledWith("My Title:", error);
   });
 });
 

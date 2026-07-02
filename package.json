@@ -1,6 +1,6 @@
 {
   "name": "axiomid",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": true,
   "description": "AxiomID - The Human Authorization Protocol. Decentralized identity verification for human-AI collaboration.",
   "aix": {

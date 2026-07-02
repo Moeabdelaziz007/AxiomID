@@ -4,6 +4,18 @@ All notable changes to the AxiomID project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Fixed
+- Footer version display — hardcoded `v0.1.0` replaced with `NEXT_PUBLIC_APP_VERSION` env var
+- Dashboard data disconnect — dashboard now fetches skills from `/api/skills` (live) instead of static `skills.json`
+- `console.error` → `logger.error` in 8 files (claim, status, onboarding, marketplace, InteractivePassportCard, RouteErrorPage, passport/error)
+
+### Changed
+- SOUL Protocol public names renamed (Vigilance, Correction, Ledger, Triad, Septet, Compounding)
+- Removed 280 unused i18n keys from en.json + ar.json
+- Package version synced to 0.1.2
+
 ## [0.1.2] - 2026-06-28
 
 ### Added

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useLanguage } from "../context/language-context";
+import { logger } from "@/lib/logger";
 
 interface ServiceCheck {
   name: string;
@@ -81,7 +82,7 @@ export default function StatusPage() {
       setLastFetchTime(Date.now());
       setTimeSince(0);
     } catch (err) {
-      console.error("Failed to fetch status:", err);
+      logger.error("Failed to fetch status:", err);
     } finally {
       setLoading(false);
     }

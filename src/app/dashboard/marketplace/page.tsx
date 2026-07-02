@@ -10,6 +10,7 @@ import { SoulBadge } from "@/components/marketplace/SoulBadge";
 import { useLanguage } from "../../context/language-context";
 import { createPiPayment } from "@/lib/pi-sdk";
 import { SOUL_PRINCIPLE_LIST, type SoulPrincipleKey } from "@/lib/soul-principles";
+import { logger } from "@/lib/logger";
 
 interface Tag {
   id: string;
@@ -126,7 +127,7 @@ export default function MarketplacePage() {
           setAvailableTags(data.tags || []);
         }
       } catch (err) {
-        console.error("Failed to load tags:", err);
+        logger.error("Failed to load tags:", err);
       }
     };
     loadTags();
@@ -246,7 +247,7 @@ export default function MarketplacePage() {
         })
         .catch(err => {
           if (err instanceof DOMException && err.name === "AbortError") return;
-          console.error("Failed to load reviews:", err);
+          logger.error("Failed to load reviews:", err);
         })
         .finally(() => {
           if (fetchAbortRef.current === controller && !controller.signal.aborted) {
@@ -265,7 +266,7 @@ export default function MarketplacePage() {
         })
         .catch(err => {
           if (err instanceof DOMException && err.name === "AbortError") return;
-          console.error("Failed to load versions:", err);
+          logger.error("Failed to load versions:", err);
         })
         .finally(() => {
           if (fetchAbortRef.current === controller && !controller.signal.aborted) {
