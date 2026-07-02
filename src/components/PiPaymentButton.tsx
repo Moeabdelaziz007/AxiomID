@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { createPiPayment } from "@/lib/pi-sdk";
+import { useLanguage } from "@/app/context/language-context";
 
 interface PiPaymentButtonProps {
   amount: number;
@@ -41,6 +42,8 @@ export function PiPaymentButton({
 }: PiPaymentButtonProps) {
   const [state, setState] = useState<PaymentState>("idle");
   const [error, setError] = useState<string | null>(null);
+  const { language } = useLanguage();
+  const t = (en: string, ar: string) => (language === "en" ? en : ar);
 
   const handlePayment = useCallback(async () => {
     if (disabled || state !== "idle") return;
@@ -77,7 +80,7 @@ export function PiPaymentButton({
         className={`flex items-center gap-2 text-neon-green ${className}`}
       >
         <CheckCircle2 className="w-5 h-5" />
-        <span className="text-sm font-medium">Payment Complete!</span>
+        <span className="text-sm font-medium">{t("Payment Complete!", "تم الدفع!")}</span>
       </motion.div>
     );
   }
@@ -93,7 +96,7 @@ export function PiPaymentButton({
           onClick={reset}
           className="text-xs text-electric-blue hover:underline"
         >
-          Try again
+          {t("Try again", "حاول مرة أخرى")}
         </button>
       </div>
     );
@@ -101,7 +104,7 @@ export function PiPaymentButton({
 
   const isLoading = state !== "idle";
   const loadingTextMap: Record<string, string> = {
-    creating: "Processing payment...",
+    creating: t("Processing payment...", "جاري معالجة الدفع..."),
   };
   const currentLoadingText = loadingTextMap[state] || "";
 
@@ -125,7 +128,7 @@ export function PiPaymentButton({
         )}
       </motion.button>
       <p className="text-[10px] text-center mt-2" style={{ color: "var(--text-muted)" }}>
-        {amount} Pi • Powered by Pi Network
+        {amount} Pi • {t("Powered by Pi Network", "مدعوم من شبكة Pi")}
       </p>
     </div>
   );

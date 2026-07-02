@@ -3,6 +3,7 @@
 import React from "react";
 import { Trophy } from "lucide-react";
 import { getTierColor, Tier } from "@/lib/tiers";
+import { useLanguage } from "@/app/context/language-context";
 
 interface LeaderboardUser {
   rank: number;
@@ -20,6 +21,8 @@ interface TopThreeCardsProps {
 }
 
 export default function TopThreeCards({ users }: TopThreeCardsProps) {
+  const { language } = useLanguage();
+  const t = (en: string, ar: string) => (language === "en" ? en : ar);
   // Re-order users list so that Silver is Left, Gold is Middle, Bronze is Right
   const silver = users.find((u) => u.rank === 2);
   const gold = users.find((u) => u.rank === 1);
@@ -57,7 +60,7 @@ export default function TopThreeCards({ users }: TopThreeCardsProps) {
         <div className="flex justify-between items-center z-10">
           <div className="flex items-center gap-1">
             <Trophy className={`w-4 h-4 ${textGlowClass}`} />
-            <span className="text-[10px] font-mono font-bold text-zinc-500">RANK {user.rank}</span>
+            <span className="text-[10px] font-mono font-bold text-zinc-500">{t("RANK", "الرتبة")} {user.rank}</span>
           </div>
           <span 
             className="text-[8px] font-mono px-2 py-0.5 rounded border uppercase"
@@ -85,7 +88,7 @@ export default function TopThreeCards({ users }: TopThreeCardsProps) {
         </div>
 
         <div className="flex justify-between items-center border-t border-white/5 pt-3 z-10 text-[10px] font-mono">
-          <span className="text-zinc-500">SCORE: {user.trustScore}%</span>
+          <span className="text-zinc-500">{t("SCORE", "النتيجة")}: {user.trustScore}%</span>
           <span className={`${textGlowClass} font-bold`}>{user.xp.toLocaleString()} XP</span>
         </div>
       </div>

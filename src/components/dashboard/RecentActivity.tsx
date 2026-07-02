@@ -18,6 +18,21 @@ const ICON_MAP = {
   stamp: <Star className="w-3.5 h-3.5 text-amber-400" />,
 };
 
+function getRelativeTime(dateStr: string, lang: string): string {
+  const parsed = new Date(dateStr).getTime();
+  if (Number.isNaN(parsed)) return lang === "ar" ? "الآن" : "just now";
+  const diff = Date.now() - parsed;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return lang === "ar" ? "الآن" : "just now";
+  if (mins < 60) return lang === "ar" ? `منذ ${mins} دقيقة` : `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return lang === "ar" ? `منذ ${hours} ساعة` : `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return lang === "ar" ? `منذ ${days} يوم` : `${days}d ago`;
+  const months = Math.floor(days / 30);
+  return lang === "ar" ? `منذ ${months} شهر` : `${months}mo ago`;
+}
+
 function buildRecentActivity(user: {
   xp: number;
   trustScore: number;
@@ -72,7 +87,7 @@ export function RecentActivity({ user }: { user: { xp: number; trustScore: numbe
               <span className="text-xs text-surface font-mono block truncate">{a.description}</span>
             </div>
             <span className="text-[9px] text-zinc-500 font-mono shrink-0">
-              {language === "ar" ? "الآن" : "just now"}
+              {getRelativeTime(a.timestamp, language)}
             </span>
           </div>
         ))}

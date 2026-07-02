@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useRef, useCallback } from "react";
 import { Tier, getTierColor } from "@/lib/tiers";
+import { useLanguage } from "@/app/context/language-context";
 
 interface GraphNode {
   id: string;
@@ -26,6 +27,8 @@ export default function NetworkGraph({ nodes }: NetworkGraphProps) {
   const [scale, setScale] = useState(1);
   const svgRef = useRef<SVGSVGElement>(null);
   const lastDist = useRef(0);
+  const { language } = useLanguage();
+  const t = (en: string, ar: string) => (language === "en" ? en : ar);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2) {
@@ -103,16 +106,16 @@ export default function NetworkGraph({ nodes }: NetworkGraphProps) {
   return (
     <div className="bento-card p-5 flex flex-col items-center relative overflow-hidden">
       <div className="absolute top-4 left-4">
-        <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest">Active Node Graph</h3>
-        <p className="text-[10px] text-zinc-500 font-mono mt-0.5">Click nodes to inspect identities</p>
+        <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest">{t("Active Node Graph", "رسم بياني للعقد النشطة")}</h3>
+        <p className="text-[10px] text-zinc-500 font-mono mt-0.5">{t("Click nodes to inspect identities", "انقر على العقد لفحص الهويات")}</p>
       </div>
 
       {/* Mini Stats */}
       <div className="flex items-center gap-4 mt-2 mb-3 text-[9px] font-mono text-zinc-500">
-        <span>{nodes.length} nodes</span>
-        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />{activeNodes.length} active</span>
-        {nodes.length > 0 && <span>Top trust: {Math.max(...nodes.map((n) => n.xp))} XP</span>}
-        {latestJoin && <span>Latest: {latestJoin.piUsername || latestJoin.walletAddress.slice(0, 6)}</span>}
+        <span>{t(`${nodes.length} nodes`, `${nodes.length} عقد`)}</span>
+        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />{t(`${activeNodes.length} active`, `${activeNodes.length} نشطة`)}</span>
+        {nodes.length > 0 && <span>{t(`Top trust: ${Math.max(...nodes.map((n) => n.xp))} XP`, `أعلى ثقة: ${Math.max(...nodes.map((n) => n.xp))} XP`)}</span>}
+        {latestJoin && <span>{t(`Latest: ${latestJoin.piUsername || latestJoin.walletAddress.slice(0, 6)}`, `الأحدث: ${latestJoin.piUsername || latestJoin.walletAddress.slice(0, 6)}`)}</span>}
       </div>
 
       {/* SVG Canvas with pinch-to-zoom */}
@@ -260,7 +263,7 @@ export default function NetworkGraph({ nodes }: NetworkGraphProps) {
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-mono font-bold text-white">
-                @{selectedNode.piUsername || "anonymous"}
+                @{selectedNode.piUsername || t("anonymous", "مجهول")}
               </span>
               <span
                 className="text-[9px] font-mono px-2 py-0.5 rounded border"
@@ -274,18 +277,18 @@ export default function NetworkGraph({ nodes }: NetworkGraphProps) {
               </span>
             </div>
             <p className="text-[10px] font-mono text-zinc-500 mt-1 truncate">
-              DID: {selectedNode.did || "did:axiom:unconnected"}
+              {t("DID:", "المعرف:")} {selectedNode.did || t("did:axiom:unconnected", "did:axiom:غير متصل")}
             </p>
             {selectedNode.agent && (
               <div className="flex items-center gap-1.5 mt-2 bg-emerald-500/5 border border-emerald-500/10 px-2 py-1 rounded text-[9px] font-mono text-emerald-400 max-w-max">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Agent: {selectedNode.agent.name} ({selectedNode.agent.status})</span>
+                <span>{t("Agent:", "العميل:")} {selectedNode.agent.name} ({selectedNode.agent.status})</span>
               </div>
             )}
           </div>
         ) : (
           <div className="text-center py-2 text-zinc-600 text-xs font-mono">
-            Click an identity node to audit credential state
+            {t("Click an identity node to audit credential state", "انقر على عقد الهوية لفحص بيانات الاعتماد")}
           </div>
         )}
       </div>
