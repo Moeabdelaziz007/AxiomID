@@ -79,6 +79,13 @@ export const diagnostics = defineDiagnostics({
       fix: `Use a different identifier or check the current state before modifying.`,
     },
 
+    // ── Manifest Errors ────────────────────────────────────────
+    AXIOMID_E050: {
+      why: (p: { skill: string }) =>
+        `Skill manifest for "${p.skill}" is incomplete or contains stub content.`,
+      fix: `Fill all 4 required sections (Purpose, SOUL Alignment, Operational Flow, Failure Modes) with real content. Remove TODO/TBD/placeholder text.`,
+    },
+
     // ── Internal Errors ────────────────────────────────────────
     AXIOMID_E040: {
       why: (p: { operation: string; error: string }) =>

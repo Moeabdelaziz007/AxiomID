@@ -57,6 +57,9 @@ model User {
   // Skills (authored)
   authoredSkills Skill[]
 
+  // Skill Pipelines (authored)
+  authoredPipelines SkillPipeline[]
+
   // Skill Reviews
   skillReviews SkillReview[]
 
@@ -272,6 +275,15 @@ enum SkillStatus {
   DEPRECATED
 }
 
+enum SoulPrinciple {
+  MURAQABAH
+  TAWBAH
+  TRUSTCHAIN
+  TASBIH
+  SABIYYAH
+  BARAKAH
+}
+
 model Skill {
   id          String  @id @default(uuid())
   slug        String  @unique @db.VarChar(100) // "agent-memory"
@@ -292,6 +304,10 @@ model Skill {
   status      SkillStatus @default(DRAFT)
   isPublished Boolean     @default(false)
 
+  // ── SOUL Protocol ──
+  soulPrinciple SoulPrinciple? // optional — which principle this skill serves
+  chainable    Boolean     @default(false) // can this skill be part of a pipeline?
+
   // ── Analytics ──
   installCount Int   @default(0)
   avgRating    Float @default(0) // 0-5 scale
@@ -299,6 +315,8 @@ model Skill {
 
   // ── Relations ──
   installations SkillInstallation[]
+  executions    SkillExecution[]
+  pipelineSteps SkillPipelineStep[]
   reviews       SkillReview[]
   tags          SkillTagRelation[]
   versions      SkillVersion[]
@@ -325,6 +343,51 @@ model SkillInstallation {
   @@unique([skillId, agentId], name: "skill_agent_unique")
   @@index([skillId])
   @@index([agentId])
+}
+
+model SkillExecution {
+  id          String   @id @default(uuid())
+  skillId     String
+  skill       Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  agentId     String?  // nullable for anonymous executions
+  input       Json?    // execution input parameters
+  output      Json?    // execution output/result
+  success     Boolean  @default(true)
+  durationMs  Int?     // execution time in milliseconds
+  errorMessage String? @db.Text
+  executedAt  DateTime @default(now())
+
+  @@index([skillId])
+  @@index([executedAt])
+  @@index([success])
+}
+
+model SkillPipeline {
+  id          String   @id @default(uuid())
+  name        String   @db.VarChar(200)
+  description String?  @db.VarChar(1000)
+  authorId    String?
+  author      User?    @relation(fields: [authorId], references: [id])
+  isActive    Boolean  @default(true)
+  steps       SkillPipelineStep[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([authorId])
+}
+
+model SkillPipelineStep {
+  id         String  @id @default(uuid())
+  pipelineId String
+  pipeline   SkillPipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  skillId    String
+  skill      Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  stepOrder  Int     // execution order (0-indexed)
+  config     Json?   // step-specific configuration
+
+  @@unique([pipelineId, stepOrder])
+  @@index([pipelineId])
+  @@index([skillId])
 }
 
 model SkillReview {

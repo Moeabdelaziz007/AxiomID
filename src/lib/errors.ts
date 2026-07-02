@@ -8,6 +8,7 @@ export type ErrorCode =
   | 'NOT_FOUND'
   | 'RATE_LIMITED'
   | 'CONFLICT'
+  | 'INCOMPLETE_MANIFEST'
   | 'PI_AUTH_FAILED'
   | 'PI_PAYMENT_FAILED'
   | 'PAYMENT_VERIFICATION_FAILED'
@@ -35,6 +36,7 @@ const STATUS_MAP: Record<ErrorCode, number> = {
   NOT_FOUND: 404,
   RATE_LIMITED: 429,
   CONFLICT: 409,
+  INCOMPLETE_MANIFEST: 422,
   PI_AUTH_FAILED: 401,
   PI_PAYMENT_FAILED: 402,
   PAYMENT_VERIFICATION_FAILED: 402,
@@ -66,6 +68,7 @@ const REPORT_DIAGNOSTIC: Record<ErrorCode, (message: string) => any> = {
   NOT_FOUND:                   (m) => diagnostics.AXIOMID_E012({ resource: m }),
   RATE_LIMITED:                ()  => diagnostics.AXIOMID_E013({}),
   CONFLICT:                    (m) => diagnostics.AXIOMID_E030({ resource: m }),
+  INCOMPLETE_MANIFEST:         (m) => diagnostics.AXIOMID_E050({ skill: m }),
   PI_AUTH_FAILED:              (m) => diagnostics.AXIOMID_E020({ piError: m }),
   PI_PAYMENT_FAILED:           (m) => diagnostics.AXIOMID_E021({ paymentId: 'unknown', piError: m }),
   PAYMENT_VERIFICATION_FAILED: (m) => diagnostics.AXIOMID_E022({ paymentId: 'unknown', piError: m }),

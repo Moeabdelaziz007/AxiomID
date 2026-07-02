@@ -4,11 +4,15 @@ import { prisma } from '@/lib/prisma';
 import { apiError, apiSuccess, rateLimitHeaders } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
-import { SlugParamSchema, SkillUpdateSchema } from '@/lib/validators';
+import { describeManifestIssues, ManifestSchema, SlugParamSchema, SkillUpdateSchema } from '@/lib/validators';
 import { requireAuth } from '@/lib/auth-middleware';
 
 /**
- * GET /api/skills/[slug] — Get full skill detail including manifest, agent script, and tests.
+ * Retrieves a skill record by slug with its manifest, agent script, tests, and aggregate counts.
+ *
+ * @param request - The incoming request
+ * @param params - The route parameters containing the skill slug
+ * @returns A full skill detail response when the skill exists
  */
 export async function GET(
   request: NextRequest,
@@ -29,7 +33,24 @@ export async function GET(
   try {
     const skill = await prisma.skill.findUnique({
       where: { slug },
-      include: {
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        description: true,
+        manifestMd: true,
+        tier: true,
+        pricePi: true,
+        version: true,
+        status: true,
+        installCount: true,
+        avgRating: true,
+        ratingCount: true,
+        authorId: true,
+        soulPrinciple: true,
+        isPublished: true,
+        createdAt: true,
+        updatedAt: true,
         _count: {
           select: { installations: true, reviews: true },
         },
@@ -78,12 +99,11 @@ export async function GET(
       name: skill.name,
       description: skill.description,
       manifestMd: skill.manifestMd,
-      agentScript: skill.agentScript,
-      testSuite: skill.testSuite,
       tier: skill.tier,
       pricePi: skill.pricePi,
       version: skill.version,
       status: skill.status,
+      soulPrinciple: skill.soulPrinciple,
       isPublished: skill.isPublished,
       installCount: skill.installCount,
       avgRating: skill.avgRating,
@@ -107,7 +127,9 @@ export async function GET(
 }
 
 /**
- * PATCH /api/skills/[slug] — Update skill metadata, manifest, or script.
+ * Updates a skill's metadata and validates a provided manifest before saving content changes.
+ *
+ * Returns the updated skill summary on success or an API error response if the request is invalid, unauthorized, rate-limited, incomplete, or the skill cannot be found.
  */
 export async function PATCH(
   request: NextRequest,
@@ -141,6 +163,14 @@ export async function PATCH(
   }
 
   const { changelog, ...updateData } = parsedBody.data;
+
+  if (updateData.manifestMd) {
+    const manifestResult = ManifestSchema.safeParse(updateData.manifestMd);
+    if (!manifestResult.success) {
+      const details = describeManifestIssues(updateData.manifestMd);
+      return apiError('INCOMPLETE_MANIFEST', details);
+    }
+  }
 
   try {
     const existing = await prisma.skill.findUnique({ where: { slug } });

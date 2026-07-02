@@ -1,0 +1,21 @@
+name: Skill Quality Gate
+on:
+  pull_request:
+    paths:
+      - 'src/data/skills.json'
+      - 'prisma/**'
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+      - run: npm ci
+      - name: Validate skill manifests
+        run: npx tsx scripts/validate-skill-manifest.ts --changed

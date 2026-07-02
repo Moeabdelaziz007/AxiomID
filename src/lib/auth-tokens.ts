@@ -161,26 +161,30 @@ export async function verifyPiTokenWithJwks(
 
   let lastError: unknown;
   for (const key of keys) {
+    let payload: JWTPayload;
     try {
-      const { payload } = await jwtVerify(token, key);
-      if (typeof payload.sub !== "string") throw new Error("Pi token missing sub claim");
-
-      if (payload.iss && payload.iss !== PI_ISSUER) {
-        throw new Error(`Pi token has invalid issuer: ${payload.iss}`);
-      }
-
-      const expectedAudience = process.env.PI_EXPECTED_AUDIENCE;
-      if (expectedAudience && payload.aud) {
-        const audiences = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
-        if (!audiences.includes(expectedAudience)) {
-          throw new Error(`Pi token has invalid audience: ${payload.aud}`);
-        }
-      }
-
-      return payload as JWTPayload & { sub: string; username?: string; pi_username?: string };
+      const result = await jwtVerify(token, key);
+      payload = result.payload;
     } catch (err) {
       lastError = err;
+      continue;
     }
+
+    if (typeof payload.sub !== "string") {
+      throw new Error("Pi token missing sub claim");
+    }
+    if (payload.iss && payload.iss !== PI_ISSUER) {
+      throw new Error(`Pi token has invalid issuer: ${payload.iss}`);
+    }
+    const expectedAudience = process.env.PI_EXPECTED_AUDIENCE;
+    if (expectedAudience && payload.aud) {
+      const audiences = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
+      if (!audiences.includes(expectedAudience)) {
+        throw new Error(`Pi token has invalid audience: ${payload.aud}`);
+      }
+    }
+
+    return payload as JWTPayload & { sub: string; username?: string; pi_username?: string };
   }
 
   throw lastError ?? new Error("Pi token verification failed: no matching key");

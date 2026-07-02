@@ -6,11 +6,13 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { requireAuth } from '@/lib/auth-middleware';
 import { SkillTier } from '@prisma/client';
-import { SkillsListQuerySchema, SkillPublishSchema } from '@/lib/validators';
+import { describeManifestIssues, ManifestSchema, SkillsListQuerySchema, SkillPublishSchema } from '@/lib/validators';
 
 /**
- * GET /api/skills — List published skills from the Agentic Marketplace.
- * Returns skills filtered by tier, sorted by install count and rating.
+ * Lists published skills with optional filters, sorting, and pagination.
+ *
+ * @param request - The incoming list request.
+ * @returns A success response with the matching skills, total count, pagination values, and `hasMore` flag, or an error response when the request is rejected or invalid.
  */
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
@@ -98,6 +100,7 @@ export async function GET(request: NextRequest) {
           avgRating: true,
           ratingCount: true,
           authorId: true,
+          soulPrinciple: true,
           createdAt: true,
           tags: {
             select: {
@@ -133,8 +136,11 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/skills — Publish a new skill to the Agentic Marketplace.
- * Requires authentication. Creates the skill with manifest, agent script, and test suite.
+ * Publishes a new skill.
+ *
+ * Validates the request body and manifest, enforces authentication and rate limits, checks for an existing slug, and creates the skill with a moderation record.
+ *
+ * @returns A response containing the created skill details, or an error response if publishing fails.
  */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -159,19 +165,27 @@ export async function POST(request: NextRequest) {
     return apiError('VALIDATION_ERROR', parsed.error.issues[0].message, parsed.error.issues);
   }
 
-  const {
-    slug,
-    name,
-    description,
-    manifestMd,
-    agentScript,
-    testSuite,
-    tier,
-    pricePi,
-    version,
-  } = parsed.data;
+  const manifestResult = ManifestSchema.safeParse(parsed.data.manifestMd);
+  if (!manifestResult.success) {
+    const details = describeManifestIssues(parsed.data.manifestMd);
+    return apiError('INCOMPLETE_MANIFEST', details);
+  }
 
   try {
+    const {
+      slug,
+      name,
+      description,
+      manifestMd,
+      agentScript,
+      testSuite,
+      tier,
+      pricePi,
+      version,
+      soulPrinciple,
+      chainable,
+    } = parsed.data;
+
     // Check slug uniqueness
     const existing = await prisma.skill.findUnique({ where: { slug } });
     if (existing) {
@@ -194,6 +208,8 @@ export async function POST(request: NextRequest) {
           status: 'PUBLISHED',
           isPublished: true,
           authorId: user.id,
+          soulPrinciple: (soulPrinciple as 'MURAQABAH' | 'TAWBAH' | 'TRUSTCHAIN' | 'TASBIH' | 'SABIYYAH' | 'BARAKAH') || null,
+          chainable: chainable ?? false,
         },
       });
 

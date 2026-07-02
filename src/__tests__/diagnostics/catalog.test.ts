@@ -5,15 +5,9 @@ jest.mock("nostics", () => ({
   defineDiagnostics: <T>(config: T): T => config
 }));
 
-interface DiagnosticCode {
-  why: (...args: unknown[]) => string;
-  fix: string;
-}
-
 import { diagnostics } from "@/diagnostics/catalog";
 
 describe("Diagnostics Catalog", () => {
-
   it("uses the real catalog module rather than the global jest.setup mock", () => {
     // jest.setup.js registers a global jest.mock("@/diagnostics/catalog", ...)
     // that replaces every code with a bare jest.fn() (returning undefined) and

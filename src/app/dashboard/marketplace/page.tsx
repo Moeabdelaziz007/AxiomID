@@ -6,8 +6,10 @@ import { useWallet } from "../../context/wallet-context";
 import { motion } from "framer-motion";
 import { Dna, Download, Star, Coins } from "lucide-react";
 import { PublishSkillForm } from "@/components/dashboard/PublishSkillForm";
+import { SoulBadge } from "@/components/marketplace/SoulBadge";
 import { useLanguage } from "../../context/language-context";
 import { createPiPayment } from "@/lib/pi-sdk";
+import { SOUL_PRINCIPLE_LIST, type SoulPrincipleKey } from "@/lib/soul-principles";
 
 interface Tag {
   id: string;
@@ -27,6 +29,7 @@ interface Skill {
   installCount: number;
   avgRating: number;
   ratingCount: number;
+  soulPrinciple: SoulPrincipleKey | null;
   createdAt: string;
   tags?: Tag[];
 }
@@ -81,15 +84,17 @@ const TIER_LABEL_KEYS: Record<string, string> = {
 };
 
 export default function MarketplacePage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user, connectWallet, isConnecting } = useWallet();
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTier, setFilterTier] = useState<string>("");
+  const [filterSoul, setFilterSoul] = useState<SoulPrincipleKey | "">("");
   const [selectedSkill, setSelectedSkill] = useState<SkillDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [skillStats, setSkillStats] = useState<{ totalExecutions: number; successRate: number; avgDurationMs: number | null } | null>(null);
   const [installing, setInstalling] = useState(false);
   const [showPublish, setShowPublish] = useState(false);
   const [offset, setOffset] = useState(0);
@@ -137,6 +142,7 @@ export default function MarketplacePage() {
         const params = new URLSearchParams();
         if (filterTier) params.set("tier", filterTier);
         if (selectedTag) params.set("tags", selectedTag);
+        if (filterSoul) params.set("soulPrinciple", filterSoul);
         if (searchQuery) params.set("q", searchQuery);
         params.set("limit", String(PAGE_SIZE));
         params.set("offset", String(offset));
@@ -161,10 +167,17 @@ export default function MarketplacePage() {
     };
     load();
     return () => { cancelled = true; };
-  }, [filterTier, selectedTag, searchQuery, offset]);
+  }, [filterTier, selectedTag, filterSoul, searchQuery, offset]);
 
   const handleFilterChange = (tier: string) => {
     setFilterTier(tier);
+    setFilterSoul("");
+    setOffset(0);
+  };
+
+  const handleSoulFilterChange = (soul: SoulPrincipleKey | "") => {
+    setFilterSoul(soul);
+    setFilterTier("");
     setOffset(0);
   };
 
@@ -202,6 +215,7 @@ export default function MarketplacePage() {
     setVersions([]);
     setNewRating(5);
     setNewReviewText("");
+    setSkillStats(null);
     if (!selectedSkill || selectedSkill.slug !== slug) {
       setSelectedSkill(null);
     }
@@ -259,6 +273,11 @@ export default function MarketplacePage() {
           }
         });
 
+      // Fetch stats separately — non-blocking, failures are silent
+      fetch(`/api/skills/${slug}/stats`, { signal: controller.signal })
+        .then((r) => r.ok ? r.json() : null)
+        .then((d) => { if (d) setSkillStats(d); })
+        .catch(() => {});
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
       setError("Failed to load skill details");
@@ -409,8 +428,34 @@ export default function MarketplacePage() {
           >
             {showPublish ? t("marketplace_browse") : t("marketplace_publish")}
           </button>
-        </div>
-      </div>
+              </div>
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by SOUL principle">
+                <button
+                  onClick={() => handleSoulFilterChange("")}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-mono border transition-colors ${
+                    filterSoul === ""
+                      ? "bg-neon-green/10 text-neon-green border-neon-green/30"
+                      : "bg-white/5 text-faint border-white/10 hover:border-white/20"
+                  }`}
+                >
+                  {t("marketplace_all")}
+                </button>
+                {SOUL_PRINCIPLE_LIST.map((p) => (
+                  <button
+                    key={p.key}
+                    onClick={() => handleSoulFilterChange(p.key)}
+                    className="px-3 py-1.5 rounded-lg text-[10px] font-mono border transition-colors"
+                    style={{
+                      backgroundColor: filterSoul === p.key ? `${p.color}15` : undefined,
+                      color: filterSoul === p.key ? p.color : undefined,
+                      borderColor: filterSoul === p.key ? `${p.color}30` : undefined,
+                    }}
+                  >
+                    {p.ar}
+                  </button>
+                ))}
+              </div>
+            </div>
 
       {/* Welcome Banner */}
       {!showPublish && (
@@ -581,16 +626,19 @@ export default function MarketplacePage() {
                             {skill.slug} v{skill.version}
                           </p>
                         </div>
-                        <span
-                          className="text-[8px] font-mono px-1.5 py-0.5 rounded me-2 shrink-0"
-                          style={{
-                            background: `${tierColor}15`,
-                            color: tierColor,
-                            border: `1px solid ${tierColor}40`,
-                          }}
-                        >
-                          {t(TIER_LABEL_KEYS[skill.tier] || skill.tier)}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {skill.soulPrinciple && <SoulBadge principle={skill.soulPrinciple} size="sm" />}
+                          <span
+                            className="text-[8px] font-mono px-1.5 py-0.5 rounded me-2 shrink-0"
+                            style={{
+                              background: `${tierColor}15`,
+                              color: tierColor,
+                              border: `1px solid ${tierColor}40`,
+                            }}
+                          >
+                            {t(TIER_LABEL_KEYS[skill.tier] || skill.tier)}
+                          </span>
+                        </div>
                       </div>
 
                       <p className="text-xs text-subtle line-clamp-2 mb-4 min-h-[32px] relative z-10">
@@ -772,6 +820,29 @@ export default function MarketplacePage() {
                     <pre className="bg-black/40 border border-white/5 rounded-lg p-3 text-[10px] font-mono text-amber-400 overflow-x-auto max-h-48 scrollbar-thin whitespace-pre-wrap">
                       {selectedSkill.testSuite}
                     </pre>
+                  </div>
+                )}
+
+                {/* Performance Stats */}
+                {skillStats && skillStats.totalExecutions > 0 && (
+                  <div className="mb-4 p-3 bg-black/30 border border-white/5 rounded-lg">
+                    <h3 className="text-xs font-mono font-bold mb-2" style={{ color: "var(--text-secondary)" }}>
+                      {language === "ar" ? "الأداء" : "Performance"}
+                    </h3>
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div>
+                        <span className="text-lg font-bold font-mono text-neon-green">{skillStats.totalExecutions}</span>
+                        <p className="text-[9px] font-mono" style={{ color: "var(--text-muted)" }}>{language === "ar" ? "عمليات التشغيل" : "executions"}</p>
+                      </div>
+                      <div>
+                        <span className="text-lg font-bold font-mono text-electric-blue">{skillStats.successRate}%</span>
+                        <p className="text-[9px] font-mono" style={{ color: "var(--text-muted)" }}>{language === "ar" ? "معدل النجاح" : "success rate"}</p>
+                      </div>
+                      <div>
+                        <span className="text-lg font-bold font-mono text-axiom-purple">{skillStats.avgDurationMs === null ? '—' : `${skillStats.avgDurationMs}ms`}</span>
+                        <p className="text-[9px] font-mono" style={{ color: "var(--text-muted)" }}>{language === "ar" ? "متوسط المدة" : "avg duration"}</p>
+                      </div>
+                    </div>
                   </div>
                 )}
 

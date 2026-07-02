@@ -48,6 +48,148 @@ export const AgentMainSchema = z.object({
   params: z.record(z.string(), z.unknown()).optional(),
 });
 
+// ── Manifest Validation ────────────────────────────────────────
+
+const REQUIRED_MANIFEST_SECTIONS = [
+  { en: 'Purpose', ar: 'الغرض', header: 'الغرض — Purpose' },
+  { en: 'SOUL Alignment', ar: 'التوافق الروحي', header: 'التوافق الروحي — SOUL Alignment' },
+  { en: 'Operational Flow', ar: 'سير التشغيل', header: 'سير التشغيل — Operational Flow' },
+  { en: 'Failure Modes', ar: 'أنماط الفشل', header: 'أنماط الفشل — Failure Modes' },
+] as const;
+
+const STUB_PATTERNS = [
+  /TODO:/i,
+  /TBD/i,
+  /<fill in>/i,
+  /^\s*\.\.\.\s*$/,
+  /<!--\s*.*?\s*-->/,
+];
+
+export interface ManifestSection {
+  header: string;
+  body: string;
+}
+
+export interface ManifestValidation {
+  valid: boolean;
+  missing: string[];
+  stubs: string[];
+  sections: ManifestSection[];
+}
+
+/**
+ * Extracts top-level Markdown sections headed by `##`.
+ *
+ * @param md - The Markdown text to parse
+ * @returns The sections in document order, each with its header and trimmed body
+ */
+function parseManifestSections(md: string): ManifestSection[] {
+  const sections: ManifestSection[] = [];
+  const headerRegex = /^##\s+(.+)$/gm;
+  let lastIndex = 0;
+  let lastHeader = '';
+
+  let match: RegExpExecArray | null;
+  while ((match = headerRegex.exec(md)) !== null) {
+    if (lastHeader) {
+      const body = md.slice(lastIndex, match.index).trim();
+      sections.push({ header: lastHeader, body });
+    }
+    lastHeader = match[1].trim();
+    lastIndex = headerRegex.lastIndex;
+  }
+  if (lastHeader) {
+    const body = md.slice(lastIndex).trim();
+    sections.push({ header: lastHeader, body });
+  }
+  return sections;
+}
+
+/**
+ * Determines whether a manifest section body contains only placeholder content.
+ *
+ * @returns `true` if the body is empty, consists only of HTML comments, or matches a stub pattern; `false` otherwise.
+ */
+function isStubBody(body: string): boolean {
+  if (!body) return true;
+
+  // Iteratively strip all comment pairs to handle nesting/overlapping cases.
+  let stripped = body;
+  let prev = '';
+  while (prev !== stripped) {
+    prev = stripped;
+    stripped = stripped.replace(/<!--[\s\S]*?-->/g, '');
+  }
+  stripped = stripped.trim();
+  if (!stripped) return true;
+
+  // Detect any unmatched HTML comment opener.
+  const lastOpen = stripped.lastIndexOf('<!--');
+  const lastClose = stripped.lastIndexOf('-->');
+  if (lastOpen !== -1 && (lastClose === -1 || lastOpen > lastClose)) return true;
+
+  const lines = stripped.split('\n').filter(l => l.trim());
+  if (lines.length === 0) return true;
+  if (STUB_PATTERNS.some(p => p.test(stripped))) return true;
+  if (lines.length === 1 && STUB_PATTERNS.some(p => p.test(lines[0].trim()))) return true;
+  return false;
+}
+
+/**
+ * Validates a manifest's required sections and content.
+ *
+ * @param md - The markdown manifest content to validate
+ * @returns A validation result with the parsed sections, missing required sections, sections that contain placeholder content, and the overall validity flag
+ */
+export function validateManifest(md: string): ManifestValidation {
+  const sections = parseManifestSections(md);
+  const missing: string[] = [];
+  const stubs: string[] = [];
+
+  for (const required of REQUIRED_MANIFEST_SECTIONS) {
+    const found = sections.find(s =>
+      s.header === required.header ||
+      s.header === required.en ||
+      s.header === required.ar
+    );
+    if (!found) {
+      missing.push(required.header);
+    } else if (isStubBody(found.body)) {
+      stubs.push(required.header);
+    }
+  }
+
+  return {
+    valid: missing.length === 0 && stubs.length === 0,
+    missing,
+    stubs,
+    sections,
+  };
+}
+
+/**
+ * Describes validation issues found in a manifest document.
+ *
+ * @param md - The markdown content to analyze.
+ * @returns A semicolon-separated list of missing sections and placeholder-content issues, or an empty string if none are found.
+ */
+export function describeManifestIssues(md: string): string {
+  const result = validateManifest(md);
+  const issues: string[] = [];
+  for (const m of result.missing) {
+    issues.push(`missing required section: ${m}`);
+  }
+  for (const s of result.stubs) {
+    issues.push(`section "${s}" contains placeholder or empty content`);
+  }
+  return issues.join('; ');
+}
+
+export const ManifestSchema = z.string().refine(
+  (md) => validateManifest(md).valid,
+  { message: 'Manifest is incomplete — missing required sections or contains placeholder content' }
+);
+
 export const SkillsListSortSchema = z.enum([
   'newest', 'popular', 'rating', 'price_asc', 'price_desc',
 ]).optional().nullable();
@@ -59,6 +201,7 @@ export const SkillsListQuerySchema = z.object({
   sort: SkillsListSortSchema,
   minPrice: z.coerce.number().nonnegative().optional().nullable(),
   maxPrice: z.coerce.number().nonnegative().optional().nullable(),
+  soulPrinciple: z.enum(['MURAQABAH', 'TAWBAH', 'TRUSTCHAIN', 'TASBIH', 'SABIYYAH', 'BARAKAH']).optional().nullable(),
   limit: z.coerce.number().int().min(1).max(100).default(50),
   offset: z.coerce.number().int().min(0).default(0),
 });
@@ -73,6 +216,8 @@ export const SkillPublishSchema = z.object({
   tier: z.enum(['BASIC_TOOL', 'ADVANCED_TOOL', 'ADVANCED_INFRASTRUCTURE', 'PRO', 'SOVEREIGN']).default('BASIC_TOOL'),
   pricePi: z.number().nonnegative().default(0),
   version: z.string().default('1.0.0'),
+  soulPrinciple: z.enum(['MURAQABAH', 'TAWBAH', 'TRUSTCHAIN', 'TASBIH', 'SABIYYAH', 'BARAKAH']).optional().nullable(),
+  chainable: z.boolean().optional().default(false),
 });
 
 export const SkillUpdateSchema = z.object({
@@ -87,6 +232,8 @@ export const SkillUpdateSchema = z.object({
   status: z.enum(['DRAFT', 'PUBLISHED', 'DEPRECATED']).optional(),
   isPublished: z.boolean().optional(),
   changelog: z.string().max(2000).optional(),
+  soulPrinciple: z.enum(['MURAQABAH', 'TAWBAH', 'TRUSTCHAIN', 'TASBIH', 'SABIYYAH', 'BARAKAH']).optional().nullable(),
+  chainable: z.boolean().optional(),
 });
 
 export const SkillReviewCreateSchema = z.object({

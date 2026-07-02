@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Package } from "lucide-react";
 
 const TIER_LABELS: Record<string, string> = {
@@ -15,17 +15,34 @@ interface PublishSkillFormProps {
   onPublished: () => void;
 }
 
+const MANIFEST_FIELDS = [
+  { key: "purpose", label: "PURPOSE", arLabel: "الغرض", header: "## الغرض — Purpose", placeholder: "What does this skill do? 1-2 sentences." },
+  { key: "soulAlignment", label: "SOUL ALIGNMENT", arLabel: "التوافق الروحي", header: "## التوافق الروحي — SOUL Alignment", placeholder: "Which SOUL principle does this skill serve? Muraqabah, Tawbah, TrustChain, Tasbih, Sab'iyyah, Barakah." },
+  { key: "operationalFlow", label: "OPERATIONAL FLOW", arLabel: "سير التشغيل", header: "## سير التشغيل — Operational Flow", placeholder: "1. Step one\n2. Step two\n3. Step three" },
+  { key: "failureModes", label: "FAILURE MODES", arLabel: "أنماط الفشل", header: "## أنماط الفشل — Failure Modes", placeholder: "| Mode | Detection | Recovery |" },
+] as const;
+
 /**
- * Form for publishing skills to the marketplace.
+ * Combines the required manifest sections into Markdown.
  *
- * @param onPublished - Callback invoked after a successful skill publication.
+ * @param sections - Section content keyed by manifest field name
+ * @returns The manifest Markdown built from each required section in order
+ */
+function buildManifest(sections: Record<string, string>): string {
+  return MANIFEST_FIELDS.map(f => `${f.header}\n${sections[f.key] || ''}`).join('\n\n');
+}
+
+/**
+ * Renders the skill publishing form.
+ *
+ * @param onPublished - Called after the skill is published successfully.
  */
 export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
   const [form, setForm] = useState({
     slug: "",
     name: "",
     description: "",
-    manifestMd: "",
+    manifestSections: Object.fromEntries(MANIFEST_FIELDS.map(f => [f.key, ""])),
     agentScript: "",
     testSuite: "",
     tier: "BASIC_TOOL",
@@ -35,9 +52,32 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState("");
 
+  const manifestMd = useMemo(() => buildManifest(form.manifestSections), [form.manifestSections]);
+
+  const sectionEmpty = (key: string) => {
+    const body = form.manifestSections[key];
+    if (!body) return true;
+    let withoutComments = body;
+    let previous: string;
+    do {
+      previous = withoutComments;
+      withoutComments = withoutComments.replace(/<!--[\s\S]*?-->/g, '');
+    } while (withoutComments !== previous);
+    const stripped = withoutComments.trim();
+    if (!stripped) return true;
+    if (body.includes('<!--') && body.lastIndexOf('<!--') > body.lastIndexOf('-->')) return true;
+    if (/TODO:|TBD|<fill in>/.test(stripped) || /^\s*\.\.\.\s*$/.test(stripped)) return true;
+    return false;
+  };
+
   const handlePublish = async () => {
-    if (!form.slug || !form.name || !form.manifestMd) {
-      setError("slug, name, and manifestMd are required");
+    if (!form.slug || !form.name) {
+      setError("slug and name are required");
+      return;
+    }
+    const emptySections = MANIFEST_FIELDS.filter(f => sectionEmpty(f.key));
+    if (emptySections.length > 0) {
+      setError(`Required sections: ${emptySections.map(f => f.label).join(', ')}`);
       return;
     }
     setPublishing(true);
@@ -46,7 +86,11 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
       const res = await fetch("/api/skills", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          manifestSections: undefined,
+          manifestMd,
+        }),
       });
       if (res.ok) {
         onPublished();
@@ -59,6 +103,13 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
     } finally {
       setPublishing(false);
     }
+  };
+
+  const updateSection = (key: string, value: string) => {
+    setForm(prev => ({
+      ...prev,
+      manifestSections: { ...prev.manifestSections, [key]: value },
+    }));
   };
 
   return (
@@ -104,18 +155,33 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
             />
           </div>
 
-          <div>
-            <label htmlFor="skill-manifest" className="text-[10px] font-mono block mb-1" style={{ color: "var(--text-muted)" }}>
-              MANIFEST (SKILL.md) * — Full XML-tagged content
+          {/* Manifest Sectioned Editor */}
+          <div className="space-y-3">
+            <label className="text-[10px] font-mono block" style={{ color: "var(--text-muted)" }}>
+              MANIFEST SECTIONS *
             </label>
-            <textarea
-              id="skill-manifest"
-              value={form.manifestMd}
-              onChange={(e) => setForm({ ...form, manifestMd: e.target.value })}
-              placeholder={`<skill name="my-skill">\n  <context>How the agent should use this skill...</context>\n  <commands>\n    <command trigger="/my-skill:run">Description</command>\n  </commands>\n</skill>`}
-              rows={8}
-              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-neon-green font-mono focus:outline-none focus:border-neon-green/40 resize-none"
-            />
+            {MANIFEST_FIELDS.map(field => (
+              <div key={field.key}>
+                <div className="flex items-center justify-between mb-1">
+                  <label htmlFor={`manifest-${field.key}`} className="text-[10px] font-mono" style={{ color: "var(--text-muted)" }}>
+                    {field.header}
+                  </label>
+                  {sectionEmpty(field.key) ? (
+                    <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
+                  ) : (
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+                  )}
+                </div>
+                <textarea
+                  id={`manifest-${field.key}`}
+                  value={form.manifestSections[field.key]}
+                  onChange={(e) => updateSection(field.key, e.target.value)}
+                  placeholder={field.placeholder}
+                  rows={field.key === "operationalFlow" || field.key === "failureModes" ? 4 : 2}
+                  className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-surface font-mono focus:outline-none focus:border-neon-green/40 resize-none placeholder:text-white/20"
+                />
+              </div>
+            ))}
           </div>
 
           <div>
@@ -191,7 +257,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
 
           <button
             onClick={handlePublish}
-            disabled={publishing || !form.slug || !form.name || !form.manifestMd}
+            disabled={publishing || !form.slug || !form.name || MANIFEST_FIELDS.some(f => sectionEmpty(f.key))}
             className="w-full btn-primary py-3 text-xs font-mono disabled:opacity-50"
           >
             {publishing ? "PUBLISHING TO MARKETPLACE..." : "PUBLISH SKILL → MARKETPLACE"}

@@ -48,6 +48,21 @@ jest.mock("@/lib/ip", () => ({
   getClientIp: jest.fn(() => "127.0.0.1"),
 }));
 
+const VALID_MANIFEST = [
+  "## الغرض — Purpose",
+  "Test skill purpose",
+  "",
+  "## التوافق الروحي — SOUL Alignment",
+  "Muraqabah",
+  "",
+  "## سير التشغيل — Operational Flow",
+  "1. Step one",
+  "2. Step two",
+  "",
+  "## أنماط الفشل — Failure Modes",
+  "| Error | Log | Retry |",
+].join('\n');
+
 jest.mock("@/lib/logger", () => ({
   logger: { error: jest.fn(), warn: jest.fn(), info: jest.fn() },
 }));
@@ -234,7 +249,7 @@ describe("POST /api/skills — rate limiting", () => {
   it("returns 429 when rate limit exceeded", async () => {
     mockCheckRateLimit.mockResolvedValue({ allowed: false, remaining: 0, resetAt: Date.now() + 60000 });
 
-    const req = mockPostRequest({ slug: "test", name: "Test", manifestMd: "# manifest" });
+    const req = mockPostRequest({ slug: "test", name: "Test", manifestMd: VALID_MANIFEST });
     const res = await POST(req);
     const data = await res.json();
 
@@ -255,7 +270,7 @@ describe("POST /api/skills — rate limiting", () => {
     mockPrisma.skill.findUnique.mockResolvedValue(null);
     mockPrisma.skill.create.mockResolvedValue({ id: "s1", slug: "test", name: "Test", tier: "BASIC_TOOL", version: "1.0.0", status: "PUBLISHED" } as any);
 
-    const req = mockPostRequest({ slug: "test", name: "Test", manifestMd: "# manifest" });
+    const req = mockPostRequest({ slug: "test", name: "Test", manifestMd: VALID_MANIFEST });
     await POST(req);
 
     expect(mockCheckRateLimit).toHaveBeenCalledWith(
@@ -277,7 +292,7 @@ describe("POST /api/skills — auth and validation", () => {
     const { apiError } = jest.requireActual("@/lib/errors") as any;
     mockRequireAuth.mockResolvedValue({ error: apiError("UNAUTHORIZED", "Unauthorized"), user: null });
 
-    const req = mockPostRequest({ slug: "test", name: "Test", manifestMd: "# m" });
+    const req = mockPostRequest({ slug: "test", name: "Test", manifestMd: VALID_MANIFEST });
     const res = await POST(req);
     const data = await res.json();
 
@@ -327,7 +342,7 @@ describe("POST /api/skills — business logic", () => {
   it("returns 409 when slug already exists", async () => {
     mockPrisma.skill.findUnique.mockResolvedValue({ id: "existing", slug: "taken" } as any);
 
-    const req = mockPostRequest({ slug: "taken", name: "Test", manifestMd: "# m" });
+    const req = mockPostRequest({ slug: "taken", name: "Test", manifestMd: VALID_MANIFEST });
     const res = await POST(req);
     const data = await res.json();
 
@@ -341,7 +356,7 @@ describe("POST /api/skills — business logic", () => {
       id: "s1", slug: "new-skill", name: "New Skill", tier: "BASIC_TOOL", version: "1.0.0", status: "PUBLISHED",
     });
 
-    const req = mockPostRequest({ slug: "new-skill", name: "New Skill", manifestMd: "# manifest" });
+    const req = mockPostRequest({ slug: "new-skill", name: "New Skill", manifestMd: VALID_MANIFEST });
     const res = await POST(req);
     const data = await res.json();
 
@@ -369,7 +384,7 @@ describe("POST /api/skills — business logic", () => {
     const req = mockPostRequest({
       slug: "pro-skill",
       name: "Pro Skill",
-      manifestMd: "# manifest",
+      manifestMd: VALID_MANIFEST,
       tier: "PRO",
       pricePi: 10,
       version: "2.0.0",
@@ -393,7 +408,7 @@ describe("POST /api/skills — business logic", () => {
     mockPrisma.skill.findUnique.mockResolvedValue(null);
     mockTxSkillCreate.mockRejectedValue(new Error("DB failure"));
 
-    const req = mockPostRequest({ slug: "fail-skill", name: "Fail", manifestMd: "# m" });
+    const req = mockPostRequest({ slug: "fail-skill", name: "Fail", manifestMd: VALID_MANIFEST });
     const res = await POST(req);
     const data = await res.json();
 
