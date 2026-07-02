@@ -185,6 +185,16 @@ describe('requireAuth', () => {
     expect(result.error).toBeDefined();
   });
 
+  it('returns error when Authorization header has empty access token', async () => {
+    const req = mockRequestWithHeader({ authorization: 'Bearer ' });
+    const result = await requireAuth(req);
+
+    expect(result.user).toBeNull();
+    expect(result.error).toBeDefined();
+    const response = await result.error!.json();
+    expect(response.message).toBe('Empty access token');
+  });
+
   it('returns error when Authorization header does not start with Bearer', async () => {
     const req = mockRequestWithHeader({ authorization: 'Basic abc123' });
     const result = await requireAuth(req);
