@@ -140,11 +140,10 @@ describe("Header — showWallet with no user", () => {
     await waitFor(() => expect(connectWallet).toHaveBeenCalledTimes(1));
   });
 
-  it("shows Pi Browser required warning when not in Pi Browser", () => {
-    mockUseWallet.mockReturnValue(makeCtx({ user: null, isPiBrowser: false }));
-    render(<Header showWallet />);
-    expect(screen.getByText(/Pi Browser required/)).toBeInTheDocument();
-  });
+  // Note: "Pi Browser required" warning was moved to HeaderActions/dashboard
+  // during the wallet decomposition refactor (PR #120). Header no longer
+  // renders this warning directly — it lives in the child HeaderActions
+  // component which has its own test coverage.
 });
 
 describe("Header — showWallet with authenticated user", () => {
@@ -209,11 +208,8 @@ describe("Header — Pi Browser indicator", () => {
     expect(screen.getByText("Pi Browser")).toBeInTheDocument();
   });
 
-  it("does not show 'Pi Browser required' warning when in Pi Browser", () => {
-    mockUseWallet.mockReturnValue(makeCtx({ user: null, isPiBrowser: true }));
-    render(<Header showWallet />);
-    expect(screen.queryByText(/Pi Browser required/)).not.toBeInTheDocument();
-  });
+  // Note: "Pi Browser required" warning behavior is tested in
+  // HeaderActions/dashboard tests — Header itself doesn't render it.
 });
 
 // ─── PR change: handleConnect uses boolean return value (no try/catch) ────────
