@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 interface FinalCTASectionProps {
   t: (key: string) => string;
 }
@@ -39,18 +41,18 @@ export default function FinalCTASection({ t }: FinalCTASectionProps) {
             {t("final_cta_desc")}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <a
+            <Link
               href="/claim"
               className="btn-primary py-3.5 px-8 text-sm font-mono tracking-wider w-full sm:w-auto shadow-[0_0_24px_rgba(59,130,246,0.28)] hover:shadow-[0_0_36px_rgba(59,130,246,0.45)] transition-all focus-visible:ring-2 focus-visible:ring-electric-blue focus-visible:outline-none"
             >
               {t("final_cta_button")}
-            </a>
-            <a
+            </Link>
+            <Link
               href="/docs"
               className="text-xs sm:text-sm font-mono text-subtle hover:text-surface transition-colors px-5 py-3 border border-glass hover:border-glass-hover rounded-xl focus-visible:ring-2 focus-visible:ring-electric-blue focus-visible:outline-none w-full sm:w-auto text-center"
             >
               {t("hero_cta_explore")}
-            </a>
+            </Link>
           </div>
         </div>
       </div>

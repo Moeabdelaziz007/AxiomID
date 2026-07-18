@@ -21,7 +21,7 @@ interface HeaderProps {
  * @returns The rendered site header.
  */
 export default function Header({ showBack = false, showWallet = false }: HeaderProps) {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const { connectWallet, isConnecting } = useWallet();
   const [connectError, setConnectError] = React.useState<string | null>(null);
 
