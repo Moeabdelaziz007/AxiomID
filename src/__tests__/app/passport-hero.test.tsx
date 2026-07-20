@@ -85,8 +85,8 @@ function LandingPageWrapper() {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 animate-slide-up justify-center md:justify-start">
-              <Link href="/claim" className="btn-primary py-4 px-8 text-sm sm:text-base font-mono tracking-wider">Create My AI Agent</Link>
-              <Link href="/docs" className="text-xs sm:text-sm font-mono text-zinc-400 hover:text-white transition-colors">Explore the Protocol</Link>
+<Link href="/claim" className="btn-primary py-4 px-8 text-sm sm:text-base font-mono tracking-wider focus-visible:ring-2 focus-visible:ring-electric-blue focus-visible:outline-none">Create My AI Agent</Link>
+              <Link href="/docs" className="text-xs sm:text-sm font-mono text-zinc-400 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-electric-blue focus-visible:outline-none">Explore the Protocol</Link>
             </div>
           </div>
           <div className="md:col-span-5 flex items-center justify-center">
