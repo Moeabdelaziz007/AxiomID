@@ -124,6 +124,7 @@ model UserAgent {
   lastHeartbeat DateTime?
   activeUntil   DateTime?
   memoryLimit   Int       @default(500) // max memory entries
+  hereNowUrl    String?   @db.VarChar(500) // public landing page URL on here.now
 
   // Logs
   agentLogs AgentLog[]

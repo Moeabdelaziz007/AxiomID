@@ -46,6 +46,10 @@ database_id = "5a85b958-6506-4e6e-93e7-236d11fb93c5"
 [ai]
 binding = "AI"
 
+# --- Cloudflare AI Gateway (free 100K logs/day, caching, rate limiting) ---
+[ai_gateway]
+binding = "AI_GATEWAY"
+
 # --- Vectorize (for semantic search) ---
 [[vectorize]]
 binding = "SEARCH_VECTORS"

@@ -191,6 +191,16 @@ export default async function RootLayout({
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />
+        {/* Meticulous session recorder — only loads when token is set (staging/preview envs)
+         * Docs: https://www.meticulous.ai/ | Full catalog: docs/AGENT_SERVICE_CATALOG.md §13
+         * Setup: Set NEXT_PUBLIC_METICULOUS_TOKEN in Vercel env → deploy preview → click through flows */}
+        {process.env.NEXT_PUBLIC_METICULOUS_TOKEN && (
+          <Script
+            src="https://rec.meticulous.ai/v1/standalone/recorder.min.js"
+            data-project-id={process.env.NEXT_PUBLIC_METICULOUS_TOKEN}
+            strategy="afterInteractive"
+          />
+        )}
          <Toaster
            theme="dark"
            position="bottom-right"

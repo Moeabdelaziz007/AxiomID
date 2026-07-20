@@ -270,18 +270,49 @@ ghost fork axiomid-db --name test-agents
 
 ## 📊 Monitoring Stack
 
-| Metric | Tool | Cost |
-|--------|------|------|
-| Uptime | Cloudflare Health Checks | Free |
-| Performance | Vercel Speed Insights | Free |
-| Analytics | Vercel Web Analytics | Free |
-| Logs | Cloudflare Workers Logs | Free |
-| Errors | Sentry (free tier) | Free |
+| Metric | Tool | Cost | Docs |
+|--------|------|------|------|
+| Uptime | Cloudflare Health Checks | Free | [docs](https://developers.cloudflare.com/workers/observability/health-checks/) |
+| Performance | Vercel Speed Insights | Free | [docs](https://vercel.com/docs/speed-insights) |
+| Analytics | Vercel Web Analytics | Free | [docs](https://vercel.com/docs/analytics) |
+| Logs | Cloudflare Workers Logs | Free | [docs](https://developers.cloudflare.com/workers/observability/logs/) |
+| Errors | Sentry (free tier) | Free | [docs](https://docs.sentry.io/) |
+| Session Replay | Meticulous AI | Free | [docs](https://www.meticulous.ai/) |
+| Code Analytics | Nostics (Vercel Labs) | Free | [github](https://github.com/vercel-labs/nostics) |
+| E2E Testing | Autonoma AI (self-hosted) | Open source | [github](https://github.com/Autonoma-AI/autonoma) |
+| E2E Testing | Playwright (14 test files) | Open source | [docs](https://playwright.dev/) |
+
+## 🔧 Integration Status (Code-Verified)
+
+All integrations below are verified against actual codebase grep results (2026-07-17).
+
+| Service | File | Status |
+|---------|------|--------|
+| Meticulous Recorder | `src/app/layout.tsx` | ✅ Added — loads via `NEXT_PUBLIC_METICULOUS_TOKEN` |
+| Cloudflare AI Gateway | `backend/wrangler.toml` | ✅ Added — `[ai_gateway]` binding |
+| Cloudflare Workers AI | `backend/wrangler.toml` | ✅ Already present — `[ai]` binding |
+| Cloudflare Vectorize | `backend/wrangler.toml` | ✅ Already present — `[[vectorize]]` binding |
+| TimescaleDB | `prisma/migrations/timescaledb_agentlog.sql` | ✅ Migration ready (run manually) |
+| Here.now | `src/lib/herenow.ts` + `src/lib/agent-landing-page.ts` | ✅ Client + landing page generator |
+| Agent Discovery (Vectorize) | `backend/src/vectors/agent-discovery.ts` | ✅ Added — semantic search by capability |
+| Ghost.build MCP | `backend/src/mcp/handler.ts` | ✅ Added — `memory_read`, `memory_write`, `memory_search` |
+| Autonoma AI | `src/lib/autonoma.ts` | ✅ Client added (self-host required) |
+| Sentry | `sentry.client.config.ts` etc. | ✅ Already configured (3 config files) |
+| Nostics | `next.config.ts` | ✅ Already integrated |
+
+## 📖 Agent Service Catalog
+
+The complete agent-facing reference for all 23 services is at:
+**[`docs/AGENT_SERVICE_CATALOG.md`](./docs/AGENT_SERVICE_CATALOG.md)**
+
+Each entry includes: official docs link, integration file path, API surface, quick-start for agents.
 
 ## 🎯 Summary
 
-**Ghost.build** = Primary database (PostgreSQL, ACID, relational)
-**Vercel** = Frontend + light API + analytics
-**Cloudflare** = Heavy compute + edge storage + CDN + security
+**Ghost.build** = Primary database (PostgreSQL + TimescaleDB, ACID, relational, time-series)
+**Vercel** = Frontend + light API + analytics + Meticulous session recording
+**Cloudflare** = Heavy compute + edge storage + CDN + security + AI embeddings + Vectorize
+**Here.now** = Agent landing pages (public business cards)
+**Autonoma** = Agentic E2E testing (self-hosted, zero-cost)
 
-**Result**: Production-grade app for $0/month
+**Result**: Production-grade app for $0/month with 23 integrated services

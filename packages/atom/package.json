@@ -1,0 +1,16 @@
+{
+  "name": "@pai/atom",
+  "version": "1.0.0-immutable",
+  "description": "THE ATOM — Immutable PaiSkill ABI (50 lines, frozen forever)",
+  "main": "src/atom.ts",
+  "types": "src/atom.ts",
+  "license": "MIT",
+  "type": "module",
+  "files": ["src/atom.ts"],
+  "keywords": ["pai", "agent", "skill", "abi", "atom", "pi-network", "immutable"],
+  "author": "Mohamed Abdelaziz <mohamed@pai.build>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Moeabdelaziz007/pai-atom"
+  }
+}
