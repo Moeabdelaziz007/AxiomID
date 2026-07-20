@@ -7,6 +7,11 @@
   "license": "MIT",
   "type": "module",
   "files": ["src/**/*.ts"],
+  "scripts": {
+    "build": "tsc --outDir dist --declaration --typeRoots []",
+    "type-check": "tsc --noEmit --typeRoots []",
+    "test": "node --input-type=module -e \"const {LLM_REGISTRY} = await import('./dist/registry.js'); const ok = Object.keys(LLM_REGISTRY).length === 10; console.log(ok ? 'PASS: 10 LLMs' : 'FAIL'); process.exit(ok ? 0 : 1)\""
+  },
   "keywords": ["llm", "persona", "agent", "pai", "deepseek", "glm", "kimi", "qwen", "yi", "bridge"],
   "author": "Mohamed Abdelaziz <mohamed@pai.build>",
   "dependencies": {
