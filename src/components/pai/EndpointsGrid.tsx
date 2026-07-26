@@ -1,4 +1,4 @@
-import { FadeIn, MorphCard, ScaleIn } from '@/components/effects'
+import { FadeIn, MorphCard, ScaleIn } from '@/components/wow-moments'
 import Link from 'next/link'
 
 const endpoints = [
