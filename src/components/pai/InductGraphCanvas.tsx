@@ -4,6 +4,13 @@ import { useEffect, useRef, useState, useCallback, useMemo, Fragment } from 'rea
 import { cn } from '@/lib/utils'
 
 // Types for our graph data
+interface NodeMetadata {
+  layer?: string | number
+  trust?: string | number
+  loop?: string | number
+  role?: string
+}
+
 interface GraphNode {
   id: string
   label: string
@@ -14,7 +21,7 @@ interface GraphNode {
   type: 'agent' | 'skill' | 'endpoint' | 'patch' | 'state'
   color: string
   size: number
-  metadata?: Record<string, unknown>
+  metadata?: NodeMetadata
 }
 
 interface GraphEdge {
@@ -723,10 +730,16 @@ export function InductGraphCanvas({
                         {selectedNode.name} ({selectedNode.type.toUpperCase()})
                       </h3>
                       <p className="text-xs font-mono" style={{ color: 'var(--text-tertiary)' }}>
-                        {selectedNode.metadata?.layer && `Layer: ${selectedNode.metadata.layer}`}
-                        {selectedNode.metadata?.trust && ` • Trust: ${selectedNode.metadata.trust}`}
-                        {selectedNode.metadata?.loop && ` • Loop: ${selectedNode.metadata.loop}`}
-                        {selectedNode.metadata?.role && ` • Role: ${selectedNode.metadata.role}`}
+                        {(() => {
+                          const m = selectedNode.metadata;
+                          if (!m) return '';
+                          return [
+                            m.layer && `Layer: ${m.layer}`,
+                            m.trust && ` • Trust: ${m.trust}`,
+                            m.loop && ` • Loop: ${m.loop}`,
+                            m.role && ` • Role: ${m.role}`,
+                          ].filter(Boolean).join('');
+                        })()}
                       </p>
                     </div>
                   </div>
