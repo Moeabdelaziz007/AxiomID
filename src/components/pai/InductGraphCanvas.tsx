@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo, Fragment } from 'react'
 
 // Types for our graph data
 interface GraphNode {
@@ -46,6 +46,7 @@ const COLORS = {
   patch: '#FFD700',
   state: '#FF6B6B',
   background: '#0A0A0F',
+  border: 'rgba(57, 255, 20, 0.15)',
   grid: 'rgba(57, 255, 20, 0.03)',
   gridAccent: 'rgba(57, 255, 20, 0.08)',
   text: '#E8E8ED',
@@ -793,10 +794,10 @@ export function InductGraphCanvas({
                     <div className="grid grid-cols-2 gap-1 text-[10px] font-mono"
                       style={{ color: 'var(--text-secondary)' }}>
                       {Object.entries(selectedNode.metadata).map(([k, v]) => (
-                        <React.Fragment key={k}>
+                        <Fragment key={k}>
                           <span style={{ color: 'var(--text-tertiary)' }}>{k}</span>
                           <span style={{ color: 'var(--text-primary)' }}>{String(v)}</span>
-                        </React.Fragment>
+                        </Fragment>
                       ))}
                     </div>
                   </div>
