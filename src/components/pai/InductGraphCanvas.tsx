@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils'
 interface GraphNode {
   id: string
   label: string
+  name?: string
+  emoji?: string
   x: number
   y: number
   type: 'agent' | 'skill' | 'endpoint' | 'patch' | 'state'
@@ -102,6 +104,7 @@ export function InductGraphCanvas({
   const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 })
   const [showGrid, setShowGrid] = useState(true)
   const [showLabels, setShowLabels] = useState(true)
+  const [realMode, setRealMode] = useState(false)
   const [animationTime, setAnimationTime] = useState(0)
 
   // Generate default graph state with PAI network topology
