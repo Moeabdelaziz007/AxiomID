@@ -12,6 +12,7 @@ interface NodeMetadata {
   sandbox?: boolean
   compiler?: boolean
   verifiable?: boolean
+  zeroCmd?: string
 }
 
 interface GraphNode {
