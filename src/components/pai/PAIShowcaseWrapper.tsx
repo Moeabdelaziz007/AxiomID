@@ -1,4 +1,4 @@
-import PAIShowcase from '@/components/PAIShowcase'
+import { PAIShowcase } from '@/components/PAIShowcase'
 import { ScrollReveal, FadeIn } from '@/components/effects'
 
 export function PAIShowcaseWrapper() {
