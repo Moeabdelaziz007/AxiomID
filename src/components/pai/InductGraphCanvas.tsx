@@ -585,7 +585,7 @@ export function InductGraphCanvas({
     setGraphState(s => ({ ...s, viewport: newViewport }))
   }, [graphState.viewport])
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement> | KeyboardEvent) => {
     if (e.key === 'g') setShowGrid(!showGrid)
     if (e.key === 'l') setShowLabels(!showLabels)
     if (e.key === 'Escape') setGraphState(s => ({ ...s, selectedNodeId: null }))
