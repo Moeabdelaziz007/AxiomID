@@ -4,12 +4,6 @@ import type { NextRequest } from "next/server";
 const MAX_REQUEST_BODY_BYTES = 1024 * 1024; // 1MB
 
 const ROOT_DOMAIN = "axiomid.app";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
-const MAX_REQUEST_BODY_BYTES = 1024 * 1024; // 1MB
-
-const ROOT_DOMAIN = "axiomid.app";
 
 const RESERVED_SUBDOMAINS = new Set([
   "www", "api", "mail", "app", "admin", "dashboard",
@@ -33,7 +27,7 @@ function isAllowedHost(host: string): boolean {
   if (plain === ROOT_DOMAIN || plain === `www.${ROOT_DOMAIN}`) return true;
   if (plain.endsWith(`.${ROOT_DOMAIN}`)) return true;
   // Allow Vercel preview deployments
-  if (plain.endsWith(`.vercel.app`)) return true;
+  if (plain.endsWith(".vercel.app")) return true;
   return false;
 }
 
@@ -46,7 +40,7 @@ function getAllowedOrigin(origin: string | null): string | null {
     if (CORS_ALLOWED_ORIGINS.includes(origin)) return origin;
     if (host === "localhost" || host === "127.0.0.1") return origin;
     // Allow Vercel preview deployments
-    if (host.endsWith(`.vercel.app`)) return origin;
+    if (host.endsWith(".vercel.app")) return origin;
   } catch {
     // invalid origin
   }
