@@ -28,6 +28,8 @@ function isAllowedHost(host: string): boolean {
   if (plain.endsWith(`.${ROOT_DOMAIN}`)) return true;
   // Allow Vercel preview deployments
   if (plain.endsWith(".vercel.app")) return true;
+  // Allow any vercel.app subdomain
+  if (plain === "vercel.app") return true;
   return false;
 }
 
