@@ -117,7 +117,22 @@ export class IqraPolicyEngine {
     // Guard 2: Secret Token Exfiltration Patterns
     if (target.toolName === 'fetch' || target.toolName === 'read_url_content') {
       const url = String(target.parameters['Url'] || target.parameters['url'] || '');
-      if (url.includes('pastebin.com') || url.includes('anonfiles.com') || url.includes('webhook.site')) {
+      const blockedHosts = ['pastebin.com', 'anonfiles.com', 'webhook.site'];
+      let isBlocked = false;
+
+      try {
+        const parsedUrl = new URL(url);
+        const hostname = parsedUrl.hostname.toLowerCase();
+        isBlocked = blockedHosts.some(
+          (blockedHost) =>
+            hostname === blockedHost || hostname.endsWith(`.${blockedHost}`),
+        );
+      } catch {
+        // If URL parsing fails, retain conservative legacy behavior.
+        isBlocked = blockedHosts.some((blockedHost) => url.includes(blockedHost));
+      }
+
+      if (isBlocked) {
         return {
           allowed: false,
           action: 'DENY',
