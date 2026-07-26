@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback, useMemo, Fragment } from 'react'
+import { cn } from '@/lib/utils'
 
 // Types for our graph data
 interface GraphNode {
