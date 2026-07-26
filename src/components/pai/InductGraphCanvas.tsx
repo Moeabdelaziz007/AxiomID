@@ -9,6 +9,9 @@ interface NodeMetadata {
   trust?: string | number
   loop?: string | number
   role?: string
+  sandbox?: boolean
+  compiler?: boolean
+  verifiable?: boolean
 }
 
 interface GraphNode {
