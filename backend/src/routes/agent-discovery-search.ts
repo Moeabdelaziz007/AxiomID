@@ -16,8 +16,8 @@ export async function handleAgentSearch(request: Request, env: Env): Promise<Res
   if (!query) {
     return errorResponse("Missing query parameter 'q' (natural language description of what you need)");
   }
-  if (topK < 1 || topK > 50) {
-    return errorResponse("topK must be between 1 and 50");
+  if (Number.isNaN(topK) || topK < 1 || topK > 50) {
+    return errorResponse("topK must be a valid number between 1 and 50");
   }
 
   try {
