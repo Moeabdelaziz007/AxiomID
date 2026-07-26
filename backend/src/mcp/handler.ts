@@ -282,17 +282,24 @@ async function handleToolCall(
         .first<{ memory_limit: number }>();
 
       const memoryLimit = agent?.memory_limit || 500;
-      const currentCount = await d1.db
-        .prepare("SELECT COUNT(*) as cnt FROM agent_memories WHERE agent_id = ?")
-        .bind(agentId)
-        .first<{ cnt: number }>();
+      const keyExists = await d1.db
+        .prepare("SELECT 1 FROM agent_memories WHERE agent_id = ? AND key = ? LIMIT 1")
+        .bind(agentId, key)
+        .first();
 
-      if ((currentCount?.cnt || 0) >= memoryLimit) {
-        // Evict oldest entry
-        await d1.db
-          .prepare("DELETE FROM agent_memories WHERE agent_id = ? AND id = (SELECT id FROM agent_memories WHERE agent_id = ? ORDER BY created_at ASC LIMIT 1)")
-          .bind(agentId, agentId)
-          .run();
+      if (!keyExists) {
+        const currentCount = await d1.db
+          .prepare("SELECT COUNT(*) as cnt FROM agent_memories WHERE agent_id = ?")
+          .bind(agentId)
+          .first<{ cnt: number }>();
+
+        if ((currentCount?.cnt || 0) >= memoryLimit) {
+          // Evict oldest entry
+          await d1.db
+            .prepare("DELETE FROM agent_memories WHERE agent_id = ? AND id = (SELECT id FROM agent_memories WHERE agent_id = ? ORDER BY created_at ASC LIMIT 1)")
+            .bind(agentId, agentId)
+            .run();
+        }
       }
 
       await d1.db
