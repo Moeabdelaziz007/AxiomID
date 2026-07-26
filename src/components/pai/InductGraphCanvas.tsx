@@ -81,7 +81,7 @@ export function InductGraphCanvas({
   initialState,
   onStateChange,
   className = '',
-  realMode = false,
+  realMode: initialRealMode = false,
   zeroLangPatches = [],
 }: InductGraphCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -104,7 +104,7 @@ export function InductGraphCanvas({
   const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 })
   const [showGrid, setShowGrid] = useState(true)
   const [showLabels, setShowLabels] = useState(true)
-  const [realMode, setRealMode] = useState(false)
+  const [realMode, setRealMode] = useState(initialRealMode)
   const [animationTime, setAnimationTime] = useState(0)
 
   // Generate default graph state with PAI network topology
