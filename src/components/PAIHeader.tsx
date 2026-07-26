@@ -80,7 +80,7 @@ export default function PAIHeader() {
         ))}
         {/* Topology shortcut */}
         <Link
-          href="/pai/pai/ppp/topology"
+          href="/pai/ppp/topology"
           className="ml-2 px-2.5 py-1.5 text-[11px] font-mono text-[#39FF14]/60 hover:text-[#39FF14] transition-colors rounded-md hover:bg-[#39FF14]/5 border border-[#39FF14]/10"
         >
           GRAPH
@@ -139,7 +139,7 @@ export default function PAIHeader() {
             </div>
           ))}
           <Link
-            href="/pai/pai/ppp/topology"
+            href="/pai/ppp/topology"
             className="block text-[11px] font-mono text-[#39FF14]/70 hover:text-[#39FF14] px-2 py-1.5 mt-2 border-t border-white/5 pt-3"
             onClick={() => setMenuOpen(false)}
           >
