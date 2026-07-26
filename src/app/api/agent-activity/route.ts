@@ -38,7 +38,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const url = new URL(request.url);
-    const days = Math.min(30, Math.max(1, parseInt(url.searchParams.get("days") || "7", 10)));
+    const parsedDays = parseInt(url.searchParams.get("days") || "7", 10);
+    const days = Number.isNaN(parsedDays) ? 7 : Math.min(30, Math.max(1, parsedDays));
     const agentId = url.searchParams.get("agentId");
 
     // Try TimescaleDB continuous aggregate first (fast path)
