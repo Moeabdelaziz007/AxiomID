@@ -16,7 +16,7 @@ import DynamicThemeColor from "@/components/pwa/DynamicThemeColor";
 import SovereignSplash from "@/components/pwa/SovereignSplash";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Providers } from "./providers";
-import JsonLd from "@/components/JsonLd";
+import { JsonLd } from "@/components/JsonLd";
 
 // Preload fonts for better performance
 const geistSans = Geist({
