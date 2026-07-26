@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
-import DOMPurify from "isomorphic-dompurify";
 import Script from "next/script";
 import "./globals.css";
 import { WalletProvider } from "./context/wallet-context";
@@ -17,6 +16,7 @@ import DynamicThemeColor from "@/components/pwa/DynamicThemeColor";
 import SovereignSplash from "@/components/pwa/SovereignSplash";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Providers } from "./providers";
+import JsonLd from "@/components/JsonLd";
 
 // Preload fonts for better performance
 const geistSans = Geist({
@@ -206,58 +206,55 @@ export default async function RootLayout({
            }}
          />
           <InstallPWA />
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "WebApplication",
-                "name": "AxiomID",
-                "url": "https://axiomid.app",
-                "description": "Prove human intent behind AI actions with decentralized identity verification. Create your sovereign AI passport with Pi Network.",
-                "applicationCategory": "IdentityApplication",
-                "category": "Identity & Verification",
-                "operatingSystem": "Web",
-                "inLanguage": ["en", "ar"],
-                "isAccessibleForFree": true,
-                "offers": {
-                  "@type": "AggregateOffer",
-                  "priceCurrency": "PI",
-                  "lowPrice": "0",
-                  "highPrice": "100",
-                  "offerCount": 4,
-                  "offers": [
-                    { "@type": "Offer", "name": "Visitor", "price": "0", "priceCurrency": "PI", "description": "Limited read-only access" },
-                    { "@type": "Offer", "name": "Citizen", "price": "0", "priceCurrency": "PI", "description": "Social stamps and basic agent access (100 XP)" },
-                    { "@type": "Offer", "name": "Validator", "price": "25", "priceCurrency": "PI", "description": "Agent delegation and marketplace install (500 XP)" },
-                    { "@type": "Offer", "name": "Sovereign", "price": "100", "priceCurrency": "PI", "description": "Full trust, vault staking, vouching power (1000 XP)" }
-                  ]
-                },
-                "creator": {
-                  "@type": "Person",
-                  "name": "Mohamed Abdelaziz",
-                  "url": "https://github.com/Moeabdelaziz007"
-                },
-                "publisher": {
-                  "@type": "Organization",
-                  "name": "AxiomID",
-                  "url": "https://axiomid.app"
-                },
-                "sameAs": [
-                  "https://github.com/Moeabdelaziz007/AxiomID",
-                  "https://minepi.com"
-                ],
-                "featureList": [
-                  "Decentralized Identity (DID)",
-                  "Sovereign Passports",
-                  "Trust Score Verification",
-                  "AI Agent Governance",
-                  "Pi Network Authentication",
-                  "Verifiable Credentials"
-                ]
-              }), { ALLOWED_TAGS: [] })
-            }}
-          />
+<JsonLd
+  data={{
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "AxiomID",
+    "url": "https://axiomid.app",
+    "description": "Prove human intent behind AI actions with decentralized identity verification. Create your sovereign AI passport with Pi Network.",
+    "applicationCategory": "IdentityApplication",
+    "category": "Identity & Verification",
+    "operatingSystem": "Web",
+    "inLanguage": ["en", "ar"],
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "AggregateOffer",
+      "priceCurrency": "PI",
+      "lowPrice": "0",
+      "highPrice": "100",
+      "offerCount": 4,
+      "offers": [
+        { "@type": "Offer", "name": "Visitor", "price": "0", "priceCurrency": "PI", "description": "Limited read-only access" },
+        { "@type": "Offer", "name": "Citizen", "price": "0", "priceCurrency": "PI", "description": "Social stamps and basic agent access (100 XP)" },
+        { "@type": "Offer", "name": "Validator", "price": "25", "priceCurrency": "PI", "description": "Agent delegation and marketplace install (500 XP)" },
+        { "@type": "Offer", "name": "Sovereign", "price": "100", "priceCurrency": "PI", "description": "Full trust, vault staking, vouching power (1000 XP)" }
+      ]
+    },
+    "creator": {
+      "@type": "Person",
+      "name": "Mohamed Abdelaziz",
+      "url": "https://github.com/Moeabdelaziz007"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "AxiomID",
+      "url": "https://axiomid.app"
+    },
+    "sameAs": [
+      "https://github.com/Moeabdelaziz007/AxiomID",
+      "https://minepi.com"
+    ],
+    "featureList": [
+      "Decentralized Identity (DID)",
+      "Sovereign Passports",
+      "Trust Score Verification",
+      "AI Agent Governance",
+      "Pi Network Authentication",
+      "Verifiable Credentials"
+    ]
+  }}
+/>
        </body>
      </html>
 
