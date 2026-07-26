@@ -462,15 +462,4 @@ NeuralNetworkViz.displayName = 'NeuralNetworkViz'
 // ============================================
 // Export all
 // ============================================
-export type {
-  FadeInProps,
-  ScaleInProps,
-  TiltCardProps,
-  ShimmerTextProps,
-  TypewriterProps,
-  ParticleFieldProps,
-  MorphingViewProps,
-  NeuralNetworkVizProps,
-}
-
 export { ScrollReveal } from './wow-moments'
