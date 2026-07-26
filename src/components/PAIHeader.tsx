@@ -4,13 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 
-type Endpoint = 'bye' | 'try' | 'new' | 'blg' | 'induct' | 'ppp'
-
-const LAYERS: ReadonlyArray<{ 
-  name: string
-  color: string
-  endpoints: readonly Endpoint[]
-}> = [
+const LAYERS = [
   { name: 'Identity', color: '#ec4899', endpoints: ['bye'] },
   { name: 'Agent',   color: '#39FF14', endpoints: ['try'] },
   { name: 'Market',  color: '#f59e0b', endpoints: [] },
@@ -18,7 +12,7 @@ const LAYERS: ReadonlyArray<{
   { name: 'Trust',   color: '#a855f7', endpoints: [] },
   { name: 'Alpha',   color: '#ec4899', endpoints: ['induct'] },
   { name: 'Protocol',color: '#f7a41d', endpoints: ['ppp'] },
-]
+] as const
 
 export default function PAIHeader() {
   const [scrolled, setScrolled] = useState(false)
@@ -31,7 +25,7 @@ export default function PAIHeader() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const isActive = (ep: string) => pathname === `/${ep}` || pathname.startsWith(`/${ep}/`)
+  const isActive = (ep: string) => pathname === `/pai/${ep}` || pathname.startsWith(`/pai/${ep}/`)
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-6 transition-all duration-300 ${
