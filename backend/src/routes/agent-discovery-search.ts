@@ -45,13 +45,14 @@ export async function handleAgentSearch(request: Request, env: Env): Promise<Res
 export async function handleAgentSimilar(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const agentId = url.searchParams.get("agentId");
-  const topK = parseInt(url.searchParams.get("topK") || "5", 10);
+  const topKParam = url.searchParams.get("topK");
+  const topK = topKParam ? parseInt(topKParam, 10) : 5;
 
   if (!agentId) {
     return errorResponse("Missing query parameter 'agentId'");
   }
-  if (topK < 1 || topK > 50) {
-    return errorResponse("topK must be between 1 and 50");
+  if (Number.isNaN(topK) || topK < 1 || topK > 50) {
+    return errorResponse("topK must be a valid number between 1 and 50");
   }
 
   try {
