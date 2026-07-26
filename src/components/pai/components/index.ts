@@ -2,7 +2,7 @@
 // Main entry point for all UI components
 
 // Core UI Primitives
-export { GradientText, ShimmerText, Counter, MagneticButton, FloatingActionButton, Reveal, StaggerContainer, ParticleBackground, Typewriter } from '../ui';
+export { GradientText, ShimmerText, Counter, MagneticButton, FloatingActionButton, ParticleBackground, Typewriter } from '../ui';
 export { TiltCard } from './effects';
 export { Button, IconButton, ButtonGroup } from './Button';
 export { Input, Textarea, Select, Checkbox, Radio, Switch, Label } from './Input';
