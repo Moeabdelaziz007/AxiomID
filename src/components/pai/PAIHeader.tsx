@@ -123,7 +123,7 @@ export default function PAIHeader() {
                 {layer.endpoints.map((ep) => (
                   <Link
                     key={ep}
-                    href={`/${ep}`}
+                    href={`/pai/${ep}`}
                     className={`text-[11px] font-mono px-2 py-1 rounded transition-colors ${
                       isActive(ep)
                         ? 'text-white bg-white/10'

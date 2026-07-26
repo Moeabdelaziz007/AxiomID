@@ -5,13 +5,13 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 
 const LAYERS = [
-  { name: 'Identity', color: '#ec4899', endpoints: ['bye'] },
-  { name: 'Agent',   color: '#39FF14', endpoints: ['try'] },
-  { name: 'Market',  color: '#f59e0b', endpoints: [] },
-  { name: 'Truth',   color: '#ef4444', endpoints: ['new', 'blg'] },
-  { name: 'Trust',   color: '#a855f7', endpoints: [] },
-  { name: 'Alpha',   color: '#ec4899', endpoints: ['induct'] },
-  { name: 'Protocol',color: '#f7a41d', endpoints: ['ppp'] },
+  { name: 'Identity', color: '#ec4899', endpoints: ['bye'] } as const,
+  { name: 'Agent',   color: '#39FF14', endpoints: ['try'] } as const,
+  { name: 'Market',  color: '#f59e0b', endpoints: [] } as const,
+  { name: 'Truth',   color: '#ef4444', endpoints: ['new', 'blg'] } as const,
+  { name: 'Trust',   color: '#a855f7', endpoints: [] } as const,
+  { name: 'Alpha',   color: '#ec4899', endpoints: ['induct'] } as const,
+  { name: 'Protocol',color: '#f7a41d', endpoints: ['ppp'] } as const,
 ] as const
 
 export default function PAIHeader() {
