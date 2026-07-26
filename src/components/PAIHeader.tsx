@@ -12,7 +12,7 @@ const LAYERS = [
   { name: 'Trust',   color: '#a855f7', endpoints: ['hai'] },
   { name: 'Alpha',   color: '#ec4899', endpoints: ['induct'] },
   { name: 'Protocol',color: '#f7a41d', endpoints: ['ppp'] },
-]
+] as const
 
 export default function PAIHeader() {
   const [scrolled, setScrolled] = useState(false)
