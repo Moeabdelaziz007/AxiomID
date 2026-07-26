@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback, useMemo, Fragment, KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo, Fragment } from 'react'
 import { cn } from '@/lib/utils'
 
 // Types for our graph data
@@ -585,7 +585,7 @@ export function InductGraphCanvas({
     setGraphState(s => ({ ...s, viewport: newViewport }))
   }, [graphState.viewport])
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'g') setShowGrid(!showGrid)
     if (e.key === 'l') setShowLabels(!showLabels)
     if (e.key === 'Escape') setGraphState(s => ({ ...s, selectedNodeId: null }))
