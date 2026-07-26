@@ -11,13 +11,14 @@ import { jsonResponse, errorResponse } from "../lib/auth";
 export async function handleAgentSearch(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const query = url.searchParams.get("q");
-  const topK = parseInt(url.searchParams.get("topK") || "10", 10);
+  const topKParam = url.searchParams.get("topK");
+  const topK = topKParam ? parseInt(topKParam, 10) : 10;
 
   if (!query) {
     return errorResponse("Missing query parameter 'q' (natural language description of what you need)");
   }
-  if (topK < 1 || topK > 50) {
-    return errorResponse("topK must be between 1 and 50");
+  if (Number.isNaN(topK) || topK < 1 || topK > 50) {
+    return errorResponse("topK must be a valid number between 1 and 50");
   }
 
   try {
