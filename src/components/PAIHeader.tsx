@@ -62,7 +62,7 @@ export default function PAIHeader() {
               {layer.endpoints.map((ep, i) => (
                 <Link
                   key={ep}
-                  href={`/${ep}`}
+                  href={`/${ep}` as const}
                   className={`flex items-center gap-2 px-3 py-1.5 text-[11px] font-mono transition-colors ${
                     isActive(ep)
                       ? 'text-white bg-white/8'
@@ -123,7 +123,7 @@ export default function PAIHeader() {
                 {layer.endpoints.map((ep) => (
                   <Link
                     key={ep}
-                    href={`/${ep}`}
+                    href={`/${ep}` as const}
                     className={`text-[11px] font-mono px-2 py-1 rounded transition-colors ${
                       isActive(ep)
                         ? 'text-white bg-white/10'

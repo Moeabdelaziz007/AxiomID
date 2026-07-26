@@ -14,7 +14,6 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
 import InstallPWA from "@/components/pwa/InstallPWA";
 import DynamicThemeColor from "@/components/pwa/DynamicThemeColor";
-import DOMPurify from "isomorphic-dompurify";
 import SovereignSplash from "@/components/pwa/SovereignSplash";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Providers } from "./providers";

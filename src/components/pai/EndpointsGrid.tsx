@@ -1,4 +1,4 @@
-import { FadeIn, MorphCard, ScrollReveal } from '@/components/effects'
+import { FadeIn, MorphCard, ScaleIn } from '@/components/effects'
 import Link from 'next/link'
 
 const endpoints = [
@@ -20,18 +20,18 @@ export function EndpointsGrid() {
   return (
     <section id="endpoints" className="section-pai relative z-10">
       <div className="container-pai">
-        <ScrollReveal>
+        <ScaleIn>
           <h2 className="text-[clamp(28px,5vw,48px)] font-semibold text-center mb-4 tracking-tight">
             The <span className="text-gradient-pai">.PAI</span> Endpoints
           </h2>
           <p className="text-white/40 text-center mb-14 max-w-2xl mx-auto">
             Each endpoint is a Single Source of Truth. Every agent trip ends at a beautiful, secure, verifiable destination.
           </p>
-        </ScrollReveal>
+        </ScaleIn>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {endpoints.map((ep, i) => (
-            <ScrollReveal key={ep.id} delay={i * 60}>
+            <ScaleIn key={ep.id} delay={i * 60}>
               <a href={`/pai/${ep.id}`} className="morph-card p-6">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs text-white/40 font-mono">{ep.arabic}</span>
@@ -45,7 +45,7 @@ export function EndpointsGrid() {
                   <div className="h-full" style={{ width: `${ep.trust}%`, background: `linear-gradient(90deg, ${ep.color}, ${ep.color}aa)` }} />
                 </div>
               </a>
-            </ScrollReveal>
+            </ScaleIn>
           ))}
         </div>
       </div>

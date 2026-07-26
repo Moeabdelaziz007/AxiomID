@@ -1,6 +1,6 @@
 'use client'
 import { useState, useCallback } from 'react'
-import { FadeIn, ScaleIn, TiltCard, ShimmerText, Typewriter, ParticleField, MorphingView, NeuralNetworkViz, ScrollReveal } from '@/components/effects'
+import { FadeIn, TiltCard, ShimmerText, Typewriter, ParticleField, MorphingView, NeuralNetworkViz } from '@/components/effects'
 import { PAIShowcase } from '@/components/PAIShowcase'
 import PAITerminalDemo from '@/components/PAITerminalDemo'
 import InductGraphCanvas from '@/components/pai/InductGraphCanvas'
@@ -140,13 +140,13 @@ export default function InductPage() {
         </button>
       </div>
 
-      <main style={{ background: 'var(--bg-deepest)', minHeight: '100vh', color: 'var(--text-primary)', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-deepest)', minHeight: '100vh', color: 'var(--text-primary)', overflow: 'hidden' }}>
         <InductHero />
         <EndpointsGrid />
         <WhyPai />
         <InductTerminalDemo />
         <InductFooter />
-      </main>
+      </div>
     </main>
   )
 }

@@ -24,11 +24,11 @@ const notoSansArabic = Noto_Sans_Arabic({
 
 
 
-const notoSansJP = Noto_Sans_JP({
-  subsets: ['latin'],
-  variable: '--font-japanese',
-  display: 'swap',
-});
+// const notoSansJP = Noto_Sans_JP({
+//   subsets: ['latin'],
+//   variable: '--font-japanese',
+//   display: 'swap',
+// });
 
 const notoSansKR = Noto_Sans_KR({
   subsets: ['latin'],
@@ -118,7 +118,7 @@ export default function RootLayout({
     inter.variable,
     jetbrainsMono.variable,
     notoSansArabic.variable,
-    notoSansJP.variable,
+    // // notoSansJP.variable,
     notoSansKR.variable,
     notoSansDevanagari.variable,
   ].join(' ');

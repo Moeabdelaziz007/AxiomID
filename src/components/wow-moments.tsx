@@ -136,6 +136,30 @@ export function ScrollReveal({ children, delay = 0, className = '' }: { children
    Typewriter — typing one char at a time
    Supports single text or cycling array
    ───────────────────────────────────────────── */
+
+
+export function ScaleIn({ children, delay = 0, className = '' }: { children: ReactNode; delay?: number; className?: string }) {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(true), delay)
+    return () => clearTimeout(timer)
+  }, [delay])
+
+  return (
+    <div
+      className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'scale(1)' : 'scale(0.95)',
+        transition: 'opacity 500ms cubic-bezier(0.16, 1, 0.3, 1), transform 500ms cubic-bezier(0.16, 1, 0.3, 1)',
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
 export function Typewriter({ text, texts, speed = 40, className = '' }: { text?: string; texts?: string[]; speed?: number; className?: string }) {
   const [displayed, setDisplayed] = useState('')
   const [idx, setIdx] = useState(0)

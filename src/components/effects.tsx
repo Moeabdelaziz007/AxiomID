@@ -129,7 +129,6 @@ export const TiltCard = forwardRef<HTMLDivElement, TiltCardProps>(
       <div
         ref={ref}
         onMouseMove={handleMove}
-        onMouseLeave={handleLeave}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{

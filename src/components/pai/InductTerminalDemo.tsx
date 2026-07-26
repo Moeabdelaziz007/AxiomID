@@ -1,4 +1,4 @@
-import { FadeIn } from '@/components/ui/FadeIn'
+import { FadeIn } from '@/components/effects'
 import PAITerminalDemo from '@/components/PAITerminalDemo'
 
 export function InductTerminalDemo() {

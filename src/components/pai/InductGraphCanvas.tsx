@@ -132,7 +132,7 @@ export function InductGraphCanvas({
       { id: 'skill-zerolang', label: 'ZeroLang', x: 750, y: 100, type: 'skill', color: '#EC4899', size: 10, metadata: { compiler: true } },
       { id: 'skill-tlsnotary', label: 'TLSNotary', x: 750, y: 150, type: 'skill', color: '#0EA5E9', size: 10, metadata: { verifiable: true } },
       { id: 'skill-tlsn', label: 'TLSN', x: 750, y: 200, type: 'skill', color: '#A855F7', size: 10, metadata: { verifiable: true } },
-    }
+    ]
 
     const edges: GraphEdge[] = [
       // Protocol layer connections
@@ -173,7 +173,7 @@ export function InductGraphCanvas({
       { id: 'e19', source: 'codex', target: 'skill-packnplay', type: 'trust', weight: 1 },
       { id: 'e20', source: 'alphazero', target: 'skill-zerolang', type: 'trust', weight: 1 },
       { id: 'e21', source: 'opencode', target: 'skill-tlsnotary', type: 'trust', weight: 1 },
-    }
+    ]
 
     return {
       nodes,
@@ -516,7 +516,8 @@ export function InductGraphCanvas({
         setIsPanning(true)
         setPanStart({ x: e.clientX, y: e.clientY })
       }
-    }, [graphState])
+    }
+  }, [graphState])
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = canvasRef.current!.getBoundingClientRect()
@@ -805,7 +806,6 @@ export function InductGraphCanvas({
           </div>
         )}
       </div>
-    </div>
   )
 }
 
