@@ -10,6 +10,7 @@ id = "REPLACE_WITH_KV_ID"
 [[durable_objects.bindings]]
 name = "AGENT_STATE"
 class_name = "AgentStateDO"
+script_name = "axiom-backend"
 
 [[migrations]]
 tag = "v1"
