@@ -93,10 +93,10 @@
   "devDependencies": {
     "@emulators/adapter-next": "^0.9.0",
     "@emulators/github": "^0.9.0",
-    "@playwright/test": "^1.61.1",
+    "@playwright/test": "^1.62.0",
     "@sentry/nextjs": "^10.67.0",
     "@tailwindcss/postcss": "^4",
-    "@tanstack/react-query-devtools": "^5.101.3",
+    "@tanstack/react-query-devtools": "^5.101.4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -107,16 +107,16 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.10",
+    "eslint-config-next": "16.2.12",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "jest-location-mock": "^4.0.1",
-    "knip": "^6.27.0",
+    "knip": "^6.29.0",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5",
-    "undici": "^8.8.0"
+    "undici": "^8.9.0"
   },
   "overrides": {
     "postcss": ">=8.5.10"
