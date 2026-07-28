@@ -76,7 +76,7 @@
     "isomorphic-dompurify": "^2.26.0",
     "jose": "^5.9.6",
     "lucide-react": "^1.25.0",
-    "next": "^16.2.10",
+    "next": "^16.2.12",
     "nostics": "^1.2.0",
     "posthog-js": "^1.405.2",
     "posthog-node": "^5.46.0",
