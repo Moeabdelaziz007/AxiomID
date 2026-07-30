@@ -164,15 +164,15 @@ export function Typewriter({ text, texts, speed = 40, className = '' }: { text?:
   const [displayed, setDisplayed] = useState('')
   const [idx, setIdx] = useState(0)
   const [done, setDone] = useState(false)
+  const iRef = useRef(0)
 
   const activeText = text || (texts?.[idx] ?? '')
 
   useEffect(() => {
-    let i = 0; setDisplayed(''); setDone(false)
     const interval = setInterval(() => {
-      i++
-      setDisplayed(activeText.slice(0, i))
-      if (i >= activeText.length) {
+      iRef.current++
+      setDisplayed(activeText.slice(0, iRef.current))
+      if (iRef.current >= activeText.length) {
         clearInterval(interval)
         setDone(true)
         if (texts) {
@@ -184,6 +184,13 @@ export function Typewriter({ text, texts, speed = 40, className = '' }: { text?:
     }, speed)
     return () => clearInterval(interval)
   }, [activeText, speed, texts])
+
+  // Reset animation when activeText changes
+  useEffect(() => {
+    iRef.current = 0
+    setDisplayed('')
+    setDone(false)
+  }, [activeText])
 
   return (
     <span className={className}>

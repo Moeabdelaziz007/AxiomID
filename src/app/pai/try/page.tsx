@@ -60,7 +60,8 @@ export default function TryPage() {
     if (!name.trim()) return
     setStep('chat')
     const greeting = getGreeting(personality, name)
-    setMessages([{ role: 'agent', text: greeting, ts: Date.now() }])
+    const now = Date.now()
+    setMessages([{ role: 'agent', text: greeting, ts: now }])
 
     const agentData = { name, personality, memory, knowledge, trustScore, memoryFacts }
     const encoded = btoa(JSON.stringify(agentData))
@@ -111,7 +112,8 @@ export default function TryPage() {
     // Simulate agent response based on personality
     setTimeout(() => {
       const response = generateResponse(input, personality, knowledge, memoryFacts)
-      setMessages(prev => [...prev, { role: 'agent', text: response, ts: Date.now() }])
+      const responseTs = Date.now()
+      setMessages(prev => [...prev, { role: 'agent', text: response, ts: responseTs }])
 
       // Extract potential memory facts
       const fact = extractFact(input)
