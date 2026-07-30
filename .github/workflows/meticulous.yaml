@@ -17,6 +17,7 @@ permissions:
 jobs:
   test:
     name: Meticulous
+    if: false # Disabled — not configured (no METICULOUS_API_TOKEN, no pnpm-lock)
     runs-on: ubuntu-latest
 
     steps:
