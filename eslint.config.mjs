@@ -47,6 +47,7 @@ const eslintConfig = defineConfig([
       "react/no-unescaped-entities": "warn",
       "react-hooks/set-state-in-effect": "warn",
       "prefer-const": "warn",
+      "@typescript-eslint/no-explicit-any": "warn",
     },
   },
 ]);
