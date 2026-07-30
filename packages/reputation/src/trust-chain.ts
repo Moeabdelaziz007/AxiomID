@@ -15,7 +15,7 @@ type Releaser = () => void;
 export class TrustChain {
   private readonly chain: TrustChainEntry[] = [];
   private headHash = "0x0";
-  private readonly mutex: Promise<void> = Promise.resolve();
+  private mutex: Promise<void> = Promise.resolve();
 
   get length(): number {
     return this.chain.length;
@@ -89,11 +89,9 @@ export class TrustChain {
 
     // Chain the new lock after the current one
     const previous = this.mutex;
-    // @ts-expect-error — assigned in the Promise constructor above
     this.mutex = next;
 
     await previous;
-    // @ts-expect-error — release is assigned by the time we get here
     return release;
   }
 

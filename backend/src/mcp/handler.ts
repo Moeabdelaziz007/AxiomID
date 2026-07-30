@@ -95,25 +95,24 @@ export async function handleMcp(request: Request, env: Env): Promise<Response> {
         ]);
 
         if (agentScopedTools.has(name)) {
-          const callerAgentId = (args.agentId as string) || (args.userDid as string) || undefined;
-          if (callerAgentId) {
-            // Extract caller identity from auth context
-            const authResult = verifyAuth(request, env);
-            if (!authResult.authorized) {
-              return jsonResponse({
-                jsonrpc: "2.0",
-                id: body.id,
-                error: { code: -32099, message: "Unauthorized: agent-scoped tool requires auth" },
-              }, 401);
-            }
-            // The caller's agentId (from auth) must match the requested agentId
-            if (authResult.agentId && authResult.agentId !== callerAgentId) {
-              return jsonResponse({
-                jsonrpc: "2.0",
-                id: body.id,
-                error: { code: -32098, message: "Forbidden: agentId mismatch — caller does not own this agent" },
-              }, 403);
-            }
+          // SECURITY: Require auth for ALL agent-scoped tools.
+          // Never trust client-provided agentId — validate server-side.
+          const authResult = verifyAuth(request, env);
+          if (!authResult.authorized) {
+            return jsonResponse({
+              jsonrpc: "2.0",
+              id: body.id,
+              error: { code: -32099, message: "Unauthorized: agent-scoped tool requires auth" },
+            }, 401);
+          }
+          // Use server-validated agentId, not client-provided args
+          const callerAgentId = authResult.agentId || (args.agentId as string);
+          if (!callerAgentId) {
+            return jsonResponse({
+              jsonrpc: "2.0",
+              id: body.id,
+              error: { code: -32098, message: "Forbidden: no agent identity found" },
+            }, 403);
           }
         }
 
