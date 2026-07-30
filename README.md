@@ -15,12 +15,12 @@
   <a href="https://axiomid.app/docs"><b>Documentation</b></a> ·
   <a href="https://axiomid.app/passport/demo"><b>Demo Passport</b></a> ·
   <a href="https://axiomid.app/leaderboard"><b>Leaderboard</b></a> ·
-  <a href="https://github.com/Moeabdelaziz007/AxiomID"><b>GitHub</b></a> ·
+  <a href="https://github.com/pai-list/AxiomID"><b>GitHub</b></a> ·
   <a href="https://www.facebook.com/profile.php?id=61583477974464"><b>Facebook</b></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Moeabdelaziz007/AxiomID/actions"><img src="https://img.shields.io/github/actions/workflow/status/Moeabdelaziz007/AxiomID/ci.yml?branch=main&label=CI&style=flat-square" alt="CI" /></a>
+  <a href="https://github.com/pai-list/AxiomID/actions"><img src="https://img.shields.io/github/actions/workflow/status/pai-list/AxiomID/ci.yml?branch=main&label=CI&style=flat-square" alt="CI" /></a>
   <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square" alt="Next.js" />
   <img src="https://img.shields.io/badge/Pi%20Browser-supported-8b5cf6?style=flat-square" alt="Pi Browser" />
   <img src="https://img.shields.io/badge/tests-3786%20passed-22c55e?style=flat-square" alt="Tests Passed" />
@@ -136,7 +136,7 @@ AxiomID is the reference implementation of the **OpenIdentity** protocol — an 
 ## Quick start
 
 ```bash
-git clone https://github.com/Moeabdelaziz007/AxiomID.git
+git clone https://github.com/pai-list/AxiomID.git
 cd AxiomID
 npm install
 cp .env.example .env.local
@@ -236,7 +236,7 @@ AxiomID.Memory/    # Knowledge base and design docs
 
 **OpenIdentity** is a portable identity manifest specification for AI agents — think of it as a **USB descriptor for an AI agent**. It combines identity, human verification, roles, skills, MCP tools, A2A metadata, memory discovery links, wallet references, and authorization pointers into one secure, shareable file. Any compatible platform can read an OpenIdentity manifest and immediately understand what an agent is, who controls it, what it can do, and where its approved memory and tools live.
 
-OpenIdentity was created by the same founder as AxiomID — [Mohamed Abdelaziz](https://github.com/Moeabdelaziz007) — and lives at [github.com/Moeabdelaziz007/openidentity.md](https://github.com/Moeabdelaziz007/openidentity.md).
+OpenIdentity was created by the same founder as AxiomID — [Mohamed Abdelaziz](https://github.com/pai-list) — and lives at [github.com/pai-list/openidentity.md](https://github.com/pai-list/openidentity.md).
 
 > **Short version:** OpenIdentity is the discovery layer for AI agent identity.
 >
@@ -250,7 +250,7 @@ AxiomID is the **reference implementation** of the OpenIdentity specification:
 - Manifests are served at the `/.well-known/openidentity` endpoint for machine and platform discovery.
 - Other platforms can fetch a manifest to understand an agent *before* granting access or trusting its claims.
 - The manifest format is portable — it works across GitHub, AxiomID profiles, websites, and agent runtimes.
-- Structured fields are validated against the [OpenIdentity JSON Schema](https://github.com/Moeabdelaziz007/openidentity.md/blob/main/schema/openidentity.schema.json); the human-readable Markdown body is a first-class part of the format.
+- Structured fields are validated against the [OpenIdentity JSON Schema](https://github.com/pai-list/openidentity.md/blob/main/schema/openidentity.schema.json); the human-readable Markdown body is a first-class part of the format.
 
 ### did:axiom DID Method
 
@@ -272,7 +272,7 @@ Key properties:
 - **Resolvable** via the reference resolver: `https://axiomid.app/api/did-document?did={did}`.
 - **Privacy-preserving** — the hashed DID form avoids exposing the username; DID documents contain no PII beyond the public key and service endpoints.
 
-📖 Full spec: [did:axiom DID Method Specification v0.1](https://github.com/Moeabdelaziz007/openidentity.md/blob/main/spec/did-axiom-method-v0.1.md)
+📖 Full spec: [did:axiom DID Method Specification v0.1](https://github.com/pai-list/openidentity.md/blob/main/spec/did-axiom-method-v0.1.md)
 
 ### Architecture: AxiomID ↔ OpenIdentity
 
@@ -331,15 +331,15 @@ links:
 
 > **Security note:** A manifest MUST NOT contain private keys, passwords, bearer tokens, API keys, wallet seed phrases, or other secrets. Sensitive resources are *referenced*, never embedded. Consumers MUST verify signatures, domains, and issuer trust before relying on claims — an unsigned manifest is a discovery hint, not proof of authority.
 
-See [`examples/`](https://github.com/Moeabdelaziz007/openidentity.md/tree/main/examples) for minimal, standard, and full manifest examples.
+See [`examples/`](https://github.com/pai-list/openidentity.md/tree/main/examples) for minimal, standard, and full manifest examples.
 
 ### OpenIdentity Links
 
-- 📦 **Spec repository:** [github.com/Moeabdelaziz007/openidentity.md](https://github.com/Moeabdelaziz007/openidentity.md)
-- 📖 **OpenIdentity v0.1 Specification:** [spec/openidentity-v0.1.md](https://github.com/Moeabdelaziz007/openidentity.md/blob/main/spec/openidentity-v0.1.md)
-- 🔑 **did:axiom DID Method Spec:** [spec/did-axiom-method-v0.1.md](https://github.com/Moeabdelaziz007/openidentity.md/blob/main/spec/did-axiom-method-v0.1.md)
-- 🧪 **Manifest examples:** [examples/](https://github.com/Moeabdelaziz007/openidentity.md/tree/main/examples)
-- 🌐 **Frontend prototype:** [openidentity.md/frontend](https://github.com/Moeabdelaziz007/openidentity.md/tree/main/frontend)
+- 📦 **Spec repository:** [github.com/pai-list/openidentity.md](https://github.com/pai-list/openidentity.md)
+- 📖 **OpenIdentity v0.1 Specification:** [spec/openidentity-v0.1.md](https://github.com/pai-list/openidentity.md/blob/main/spec/openidentity-v0.1.md)
+- 🔑 **did:axiom DID Method Spec:** [spec/did-axiom-method-v0.1.md](https://github.com/pai-list/openidentity.md/blob/main/spec/did-axiom-method-v0.1.md)
+- 🧪 **Manifest examples:** [examples/](https://github.com/pai-list/openidentity.md/tree/main/examples)
+- 🌐 **Frontend prototype:** [openidentity.md/frontend](https://github.com/pai-list/openidentity.md/tree/main/frontend)
 - 🛠 **AxiomID app (reference implementation):** [axiomid.app](https://axiomid.app)
 
 ## Contributing
@@ -363,12 +363,12 @@ git push origin feat/my-feature
 
 <div align="center">
 
-**AxiomID** is built by **Mohamed Abdelaziz** ([@Moeabdelaziz007](https://github.com/Moeabdelaziz007)).
+**AxiomID** is built by **Mohamed Abdelaziz** ([@pai-list](https://github.com/pai-list)).
 
 Built with passion in Cairo, Egypt.
 
-<a href="https://github.com/Moeabdelaziz007/AxiomID/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Moeabdelaziz007/AxiomID" alt="Contributors" />
+<a href="https://github.com/pai-list/AxiomID/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=pai-list/AxiomID" alt="Contributors" />
 </a>
 
 </div>
