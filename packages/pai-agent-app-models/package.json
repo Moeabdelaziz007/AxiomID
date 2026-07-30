@@ -1,0 +1,19 @@
+{
+  "name": "@axiomid/agent-app-models",
+  "version": "0.1.0",
+  "description": "TypeScript interfaces, JSON schemas, and runtime validators for AxiomID Agent App Models",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "test": "npx tsx src/agent-app-models.test.ts"
+  },
+  "keywords": [
+    "axiomid",
+    "agent-app",
+    "openidentity",
+    "schemas",
+    "models"
+  ],
+  "author": "Mohamed Abdelaziz",
+  "license": "MIT"
+}
