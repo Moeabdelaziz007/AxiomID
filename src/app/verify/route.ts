@@ -161,10 +161,41 @@ async function verifyPaiCredential(
   return { verified, message: verified ? "PAI credential verified" : "PAI credential verification failed", errors: errors.length > 0 ? errors : undefined };
 }
 
-/** Verify cryptographic proof on credential */
+/** Verify cryptographic proof on credential using Ed25519 */
 async function verifyProof(credential: PaiVerifyRequest["credential"]): Promise<boolean> {
-  // TODO: Replace with actual Ed25519 verification via @digitalbazaar/ed25519-signature-2020
-  return !!(credential.proof?.proofValue && credential.proof?.verificationMethod && credential.proof?.type === "Ed25519Signature2020");
+  if (!credential.proof?.proofValue || !credential.proof?.verificationMethod) return false;
+  if (credential.proof.type !== "Ed25519Signature2020") return false;
+
+  try {
+    // ponytail: cryptographic verification — NOT LLM-judged.
+    // This is a security boundary. Deterministic crypto only.
+    const proofValue = credential.proof.proofValue;
+    const doc = JSON.stringify({
+      type: credential.type,
+      issuer: credential.issuer,
+      issuanceDate: credential.issuanceDate,
+      credentialSubject: credential.credentialSubject,
+    });
+    const encoder = new TextEncoder();
+    const keyBytes = new Uint8Array(
+      (credential.proof.verificationMethod.match(/.{1,2}/g) ?? [])
+        .map((b: string) => parseInt(b, 16))
+        .filter((n: number) => !isNaN(n))
+    );
+
+    // Use Web Crypto API for Ed25519 verification
+    const signature = Uint8Array.from(atob(proofValue), (c) => c.charCodeAt(0));
+    const key = await crypto.subtle.importKey(
+      "raw",
+      keyBytes,
+      { name: "Ed25519" },
+      false,
+      ["verify"]
+    );
+    return await crypto.subtle.verify("Ed25519", key, signature, encoder.encode(doc));
+  } catch {
+    return false;
+  }
 }
 
 /** Verify challenge binding */
