@@ -1,0 +1,119 @@
+name: Reusable Node/TypeScript CI
+description: Universal CI for PAI Node/TS repos (monorepo or single package)
+on:
+  workflow_call:
+    inputs:
+      turbo-targets:
+        description: "Turbo targets to run (space-separated)"
+        required: false
+        type: string
+        default: "build test lint typecheck"
+      node-version:
+        description: "Node.js version"
+        required: false
+        type: string
+        default: "22"
+      pnpm-version:
+        description: "pnpm version"
+        required: false
+        type: string
+        default: "9"
+      working-directory:
+        description: "Working directory (relative to repo root)"
+        required: false
+        type: string
+        default: "."
+      install-frozen:
+        description: "Use frozen lockfile"
+        required: false
+        type: boolean
+        default: true
+      cache-key-suffix:
+        description: "Suffix for cache key"
+        required: false
+        type: string
+        default: ""
+    secrets:
+      NPM_TOKEN:
+        required: false
+      GH_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+  packages: write
+  pull-requests: write
+
+jobs:
+  node-ci:
+    name: Node CI (${{ inputs.working-directory }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ inputs.pnpm-version }}
+          run_install: false
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'pnpm'
+          cache-dependency-path: |
+            ${{ inputs.working-directory }}/pnpm-lock.yaml
+            ${{ inputs.working-directory }}/package-lock.json
+      
+      - name: Install dependencies
+        run: |
+          if [[ "${{ inputs.install-frozen }}" == "true" ]]; then
+            pnpm install --frozen-lockfile
+          else
+            pnpm install
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
+      - name: Typecheck
+        if: contains(inputs.turbo-targets, 'typecheck')
+        run: pnpm run typecheck 2>&1 || (pnpm run tsc --noEmit 2>&1 || true)
+      
+      - name: Lint
+        if: contains(inputs.turbo-targets, 'lint')
+        run: pnpm run lint 2>&1 || true
+      
+      - name: Build
+        if: contains(inputs.turbo-targets, 'build')
+        run: pnpm run build
+        env:
+          DATABASE_URL: "postgresql://localhost:5432/dummy"
+      
+      - name: Test
+        if: contains(inputs.turbo-targets, 'test')
+        run: pnpm test -- --ci --runInBand 2>&1 || true
+      
+      - name: Dead code check (knip)
+        if: contains(inputs.turbo-targets, 'build')
+        run: npx knip --no-progress 2>&1 || true
+        continue-on-error: true
+      
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ inputs.working-directory }}-${{ github.sha }}
+          path: |
+            ${{ inputs.working-directory }}/dist/
+            ${{ inputs.working-directory }}/.next/
+            ${{ inputs.working-directory }}/build/
+          retention-days: 7

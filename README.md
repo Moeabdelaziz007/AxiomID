@@ -377,6 +377,20 @@ Built with passion in Cairo, Egypt.
 
 **Pi Network** — For the authentication SDK and the vision of a human-centered web. Learn more at [minepi.com](https://minepi.com).
 
+### Vendoring Transparency
+
+The PAI organization includes both vendored forks and internal components:
+
+| Repository | Origin | Purpose |
+|------------|--------|---------|
+| `hermes-vision` | Fork of [peekaboo](https://github.com/steipete/peekaboo) (Steipete) | macOS UI automation / accessibility tree inspection |
+| `hermes-agent` | Internal | Agent orchestration |
+| `hermes-acpx` | Internal | ACP protocol extensions |
+| `hermes-mcporter` | Internal | MCP transport layer |
+| `hermes-sdk` | Internal | Shared SDK utilities |
+
+Only `hermes-vision` is a fork of an external open-source project (Peekaboo by Steipete). The others are internal PAI components. None are presented as original PAI products. Original authors retain credit for any forked work.
+
 <div align="center">
 
 <a href="https://minepi.com">

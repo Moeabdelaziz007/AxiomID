@@ -1,0 +1,46 @@
+{
+  "name": "AxiomID",
+  "description": "Universal identity layer for Humans + AI Agents (DID, TrustChain, Pi Network)",
+  "url": "https://axiomid.app",
+  "icon": "https://axiomid.app/icon-512x512.png",
+  "version": "1.0.0",
+  "protocol_version": "1.0",
+  "endpoints": {
+    "agent_registry": "https://axiomid.app/api/agents",
+    "did_resolver": "https://axiomid.app/api/did-document",
+    "agent_manifest": "https://axiomid.app/api/agent/manifest",
+    "identity_claim": "https://axiomid.app/api/agent/identity/claim",
+    "trust_chain": "https://axiomid.app/api/trust-chain"
+  },
+  "protocols": [
+    "didcomm/v2",
+    "mcp",
+    "json-rpc-2.0",
+    "adp"
+  ],
+  "capabilities": [
+    "did-resolution",
+    "identity-verification",
+    "trust-scoring",
+    "agent-discovery",
+    "credential-issuance",
+    "payment-processing"
+  ],
+  "authentication": {
+    "methods": [
+      "did-auth",
+      "siwe",
+      "pi-oauth"
+    ],
+    "did_methods": [
+      "did:key",
+      "did:web",
+      "did:pai"
+    ]
+  },
+  "contacts": {
+    "security": "security@axiomid.app",
+    "support": "support@axiomid.app",
+    "business": "business@axiomid.app"
+  }
+}

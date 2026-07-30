@@ -629,3 +629,25 @@ model SpendRequest {
   @@index([userId])
   @@index([status])
 }
+
+// ─────────────────────────────────────────────
+// PAI VERIFICATION
+// ─────────────────────────────────────────────
+
+model PaiVerification {
+  id            String   @id @default(uuid())
+  did           String   @db.VarChar(255)
+  credential    Json
+  challenge     String?
+  verified      Boolean  @default(false)
+  message       String?  @db.VarChar(500)
+  errors        Json     @default("[]")
+  clientIp      String?  @db.VarChar(45)
+  authenticated Boolean  @default(false)
+  durationMs    Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@index([did])
+  @@index([verified])
+  @@index([createdAt])
+}

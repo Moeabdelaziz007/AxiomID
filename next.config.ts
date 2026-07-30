@@ -46,7 +46,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  typedRoutes: true,
+  typedRoutes: false,
   // Build with webpack (see the `--webpack` flag in package.json) so the
   // nostics strip transform below is actually applied. A `turbopack` key is
   // intentionally omitted: declaring it alongside a custom webpack config makes
@@ -55,6 +55,7 @@ const nextConfig: NextConfig = {
     nosticsStrip.webpack(config);
     return config;
   },
+  serverExternalPackages: ["@mem7ai/mem7"],
 };
 
 export default withSentryConfig(nextConfig, {

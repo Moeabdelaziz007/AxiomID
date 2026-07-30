@@ -91,61 +91,6 @@ export default function HeroSection({ t }: HeroSectionProps) {
           </div>
         </div>
 
-        {/* Massive headline */}
-        <h1
-          className="font-bold text-white tracking-[-0.05em] leading-[0.98] max-w-[16ch] sm:max-w-none"
-          style={{ fontSize: "clamp(2.5rem, 7vw, 5rem)" }}
-        >
-          <span className="block animate-slide-up" style={{ animationDelay: "0.1s" }}>
-            {t("hero_create_your")}
-          </span>
-          <span
-            className="block text-transparent bg-clip-text bg-gradient-to-r from-electric-blue via-emerald-400 to-axiom-purple animate-slide-up"
-            style={{ animationDelay: "0.2s" }}
-          >
-            {t("hero_ai_identity")}
-          </span>
-        </h1>
-
-        {/* Muted supporting paragraph */}
-        <p
-          className="text-sm sm:text-base md:text-lg text-zinc-400 max-w-[40rem] text-pretty leading-relaxed animate-slide-up"
-          style={{ animationDelay: "0.3s" }}
-        >
-          {t("hero_desc")}
-        </p>
-
-        {/* CTAs — keep classes tests assert on secondary link */}
-        <div
-          className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 pt-1 animate-slide-up"
-          style={{ animationDelay: "0.4s" }}
-        >
-          <a
-            href="/claim"
-            className="btn-primary py-3.5 px-8 text-sm sm:text-base group relative overflow-hidden w-full sm:w-auto font-mono tracking-wider shadow-[0_0_24px_rgba(59,130,246,0.28)] hover:shadow-[0_0_36px_rgba(59,130,246,0.45)] transition-all focus-visible:ring-2 focus-visible:ring-electric-blue focus-visible:outline-none"
-          >
-            <span className="relative z-10 flex items-center justify-center gap-2">
-              {t("hero_cta_create")}
-              <svg
-                className="w-4 h-4 group-hover:translate-x-1 transition-transform"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </span>
-          </a>
-          <Link
-            href="/docs"
-            className="text-xs sm:text-sm font-mono text-subtle hover:text-surface transition-colors flex items-center gap-2 px-5 py-3 border border-glass hover:border-glass-hover rounded-xl focus-visible:ring-2 focus-visible:ring-electric-blue focus-visible:outline-none w-full sm:w-auto justify-center"
-          >
-            <Shield className="w-4 h-4 opacity-70" />
-            {t("hero_cta_explore")}
-          </Link>
-        </div>
-
         {/* Pi Network referral — free Pi tokens for new users */}
         <div
           className="flex items-center gap-2 pt-3 animate-slide-up"
