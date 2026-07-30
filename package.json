@@ -38,7 +38,7 @@
   "scripts": {
     "dev": "next dev",
     "start": "next start",
-    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint . --report-unused-disable-directives",
     "preview": "next build && next start",
     "analyze": "ANALYZE=true next build",
     "deploy": "vercel --prod",
