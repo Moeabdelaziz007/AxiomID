@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "description": "TypeScript interfaces, JSON schemas, and runtime validators for AxiomID Agent App Models",
   "main": "src/index.ts",
-  "type": "module",
   "scripts": {
     "test": "npx tsx src/agent-app-models.test.ts"
   },
