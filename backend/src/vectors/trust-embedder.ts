@@ -1,6 +1,20 @@
 /**
  * Vectorize trust graph embeddings using Workers AI.
  * Real ML embeddings for semantic trust search.
+ *
+ * --- OFFICIAL DOCUMENTATION ---
+ * Cloudflare Workers AI: https://developers.cloudflare.com/workers-ai/
+ * Cloudflare Vectorize:  https://developers.cloudflare.com/vectorize/
+ * Model: @cf/baai/bge-base-en-v1.5 (768-dim)
+ * Full catalog: docs/AGENT_SERVICE_CATALOG.md §1 + §2
+ *
+ * --- AGENT QUICK START ---
+ * 1. Read this file for TrustEmbedder class
+ * 2. To index trust: call upsertVector(did, trustScore, delegationCount)
+ * 3. To search similar trust profiles: call querySimilar(did, topK)
+ * 4. To search by text: call searchByText(query, topK)
+ * 5. API: GET /api/search?q=... and GET /api/search/similar?did=...
+ * 6. Falls back to feature-based vector if Workers AI is unavailable
  */
 
 import type { Env } from "../lib/types";

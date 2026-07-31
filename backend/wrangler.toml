@@ -11,9 +11,13 @@ ENVIRONMENT = "production"
 name = "PRESENCE_DO"
 class_name = "PresenceDO"
 
+[[durable_objects.bindings]]
+name = "AGENT_STATE"
+class_name = "AgentStateDO"
+
 [[migrations]]
 tag = "v1"
-new_sqlite_classes = ["PresenceDO"]
+new_sqlite_classes = ["PresenceDO", "AgentStateDO"]
 
 # --- Queues ---
 [[queues.producers]]
@@ -45,6 +49,10 @@ database_id = "5a85b958-6506-4e6e-93e7-236d11fb93c5"
 # --- Workers AI (for embeddings) ---
 [ai]
 binding = "AI"
+
+# --- Cloudflare AI Gateway (free 100K logs/day, caching, rate limiting) ---
+[ai_gateway]
+binding = "AI_GATEWAY"
 
 # --- Vectorize (for semantic search) ---
 [[vectorize]]

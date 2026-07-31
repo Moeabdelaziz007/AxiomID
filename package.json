@@ -46,7 +46,7 @@
     "test": "NODE_OPTIONS='--no-deprecation' npx --yes jest --runInBand --forceExit",
     "test:watch": "jest --watch",
     "type-check": "tsc --noEmit",
-    "memory:build": "ts-node --compiler-options '{\\\"module\\\":\\\"commonjs\\\"}' scripts/build-memory.ts",
+    "memory:build": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/build-memory.ts",
     "dead-code": "knip",
     "a11y": "npx pa11y-ci --config .pa11yci.json",
     "prisma:seed-tags": "npx tsx prisma/seed-tags.ts",

@@ -14,6 +14,7 @@ export interface Env {
   PRESENCE_DO: DurableObjectNamespace;
   HARVEST_QUEUE: Queue;
   AI: Ai;
+  AI_GATEWAY: AiGateway;
   SEARCH_VECTORS: VectorizeIndex;
   ENVIRONMENT: string;
 }
