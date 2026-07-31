@@ -26,10 +26,9 @@ function isAllowedHost(host: string): boolean {
   if (plain === "localhost" || plain === "127.0.0.1") return true;
   if (plain === ROOT_DOMAIN || plain === `www.${ROOT_DOMAIN}`) return true;
   if (plain.endsWith(`.${ROOT_DOMAIN}`)) return true;
-  // Allow Vercel preview deployments
-  if (plain.endsWith(".vercel.app")) return true;
-  // Allow any vercel.app subdomain
-  if (plain === "vercel.app") return true;
+  // Security hardening: .vercel.app hosts are NOT allowed (wildcard removed).
+  // Vercel preview deployments remain valid as CORS origins only
+  // (see CORS_ALLOWED_ORIGINS), never as request hosts.
   return false;
 }
 
@@ -41,8 +40,8 @@ function getAllowedOrigin(origin: string | null): string | null {
     if (host === ROOT_DOMAIN || host.endsWith(`.${ROOT_DOMAIN}`)) return origin;
     if (CORS_ALLOWED_ORIGINS.includes(origin)) return origin;
     if (host === "localhost" || host === "127.0.0.1") return origin;
-    // Allow Vercel preview deployments
-    if (host.endsWith(".vercel.app")) return origin;
+    // Security hardening: no .vercel.app wildcard — only the explicit
+    // production preview hosts in CORS_ALLOWED_ORIGINS are allowed.
   } catch {
     // invalid origin
   }

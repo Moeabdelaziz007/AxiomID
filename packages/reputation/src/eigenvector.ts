@@ -69,9 +69,11 @@ export function calculateTrustScore(
   tenureScore = 0,
   semanticTrust = 0,
 ): TrustScore {
-  const value = Math.round(
+  const raw = Math.round(
     xpScore * 0.5 + stampScore * 0.2 + tenureScore * 0.1 + semanticTrust * 0.2,
   );
+  // Clamp to [0, 100] and never return negative zero (repo rule 7 / Rule 61).
+  const value = raw === 0 ? 0 : Math.min(100, Math.max(0, raw));
 
   const factors: TrustFactor[] = [
     { name: "XP", description: "Experience points from activity", weight: 0.5, score: xpScore, status: xpScore > 50 ? "positive" : "neutral" },

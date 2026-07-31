@@ -11,9 +11,13 @@ ENVIRONMENT = "production"
 name = "PRESENCE_DO"
 class_name = "PresenceDO"
 
+[[durable_objects.bindings]]
+name = "AGENT_STATE"
+class_name = "AgentStateDO"
+
 [[migrations]]
 tag = "v1"
-new_sqlite_classes = ["PresenceDO"]
+new_sqlite_classes = ["PresenceDO", "AgentStateDO"]
 
 # --- Queues ---
 [[queues.producers]]

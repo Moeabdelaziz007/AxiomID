@@ -38,7 +38,10 @@ function getChangedFiles(): string[] {
   for (const cmd of strategies) {
     try {
       const output = execSync(cmd, { stdio: ['pipe', 'pipe', 'pipe'] }).toString().trim();
-      if (!output) continue;
+      // A successful command with empty output legitimately means "no
+      // files changed in this range" — return empty rather than falling
+      // through to a narrower strategy (which would report the wrong files).
+      if (!output) return [];
       // git status --short prefixes with status codes like " M path"
       const files = output
         .split('\n')

@@ -47,6 +47,9 @@ export class AgentDIDMethod {
       capabilityInvocation: [keyId],
       capabilityDelegation: [keyId],
       service: services,
+      // W3C DID Core: created must be a stable timestamp, set once at
+      // DID creation — never regenerated per resolution.
+      created: new Date().toISOString(),
     };
 
     this.store.set(did, document);
@@ -73,7 +76,9 @@ export class AgentDIDMethod {
       didResolutionMetadata: { contentType: "application/did+json" },
       didDocument: doc,
       didDocumentMetadata: {
-        created: new Date().toISOString(),
+        // Stable created timestamp from the stored document (W3C DID Core).
+        created: doc.created,
+        updated: doc.updated,
       },
     };
   }

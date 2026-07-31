@@ -48,7 +48,7 @@ export function HeaderActions({ showBack, showWallet, minimal, onConnect, isConn
         <>
           {user ? (
             <div className="flex items-center gap-2">
-              <Link href="/dashboard" prefetch={false} className="btn-primary text-xs px-3 sm:px-4 py-2">
+              <Link href="/dashboard" className="btn-primary text-xs px-3 sm:px-4 py-2">
                 {t("nav_dashboard")}
               </Link>
               <button onClick={() => logout()} aria-label={t("logout")} className="btn-ghost text-xs px-3 py-1.5 hidden sm:flex items-center gap-1.5">

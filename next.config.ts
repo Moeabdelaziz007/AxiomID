@@ -46,7 +46,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  typedRoutes: false,
+  typedRoutes: true,
   // Build with webpack (see the `--webpack` flag in package.json) so the
   // nostics strip transform below is actually applied. A `turbopack` key is
   // intentionally omitted: declaring it alongside a custom webpack config makes

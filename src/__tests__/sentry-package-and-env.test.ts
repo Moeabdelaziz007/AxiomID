@@ -34,8 +34,8 @@ describe("package.json — @sentry/nextjs runtime dependency (PR change)", () =>
     expect(packageJson.dependencies["@sentry/nextjs"]).toMatch(/^\^\d+\.\d+\.\d+$/);
   });
 
-  it("pins the @sentry/nextjs runtime dependency to the 9.x major version", () => {
-    expect(packageJson.dependencies["@sentry/nextjs"]).toMatch(/^\^9\./);
+  it("pins the @sentry/nextjs runtime dependency to a 10.x major version", () => {
+    expect(packageJson.dependencies["@sentry/nextjs"]).toMatch(/^\^10\./);
   });
 
   it("does not accidentally declare @sentry/nextjs only in devDependencies (it is imported by runtime config files)", () => {

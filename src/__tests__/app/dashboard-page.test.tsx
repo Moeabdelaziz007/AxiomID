@@ -110,14 +110,17 @@ describe("Dashboard page — authenticated user content", () => {
 });
 
 describe("Dashboard page — tab navigation", () => {
+  // The page renders TWO tablists (desktop top bar + mobile bottom bar).
+  // getAllByRole targets the first (desktop) tablist for state assertions.
+  const firstTab = (name: RegExp) => screen.getAllByRole("tab", { name })[0];
+
   it("home tab is initially active (aria-selected=true)", async () => {
     mockUseWallet.mockReturnValue(defaultWalletCtx({ user: authenticatedUser }));
     await act(async () => {
       render(<Dashboard />);
     });
 
-    const homeTab = screen.getByRole("tab", { name: /home/i });
-    expect(homeTab).toHaveAttribute("aria-selected", "true");
+    expect(firstTab(/home/i)).toHaveAttribute("aria-selected", "true");
   });
 
   it("clicking Identity tab sets it as active", async () => {
@@ -127,11 +130,10 @@ describe("Dashboard page — tab navigation", () => {
     });
 
     await act(async () => {
-      screen.getByRole("tab", { name: /identity/i }).click();
+      firstTab(/identity/i).click();
     });
 
-    const identityTab = screen.getByRole("tab", { name: /identity/i });
-    expect(identityTab).toHaveAttribute("aria-selected", "true");
+    expect(firstTab(/identity/i)).toHaveAttribute("aria-selected", "true");
   });
 
   it("all six page tabs are rendered", async () => {
@@ -140,12 +142,12 @@ describe("Dashboard page — tab navigation", () => {
       render(<Dashboard />);
     });
 
-    expect(screen.getByRole("tab", { name: /home/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /identity/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /skills/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /wallet/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /memory/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /settings/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("tab", { name: /home/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("tab", { name: /identity/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("tab", { name: /skills/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("tab", { name: /wallet/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("tab", { name: /memory/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("tab", { name: /settings/i }).length).toBeGreaterThan(0);
   });
 
   it("switching to a different tab deactivates the previously active tab", async () => {
@@ -155,12 +157,10 @@ describe("Dashboard page — tab navigation", () => {
     });
 
     await act(async () => {
-      screen.getByRole("tab", { name: /skills/i }).click();
+      firstTab(/skills/i).click();
     });
 
-    const homeTab = screen.getByRole("tab", { name: /home/i });
-    const skillsTab = screen.getByRole("tab", { name: /skills/i });
-    expect(skillsTab).toHaveAttribute("aria-selected", "true");
-    expect(homeTab).toHaveAttribute("aria-selected", "false");
+    expect(firstTab(/skills/i)).toHaveAttribute("aria-selected", "true");
+    expect(firstTab(/home/i)).toHaveAttribute("aria-selected", "false");
   });
 });

@@ -197,14 +197,16 @@ export class AgentDiscoveryEmbedder {
    */
   async findSimilarAgents(agentId: string, topK = 5): Promise<AgentSearchResult[]> {
     const id = `agent:${agentId}`;
-    // Query with a zero vector — Vectorize will return the vector itself
-    // which we can then use for similarity. But since we can't fetch the
-    // vector directly, we use a different approach: query by the agent's
-    // metadata ID and let Vectorize find neighbors.
     try {
-      // First, fetch the agent's vector via a query with its own ID
-      const dummyVector = new Array(768).fill(0);
-      const results = await this.env.SEARCH_VECTORS.query(dummyVector, {
+      // Fetch the agent's actual vector by ID, then query Vectorize with it.
+      const byId = await this.env.SEARCH_VECTORS.getByIds([id]);
+      const target = byId?.[0];
+      if (!target?.values) {
+        console.warn(`[AgentDiscovery] No vector found for agent ${agentId} — cannot find similar`);
+        return [];
+      }
+
+      const results = await this.env.SEARCH_VECTORS.query(target.values, {
         topK: topK + 1, // +1 to skip the agent itself
         returnMetadata: true,
         filter: { type: "agent-discovery" },

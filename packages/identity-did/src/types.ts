@@ -13,6 +13,10 @@ export interface DIDDocument {
   capabilityInvocation: string[];
   capabilityDelegation: string[];
   service: AgentService[];
+  /** W3C DID Core: stable creation timestamp (set once, never per-resolution). */
+  created?: string;
+  /** W3C DID Core: last update timestamp. */
+  updated?: string;
 }
 
 export interface VerificationMethod {
