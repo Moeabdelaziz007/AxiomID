@@ -8,6 +8,7 @@ export {
   getDiagnosis,
   getUSLLMs,
   getChineseLLMs,
+  getMENALLMs,
   getAllLLMs,
 } from "./registry.js";
 

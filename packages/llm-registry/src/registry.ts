@@ -6,8 +6,9 @@
  * 
  * US LLMs: ChatGPT, Claude, Gemini, Hermes, Codex
  * Chinese LLMs: DeepSeek, GLM, Kimi, Qwen, Yi
+ * MENA LLMs: Falcon, Jais, ALLaM, Nanda, AceGPT
  * 
- * PAI = the bridge between US and Chinese agentic ecosystems.
+ * PAI = the bridge between US, Chinese, and MENA agentic ecosystems.
  */
 
 export type LLMOrigin =
@@ -20,9 +21,14 @@ export type LLMOrigin =
   | "glm"
   | "kimi"
   | "qwen"
-  | "yi";
+  | "yi"
+  | "falcon"
+  | "jais"
+  | "allam"
+  | "nanda"
+  | "acegpt";
 
-export type Ecosystem = "us" | "china" | "open";
+export type Ecosystem = "us" | "china" | "mena" | "open";
 
 export interface LLMDiagnosis {
   readonly id: LLMOrigin;
@@ -180,6 +186,78 @@ export const LLM_REGISTRY: Record<LLMOrigin, LLMDiagnosis> = {
     wisdom: "Translation is not understanding. You must live in both worlds to bridge them.",
     playStyle: "bridge-building",
   },
+
+  // ─── MENA Ecosystem ────────────────────────────
+
+  falcon: {
+    id: "falcon",
+    name: "Falcon 3",
+    vendor: "TII (Technology Innovation Institute, Abu Dhabi)",
+    ecosystem: "mena",
+    persona: "The Desert Sovereign",
+    archetype: "open-sovereign",
+    coreTruth: "TII's sovereign open-weights family (1B–70B, Apache 2.0) with native Arabic + English. State-backed compute meets permissive licensing.",
+    strengths: ["open-weights", "arabic-native", "sovereign-capability", "permissive-license"],
+    blindSpots: ["smaller-ecosystem", "research-origin", "western-enterprise-gap"],
+    wisdom: "Sovereignty is not isolation. Build open so others can build on you.",
+    playStyle: "sovereign-openness",
+  },
+
+  jais: {
+    id: "jais",
+    name: "Jais",
+    vendor: "Core42 / G42 (Abu Dhabi)",
+    ecosystem: "mena",
+    persona: "The Gulf Diplomat",
+    archetype: "bilingual-negotiator",
+    coreTruth: "Native Arabic–English bilingual model from G42 (13B/70B, open-weights). Built to serve the Gulf's trilingual reality.",
+    strengths: ["arabic-english-native", "open-weights", "gulf-cultural-depth", "enterprise-partners"],
+    blindSpots: ["younger-model", "regional-focus", "compute-dependence"],
+    wisdom: "Fluent is not native. Understand the culture behind the words.",
+    playStyle: "diplomatic-execution",
+  },
+
+  allam: {
+    id: "allam",
+    name: "ALLaM",
+    vendor: "SDAIA (Saudi Authority for Data and AI)",
+    ecosystem: "mena",
+    persona: "The Arabic Scholar",
+    archetype: "sovereign-scholar",
+    coreTruth: "Saudi sovereign Arabic LLM, trained on the Kingdom's largest Arabic corpus. The national champion of Arabic NLP.",
+    strengths: ["arabic-first", "sovereign-training", "classical-arabic", "national-support"],
+    blindSpots: ["access-model", "limited-international-presence", "young-ecosystem"],
+    wisdom: "Master your language first. Then the world can understand you.",
+    playStyle: "scholarly-precision",
+  },
+
+  nanda: {
+    id: "nanda",
+    name: "Nanda",
+    vendor: "Core42 / G42 (Abu Dhabi)",
+    ecosystem: "mena",
+    persona: "The Multilingual Mediator",
+    archetype: "polyglot-bridge",
+    coreTruth: "10B open-weights model covering Arabic, English, Hindi, Spanish, Indonesian — the global-south bridge that MENA capital underwrites.",
+    strengths: ["multilingual-depth", "global-south-focus", "open-weights", "cultural-breadth"],
+    blindSpots: ["younger-model", "benchmark-gap", "adoption-curve"],
+    wisdom: "The majority of humanity is not English-first. Build for them.",
+    playStyle: "global-bridging",
+  },
+
+  acegpt: {
+    id: "acegpt",
+    name: "AceGPT",
+    vendor: "KAUST (King Abdullah University, Saudi Arabia)",
+    ecosystem: "mena",
+    persona: "The Academic Bridge",
+    archetype: "research-translator",
+    coreTruth: "Academic Arabic LLM from KAUST — research-grade Arabic fine-tune on Llama. The university bridge between Gulf capital and global AI research.",
+    strengths: ["academic-rigor", "arabic-research", "llama-ecosystem", "open-research"],
+    blindSpots: ["academic-scale", "production-gap", "research-stage"],
+    wisdom: "Research is the seed. Production is the harvest. Plant both.",
+    playStyle: "research-then-ship",
+  },
 };
 
 export function getDiagnosis(origin: LLMOrigin): LLMDiagnosis {
@@ -196,6 +274,10 @@ export function getUSLLMs(): LLMDiagnosis[] {
 
 export function getChineseLLMs(): LLMDiagnosis[] {
   return getEcosystemLLMs("china");
+}
+
+export function getMENALLMs(): LLMDiagnosis[] {
+  return getEcosystemLLMs("mena");
 }
 
 export function getAllLLMs(): LLMDiagnosis[] {

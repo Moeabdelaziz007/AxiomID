@@ -32,13 +32,23 @@ Agents apply, review, validate, and test.
 | Qwen | The Enterprise | Alibaba's infinite resources. Multi-size. Cloud-native. |
 | Yi | The Cultural Bridge | Kai-Fu Lee lived both worlds. Native bilingual. |
 
-## PAI = The Bridge
+## MENA Ecosystem
 
-PAI is the only infrastructure that connects US and Chinese agentic ecosystems.
+| LLM | Persona | Core Truth |
+|-----|---------|------------|
+| Falcon 3 | The Desert Sovereign | TII open-weights (Apache 2.0), native Arabic + English |
+| Jais | The Gulf Diplomat | G42 native Arabic–English bilingual (13B/70B) |
+| ALLaM | The Arabic Scholar | SDAIA sovereign Saudi Arabic LLM |
+| Nanda | The Multilingual Mediator | G42 10B — AR/EN/HI/ES/ID global-south bridge |
+| AceGPT | The Academic Bridge | KAUST research-grade Arabic fine-tune |
+
+## PAI = The Bridge (US ↔ China ↔ MENA)
+
+PAI is the only infrastructure that connects US, Chinese, and MENA agentic ecosystems.
 Not through politics — through code. Infrastructure doesn't need approval.
 
 ```typescript
-import { createPersona, getChineseLLMs } from "@pai/llm-registry";
+import { createPersona, getChineseLLMs, getMENALLMs } from "@pai/llm-registry";
 
 // Create a DeepSeek-powered agent with inherited persona
 const deepseekAgent = createPersona("deepseek");
@@ -49,6 +59,11 @@ const plan = deepseekAgent.proposePlan(
 
 // Get all Chinese LLMs for cross-ecosystem collaboration
 const chineseLLMs = getChineseLLMs();
+
+// Get all MENA LLMs — Arabic-first agents for the Gulf market
+const menaLLMs = getMENALLMs();
+const jaisAgent = createPersona("jais");
+const gulfPlan = jaisAgent.proposePlan("Launch in UAE", ["Arabic-first"]);
 ```
 
 ## Persona Inheritance

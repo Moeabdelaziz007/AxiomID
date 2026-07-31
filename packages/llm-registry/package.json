@@ -1,7 +1,7 @@
 {
   "name": "@pai/llm-registry",
-  "version": "0.1.0",
-  "description": "Honest LLM diagnosis + persona inheritance for PAI agents — US + Chinese ecosystems",
+  "version": "0.2.0",
+  "description": "Honest LLM diagnosis + persona inheritance for PAI agents — US + China + MENA ecosystems",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "license": "MIT",
@@ -10,9 +10,9 @@
   "scripts": {
     "build": "tsc --outDir dist --declaration --typeRoots []",
     "type-check": "tsc --noEmit --typeRoots []",
-    "test": "node --input-type=module -e \"const {LLM_REGISTRY} = await import('./dist/registry.js'); const ok = Object.keys(LLM_REGISTRY).length === 10; console.log(ok ? 'PASS: 10 LLMs' : 'FAIL'); process.exit(ok ? 0 : 1)\""
+    "test": "node --input-type=module -e \"const {LLM_REGISTRY} = await import('./dist/registry.js'); const ok = Object.keys(LLM_REGISTRY).length === 15; console.log(ok ? 'PASS: 15 LLMs (5 US + 5 China + 5 MENA)' : 'FAIL: expected 15, got ' + Object.keys(LLM_REGISTRY).length); process.exit(ok ? 0 : 1)\""
   },
-  "keywords": ["llm", "persona", "agent", "pai", "deepseek", "glm", "kimi", "qwen", "yi", "bridge"],
+  "keywords": ["llm", "persona", "agent", "pai", "bridge", "us-china-mena", "falcon", "jais", "allam", "nanda", "acegpt", "deepseek", "qwen"],
   "author": "Mohamed Abdelaziz <mohamed@pai.build>",
   "dependencies": {
     "@pai/atom": "1.0.0-immutable"
