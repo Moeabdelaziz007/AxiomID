@@ -73,7 +73,6 @@
     "d3": "^7.9.0",
     "framer-motion": "^12.42.2",
     "html2canvas": "^1.4.1",
-    "isomorphic-dompurify": "^2.26.0",
     "jose": "^5.9.6",
     "lucide-react": "^1.25.0",
     "@mem7ai/mem7": "^0.3.3",
@@ -94,6 +93,7 @@
   "devDependencies": {
     "@emulators/adapter-next": "^0.9.0",
     "@emulators/github": "^0.9.0",
+    "@jest/globals": "^30.4.1",
     "@playwright/test": "^1.61.1",
     "@sentry/nextjs": "^10.67.0",
     "@tailwindcss/postcss": "^4",
