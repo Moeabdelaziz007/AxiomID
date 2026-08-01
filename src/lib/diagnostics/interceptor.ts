@@ -159,7 +159,7 @@ function interceptPiSdk() {
 
 function interceptFetch() {
   origFetch = window.fetch.bind(window);
-  window.fetch = async (...args: Parameters<typeof globalThis.fetch>) => {
+  window.fetch = (async (...args: Parameters<typeof globalThis.fetch>) => {
     const url = typeof args[0] === "string" ? args[0] : args[0] instanceof URL ? args[0].toString() : (args[0] as Request)?.url || "unknown";
     const method = args[1]?.method || "GET";
 
@@ -184,5 +184,5 @@ function interceptFetch() {
       });
       throw err;
     }
-  };
+  }) as unknown as typeof fetch;
 }
