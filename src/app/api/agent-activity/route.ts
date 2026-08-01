@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
         by: ["level", "source"],
         where,
         _count: { _all: true },
-        orderBy: { _count: { _all: "desc" } },
+        orderBy: { _count: { id: "desc" } },
         take: 50,
       });
 

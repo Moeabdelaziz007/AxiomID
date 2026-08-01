@@ -21,20 +21,20 @@ export default function HeroSection({ t }: HeroSectionProps) {
           <div className="space-y-2">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-[1.1]">
               <span className="block animate-slide-up" style={{ animationDelay: "0.1s" }}>
-                {t("hero_create_your")}
+                {t("hero_headline_en")}
               </span>
               <span
                 className="block text-transparent bg-clip-text bg-gradient-to-r from-electric-blue via-emerald-400 to-axiom-purple animate-slide-up"
                 style={{ animationDelay: "0.2s" }}
               >
-                {t("hero_ai_identity")}
+                {t("hero_headline_rules_en")}
               </span>
             </h1>
             <p
               className="text-sm sm:text-base text-zinc-200 max-w-xl mx-auto md:mx-0 animate-slide-up leading-relaxed mt-4"
               style={{ animationDelay: "0.3s" }}
             >
-              {t("hero_desc")}
+              {t("landing_tagline")}
             </p>
           </div>
 

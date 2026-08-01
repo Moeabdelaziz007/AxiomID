@@ -31,7 +31,7 @@ import { calculateTrustScore } from "./trust";
 import type { UserAgent, Skill, SkillInstallation } from "@prisma/client";
 
 type AgentWithRelations = UserAgent & {
-  user: { username: string; walletAddress: string | null };
+  user: { piUsername: string; walletAddress: string | null; xp: number };
   installedSkills: (SkillInstallation & { skill: Skill })[];
 };
 
@@ -42,9 +42,9 @@ type AgentWithRelations = UserAgent & {
 export function generateAgentLandingHtml(agent: AgentWithRelations, trustScore: number): string {
   const agentUrl = agent.subdomain
     ? `https://${agent.subdomain}.axiomid.app`
-    : `https://axiomid.app/agent/${agent.user.username}`;
+    : `https://axiomid.app/agent/${agent.user.piUsername}`;
 
-  const passportUrl = `https://axiomid.app/passport/${agent.user.username}`;
+  const passportUrl = `https://axiomid.app/passport/${agent.user.piUsername}`;
   const skillsHtml = agent.installedSkills
     .filter((is) => is.status === "active")
     .map(
@@ -74,7 +74,7 @@ export function generateAgentLandingHtml(agent: AgentWithRelations, trustScore: 
     .avatar { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, #8b5cf6, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700; color: white; flex-shrink: 0; }
     .avatar img { width: 100%; height: 100%; border-radius: 16px; object-fit: cover; }
     .name { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.25rem; }
-    .username { font-size: 0.85rem; color: #71717a; font-family: ui-monospace, monospace; }
+    .piUsername { font-size: 0.85rem; color: #71717a; font-family: ui-monospace, monospace; }
     .trust-ring { display: flex; align-items: center; gap: 0.5rem; margin: 1rem 0; padding: 0.75rem 1rem; background: rgba(255,255,255,0.03); border-radius: 12px; }
     .trust-score { font-size: 1.5rem; font-weight: 700; color: ${trustColor}; }
     .trust-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #71717a; }
@@ -103,7 +103,7 @@ export function generateAgentLandingHtml(agent: AgentWithRelations, trustScore: 
       </div>
       <div>
         <div class="name">${escapeHtml(agent.name)}</div>
-        <div class="username">@${escapeHtml(agent.user.username)}</div>
+        <div class="username">@${escapeHtml(agent.user.piUsername)}</div>
       </div>
     </div>
 
@@ -170,7 +170,7 @@ export async function publishAgentLandingPage(
     const agent = await prisma.userAgent.findUnique({
       where: { id: agentId },
       include: {
-        user: { select: { username: true, walletAddress: true } },
+        user: { select: { piUsername: true, walletAddress: true, xp: true } },
         installedSkills: {
           where: { status: "active" },
           include: { skill: true },
@@ -185,11 +185,11 @@ export async function publishAgentLandingPage(
     }
 
     // Calculate current trust score
-    const trustScore = await calculateTrustScore(agent.userId);
+    const trustScore = calculateTrustScore(agent.user.xp, 0);
 
     // Generate landing page HTML
     const html = generateAgentLandingHtml(agent as AgentWithRelations, trustScore);
-    const slug = `axiomid-agent-${agent.user.username}`;
+    const slug = `axiomid-agent-${agent.user.piUsername}`;
 
     // Publish to here.now
     const result = await hereNow.publishPage({
@@ -204,7 +204,7 @@ export async function publishAgentLandingPage(
       data: { hereNowUrl: result.url },
     });
 
-    logger.info(`[here.now] Published landing page for agent ${agent.user.username}: ${result.url}`);
+    logger.info(`[here.now] Published landing page for agent ${agent.user.piUsername}: ${result.url}`);
     return { url: result.url, published: true };
   } catch (err) {
     logger.error(`[here.now] Failed to publish landing page for agent ${agentId}:`, err);

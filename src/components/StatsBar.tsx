@@ -60,19 +60,19 @@ export default function StatsBar() {
   const items = useMemo(() => [
     {
       label: t("pioneers_joined"),
-      value: hasUsers ? (stats?.users ?? 0).toLocaleString() : null,
+      value: hasUsers ? (stats?.users ?? 0).toLocaleString() : "Early Access",
       icon: Users,
       color: "text-emerald-400",
       suffix: hasUsers ? "+" : "",
-      fallback: language === "ar" ? "كن أول من ينضم" : "Be the first to join",
+      fallback: null,
     },
     {
       label: t("agents_deployed"),
-      value: hasAgents ? (stats?.agents ?? 0).toLocaleString() : null,
+      value: hasAgents ? (stats?.agents ?? 0).toLocaleString() : "Early Access",
       icon: Bot,
       color: "electric-blue",
       suffix: hasAgents ? "+" : "",
-      fallback: language === "ar" ? "انشئ وكيلك الآن" : "Create your agent",
+      fallback: null,
     },
     {
       label: t("on_chain"),
