@@ -215,7 +215,7 @@ jest.mock("@/app/context/language-context", () => {
           create_your_passport: "CREATE YOUR PASSPORT",
           passport_load_error: "Failed to load passport",
           // Landing page
-          landing_pi_badge: "Live on Pi Network Testnet",
+          landing_pi_badge: "Pi Network Mainnet Ready",
           landing_headline_en: "Your Identity.",
           landing_headline_rules_en: "Your Rules.",
           landing_headline_ar: "هويتك.",
