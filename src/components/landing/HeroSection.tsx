@@ -1,5 +1,5 @@
 import { Shield } from "lucide-react";
-import HeroCards from "./HeroCards";
+import HeroFlow from "./HeroFlow";
 
 interface HeroSectionProps {
   t: (key: string) => string;
@@ -21,13 +21,13 @@ export default function HeroSection({ t }: HeroSectionProps) {
           <div className="space-y-2">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-[1.1]">
               <span className="block animate-slide-up" style={{ animationDelay: "0.1s" }}>
-                {t("hero_headline_en")}
+                {t("landing_headline_en")}
               </span>
               <span
                 className="block text-transparent bg-clip-text bg-gradient-to-r from-electric-blue via-emerald-400 to-axiom-purple animate-slide-up"
                 style={{ animationDelay: "0.2s" }}
               >
-                {t("hero_headline_rules_en")}
+                {t("landing_headline_rules_en")}
               </span>
             </h1>
             <p
@@ -83,10 +83,10 @@ export default function HeroSection({ t }: HeroSectionProps) {
           </div>
         </div>
 
-        {/* Right: Side-by-Side Showcase Cards */}
+        {/* Right: Progressive Flow (Human → Agent) */}
         <div className="md:col-span-7 flex items-center justify-center">
           <div className="w-full relative animate-[fade-in-up_0.6s_ease-out_0.3s_both]">
-            <HeroCards />
+            <HeroFlow t={t} />
           </div>
         </div>
       </div>
