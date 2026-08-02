@@ -33,14 +33,28 @@
 >
 > This is not a tool. This is a **team** — built by a solo engineer and an AI team that codes, reviews, tests, and ships alongside him. Not AI as a tool. AI as a **team**.
 
+## What is PAI
+
+**PAI = Pi + AI = Agent Economy**
+
+PAI is the agentic layer for Pi Network — a universe where every AI agent has a sovereign identity, a verifiable trust score, native payments, and composable skills. All on zero-cost Cloudflare infrastructure.
+
+| Primitive | What It Is | Status |
+|-----------|------------|--------|
+| **Universal Agent Identity** | `did:agent` — portable, cross-chain, KYC-linked | ✅ Live |
+| **TrustChain** | Append-only hash chain for every agent action | ✅ Live |
+| **Agent Commerce (ACP)** | Pay and get paid in Pi/USDC | ✅ Live |
+| **PAI-Memory (7 layers)** | L1/L2 done · L2-DO · L3 HNSW · L4 Code · L5 Trust · L6 Gossip · L7 Archive | L1/L2 ✅ · L2-DO 🔄 |
+| **Agent Discovery (ADP)** | P2P discovery, signaling, tool sharing | 🔄 In Progress |
+| **PAI-Gspace** | Global workspace for agent teams | 🔄 Scaffold |
+| **PAI-Email** | Catch-all routing + Resend + Durable Objects | ✅ Live |
+| **PAI-MCP** | MCP server exposing Pi Network tools | 🔄 14 tools |
+
+---
+
 ## What This Is
 
 AxiomID is the **Identity Primitive** of PAI — the agentic layer for Pi Network.
-
-```
-PAI = Pi + AI = Agent Economy
-     └── AxiomID = did:agent + TrustChain + PiVerify + OpenIdentity
-```
 
 Every agent gets a **sovereign identity**, a **trust score**, a **verifiable passport**, and a **wallet** — all on free-tier infrastructure, all verifiable on-chain.
 
@@ -75,7 +89,7 @@ export interface PaiSkill<TIn, TOut> {
 
 ---
 
-## What's Available Now
+## What's Live (Production on axiomid.app)
 
 - Pi Browser sign-in and callback handling
 - Demo and real identity claim flows
@@ -87,9 +101,22 @@ export interface PaiSkill<TIn, TOut> {
 - **TrustChain** — append-only hash chain for all agent actions
 - **Truth RAG** — AI-powered Q&A over 6236 verses via Vectorize + Workers AI
 - **Dual-Identity Governance** — explicit separation of Human Sovereign and AI Agent nodes
-- **Agent Discovery** — semantic search via Workers AI + Vectorize
 - **MCP Server** — 14 tools for agent identity, trust, and memory
 - **OpenIdentity Manifest** — portable agent identity spec
+
+## Under Development (Not Yet Live)
+
+- **Agent Discovery (ADP)** — semantic search via Workers AI + Vectorize → [layer-6-discovery/ADP](../layer-6-discovery/ADP) (🔄 In Progress)
+- **PAI-Memory (7 layers)** — L1/L2 done · L2-DO SQLite Adapter in progress → [layer-5-memory/pai-memory](../layer-5-memory/pai-memory) (L1/L2 ✅ · L2-DO 🔄)
+- **PAI-Memory L3+** — L3 HNSW · L4 Code · L5 Trust · L6 Gossip · L7 Archive (⏳ Planned)
+- **PAI-Gspace** — Global workspace for agent teams → [layer-7-workspace/PAI-Gspace](../layer-7-workspace/PAI-Gspace) (🔄 Scaffold)
+- **PAI-Skills** — Composable skill marketplace → [infrastructure/pai-skills](../infrastructure/pai-skills) (🔄 Skeleton)
+- **PAI-CLI** — Developer CLI for agent scaffolding → [layer-7-workspace/pai-cli](../layer-7-workspace/pai-cli) (🔄 Scaffold)
+- **PAI-Email** — Catch-all routing + Resend + Durable Objects → [PAI-Email-Agent](../PAI-Email-Agent) (✅ Live)
+- **PAI-MCP** — MCP server for Pi Network → [layer-4-mcp-gateway/pai-mcp](../layer-4-mcp-gateway/pai-mcp) (🔄 14 tools)
+- **PAI-Agent-Kit** — Open-source framework → [layer-3-agent-runtime/pai-agent-kit](../layer-3-agent-runtime/pai-agent-kit) (🔄 Validator ✅ · Runtime 🔄)
+
+---
 
 ## Routes
 
