@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [verify]
     if: github.event_name == 'pull_request'
-    timeout-minutes: 15
+    timeout-minutes: 30
     continue-on-error: true
     steps:
       - name: Checkout
@@ -72,6 +72,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
       - name: Configure Autonoma
         env:
           AUTONOMA_CLIENT_ID: ${{ secrets.AUTONOMA_CLIENT_ID }}
@@ -80,5 +83,7 @@ jobs:
           npx -y mcp-remote https://api.autonoma.app/v1/mcp/onboarding --pairing-code ${{ secrets.AUTONOMA_PAIRING_CODE }}
 
       - name: Run E2E against preview
+        env:
+          PLAYWRIGHT_TIMEOUT: 120000
         run: |
-          npx playwright test --project=chromium
+          npx playwright test --project=chromium --timeout=120000
