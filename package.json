@@ -54,7 +54,11 @@
     "build": "prisma generate && next build"
   },
   "dependencies": {
-    "@axiomid/crypto": "^0.1.0",
+    "@pai/crypto": "^0.1.0",
+    "@pai/sdk": "^0.1.0",
+    "@pai/identity": "^0.1.0",
+    "@pai/verify": "^0.1.0",
+    "@pai/wallet": "^0.1.0",
     "@json-render/core": "^0.19.0",
     "@json-render/react": "^0.19.0",
     "@nostics/unplugin": "^1.1.0",
