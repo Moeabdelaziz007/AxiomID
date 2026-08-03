@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  deployments: write
+
 jobs:
   vercel:
     name: Vercel Production Deploy
