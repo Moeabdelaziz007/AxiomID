@@ -15,6 +15,7 @@ jobs:
     uses: pai-list/.github/.github/workflows/vercel-deploy.yml@main
     with:
       project-id: prj_X4BTJe1rDPtxYzIELS2O3uc8q9mU
+      project-name: axiomid-app
       build-command: "npm run build"
       install-command: "npm install"
     secrets:
