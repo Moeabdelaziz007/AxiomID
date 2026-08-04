@@ -53,6 +53,33 @@ export default function Footer({ minimal = false, copyright }: FooterProps) {
           {t("nav_terms")}
           <span className="absolute -bottom-1 left-0 w-0 h-px bg-electric-blue transition-all group-hover:w-full" />
         </Link>
+        <a 
+          href="https://docs.axiomid.app" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="relative text-subtle hover:text-white transition-colors group focus-visible:ring-2 focus-visible:ring-electric-blue focus-visible:outline-none rounded"
+        >
+          {t("nav_docs")}
+          <span className="absolute -bottom-1 left-0 w-0 h-px bg-electric-blue transition-all group-hover:w-full" />
+        </a>
+        <a 
+          href="https://github.com/pai-list/AxiomID" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="relative text-subtle hover:text-white transition-colors group focus-visible:ring-2 focus-visible:ring-electric-blue focus-visible:outline-none rounded"
+        >
+          GitHub
+          <span className="absolute -bottom-1 left-0 w-0 h-px bg-electric-blue transition-all group-hover:w-full" />
+        </a>
+        <a 
+          href="https://github.com/pai-list" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="relative text-subtle hover:text-white transition-colors group focus-visible:ring-2 focus-visible:ring-electric-blue focus-visible:outline-none rounded"
+        >
+          PAI Universe
+          <span className="absolute -bottom-1 left-0 w-0 h-px bg-electric-blue transition-all group-hover:w-full" />
+        </a>
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-glass border border-glass-hover text-subtle">
           <div className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />
           <span className="text-[9px] uppercase tracking-tighter font-semibold">v{process.env.NEXT_PUBLIC_APP_VERSION || "0.1.2"}</span>
