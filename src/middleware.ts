@@ -7,7 +7,7 @@ const ROOT_DOMAIN = "axiomid.app";
 
 const RESERVED_SUBDOMAINS = new Set([
   "www", "api", "mail", "app", "admin", "dashboard",
-  "blog", "status", "cdn", "assets", "static", "build"
+  "docs", "openid", "blog", "status", "cdn", "assets", "static", "build"
 ]);
 
 const CORS_ALLOWED_ORIGINS = [
