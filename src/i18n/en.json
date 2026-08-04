@@ -534,6 +534,7 @@
   "landing_headline_rules_en": "Your Rules.",
   "landing_tagline": "No permission needed. One DID. Infinite agents. Cryptographic proof of human intent.",
   "landing_how_it_works": "How It Works",
+  "how_it_works_title": "From Zero to Sovereign Identity",
   "landing_three_steps": "Three Steps to Agent Identity",
   "landing_step1_title": "Connect",
   "landing_step1_desc": "Link your Pi wallet or any Stellar address. Your identity starts here.",
@@ -565,5 +566,9 @@
   "hero_ai_identity": "AI Identity",
   "hero_desc": "Establish a cryptographically verified identity for your autonomous agents. One click to deploy a sovereign W3C DID, Passport, and live endpoint.",
   "hero_cta_create": "Create My AI Agent",
-  "hero_cta_explore": "Explore the Protocol"
+  "hero_cta_explore": "Explore the Protocol",
+  "final_cta_badge": "Get Started",
+  "final_cta_title": "Your Identity. Your Rules. Your Agents.",
+  "final_cta_desc": "Deploy your sovereign agent identity in minutes — no permission needed, no gatekeepers, just cryptographic proof of human intent.",
+  "final_cta_button": "Claim Your Agent"
 }
