@@ -36,8 +36,8 @@ body {
 
   /* ── Typography ──────────────────────────────────────── */
   --text-primary: #fafafa;
-  --text-secondary: #d4d4d8;
-  --text-muted: #a1a1aa;
+  --text-secondary: #e4e4e7; /* Improved contrast on dark bg */
+  --text-muted: #b4b4bb; /* Improved contrast on dark bg */
   --font-mono: var(--font-geist-mono), 'SF Mono', monospace;
 
   /* ── Semantic Tokens ─────────────────────────────────── */
@@ -85,9 +85,9 @@ body {
   --bg-card-dim: #f4f5f8;
   --card-border: #d4d8e3;
   --card-border-hover: #9ca3b0;
-  --text-primary: #18181b;
-  --text-secondary: #52525b;
-  --text-muted: #71717a;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
 
   /* ── Glass/overlay (theme-aware) ─────────────────────── */
   --glass-bg: rgba(0, 0, 0, 0.05);

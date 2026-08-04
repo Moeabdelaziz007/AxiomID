@@ -197,6 +197,7 @@
   "passport_not_found_description": "This passport doesn't exist or has been removed.",
   "passport_load_error": "Failed to load passport",
   "something_went_wrong": "Something went wrong",
+  "unexpected_error": "An unexpected error occurred. Please try again.",
   "try_again": "TRY AGAIN",
   "signin_failed": "Sign-in failed",
   "completing_sign_in": "Completing sign-in...",
