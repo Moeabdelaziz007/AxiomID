@@ -76,6 +76,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Configure Autonoma
+        timeout-minutes: 10
         env:
           AUTONOMA_CLIENT_ID: ${{ secrets.AUTONOMA_CLIENT_ID }}
           AUTONOMA_SECRET_ID: ${{ secrets.AUTONOMA_SECRET_ID }}
@@ -86,4 +87,4 @@ jobs:
         env:
           PLAYWRIGHT_TIMEOUT: 120000
         run: |
-          npx playwright test --project=chromium --timeout=120000
+          npx playwright test --project=desktop-chrome --timeout=120000
