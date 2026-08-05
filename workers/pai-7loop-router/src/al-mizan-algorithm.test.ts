@@ -4,7 +4,7 @@ import {
   updatePerformance,
   REAL_PROVIDERS,
   RouterConfig,
-} from './al-mizan-algorithm.js';
+} from './al-mizan-algorithm';
 
 console.log('================================================================');
 console.log('⚖️ TESTING AL-MIZAN MULTI-ARMED BANDIT ALGORITHM (PURE FUNCTIONS)');
