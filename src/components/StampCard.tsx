@@ -120,7 +120,10 @@ export function StampCard({
           </button>
         ) : showInput ? (
           <form onSubmit={handleSubmit} className="space-y-2">
+            <label htmlFor="stamp-handle" className="sr-only">{t('placeholder_username')}</label>
             <input
+              id="stamp-handle"
+              name="handle"
               type="text"
               required
               value={handle}

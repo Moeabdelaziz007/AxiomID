@@ -1,0 +1,29 @@
+name = "pai-drv"
+main = "src/worker.ts"
+compatibility_date = "2026-07-20"
+compatibility_flags = ["nodejs_compat"]
+
+# ─── R2: File storage (10GB free, zero egress) ────────────────────────
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "pai-drv-storage"
+
+# ─── D1: Metadata database (5GB, 5M reads/day free) ───────────────────
+[[d1_databases]]
+binding = "DB"
+database_name = "pai-drv-metadata"
+database_id = "CREATE_WITH: npx wrangler d1 create pai-drv-metadata"
+
+# ─── KV: Session tokens (free plan) ───────────────────────────────────
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "CREATE_WITH: npx wrangler kv namespace create SESSIONS"
+
+# ─── Static Assets: Frontend SPA (unlimited free) ─────────────────────
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# ─── Observability (free during beta) ─────────────────────────────────
+[observability]
+enabled = true

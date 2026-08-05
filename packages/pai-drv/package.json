@@ -1,0 +1,20 @@
+{
+  "name": "@pai/drv",
+  "version": "0.1.0",
+  "description": "PAI-DRV — Google Drive clone on Cloudflare free tier (R2 + D1 + KV + Workers)",
+  "main": "src/worker.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create pai-drv-metadata",
+    "db:migrate": "wrangler d1 execute pai-drv-metadata --file=schema.sql",
+    "kv:create": "wrangler kv namespace create SESSIONS",
+    "r2:create": "wrangler r2 bucket create pai-drv-storage",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260702.1",
+    "typescript": "^5.6.0",
+    "wrangler": "^4.0.0"
+  }
+}

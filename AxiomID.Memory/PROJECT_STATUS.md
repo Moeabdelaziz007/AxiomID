@@ -1,7 +1,7 @@
 # AxiomID — Project Status & Knowledge Base
 
 > **The single source of truth for the AxiomID project.**
-> Updated: 2026-07-22 | Version: 0.3.0
+> Updated: 2026-07-20 | Version: 0.2.0 | Verified with pygount + grep + gh CLI
 
 ---
 
@@ -17,36 +17,25 @@ AxiomID is the **Human Authorization Protocol** for AI agents and humans. Pi Bro
 
 | Metric | Value |
 |--------|-------|
-| **Version** | 0.3.0 |
-| **Test Files** | 189 |
-| **Test Cases** | 3,289 (passing, `it()`+`test()` blocks) |
+| **Version** | 0.2.0 |
+| **Test Files** | 187 |
+| **Test Cases** | 3,208 (it()/test() blocks, verified via grep 20 Jul 2026) |
 | **Test Lines** | ~39,500+ |
 | **E2E Files** | 14 (Playwright, `.e2e.ts`) |
 | **E2E Lines** | ~2,500 |
-| **API Route Dirs** | 62 |
+| **API Route Dirs** | 28 (top-level under /api/) |
 | **Prisma Models** | 26 |
+| **Pages** | 30 (page.tsx files) |
 | **Tech Stack** | Next.js 16, React 19, Prisma 6, Tailwind 4, Framer Motion 12 |
 | **Database** | PostgreSQL (Prisma) + D1 (edge) + Vectorize (semantic) |
 | **Auth** | Pi Network SDK + Ed25519 sovereign keys |
 | **CI/CD** | GitHub Actions → Vercel |
-| **Organization** | `pai-list` (19 repos) · `pai-bye` Enterprise |
-| **License Status**| 100% MIT Licensed across all 8 PAI repos |
+| **Open PRs** | 3 (#365, #364, #360) |
+| **Open Issues** | 8 (#153, #222-#225, #367, #368, #369) |
 
 ---
 
 ## 3. What's Done
-
-### 2026-07-22 Zero-Trust Agentic Security & Collaboration Milestone ✅
-- **Open-Sourced Al-Mizan 7-Loop Cloudflare Worker:** Created `workers/pai-7loop-router/LICENSE` (MIT) & comprehensive REST API developer guide (`README.md`).
-- **210 Live KV Observations Verified:** Executed concurrent `seed_100_observations.mjs` populating 210 records to Cloudflare Worker runtime; verified totalObservations > 100 & live EMA weight convergence.
-- **IQRA Agentic Policy Agent (`@axiomid/iqra-policy-agent`):** Built eBPF-style runtime tool call firewall with declarative `AgenticNetworkPolicy` manifests & Divine Accountability Conscience Substrate. 5/5 real tests passing ($61\mu\text{s} - 345\mu\text{s}$).
-- **ModelScope & Gitee Chinese Code Ecosystem Researcher:** Built `scripts/chinese_repos_researcher.py` directly querying Alibaba ModelScope OpenAPI (`https://modelscope.cn/openapi/v1/models`) & Gitee.
-- **Agentic Workspace Subscriber Collaboration (`subscriber-collaboration.ts`):** Implemented Gitee Subscribers pattern (`GET /v5/repos/{owner}/{repo}/subscribers`) in `@axiomid/sdk`, enabling autonomous subagents (`TestRunnerAgent`, `SecurityAuditorAgent`) to react to workspace events without token-polling loops.
-- **DID Integrity Guard & Anti-Scam Engine (`@axiomid/did-integrity-guard`):** Built W3C DID validator, Sybil bot risk scoring engine (velocity/fan-out anomalies), and code clone plagiarism scanner (Gitee CopyCat algorithm + static backdoor analysis). 5/5 real tests passing with ZERO mocks.
-- **Resend MCP Integration:** Added `resend` server configuration to `.mcp.json` for automated waitlist processing & email notifications.
-
-
-
 
 
 ### PR #288: Expert Auto-Labeler ✅
@@ -229,7 +218,7 @@ AxiomID is the **Human Authorization Protocol** for AI agents and humans. Pi Bro
 
 ## 6. Architecture
 
-### Route Inventory (27 API dirs)
+### Route Inventory (28 API route dirs)
 
 **Public:**
 - `/` Landing
@@ -241,7 +230,7 @@ AxiomID is the **Human Authorization Protocol** for AI agents and humans. Pi Bro
 - `/status` Service health
 - `/dashboard` Main dashboard (Identity, Marketplace, Settings tabs)
 
-**API Routes (27 dirs):**
+**API Routes (28 dirs):**
 - `/api/admin` Admin operations
 - `/api/agent` Agent CRUD
 - `/api/agents` Agent listing
@@ -284,7 +273,7 @@ AxiomID is the **Human Authorization Protocol** for AI agents and humans. Pi Bro
 | `src/lib/math-physics.ts` | Math/physics engine (2,068 lines) |
 | `prisma/schema.prisma` | Database schema |
 
-### Database Models (25)
+### Database Models (26)
 
 | Model | Purpose |
 |-------|---------|

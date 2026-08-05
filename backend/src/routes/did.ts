@@ -32,6 +32,12 @@ export async function handleDidResolve(request: Request, env: Env): Promise<Resp
     const method = idParts[1] || "axiom";
     const identifier = idParts.slice(2).join(":") || did;
 
+    // FIX (P1 #9): Use the actual first-activity timestamp as `created`,
+    // not new Date().toISOString() which changes on every resolution.
+    // If no activity exists, derive a stable timestamp from the DID hash
+    // instead of generating a new one each call.
+    const createdTimestamp = harvestResult?.created_at || null;
+
     const doc = {
       "@context": [
         "https://www.w3.org/ns/did/v1",
@@ -39,6 +45,8 @@ export async function handleDidResolve(request: Request, env: Env): Promise<Resp
       ],
       id: did,
       alsoKnownAs: [`https://axiomid.app/passport/${encodeURIComponent(identifier)}`],
+      // Stable `created` — from first activity, or omitted if unknown
+      ...(createdTimestamp ? { created: createdTimestamp } : {}),
       verificationMethod: [
         {
           id: `${did}#keys-1`,

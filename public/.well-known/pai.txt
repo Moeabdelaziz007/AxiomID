@@ -1,0 +1,24 @@
+# PAI Network Configuration
+# PAI Network Identity Layer
+# https://pai.network
+
+# PAI Identity Endpoints
+PAI-DID-Resolver: https://axiomid.app/api/did-document
+PAI-Passport: https://axiomid.app/passport/
+PAI-Agent-Registry: https://axiomid.app/api/agents
+PAI-Trust-Chain: https://axiomid.app/api/trust-chain
+
+# PAI Network Parameters
+Network: mainnet
+Chain-ID: pai-mainnet-1
+RPC: https://rpc.pai.network
+
+# Pi Network Integration
+Pi-OAuth: https://axiomid.app/api/auth/pi
+Pi-Payments: https://axiomid.app/api/pi/payment
+
+# PAI Protocols
+# - ADP (Agent Discovery Protocol)
+# - DIDComm v2 for messaging
+# - TrustChain for reputation
+# - KYA (Know Your Agent) verification

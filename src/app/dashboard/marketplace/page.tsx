@@ -848,6 +848,8 @@ export default function MarketplacePage() {
                         </div>
                       </div>
                       <textarea
+                        id="review-text"
+                        name="reviewText"
                         value={newReviewText}
                         onChange={(e) => setNewReviewText(e.target.value)}
                         placeholder={t("marketplace_review_placeholder") || "Share your feedback about this skill..."}

@@ -128,11 +128,9 @@ export const TiltCard = forwardRef<HTMLDivElement, TiltCardProps>(
     return (
       <div
         ref={ref}
+        onMouseMove={handleMove}
         onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => {
-          handleLeave();
-          setHovered(false);
-        }}
+        onMouseLeave={() => setHovered(false)}
         style={{
           ...style,
           willChange: 'transform',
@@ -461,4 +459,7 @@ export const NeuralNetworkViz = forwardRef<HTMLDivElement, NeuralNetworkVizProps
 
 NeuralNetworkViz.displayName = 'NeuralNetworkViz'
 
-// Components are individually exported above
+// ============================================
+// Export all
+// ============================================
+export { ScrollReveal } from './wow-moments'

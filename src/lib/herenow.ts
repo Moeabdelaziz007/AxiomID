@@ -2,6 +2,12 @@ function getApiUrl(): string {
   return process.env.HERENOW_API_URL || "https://api.here.now/v1";
 }
 
+// --- OFFICIAL DOCUMENTATION ---
+// Website: https://here.now
+// API: POST /v1/pages (create), PUT /v1/pages/:id/content (upload), POST /v1/pages/:id/finalize (publish)
+// Auth: Bearer token via HERENOW_TOKEN env var
+// Full catalog: docs/AGENT_SERVICE_CATALOG.md §10
+
 function getToken(): string {
   return process.env.HERENOW_TOKEN || "";
 }

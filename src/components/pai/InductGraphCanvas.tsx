@@ -1,9 +1,20 @@
 'use client'
 
-import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo, Fragment } from 'react'
 import { cn } from '@/lib/utils'
 
 // Types for our graph data
+interface NodeMetadata {
+  layer?: string | number
+  trust?: string | number
+  loop?: string | number
+  role?: string
+  sandbox?: boolean
+  compiler?: boolean
+  verifiable?: boolean
+  zeroCmd?: string
+}
+
 interface GraphNode {
   id: string
   label: string
@@ -14,7 +25,7 @@ interface GraphNode {
   type: 'agent' | 'skill' | 'endpoint' | 'patch' | 'state'
   color: string
   size: number
-  metadata?: Record<string, unknown>
+  metadata?: NodeMetadata
 }
 
 interface GraphEdge {
@@ -49,13 +60,13 @@ const COLORS = {
   patch: '#FFD700',
   state: '#FF6B6B',
   background: '#0A0A0F',
+  border: 'rgba(57, 255, 20, 0.15)',
   grid: 'rgba(57, 255, 20, 0.03)',
   gridAccent: 'rgba(57, 255, 20, 0.08)',
   text: '#E8E8ED',
   textMuted: '#6B6B7B',
   accent: '#39FF14',
   accentDim: 'rgba(57, 255, 20, 0.15)',
-  border: 'rgba(255, 255, 255, 0.08)',
   patchPending: '#FFA500',
   patchApproved: '#39FF14',
   patchRejected: '#FF6B6B',
@@ -88,7 +99,7 @@ export function InductGraphCanvas({
   const containerRef = useRef<HTMLDivElement>(null)
   const animationRef = useRef<number | null>(null)
 
-  const [realMode, setRealMode] = useState(initialRealMode)
+  // State management with URL sync
   const [graphState, setGraphState] = useState<GraphState>(() => {
     if (typeof window !== 'undefined') {
       return loadStateFromURL() ?? defaultGraphState()
@@ -104,6 +115,7 @@ export function InductGraphCanvas({
   const [viewport, setViewport] = useState({ x: 0, y: 0, zoom: 1 })
   const [showGrid, setShowGrid] = useState(true)
   const [showLabels, setShowLabels] = useState(true)
+  const [realMode, setRealMode] = useState(initialRealMode)
   const [animationTime, setAnimationTime] = useState(0)
 
   // Generate default graph state with PAI network topology
@@ -587,7 +599,7 @@ export function InductGraphCanvas({
     setGraphState(s => ({ ...s, viewport: newViewport }))
   }, [graphState.viewport])
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement> | KeyboardEvent) => {
     if (e.key === 'g') setShowGrid(!showGrid)
     if (e.key === 'l') setShowLabels(!showLabels)
     if (e.key === 'Escape') setGraphState(s => ({ ...s, selectedNodeId: null }))
@@ -623,7 +635,7 @@ export function InductGraphCanvas({
     <div
       ref={containerRef}
       className={cn('relative w-full h-full bg-bg-deepest overflow-hidden', className)}
-      onKeyDown={(e) => handleKeyDown(e.nativeEvent)}
+      onKeyDown={handleKeyDown}
     >
       <canvas
         ref={canvasRef}
@@ -722,10 +734,16 @@ export function InductGraphCanvas({
                         {selectedNode.name} ({selectedNode.type.toUpperCase()})
                       </h3>
                       <p className="text-xs font-mono" style={{ color: 'var(--text-tertiary)' }}>
-                        {selectedNode.metadata?.layer ? `Layer: ${selectedNode.metadata.layer}` : ''}
-                        {selectedNode.metadata?.trust ? ` • Trust: ${selectedNode.metadata.trust}` : ''}
-                        {selectedNode.metadata?.loop ? ` • Loop: ${selectedNode.metadata.loop}` : ''}
-                        {selectedNode.metadata?.role ? ` • Role: ${selectedNode.metadata.role}` : ''}
+                        {(() => {
+                          const m = selectedNode.metadata;
+                          if (!m) return '';
+                          return [
+                            m.layer && `Layer: ${m.layer}`,
+                            m.trust && ` • Trust: ${m.trust}`,
+                            m.loop && ` • Loop: ${m.loop}`,
+                            m.role && ` • Role: ${m.role}`,
+                          ].filter(Boolean).join('');
+                        })()}
                       </p>
                     </div>
                   </div>
@@ -797,10 +815,10 @@ export function InductGraphCanvas({
                     <div className="grid grid-cols-2 gap-1 text-[10px] font-mono"
                       style={{ color: 'var(--text-secondary)' }}>
                       {Object.entries(selectedNode.metadata).map(([k, v]) => (
-                        <React.Fragment key={k}>
+                        <Fragment key={k}>
                           <span style={{ color: 'var(--text-tertiary)' }}>{k}</span>
                           <span style={{ color: 'var(--text-primary)' }}>{String(v)}</span>
-                        </React.Fragment>
+                        </Fragment>
                       ))}
                     </div>
                   </div>

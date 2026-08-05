@@ -1,0 +1,9 @@
+# AxiomID Security Policy
+Contact: security@axiomid.app
+Contact: https://axiomid.app/security
+Preferred-Languages: en, ar
+Canonical: https://axiomid.app/.well-known/security.txt
+Policy: https://axiomid.app/security-policy
+Hiring: https://axiomid.app/careers
+Encryption: https://axiomid.app/pgp-key.txt
+Acknowledgments: https://axiomid.app/hall-of-fame

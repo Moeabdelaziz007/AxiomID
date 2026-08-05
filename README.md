@@ -15,15 +15,15 @@
   <a href="https://axiomid.app/docs"><b>Documentation</b></a> ·
   <a href="https://axiomid.app/passport/demo"><b>Demo Passport</b></a> ·
   <a href="https://axiomid.app/leaderboard"><b>Leaderboard</b></a> ·
-  <a href="https://github.com/pai-list/AxiomID"><b>GitHub</b></a> ·
+  <a href="https://github.com/Moeabdelaziz007/AxiomID"><b>GitHub</b></a> ·
   <a href="https://www.facebook.com/profile.php?id=61583477974464"><b>Facebook</b></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/pai-list/AxiomID/actions"><img src="https://img.shields.io/github/actions/workflow/status/pai-list/AxiomID/ci.yml?branch=main&label=CI&style=flat-square" alt="CI" /></a>
+  <a href="https://github.com/Moeabdelaziz007/AxiomID/actions"><img src="https://img.shields.io/github/actions/workflow/status/Moeabdelaziz007/AxiomID/ci.yml?branch=main&label=CI&style=flat-square" alt="CI" /></a>
   <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square" alt="Next.js" />
   <img src="https://img.shields.io/badge/Pi%20Browser-supported-8b5cf6?style=flat-square" alt="Pi Browser" />
-  <img src="https://img.shields.io/badge/tests-3289%20passed-22c55e?style=flat-square" alt="Tests Passed" />
+  <img src="https://img.shields.io/badge/tests-3208%20cases-22c55e?style=flat-square" alt="Test Cases" />
   <img src="https://img.shields.io/badge/TypeScript-strict-blue?style=flat-square" alt="TypeScript Strict" />
   <img src="https://img.shields.io/badge/SOUL%20Protocol-compliant-emerald?style=flat-square" alt="SOUL Compliant" />
   <img src="https://img.shields.io/badge/OpenIdentity-v0.1-6366f1?style=flat-square" alt="OpenIdentity v0.1" />
@@ -63,12 +63,6 @@ AxiomID is the reference implementation of the **OpenIdentity** protocol — an 
 - **Spend Request** — Agentic Pi payments pipeline (agent requests, user approves, Pi SDK executes)
 - **TrustChain** — Append-only hash chain for all agent actions
 - **Truth RAG** — AI-powered Q&A over 6236 verses via Vectorize + Workers AI
-- **Al-Mizan 7-Loop Router (`workers/pai-7loop-router`)** — Open-source MIT Multi-Armed Bandit model router on Cloudflare Workers (210 live KV observations verified)
-- **IQRA Agentic Policy Agent (`@axiomid/iqra-policy-agent`)** — eBPF-style sub-millisecond tool execution firewall & Divine Accountability Conscience Substrate
-- **DID Integrity Guard (`@axiomid/did-integrity-guard`)** — W3C DID validator, Sybil scammer bot detector (velocity/fan-out anomalies), and Gitee CopyCat code clone scanner
-- **Subscriber Collaboration System (`packages/sdk/src/subscriber-collaboration.ts`)** — Decoupled subagent collaboration engine modeled after Gitee Subscribers API (`GET /v5/repos/{owner}/{repo}/subscribers`)
-- **ModelScope & Gitee Chinese Code Ecosystem Researcher (`scripts/chinese_repos_researcher.py`)** — Live query tool for Alibaba ModelScope OpenAPI & Gitee
-- **Resend MCP Integration** — Automated waitlist email delivery pipeline in `.mcp.json`
 - **MCP Server** — 10 tools for trust, presence, and identity management
 
 ## Routes
@@ -129,7 +123,7 @@ AxiomID is the reference implementation of the **OpenIdentity** protocol — an 
 
 | Layer | Technology |
 |:---|:---|
-| **Frontend** | Next.js 16 · React 19 · Framer Motion 12 · Tailwind 4 |
+| **Frontend** | Next.js 16 · React 19 · Framer Motion 12 · Tailwind 4 · 30 pages |
 | **Backend** | Vercel Serverless · Cloudflare Workers |
 | **Database** | PostgreSQL (Prisma 6) · D1 (edge sync) · Vectorize (semantic search) |
 | **Cache** | Upstash Redis (rate limiting, session state) |
@@ -137,16 +131,16 @@ AxiomID is the reference implementation of the **OpenIdentity** protocol — an 
 | **Auth** | Pi Network SDK · Ed25519 sovereign keys · W3C DID |
 | **Storage** | Cloudflare KV · Vercel Blob |
 | **State/Cache** | TanStack Query v5 (client-side cache) |
-| **CI/CD** | GitHub Actions → Vercel · 3786 tests |
+| **CI/CD** | GitHub Actions → Vercel · 3,208 test cases across 187 files · 14 E2E files |
 
 ## Quick start
 
 ```bash
-git clone https://github.com/pai-list/AxiomID.git
+git clone https://github.com/Moeabdelaziz007/AxiomID.git
 cd AxiomID
 npm install
 cp .env.example .env.local
-# Fill in: DATABASE_URL, PI_API_KEY, PI_TOKEN_ENCRYPTION_KEY, AUTH_TOKEN_SECRET
+# Fill in: DATABASE_URL, PI_API_KEY, SOVEREIGN_KEY_SALT, auth secrets
 npx prisma migrate deploy && npx prisma generate
 npm run dev
 ```
@@ -177,7 +171,7 @@ npx wrangler deploy
 ```bash
 npm run lint       # 0 errors, 0 warnings
 npm run type-check # type check
-npm test           # 3289 tests
+npm test           # 3,208 test cases across 187 files (verified via grep it/test count)
 ```
 
 ## Developer Tooling
@@ -373,8 +367,8 @@ git push origin feat/my-feature
 
 Built with passion in Cairo, Egypt.
 
-<a href="https://github.com/pai-list/AxiomID/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=pai-list/AxiomID" alt="Contributors" />
+<a href="https://github.com/Moeabdelaziz007/AxiomID/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Moeabdelaziz007/AxiomID" alt="Contributors" />
 </a>
 
 </div>

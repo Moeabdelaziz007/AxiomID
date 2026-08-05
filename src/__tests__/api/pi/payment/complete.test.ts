@@ -27,6 +27,7 @@ jest.mock("@/lib/prisma", () => ({
     },
     xpLedger: {
       create: jest.fn(),
+      count: jest.fn().mockResolvedValue(0),
     },
     $transaction: jest.fn((callback) => callback(prisma)),
   },

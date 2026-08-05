@@ -1,16 +1,30 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
-import DOMPurify from "isomorphic-dompurify";
 import Script from "next/script";
 import "./globals.css";
-import SovereignSplash from "@/components/pwa/SovereignSplash";
-import InstallPWA from "@/components/pwa/InstallPWA";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { Providers } from "./providers";
-import { Analytics } from "@vercel/analytics/react";
+import { WalletProvider } from "./context/wallet-context";
+import { SandboxProvider } from "./context/sandbox-provider";
+import { LanguageProvider } from "./context/language-context";
+import { ThemeProvider } from "./context/theme-context";
+import { MotionConfig } from "framer-motion";
+import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
+import InstallPWA from "@/components/pwa/InstallPWA";
+import DynamicThemeColor from "@/components/pwa/DynamicThemeColor";
+import SovereignSplash from "@/components/pwa/SovereignSplash";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { Providers } from "./providers";
+
+/** Escape HTML special characters in JSON-LD structured data. */
+function escapeJsonLd(json: string): string {
+  return json
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/</g, "&lt;");
+}
 
 // Preload fonts for better performance
 const geistSans = Geist({
@@ -167,10 +181,22 @@ export default async function RootLayout({
         </a>
         {/* Pi SDK loaded dynamically by loadPiSdk() in pi-sdk.ts — avoids overriding native Pi in Pi Browser */}
         <Script src="/register-sw.js" strategy="afterInteractive" />
+      <ThemeProvider>
+        <DynamicThemeColor />
         <SovereignSplash />
-        <Providers>
-          <ErrorBoundary>{children}</ErrorBoundary>
-        </Providers>
+        <LanguageProvider>
+          <SandboxProvider>
+            <WalletProvider>
+
+                <Providers>
+                  <MotionConfig reducedMotion="user">
+                    <ErrorBoundary>{children}</ErrorBoundary>
+                  </MotionConfig>
+                </Providers>
+              </WalletProvider>
+            </SandboxProvider>
+          </LanguageProvider>
+        </ThemeProvider>
         <Analytics />
         <SpeedInsights />
          <Toaster
@@ -191,7 +217,7 @@ export default async function RootLayout({
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(JSON.stringify({
+              __html: escapeJsonLd(JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "WebApplication",
                 "name": "AxiomID",
@@ -237,7 +263,7 @@ export default async function RootLayout({
                   "Pi Network Authentication",
                   "Verifiable Credentials"
                 ]
-              }), { ALLOWED_TAGS: [] })
+              })),
             }}
           />
        </body>

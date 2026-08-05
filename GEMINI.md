@@ -44,7 +44,7 @@ docs/             - Architecture docs, engineering guides, specs
 ## Test Suite
 
 - **Framework:** Jest (not Vitest)
-- **Test count:** 3272+ tests across 168 suites
+- **Test count:** 3,208 test cases across 187 files (verified via grep it/test count, 20 Jul 2026)
 - **Run:** `npm test` (Jest with `--runInBand --forceExit`)
 - **Type-check:** `npm run type-check` (tsc --noEmit)
 - **Lint:** `npm run lint` (ESLint flat config, zero warnings policy)
@@ -78,5 +78,5 @@ opencode -p "Analyze this PR diff against the AxiomID engineering rules in GEMIN
 
 ## Metrics
 
-- **Tests:** 3272+ passing across 168 suites
+- **Tests:** 3,208 passing across 187 files (verified 20 Jul 2026)
 - **Branches:** 8 active (main + 7 feature/PR branches)

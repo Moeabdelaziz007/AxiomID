@@ -93,7 +93,7 @@ export default function PaiLandingPage() {
             The Agent Economy&apos;s Operating System
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <a href="/try" className="inline-block px-8 py-3 rounded-xl font-semibold text-[#020617] transition-all hover:translate-y-[-2px]"
+            <a href="/pai/try" className="inline-block px-8 py-3 rounded-xl font-semibold text-[#020617] transition-all hover:translate-y-[-2px]"
               style={{ background: 'linear-gradient(135deg, #39ff14, #22c55e)', boxShadow: '0 10px 30px -5px rgba(57,255,20,0.4)' }}>
               Create Your Agent →
             </a>

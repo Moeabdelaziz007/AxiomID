@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ParticleGrid, ScrollReveal } from '@/components/wow-moments'
+import { ParticleGrid, ScaleIn } from '@/components/wow-moments'
 
 /* ─── Language & Tool Definitions ─── */
 
@@ -46,11 +46,11 @@ export default function PppPage() {
       <section className="min-h-screen flex items-center justify-center relative z-10 pt-4">
         <div className="container-pai text-center">
           {/* page-level breadcrumb */}
-          <Link href="/" className="group inline-flex items-center gap-1.5 text-[10px] font-mono text-white/30 hover:text-white/60 mb-4 tracking-wider uppercase transition-colors">
+          <Link href="/pai" className="group inline-flex items-center gap-1.5 text-[10px] font-mono text-white/30 hover:text-white/60 mb-4 tracking-wider uppercase transition-colors">
             <span className="w-1 h-1 rounded-full bg-white/20 group-hover:bg-[#39FF14] transition-colors" />
             Universe
           </Link>
-          <ScrollReveal>
+          <ScaleIn>
             <span className="text-xs font-mono text-[#39FF14] tracking-[0.2em] uppercase mb-6 block">L6 Protocol</span>
             <h1 className="text-[clamp(36px,8vw,80px)] font-semibold leading-[1.07] tracking-[-2.4px] mb-4 text-gradient-pai">
               PPP Network
@@ -64,21 +64,21 @@ export default function PppPage() {
               <NeonButton href="#lang">Language Map ↓</NeonButton>
               <NeonButton href="#topology" className="!bg-white/5">Topology ↓</NeonButton>
             </div>
-          </ScrollReveal>
+          </ScaleIn>
         </div>
       </section>
 
       {/* Language Selection Matrix */}
       <section id="lang" className="section-pai relative z-10">
         <div className="container-pai">
-          <ScrollReveal>
+          <ScaleIn>
             <h2 className="text-[clamp(28px,5vw,48px)] font-semibold text-center mb-4 tracking-tight">
               Language <span className="text-gradient-pai">Selection Matrix</span>
             </h2>
             <p className="text-white/40 text-center mb-14 max-w-2xl mx-auto">
               One language per job. Each excatly where it belongs. No more, no less.
             </p>
-          </ScrollReveal>
+          </ScaleIn>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
             {LANGUAGES.map(l => (
@@ -103,14 +103,14 @@ export default function PppPage() {
       {/* Project Evidence — Zig confirmed */}
       <section className="section-pai relative z-10">
         <div className="container-pai">
-          <ScrollReveal>
+          <ScaleIn>
             <h2 className="text-[clamp(28px,5vw,48px)] font-semibold text-center mb-4 tracking-tight">
               <span className="text-gradient-pai">Zig</span> — Confirmed by Projects
             </h2>
             <p className="text-white/40 text-center mb-14 max-w-2xl mx-auto">
               Your instinct was correct. Zig is real. But there is a pattern to where it works and where it does not.
             </p>
-          </ScrollReveal>
+          </ScaleIn>
 
           <div className="max-w-4xl mx-auto space-y-4">
             {PROJECTS.map(p => (
@@ -150,14 +150,14 @@ export default function PppPage() {
       {/* Topology Secrets */}
       <section id="topology" className="section-pai relative z-10">
         <div className="container-pai">
-          <ScrollReveal>
+          <ScaleIn>
             <h2 className="text-[clamp(28px,5vw,48px)] font-semibold text-center mb-4 tracking-tight">
               Topology <span className="text-gradient-pai">Secrets</span>
             </h2>
             <p className="text-white/40 text-center mb-14 max-w-2xl mx-auto">
               The topology is fractal. Every endpoint is a language layer. Every language is an endpoint.
             </p>
-          </ScrollReveal>
+          </ScaleIn>
 
           {/* Layer Stack */}
           <div className="max-w-3xl mx-auto relative">
@@ -203,7 +203,7 @@ export default function PppPage() {
       {/* Loops Section — The Indexing Engine */}
       <section id="loops" className="section-pai relative z-10">
         <div className="container-pai">
-          <ScrollReveal>
+          <ScaleIn>
             <h2 className="text-[clamp(28px,5vw,48px)] font-semibold text-center mb-4 tracking-tight">
               The <span className="text-gradient-pai">Loops</span> Index
             </h2>
@@ -211,7 +211,7 @@ export default function PppPage() {
               7 validated loops. Each with a goal. Each improves and evolves until that goal is reached.
               The network connects them all.
             </p>
-          </ScrollReveal>
+          </ScaleIn>
 
           {/* Loop diagram — the meta-loop connection */}
           <div className="max-w-3xl mx-auto mb-12 p-6 rounded-2xl text-center"
@@ -363,11 +363,11 @@ export default function PppPage() {
       {/* Language → Endpoint Map */}
       <section className="section-pai relative z-10">
         <div className="container-pai">
-          <ScrollReveal>
+          <ScaleIn>
             <h2 className="text-[clamp(28px,5vw,48px)] font-semibold text-center mb-4 tracking-tight">
               Language → <span className="text-gradient-pai">Endpoint</span> Map
             </h2>
-          </ScrollReveal>
+          </ScaleIn>
 
           <div className="max-w-5xl mx-auto">
             <div className="glass-card p-8">

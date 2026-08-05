@@ -5,14 +5,14 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 
 const LAYERS = [
-  { name: 'Identity', color: '#ec4899', endpoints: ['vai', 'bye'] },
-  { name: 'Agent',   color: '#39FF14', endpoints: ['try'] },
-  { name: 'Market',  color: '#f59e0b', endpoints: ['buy', 'fly'] },
-  { name: 'Truth',   color: '#ef4444', endpoints: ['new', 'blg'] },
-  { name: 'Trust',   color: '#a855f7', endpoints: ['hai'] },
-  { name: 'Alpha',   color: '#ec4899', endpoints: ['induct'] },
-  { name: 'Protocol',color: '#f7a41d', endpoints: ['ppp'] },
-]
+  { name: 'Identity', color: '#ec4899', endpoints: ['bye'] } as const,
+  { name: 'Agent',   color: '#39FF14', endpoints: ['try'] } as const,
+  { name: 'Market',  color: '#f59e0b', endpoints: [] } as const,
+  { name: 'Truth',   color: '#ef4444', endpoints: ['new', 'blg'] } as const,
+  { name: 'Trust',   color: '#a855f7', endpoints: [] } as const,
+  { name: 'Alpha',   color: '#ec4899', endpoints: ['induct'] } as const,
+  { name: 'Protocol',color: '#f7a41d', endpoints: ['ppp'] } as const,
+] as const
 
 export default function PAIHeader() {
   const [scrolled, setScrolled] = useState(false)
@@ -25,7 +25,7 @@ export default function PAIHeader() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const isActive = (ep: string) => pathname === `/${ep}` || pathname.startsWith(`/${ep}/`)
+  const isActive = (ep: string) => pathname === `/pai/${ep}` || pathname.startsWith(`/pai/${ep}/`)
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-6 transition-all duration-300 ${
@@ -62,7 +62,7 @@ export default function PAIHeader() {
               {layer.endpoints.map((ep, i) => (
                 <Link
                   key={ep}
-                  href={`/${ep}`}
+                  href={`/pai/${ep}` as const}
                   className={`flex items-center gap-2 px-3 py-1.5 text-[11px] font-mono transition-colors ${
                     isActive(ep)
                       ? 'text-white bg-white/8'
@@ -80,7 +80,7 @@ export default function PAIHeader() {
         ))}
         {/* Topology shortcut */}
         <Link
-          href="/ppp/topology"
+          href="/pai/ppp/topology"
           className="ml-2 px-2.5 py-1.5 text-[11px] font-mono text-[#39FF14]/60 hover:text-[#39FF14] transition-colors rounded-md hover:bg-[#39FF14]/5 border border-[#39FF14]/10"
         >
           GRAPH
@@ -123,7 +123,7 @@ export default function PAIHeader() {
                 {layer.endpoints.map((ep) => (
                   <Link
                     key={ep}
-                    href={`/${ep}`}
+                    href={`/pai/${ep}` as const}
                     className={`text-[11px] font-mono px-2 py-1 rounded transition-colors ${
                       isActive(ep)
                         ? 'text-white bg-white/10'
@@ -139,7 +139,7 @@ export default function PAIHeader() {
             </div>
           ))}
           <Link
-            href="/ppp/topology"
+            href="/pai/ppp/topology"
             className="block text-[11px] font-mono text-[#39FF14]/70 hover:text-[#39FF14] px-2 py-1.5 mt-2 border-t border-white/5 pt-3"
             onClick={() => setMenuOpen(false)}
           >

@@ -145,7 +145,7 @@ describe("label.yml — permissions (least privilege)", () => {
 
 describe("label.yml — labeler step", () => {
   it("uses the actions/labeler action", () => {
-    expect(content).toMatch(/uses:\s*actions\/labeler@v6/);
+    expect(content).toMatch(/uses:\s*actions\/labeler@v7/);
   });
 
   it("pins the labeler action to a specific major version (not @main or @latest)", () => {

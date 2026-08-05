@@ -1,0 +1,19 @@
+{
+  "name": "@pai/sim-loop",
+  "version": "0.1.0",
+  "description": "PAI SIM-LOOP — Simulation loop on Cloudflare free tier (DO + Workers AI + Queues + Cron)",
+  "main": "src/worker.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create pai-sim-loop",
+    "db:migrate": "wrangler d1 execute pai-sim-loop --file=schema.sql",
+    "queue:create": "wrangler queues create pai-sim-queue",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260702.1",
+    "typescript": "^5.6.0",
+    "wrangler": "^4.0.0"
+  }
+}

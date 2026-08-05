@@ -1,6 +1,28 @@
 /**
  * MCP protocol handler for Cloudflare Worker.
  * Routes MCP requests to the server.
+ *
+ * --- OFFICIAL DOCUMENTATION ---
+ * MCP Protocol:    https://modelcontextprotocol.io/
+ * Protocol version: 2024-11-05
+ * Transport: JSON-RPC 2.0 over HTTP POST to /mcp
+ * Auth: X-Shared-Secret header (matched against SHARED_SECRET_TOKEN_VERCEL_CF env)
+ * Full catalog: docs/AGENT_SERVICE_CATALOG.md §18
+ *
+ * --- AVAILABLE TOOLS (14) ---
+ * Identity:  did_resolve, did_create
+ * Trust:     trust_score, trust_delegate, trust_chain
+ * Presence:  presence_heartbeat, presence_status
+ * Skills:    skill_list, skill_install
+ * Harvest:   harvest_query, harvest_result
+ * Memory:    memory_read, memory_write, memory_search (Ghost.build MCP)
+ *
+ * --- AGENT QUICK START ---
+ * 1. POST to /mcp with X-Shared-Secret header
+ * 2. method: "initialize" → returns server info + capabilities
+ * 3. method: "tools/list" → returns all 14 available tools
+ * 4. method: "tools/call" with { name, arguments } → executes tool
+ * 5. See docs/AGENT_SERVICE_CATALOG.md §18 for full tool schemas
  */
 
 import { createMcpServer } from "./server";
@@ -73,6 +95,9 @@ export async function handleMcp(request: Request, env: Env): Promise<Response> {
               { name: "skill_install", description: "Install a skill", inputSchema: { type: "object", properties: { slug: { type: "string" }, userDid: { type: "string" }, version: { type: "string" } }, required: ["slug", "userDid"] } },
               { name: "harvest_query", description: "Enqueue harvest query", inputSchema: { type: "object", properties: { query: { type: "string" }, userDid: { type: "string" } }, required: ["query"] } },
               { name: "harvest_result", description: "Get harvest result", inputSchema: { type: "object", properties: { jobId: { type: "string" } }, required: ["jobId"] } },
+              { name: "memory_read", description: "Read agent memory entries from Ghost.build (direct PostgreSQL access). Returns recent memories or specific entry by key.", inputSchema: { type: "object", properties: { agentId: { type: "string" }, key: { type: "string", description: "Optional specific memory key to read" }, limit: { type: "number", description: "Max entries (default 20, max 100)" } }, required: ["agentId"] } },
+              { name: "memory_write", description: "Write a memory entry to Ghost.build agent memory. Used by agents to persist context across sessions.", inputSchema: { type: "object", properties: { agentId: { type: "string" }, key: { type: "string" }, value: { type: "string" }, tags: { type: "array", items: { type: "string" } } }, required: ["agentId", "key", "value"] } },
+              { name: "memory_search", description: "Search agent memory entries by text query (ILIKE). Returns matching entries from Ghost.build.", inputSchema: { type: "object", properties: { agentId: { type: "string" }, query: { type: "string" }, limit: { type: "number" } }, required: ["agentId", "query"] } },
             ],
           },
         });
@@ -81,6 +106,40 @@ export async function handleMcp(request: Request, env: Env): Promise<Response> {
       if (body.method === "tools/call") {
         const params = body.params as { name: string; arguments: Record<string, unknown> };
         const { name, arguments: args } = params;
+
+        // SECURITY: Verify caller owns the agentId for agent-scoped tools.
+        // The caller's authenticated identity (from verifyAuth) must match
+        // the agentId in the tool arguments. This prevents cross-agent access.
+        const agentScopedTools = new Set([
+          "presence_heartbeat",
+          "presence_status",
+          "skill_install",
+          "memory_read",
+          "memory_write",
+          "memory_search",
+        ]);
+
+        if (agentScopedTools.has(name)) {
+          // SECURITY: Require auth for ALL agent-scoped tools.
+          // Never trust client-provided agentId — validate server-side.
+          const authResult = verifyAuth(request, env);
+          if (!authResult.authorized) {
+            return jsonResponse({
+              jsonrpc: "2.0",
+              id: body.id,
+              error: { code: -32099, message: "Unauthorized: agent-scoped tool requires auth" },
+            }, 401);
+          }
+          // Use server-validated agentId, not client-provided args
+          const callerAgentId = authResult.agentId || (args.agentId as string);
+          if (!callerAgentId) {
+            return jsonResponse({
+              jsonrpc: "2.0",
+              id: body.id,
+              error: { code: -32098, message: "Forbidden: no agent identity found" },
+            }, 403);
+          }
+        }
 
         // Route to appropriate handler
         const result = await handleToolCall(name, args, env);
@@ -207,6 +266,106 @@ async function handleToolCall(
     case "harvest_result": {
       const result = await d1.getHarvestResult(args.jobId as string);
       return result || { error: "Not found" };
+    }
+
+    case "memory_read": {
+      // Ghost.build MCP — direct agent memory access via D1 proxy
+      // (D1 is Ghost.build's read replica; writes sync to PostgreSQL)
+      const agentId = args.agentId as string;
+      const key = args.key as string | undefined;
+      const limit = Math.min(100, (args.limit as number) || 20);
+
+      if (key) {
+        // Read specific memory entry by key
+        const entry = await d1.db
+          .prepare("SELECT key, value, tags, created_at FROM agent_memories WHERE agent_id = ? AND key = ? LIMIT 1")
+          .bind(agentId, key)
+          .first<{ key: string; value: string; tags: string; created_at: string }>();
+        return entry || { error: "Memory entry not found", agentId, key };
+      }
+
+      // Read recent memory entries
+      const result = await d1.db
+        .prepare("SELECT key, value, tags, created_at FROM agent_memories WHERE agent_id = ? ORDER BY created_at DESC LIMIT ?")
+        .bind(agentId, limit)
+        .all<{ key: string; value: string; tags: string; created_at: string }>();
+
+      return {
+        agentId,
+        count: result.results.length,
+        memories: result.results.map((r) => ({
+          key: r.key,
+          value: r.value,
+          tags: r.tags ? r.tags.split(",").filter(Boolean) : [],
+          createdAt: r.created_at,
+        })),
+      };
+    }
+
+    case "memory_write": {
+      // Ghost.build MCP — write agent memory entry
+      const agentId = args.agentId as string;
+      const key = args.key as string;
+      const value = args.value as string;
+      const tags = (args.tags as string[]) || [];
+
+      // Check memory limit (agent.memoryLimit, default 500)
+      const agent = await d1.db
+        .prepare("SELECT memory_limit FROM agents WHERE id = ? LIMIT 1")
+        .bind(agentId)
+        .first<{ memory_limit: number }>();
+
+      const memoryLimit = agent?.memory_limit || 500;
+      const keyExists = await d1.db
+        .prepare("SELECT 1 FROM agent_memories WHERE agent_id = ? AND key = ? LIMIT 1")
+        .bind(agentId, key)
+        .first();
+
+      if (!keyExists) {
+        const currentCount = await d1.db
+          .prepare("SELECT COUNT(*) as cnt FROM agent_memories WHERE agent_id = ?")
+          .bind(agentId)
+          .first<{ cnt: number }>();
+
+        if ((currentCount?.cnt || 0) >= memoryLimit) {
+          // Evict oldest entry
+          await d1.db
+            .prepare("DELETE FROM agent_memories WHERE agent_id = ? AND id = (SELECT id FROM agent_memories WHERE agent_id = ? ORDER BY created_at ASC LIMIT 1)")
+            .bind(agentId, agentId)
+            .run();
+        }
+      }
+
+      await d1.db
+        .prepare("INSERT OR REPLACE INTO agent_memories (id, agent_id, key, value, tags, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+        .bind(generateId("mem"), agentId, key, value, tags.join(","), new Date().toISOString())
+        .run();
+
+      return { success: true, agentId, key, tags, timestamp: Date.now() };
+    }
+
+    case "memory_search": {
+      // Ghost.build MCP — search agent memory by text query
+      const agentId = args.agentId as string;
+      const query = args.query as string;
+      const limit = Math.min(50, (args.limit as number) || 10);
+
+      const result = await d1.db
+        .prepare("SELECT key, value, tags, created_at FROM agent_memories WHERE agent_id = ? AND (value LIKE ? OR key LIKE ?) ORDER BY created_at DESC LIMIT ?")
+        .bind(agentId, `%${query}%`, `%${query}%`, limit)
+        .all<{ key: string; value: string; tags: string; created_at: string }>();
+
+      return {
+        agentId,
+        query,
+        count: result.results.length,
+        results: result.results.map((r) => ({
+          key: r.key,
+          value: r.value,
+          tags: r.tags ? r.tags.split(",").filter(Boolean) : [],
+          createdAt: r.created_at,
+        })),
+      };
     }
 
     default:

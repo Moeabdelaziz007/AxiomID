@@ -1,10 +1,11 @@
 import en from "./en.json";
 import ar from "./ar.json";
+import zh from "./zh.json";
 import type { Language } from "@/app/context/language-context";
 
 export type { Language };
 
-const bundles: Record<Language, Record<string, string>> = { en, ar };
+const bundles: Record<Language, Record<string, string>> = { en, ar, zh };
 
 export function getTranslation(lang: Language, key: string): string {
   return bundles[lang]?.[key] ?? bundles.en[key] ?? key;

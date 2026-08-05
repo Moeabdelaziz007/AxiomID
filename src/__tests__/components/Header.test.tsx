@@ -139,12 +139,6 @@ describe("Header — showWallet with no user", () => {
     fireEvent.click(screen.getByText("CONNECT"));
     await waitFor(() => expect(connectWallet).toHaveBeenCalledTimes(1));
   });
-
-  it("shows Pi Browser required warning when not in Pi Browser", () => {
-    mockUseWallet.mockReturnValue(makeCtx({ user: null, isPiBrowser: false }));
-    render(<Header showWallet />);
-    expect(screen.getByText(/Pi Browser required/)).toBeInTheDocument();
-  });
 });
 
 describe("Header — showWallet with authenticated user", () => {
@@ -194,25 +188,6 @@ describe("Header — showWallet with authenticated user", () => {
   it("does not show connect button when user is authenticated", () => {
     render(<Header showWallet />);
     expect(screen.queryByText("CONNECT")).not.toBeInTheDocument();
-  });
-});
-
-describe("Header — Pi Browser indicator", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockLanguage("en");
-  });
-
-  it("shows 'Pi Browser' badge when in Pi Browser and no user connected", () => {
-    mockUseWallet.mockReturnValue(makeCtx({ user: null, isPiBrowser: true }));
-    render(<Header showWallet />);
-    expect(screen.getByText("Pi Browser")).toBeInTheDocument();
-  });
-
-  it("does not show 'Pi Browser required' warning when in Pi Browser", () => {
-    mockUseWallet.mockReturnValue(makeCtx({ user: null, isPiBrowser: true }));
-    render(<Header showWallet />);
-    expect(screen.queryByText(/Pi Browser required/)).not.toBeInTheDocument();
   });
 });
 

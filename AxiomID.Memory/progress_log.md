@@ -120,7 +120,7 @@
 - Dashboard UI: SpendRequestsPanel with polling, countdown, approve/reject + Pi SDK
 - TrustChain: 5 new action types (CREATED/APPROVED/REJECTED/PAID/EXPIRED) with hash chain
 - SSE stream: `/api/spend-request/stream?agentId=X` with heartbeat + AbortController cleanup
-- Test results: 3272 passing (168 suites), lint clean, type-check clean
+- Test results: 3,208 test cases across 187 files (verified 20 Jul 2026), lint clean, type-check clean
 - Formal spec + AxiomID.Memory design doc
 
 ---

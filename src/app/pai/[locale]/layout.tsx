@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { Inter, JetBrains_Mono, Noto_Sans_Arabic, Noto_Sans_SC, Noto_Sans_JP, Noto_Sans_KR, Noto_Sans_Devanagari } from 'next/font/google';
+import { Inter, JetBrains_Mono, Noto_Sans_Arabic, Noto_Sans_JP, Noto_Sans_KR, Noto_Sans_Devanagari } from 'next/font/google';
 import '../globals.css';
 
 const inter = Inter({
@@ -22,17 +22,13 @@ const notoSansArabic = Noto_Sans_Arabic({
   display: 'swap',
 });
 
-const notoSansSC = Noto_Sans_SC({
-  subsets: ['latin'],
-  variable: '--font-chinese',
-  display: 'swap',
-});
 
-const notoSansJP = Noto_Sans_JP({
-  subsets: ['latin'],
-  variable: '--font-japanese',
-  display: 'swap',
-});
+
+// const notoSansJP = Noto_Sans_JP({
+//   subsets: ['latin'],
+//   variable: '--font-japanese',
+//   display: 'swap',
+// });
 
 const notoSansKR = Noto_Sans_KR({
   subsets: ['latin'],
@@ -122,8 +118,7 @@ export default function RootLayout({
     inter.variable,
     jetbrainsMono.variable,
     notoSansArabic.variable,
-    notoSansSC.variable,
-    notoSansJP.variable,
+    // // notoSansJP.variable,
     notoSansKR.variable,
     notoSansDevanagari.variable,
   ].join(' ');

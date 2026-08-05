@@ -8,8 +8,12 @@
 
 const PASSPORT_BASE = "https://axiomid.app/passport";
 const VALID_SUBDOMAIN = /^[a-z0-9][a-z0-9-]{2,29}$/;
+
+// Real proxied apps (Vercel) — must reach origin, never redirect.
+const PASSTHROUGH_SUBDOMAINS = new Set(["www", "gspace"]);
+
 const RESERVED_SUBDOMAINS = new Set([
-  "www", "api", "dashboard", "app", "status", "admin", "dev", "blog",
+  "api", "dashboard", "app", "status", "admin", "dev", "blog",
   "mail", "ftp", "ns1", "ns2", "smtp", "pop", "imap", "cdn", "assets",
 ]);
 
@@ -33,8 +37,8 @@ async function handleRequest(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const hostname = url.hostname;
 
-  // Pass-through apex domain (axiomid.app) or www directly to origin (Vercel)
-  if (hostname === "axiomid.app" || hostname === "www.axiomid.app") {
+  // Pass-through apex domain (axiomid.app) directly to origin (Vercel)
+  if (hostname === "axiomid.app") {
     return fetch(request);
   }
 
@@ -45,6 +49,11 @@ async function handleRequest(request: Request): Promise<Response> {
   }
 
   const subdomain = parts[0].toLowerCase();
+
+  // Real proxied apps must reach their origin (Vercel) untouched
+  if (PASSTHROUGH_SUBDOMAINS.has(subdomain)) {
+    return fetch(request);
+  }
 
   if (RESERVED_SUBDOMAINS.has(subdomain)) {
     return new Response(null, {
