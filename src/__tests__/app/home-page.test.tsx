@@ -144,8 +144,8 @@ describe("Home — rendering with English (default) language", () => {
 
   it("renders the new hero headline", async () => {
     render(await Home());
-    expect(screen.getByText("Create your")).toBeInTheDocument();
-    expect(screen.getByText("AI Identity")).toBeInTheDocument();
+    expect(screen.getByText("Your Identity.")).toBeInTheDocument();
+    expect(screen.getByText("Your Rules.")).toBeInTheDocument();
   });
 
   it("renders the primary CTA linking to /claim", async () => {
@@ -162,7 +162,7 @@ describe("Home — rendering with English (default) language", () => {
 
   it("renders the translated pi badge text", async () => {
     render(await Home());
-    expect(screen.getByText("Live on Pi Network Testnet")).toBeInTheDocument();
+    expect(screen.getByText("Pi Network Mainnet Ready")).toBeInTheDocument();
   });
 
   it("renders the three-step 'How It Works' section using translated strings", async () => {
@@ -187,7 +187,7 @@ describe("Home — rendering with Arabic language", () => {
 
   it("renders the Arabic pi badge translation", async () => {
     render(await Home());
-    expect(screen.getByText("مباشر على شبكة Pi التجريبية")).toBeInTheDocument();
+    expect(screen.getByText("جاهز لشبكة Pi الرئيسية")).toBeInTheDocument();
   });
 
   it("renders the Arabic 'How It Works' section title", async () => {

@@ -23,9 +23,6 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: true,
   poweredByHeader: false,
-  turbopack: {
-    root: process.cwd(),
-  },
   productionBrowserSourceMaps: false,
   images: {
     formats: ["image/avif", "image/webp"],
@@ -47,10 +44,6 @@ const nextConfig: NextConfig = {
     ],
   },
   typedRoutes: true,
-  // Build with webpack (see the `--webpack` flag in package.json) so the
-  // nostics strip transform below is actually applied. A `turbopack` key is
-  // intentionally omitted: declaring it alongside a custom webpack config makes
-  // the bundler choice ambiguous and the webpack hook is skipped under Turbopack.
   webpack: (config) => {
     nosticsStrip.webpack(config);
     return config;

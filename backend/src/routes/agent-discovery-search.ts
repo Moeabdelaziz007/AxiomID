@@ -11,8 +11,7 @@ import { jsonResponse, errorResponse } from "../lib/auth";
 export async function handleAgentSearch(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const query = url.searchParams.get("q");
-  const topKParam = url.searchParams.get("topK");
-  const topK = topKParam ? parseInt(topKParam, 10) : 10;
+  const topK = parseInt(url.searchParams.get("topK") || "10", 10);
 
   if (!query) {
     return errorResponse("Missing query parameter 'q' (natural language description of what you need)");
@@ -45,8 +44,7 @@ export async function handleAgentSearch(request: Request, env: Env): Promise<Res
 export async function handleAgentSimilar(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const agentId = url.searchParams.get("agentId");
-  const topKParam = url.searchParams.get("topK");
-  const topK = topKParam ? parseInt(topKParam, 10) : 5;
+  const topK = parseInt(url.searchParams.get("topK") || "5", 10);
 
   if (!agentId) {
     return errorResponse("Missing query parameter 'agentId'");

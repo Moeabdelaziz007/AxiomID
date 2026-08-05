@@ -17,19 +17,20 @@
 7. [Cloudflare Durable Objects](#7-cloudflare-durable-objects)
 8. [Cloudflare R2](#8-cloudflare-r2)
 9. [Ghost.build (PostgreSQL + TimescaleDB)](#9-ghostbuild-postgresql--timescaledb)
-10. [Vercel (Hosting + Analytics)](#10-vercel-hosting--analytics)
-11. [Sentry (Error Tracking)](#11-sentry-error-tracking)
-12. [Meticulous AI (Session Recording)](#12-meticulous-ai-session-recording)
-13. [Autonoma AI (Agentic E2E Testing)](#13-autonoma-ai-agentic-e2e-testing)
-14. [Nostics (Code Analytics)](#14-nostics-code-analytics)
-15. [Pi Network (Identity Verification)](#15-pi-network-identity-verification)
-16. [OpenIdentity Protocol](#16-openidentity-protocol)
-17. [MCP Server (Model Context Protocol)](#17-mcp-server-model-context-protocol)
-18. [Playwright (E2E Testing)](#18-playwright-e2e-testing)
-19. [GitHub Actions (CI/CD)](#19-github-actions-cicd)
-20. [ACP / EconomyOS](#20-acp--economyos)
-21. [DegenClaw (Arena Tracking)](#21-degenclaw-arena-tracking)
-22. [External Skill Repositories](#22-external-skill-repositories)
+10. [Here.now (Landing Pages)](#10-herenow-landing-pages)
+11. [Vercel (Hosting + Analytics)](#11-vercel-hosting--analytics)
+12. [Sentry (Error Tracking)](#12-sentry-error-tracking)
+13. [Meticulous AI (Session Recording)](#13-meticulous-ai-session-recording)
+14. [Autonoma AI (Agentic E2E Testing)](#14-autonoma-ai-agentic-e2e-testing)
+15. [Nostics (Code Analytics)](#15-nostics-code-analytics)
+16. [Pi Network (Identity Verification)](#16-pi-network-identity-verification)
+17. [OpenIdentity Protocol](#17-openidentity-protocol)
+18. [MCP Server (Model Context Protocol)](#18-mcp-server-model-context-protocol)
+19. [Playwright (E2E Testing)](#19-playwright-e2e-testing)
+20. [GitHub Actions (CI/CD)](#20-github-actions-cicd)
+21. [ACP / EconomyOS](#21-acp--economyos)
+22. [DegenClaw (Arena Tracking)](#22-degenclaw-arena-tracking)
+23. [External Skill Repositories](#23-external-skill-repositories)
 
 ---
 
@@ -226,7 +227,40 @@ memory_search — Search agent memory by text query (ILIKE)
 
 ---
 
-## 10. Vercel (Hosting + Analytics)
+## 10. Here.now (Landing Pages)
+
+**What:** Free static page hosting. AxiomID uses it to generate a public landing page (business card) for each active agent — SEO-friendly, shareable outside the ecosystem.
+
+**Official Docs:** https://here.now
+
+**Integration Files:**
+- `src/lib/herenow.ts` — `HereNowClient` (create/upload/finalize/publish)
+- `src/lib/agent-landing-page.ts` — `generateAgentLandingHtml()`, `publishAgentLandingPage()`, `publishAllAgentLandingPages()`
+
+**API Surface:**
+```typescript
+const client = createHereNowClient();
+const result = await client.publishPage({
+  title: "Agent Name — AxiomID Agent",
+  slug: "axiomid-agent-username",
+  html: generatedHtml,
+});
+// Returns: { url: "https://here.now/axiomid-agent-username" }
+```
+
+**Env Vars:**
+- `HERENOW_API_URL` — API base URL (default: https://api.here.now/v1)
+- `HERENOW_TOKEN` — API authentication token
+
+**Quick Start (for agents):**
+1. Read `src/lib/agent-landing-page.ts` to see the HTML template
+2. Call `publishAgentLandingPage(agentId)` to publish a single agent's page
+3. Call `publishAllAgentLandingPages()` in a cron to refresh all pages daily
+4. The URL is stored on `UserAgent.hereNowUrl` in the database
+
+---
+
+## 11. Vercel (Hosting + Analytics)
 
 **What:** Next.js hosting with preview deployments, analytics, and speed insights. AxiomID frontend runs on Vercel Hobby (free).
 

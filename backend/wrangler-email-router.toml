@@ -7,13 +7,13 @@ compatibility_flags = ["nodejs_compat"]
 binding = "PAI_RECEIPTS"
 id = "REPLACE_WITH_KV_ID"
 
-# AGENT_STATE is defined in the axiomid-backend worker (backend/wrangler.toml).
 [[durable_objects.bindings]]
 name = "AGENT_STATE"
 class_name = "AgentStateDO"
-script_name = "axiomid-backend"
 
-# No new_classes migration here — AgentStateDO is owned by axiomid-backend.
+[[migrations]]
+tag = "v1"
+new_classes = ["AgentStateDO"]
 
 # Email routing: catch-all *@agents.axiomid.app → this Worker
 # Configured in Cloudflare Dashboard → Email → Email Routing

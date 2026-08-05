@@ -445,20 +445,6 @@ describe('translations — landing page keys (PR change)', () => {
     'landing_step2_desc',
     'landing_step3_title',
     'landing_step3_desc',
-    'landing_sovereign_advantage',
-    'landing_why_title',
-    'landing_web2_title',
-    'landing_web2_item1',
-    'landing_web2_item2',
-    'landing_web2_item3',
-    'landing_web2_item4',
-    'landing_web2_result',
-    'landing_axiom_title',
-    'landing_axiom_item1',
-    'landing_axiom_item2',
-    'landing_axiom_item3',
-    'landing_axiom_item4',
-    'landing_axiom_result',
     'landing_level_up',
   ];
 
@@ -481,8 +467,8 @@ describe('translations — landing page keys (PR change)', () => {
   });
 
   // Spot-check specific EN values
-  it('landing_pi_badge EN is "Live on Pi Network Testnet"', () => {
-    expect(en['landing_pi_badge']).toBe('Live on Pi Network Testnet');
+  it('landing_pi_badge EN is "Pi Network Mainnet Ready"', () => {
+    expect(en['landing_pi_badge']).toBe('Pi Network Mainnet Ready');
   });
 
   it('landing_headline_en EN is "Your Identity."', () => {
@@ -530,26 +516,6 @@ describe('translations — landing page keys (PR change)', () => {
     expect(en['landing_step3_desc']).toContain('Agent Passport');
   });
 
-  it('landing_web2_title EN is "Traditional Identity (Web2)"', () => {
-    expect(en['landing_web2_title']).toBe('Traditional Identity (Web2)');
-  });
-
-  it('landing_axiom_title EN is "AxiomID Sovereign Passport"', () => {
-    expect(en['landing_axiom_title']).toBe('AxiomID Sovereign Passport');
-  });
-
-  it('landing_axiom_item1 EN mentions W3C DIDs', () => {
-    expect(en['landing_axiom_item1']).toContain('W3C DIDs');
-  });
-
-  it('landing_axiom_result EN mentions frictionless auth', () => {
-    expect(en['landing_axiom_result']).toContain('Frictionless');
-  });
-
-  it('landing_web2_result EN describes a fragile outcome', () => {
-    expect(en['landing_web2_result']).toContain('Fragile');
-  });
-
   it('landing_level_up EN is "Level Up Your Identity"', () => {
     expect(en['landing_level_up']).toBe('Level Up Your Identity');
   });
@@ -560,51 +526,9 @@ describe('translations — landing page keys (PR change)', () => {
     expect(ar['landing_pi_badge'].length).toBeGreaterThan(0);
   });
 
-  it('landing_axiom_title AR contains "AxiomID" (brand name preserved)', () => {
-    // Brand names should remain in both languages
-    expect(ar['landing_axiom_title']).toContain('AxiomID');
-  });
-
-  it('landing_axiom_item1 AR mentions W3C DIDs (technical term preserved)', () => {
-    expect(ar['landing_axiom_item1']).toContain('W3C DIDs');
-  });
-
   it('landing_level_up AR is non-empty and different from EN', () => {
     expect(ar['landing_level_up']).not.toBe('Level Up Your Identity');
     expect(ar['landing_level_up'].length).toBeGreaterThan(0);
-  });
-
-  it('landing_web2_result AR is non-empty Arabic translation', () => {
-    expect(ar['landing_web2_result']).not.toBe(en['landing_web2_result']);
-  });
-
-  // Verify all 4 web2 items and 4 axiom items exist in both languages
-  it('all 4 landing_web2_item keys exist in EN', () => {
-    for (let i = 1; i <= 4; i++) {
-      expect(en[`landing_web2_item${i}`]).toBeDefined();
-      expect(en[`landing_web2_item${i}`].length).toBeGreaterThan(0);
-    }
-  });
-
-  it('all 4 landing_web2_item keys exist in AR', () => {
-    for (let i = 1; i <= 4; i++) {
-      expect(ar[`landing_web2_item${i}`]).toBeDefined();
-      expect(ar[`landing_web2_item${i}`].length).toBeGreaterThan(0);
-    }
-  });
-
-  it('all 4 landing_axiom_item keys exist in EN', () => {
-    for (let i = 1; i <= 4; i++) {
-      expect(en[`landing_axiom_item${i}`]).toBeDefined();
-      expect(en[`landing_axiom_item${i}`].length).toBeGreaterThan(0);
-    }
-  });
-
-  it('all 4 landing_axiom_item keys exist in AR', () => {
-    for (let i = 1; i <= 4; i++) {
-      expect(ar[`landing_axiom_item${i}`]).toBeDefined();
-      expect(ar[`landing_axiom_item${i}`].length).toBeGreaterThan(0);
-    }
   });
 
   // Regression: no key should fall back to its own key name
@@ -631,8 +555,6 @@ describe('translations — landing page key parity (EN vs AR, PR change)', () =>
   const keyPairs: Array<[string, string]> = [
     ['landing_step1_title', 'landing_step2_title'],
     ['landing_step1_desc', 'landing_step2_desc'],
-    ['landing_web2_title', 'landing_axiom_title'],
-    ['landing_web2_result', 'landing_axiom_result'],
   ];
 
   keyPairs.forEach(([keyA, keyB]) => {
