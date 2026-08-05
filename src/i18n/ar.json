@@ -196,6 +196,7 @@
   "passport_not_found": "جواز السفر غير موجود",
   "passport_not_found_description": "هذا الجواز غير موجود أو تمت إزالته.",
   "passport_load_error": "فشل تحميل الجواز",
+  "unexpected_error": "حدث خطأ غير متوقع",
   "something_went_wrong": "حدث خطأ ما",
   "try_again": "حاول مرة أخرى",
   "signin_failed": "فشل تسجيل الدخول",
