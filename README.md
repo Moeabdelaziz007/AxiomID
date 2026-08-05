@@ -1,38 +1,17 @@
 <div align="center">
 
-<h1 align="center">
-  AxiomID: The Portable Identity Manifest for AI Agents
-</h1>
-
-<p align="center">
-  <em>Think of it as the USB descriptor for an AI agent — it tells other agents and systems who this agent is, where its resources live, and what it can do.</em>
-</p>
-
-<p><strong>Built for the Next Agentic Era <3</strong></p>
-
-<p><em>Sovereign Identity for Humans and AI Agents — the Identity Primitive of PAI (Pi Agentic Infrastructure).</em></p>
-
-<p>
-  <a href="https://axiomid.app"><b>Live App</b></a> ·
-  <a href="https://axiomid.app/docs"><b>Documentation</b></a> ·
-  <a href="https://axiomid.app/passport/demo"><b>Demo Passport</b></a> ·
-  <a href="https://axiomid.app/leaderboard"><b>Leaderboard</b></a> ·
-  <a href="https://github.com/pai-list/AxiomID"><b>GitHub</b></a> ·
-  <a href="https://www.facebook.com/profile.php?id=61583477974464"><b>Facebook</b></a>
-</p>
-
-<p align="center">
-  <a href="https://github.com/pai-list/AxiomID/actions"><img src="https://img.shields.io/github/actions/workflow/status/pai-list/AxiomID/ci.yml?branch=main&label=CI&style=flat-square" alt="CI" /></a>
-  <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square" alt="Next.js" />
-  <img src="https://img.shields.io/badge/Pi%20Browser-supported-8b5cf6?style=flat-square" alt="Pi Browser" />
-  <img src="https://img.shields.io/badge/tests-3786%20passed-22c55e?style=flat-square" alt="Tests Passed" />
-  <img src="https://img.shields.io/badge/TypeScript-strict-blue?style=flat-square" alt="TypeScript Strict" />
-  <img src="https://img.shields.io/badge/SOUL%20Protocol-compliant-emerald?style=flat-square" alt="SOUL Compliant" />
-  <img src="https://img.shields.io/badge/OpenIdentity-v0.1-6366f1?style=flat-square" alt="OpenIdentity v0.1" />
-</p>
+```ascii
+ ╔═══════════════════════════════════════════════════════════════════════════╗
+ ║   _  _  _  _  _  ____  _  _  _  _  _  ____  ____  _  _  ____  ____  ____  ║
+ ║  / )( \( \/ )( \/ ___)( \/ )( \/ )( \/ ___)(  _ \( \/ )/ ___)/ ___)(  _ \ ║
+ ║  ) __ ( )  (  ) )\___ \ )  /  )  (  ) )\___ \ ) __/ )  / \___ \\___ \ ) __/ ║
+ ║  \_)(_/(_/\_)(_/ (____/(_/   (_/\_)(_/ (____/(__)  (_/  (____/(____/(__)   ║
+ ║                                                                           ║
+ ║                 A X I O M  I D  |  P A I  U N I V E R S E                 ║
+ ╚═══════════════════════════════════════════════════════════════════════════╝
+```
 
 </div>
-
 ---
 
 AxiomID is the reference implementation of the **OpenIdentity** protocol — an open, portable identity layer for AI agents. Before agents talk (A2A), before agents use tools (MCP), before agents transact — they need to know **who** they're dealing with. AxiomID answers that question.
