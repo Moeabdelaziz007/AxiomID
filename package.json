@@ -1,8 +1,8 @@
 {
   "name": "axiomid",
-  "version": "0.2.0",
-  "private": true,
   "description": "AxiomID - The Human Authorization Protocol. Decentralized identity verification for human-AI collaboration.",
+  "version": "0.2.0",
+  "author": "Mohamed Abdelaziz <https://github.com/Moeabdelaziz007>",
   "aix": {
     "stackVersion": "0.369.0",
     "stackCodename": "Echo369",
@@ -11,46 +11,8 @@
     "layerName": "root-authority",
     "authority": "axiomid.app"
   },
-  "author": "Mohamed Abdelaziz <https://github.com/Moeabdelaziz007>",
-  "homepage": "https://axiomid.app",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Moeabdelaziz007/AxiomID.git"
-  },
   "bugs": {
     "url": "https://github.com/Moeabdelaziz007/AxiomID/issues"
-  },
-  "license": "SEE LICENSE IN LICENSE",
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "keywords": [
-    "decentralized-identity",
-    "human-verification",
-    "ai-authorization",
-    "blockchain",
-    "sybil-resistance",
-    "web3",
-    "nextjs",
-    "typescript",
-    "framer-motion"
-  ],
-  "scripts": {
-    "dev": "next dev",
-    "start": "next start",
-    "lint": "eslint . --report-unused-disable-directives",
-    "preview": "next build && next start",
-    "analyze": "ANALYZE=true next build",
-    "deploy": "vercel --prod",
-    "deploy:preview": "vercel",
-    "test": "NODE_OPTIONS='--no-deprecation' npx --yes jest --runInBand --forceExit",
-    "test:watch": "jest --watch",
-    "type-check": "tsc --noEmit",
-    "dead-code": "knip",
-    "a11y": "npx pa11y-ci --config .pa11yci.json",
-    "prisma:seed-tags": "npx tsx prisma/seed-tags.ts",
-    "pre-commit": "node scripts/pre-commit-validate.mjs",
-    "build": "prisma generate && next build"
   },
   "dependencies": {
     "@axiomid/crypto": "^0.1.0",
@@ -65,7 +27,6 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.1",
     "@vercel/analytics": "^2.0.1",
-    "isomorphic-dompurify": "^2.26.0",
     "@vercel/og": "^0.11.1",
     "@vercel/speed-insights": "^2.0.0",
     "canvas-confetti": "^1.9.4",
@@ -73,6 +34,7 @@
     "d3": "^7.9.0",
     "framer-motion": "^12.42.2",
     "html2canvas": "^1.4.1",
+    "isomorphic-dompurify": "^2.26.0",
     "jose": "^5.9.6",
     "lucide-react": "^1.25.0",
     "next": "^16.2.10",
@@ -90,7 +52,6 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "lint-staged": "^15.2.0",
     "@emulators/adapter-next": "^0.9.0",
     "@emulators/github": "^0.9.0",
     "@jest/globals": "^30.4.1",
@@ -113,14 +74,53 @@
     "jest-environment-jsdom": "^30.4.1",
     "jest-location-mock": "^4.0.1",
     "knip": "^6.31.0",
+    "lint-staged": "^16.4.0",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5",
     "undici": "^8.8.0"
   },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "homepage": "https://axiomid.app",
+  "keywords": [
+    "ai-authorization",
+    "blockchain",
+    "decentralized-identity",
+    "framer-motion",
+    "human-verification",
+    "nextjs",
+    "sybil-resistance",
+    "typescript",
+    "web3"
+  ],
+  "license": "SEE LICENSE IN LICENSE",
   "overrides": {
     "postcss": ">=8.5.10"
+  },
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Moeabdelaziz007/AxiomID.git"
+  },
+  "scripts": {
+    "a11y": "npx pa11y-ci --config .pa11yci.json",
+    "analyze": "ANALYZE=true next build",
+    "build": "prisma generate && next build",
+    "dead-code": "knip",
+    "deploy": "vercel --prod",
+    "deploy:preview": "vercel",
+    "dev": "next dev",
+    "lint": "eslint . --report-unused-disable-directives",
+    "pre-commit": "node scripts/pre-commit-validate.mjs",
+    "preview": "next build && next start",
+    "prisma:seed-tags": "npx tsx prisma/seed-tags.ts",
+    "start": "next start",
+    "test": "NODE_OPTIONS='--no-deprecation' npx --yes jest --runInBand --forceExit",
+    "test:watch": "jest --watch",
+    "type-check": "tsc --noEmit"
   },
   "workspaces": [
     "packages/*"

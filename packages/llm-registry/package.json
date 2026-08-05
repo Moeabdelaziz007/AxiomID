@@ -15,6 +15,6 @@
   "keywords": ["llm", "persona", "agent", "pai", "bridge", "us-china-mena", "falcon", "jais", "allam", "nanda", "acegpt", "deepseek", "qwen"],
   "author": "Mohamed Abdelaziz <mohamed@pai.build>",
   "dependencies": {
-    "@pai/atom": "file:../atom"
+    "@pai/atom": "workspace:*"
   }
 }
