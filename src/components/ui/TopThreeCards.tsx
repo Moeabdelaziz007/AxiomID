@@ -42,7 +42,7 @@ export default function TopThreeCards({ users }: TopThreeCardsProps) {
       type === "gold"
         ? "text-amber-400 filter drop-shadow-[0_0_8px_rgba(251,191,36,0.3)]"
         : type === "silver"
-          ? "text-zinc-300 filter drop-shadow-[0_0_8px_rgba(212,212,216,0.2)]"
+          ? "text-subtle filter drop-shadow-[0_0_8px_rgba(212,212,216,0.2)]"
           : "text-amber-600 filter drop-shadow-[0_0_8px_rgba(180,83,9,0.2)]";
 
     const heightClass = type === "gold" ? "min-h-[220px] md:scale-105 z-10" : "min-h-[190px]";
@@ -60,7 +60,7 @@ export default function TopThreeCards({ users }: TopThreeCardsProps) {
         <div className="flex justify-between items-center z-10">
           <div className="flex items-center gap-1">
             <Trophy className={`w-4 h-4 ${textGlowClass}`} />
-            <span className="text-[10px] font-mono font-bold text-zinc-500">{t("RANK", "الرتبة")} {user.rank}</span>
+            <span className="text-[10px] font-mono font-bold text-faint">{t("RANK", "الرتبة")} {user.rank}</span>
           </div>
           <span 
             className="text-[8px] font-mono px-2 py-0.5 rounded border uppercase"
@@ -87,8 +87,8 @@ export default function TopThreeCards({ users }: TopThreeCardsProps) {
           </span>
         </div>
 
-        <div className="flex justify-between items-center border-t border-white/5 pt-3 z-10 text-[10px] font-mono">
-          <span className="text-zinc-500">{t("SCORE", "النتيجة")}: {user.trustScore}%</span>
+        <div className="flex justify-between items-center border-t border-glass pt-3 z-10 text-[10px] font-mono">
+          <span className="text-faint">{t("SCORE", "النتيجة")}: {user.trustScore}%</span>
           <span className={`${textGlowClass} font-bold`}>{user.xp.toLocaleString()} XP</span>
         </div>
       </div>

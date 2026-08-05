@@ -9,7 +9,7 @@ import type { Env } from "./types";
 export const PUBLIC_ROUTES = ["/health", "/status", "/api/truth/", "/api/skills"];
 
 export const PUBLIC_EXACT = new Set(["/health", "/status", "/api/skills"]);
-export const PUBLIC_PREFIXES = ["/api/truth/"];
+export const PUBLIC_PREFIXES = ["/api/truth/", "/api/resolve/", "/api/vc/"];
 
 /**
  * Constant-time string comparison to prevent timing attacks.

@@ -1,0 +1,100 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "create": "Create",
+    "update": "Update",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "clear": "Clear",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "open": "Open",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "download": "Download",
+    "upload": "Upload",
+    "refresh": "Refresh",
+    "settings": "Settings",
+    "profile": "Profile",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register",
+    "welcome": "Welcome",
+    "language": "Language",
+    "theme": "Theme",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "system": "System"
+  },
+  "nav": {
+    "home": "Home",
+    "docs": "Docs",
+    "skills": "Skills",
+    "playground": "Playground",
+    "pricing": "Pricing",
+    "about": "About",
+    "blog": "Blog",
+    "github": "GitHub",
+    "discord": "Discord",
+    "twitter": "Twitter"
+  },
+  "hero": {
+    "badge": "PAI = BYE",
+    "title": "The Agent Economy's Operating System",
+    "subtitle": "Build, deploy, and monetize AI agents on Pi Network. 60M users. 18M KYC. Native payments. Verifiable identity.",
+    "ctaPrimary": "Get Started →",
+    "ctaSecondary": "View Docs",
+    "stats": {
+      "users": "60M+ Pi Users",
+      "kyc": "18M+ KYC Verified",
+      "revenue": "$4/verification ACP",
+      "skills": "50+ Skills Ready"
+    }
+  },
+  "features": {
+    "identity": {
+      "title": "Universal Identity",
+      "description": "did:agent DIDs + Pi KYC + TrustChain reputation. Portable, verifiable, sovereign.",
+      "features": ["did:agent DIDs", "Pi KYC Verification", "TrustChain Reputation", "OpenIdentity Manifests"]
+    },
+    "payments": {
+      "title": "Native Payments",
+      "description": "ACP payments + Pi/USDC settlement. One-line payments. Escrow built-in.",
+      "features": ["ACP Protocol", "Pi/USDC Payments", "Escrow & Invoices", "Revenue Share 90/10"]
+    },
+    "skills": {
+      "title": "Composable Skills",
+      "description": "npm for agent capabilities. Install, compose, monetize. Revenue share built-in.",
+      "features": ["50+ Skills", "Revenue Share 90/10", "ZK Verification", "Sandboxed Execution"]
+    }
+  },
+  "cta": {
+    "getStarted": "Get Started →",
+    "viewDocs": "View Docs",
+    "joinDiscord": "Join Discord",
+    "starGitHub": "Star on GitHub",
+    "joinWaitlist": "Join Waitlist"
+  },
+  "footer": {
+    "tagline": "The Agent Economy's Operating System",
+    "copyright": "© 2026 PAI. Built with Love, Honesty, Trust & Security First.",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "contact": "Contact"
+  }
+}

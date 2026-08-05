@@ -1,6 +1,6 @@
 # AxiomID Expert Auto-Labeler
 # Six-stage labeling: area → size → type → author → severity → status
-# Combines actions/labeler@v6 (path-based) with custom logic
+# Combines actions/labeler@v7 (path-based) with custom logic
 # Companion config: .github/labeler.yml
 
 name: Labeler
@@ -16,7 +16,7 @@ jobs:
 
     steps:
     # ── Stage 1: Path-Based Area Labels ──────────
-    - uses: actions/labeler@v6
+    - uses: actions/labeler@v7
       continue-on-error: true
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"

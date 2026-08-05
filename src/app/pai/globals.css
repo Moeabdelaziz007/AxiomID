@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+  --color-foreground: #ffffff;
+  --color-background: #000000;
+}
+
+body {
+  color: var(--color-foreground);
+  background: var(--color-background);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+@font-face {
+  font-family: 'Arabic';
+  src: local('Noto Naskh Arabic'), local('Scheherazade New'), local('Amiri');
+}
+
+.font-arabic {
+  font-family: 'Arabic', serif;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Typewriter cursor blink */
+@keyframes blink {
+  0%, 50% { opacity: 1 }
+  51%, 100% { opacity: 0 }
+}
+.typewriter-cursor {
+  animation: blink 0.8s step-end infinite;
+  display: inline-block;
+  width: 0.5em;
+  text-align: center;
+}
+
+/* Neon glow pulse */
+.neon-pulse {
+  animation: pulse 3s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4 }
+  50% { opacity: 0.8 }
+}
+
+/* Ripple animation */
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #000;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(57, 255, 20, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(57, 255, 20, 0.3);
+}
+
+/* Selection color */
+::selection {
+  background: rgba(57, 255, 20, 0.2);
+  color: #fff;
+}
+
+/* Focus ring for keyboard nav */
+:focus-visible {
+  outline: 2px solid rgba(57, 255, 20, 0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Smooth image loading */
+img {
+  transition: opacity 0.3s ease;
+}
+img[loading] {
+  opacity: 0;
+}
+
+/* Link underline animation */
+a {
+  text-decoration: none;
+}

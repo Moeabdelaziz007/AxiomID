@@ -56,9 +56,9 @@ export function PiBrowserGuard({
           className="flex flex-col items-center gap-4"
         >
           <div className="animate-pulse space-y-3 w-48">
-            <div className="h-4 bg-white/5 rounded w-3/4" />
-            <div className="h-4 bg-white/5 rounded w-1/2" />
-            <div className="h-8 bg-white/5 rounded w-full" />
+            <div className="h-4 bg-glass rounded w-3/4" />
+            <div className="h-4 bg-glass rounded w-1/2" />
+            <div className="h-8 bg-glass rounded w-full" />
           </div>
           <p className="text-sm text-[var(--text-secondary)]">{t("Detecting environment...", "جاري اكتشاف البيئة...")}</p>
         </motion.div>

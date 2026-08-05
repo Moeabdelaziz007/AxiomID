@@ -237,7 +237,7 @@ export default function ClaimPage() {
                  {Math.round((currentStep / 3) * 100)}% {t("Complete", "مكتمل")}
                </span>
              </div>
-             <div className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden p-[1px] border border-white/5">
+             <div className="w-full h-1.5 rounded-full bg-glass overflow-hidden p-[1px] border border-glass">
                <motion.div
                  className="h-full bg-gradient-to-r from-electric-blue via-blue-500 to-neon-green rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"
                  animate={{ width: `${(currentStep / 3) * 100}%` }}
@@ -268,7 +268,7 @@ export default function ClaimPage() {
                         ? "bg-neon-green/10"
                         : isActive
                           ? "bg-electric-blue/10"
-                          : "bg-white/5"
+                          : "bg-glass"
                     }`}
                   >
                     {isCompleted ? (
@@ -282,7 +282,7 @@ export default function ClaimPage() {
                     )}
                   </motion.div>
                   {index < steps.length - 1 && (
-                    <div className="w-12 h-0.5 rounded-full overflow-hidden bg-white/10">
+                    <div className="w-12 h-0.5 rounded-full overflow-hidden bg-glass-hover">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{
@@ -427,7 +427,7 @@ export default function ClaimPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ ease: [0.16, 1, 0.3, 1], duration: 0.4 }}
-              className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/90 p-6 shadow-2xl backdrop-blur-xl"
+              className="relative w-full max-w-md overflow-hidden rounded-2xl border border-glass-hover bg-zinc-900/90 p-6 shadow-2xl backdrop-blur-xl"
             >
               <div className="flex flex-col items-center text-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
@@ -437,7 +437,7 @@ export default function ClaimPage() {
                   <h3 className="text-lg font-bold text-white font-sans">
                     {t("Pi Browser Required", "يتطلب متصفح Pi")}
                   </h3>
-                  <p className="text-sm text-zinc-400 font-sans">
+                  <p className="text-sm text-faint font-sans">
                     {t(
                       "To authenticate with the sovereign key protocol, you must access this page from inside the official Pi Browser application.",
                       "للتوثيق بمستندات الهوية السيادية، يجب عليك زيارة هذه الصفحة من داخل تطبيق متصفح Pi الرسمي."
@@ -446,7 +446,7 @@ export default function ClaimPage() {
                 </div>
 
                 <div className="w-full space-y-3 pt-2">
-                  <div className="flex items-center gap-2 p-3 rounded-xl bg-black/40 border border-white/5 font-mono text-xs text-zinc-300">
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-black/40 border border-glass font-mono text-xs text-subtle">
                     <span className="truncate flex-1 select-all">
                       {typeof window !== "undefined" ? window.location.href : "https://www.axiomid.app/claim"}
                     </span>
@@ -463,7 +463,7 @@ export default function ClaimPage() {
                           logger.error("Failed to copy link: ", err);
                         }
                       }}
-                      className="p-1.5 hover:bg-white/5 rounded-lg text-zinc-400 hover:text-white transition-colors"
+                      className="p-1.5 hover:bg-glass rounded-lg text-faint hover:text-white transition-colors"
                       title={t("Copy link", "نسخ الرابط")}
                     >
                       {copied ? (
@@ -478,7 +478,7 @@ export default function ClaimPage() {
 
                   <button
                     onClick={closeBrowserModal}
-                    className="w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-sm border border-white/10 transition-colors"
+                    className="w-full py-3 px-4 rounded-xl bg-glass hover:bg-glass-hover text-white font-semibold text-sm border border-glass-hover transition-colors"
                   >
                     {t("Got it", "فهمت")}
                   </button>

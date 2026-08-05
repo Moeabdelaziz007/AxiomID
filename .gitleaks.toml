@@ -1,0 +1,54 @@
+# .gitleaks.toml — pai-list org default allowlist + custom rules
+# Copy to every repo in the org
+# Usage: gitleaks detect --source=. --verbose
+
+[allowlist]
+  description = "pai-list global allowlist (non-secret matches)"
+  paths = [
+    "node_modules",
+    ".next",
+    "__pycache__",
+    ".git/objects",
+  ]
+
+[[rules]]
+  id = "pai-postgres-prod"
+  description = "Production Postgres URL pattern"
+  regex = '''postgres://[a-f0-9]{64}:.+@db\.prisma\.io'''
+  tags = ["database", "production"]
+
+[[rules]]
+  id = "pai-ed25519-key"
+  description = "Ed25519 private key (AxiomID identity protocol)"
+  regex = '''-----BEGIN PRIVATE KEY-----'''
+  tags = ["crypto", "identity"]
+
+[[rules]]
+  id = "pai-telegram-bot"
+  description = "Telegram Bot API token"
+  regex = '''[0-9]{8,10}:[A-Za-z0-9_-]{35}'''
+  tags = ["telegram", "api"]
+
+[[rules]]
+  id = "pai-stripe-webhook"
+  description = "Stripe webhook signing secret"
+  regex = '''whsec_[A-Za-z0-9]+'''
+  tags = ["stripe", "payment"]
+
+[[rules]]
+  id = "pai-openrouter-key"
+  description = "OpenRouter API key"
+  regex = '''sk-or-v1-[A-Za-z0-9]+'''
+  tags = ["openrouter", "ai"]
+
+[[rules]]
+  id = "pai-supabase-key"
+  description = "Supabase anon/service key"
+  regex = '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+'''
+  tags = ["supabase", "auth"]
+
+[[rules]]
+  id = "pai-google-api"
+  description = "Google API key"
+  regex = '''AIza[0-9A-Za-z_-]{35}'''
+  tags = ["google", "api"]

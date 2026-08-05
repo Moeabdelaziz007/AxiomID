@@ -41,9 +41,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <ErrorBoundary>
           <Suspense fallback={
             <div className="animate-pulse space-y-4 p-8">
-              <div className="h-6 bg-white/5 rounded w-1/3" />
-              <div className="h-4 bg-white/5 rounded w-2/3" />
-              <div className="h-32 bg-white/5 rounded w-full" />
+              <div className="h-6 bg-glass rounded w-1/3" />
+              <div className="h-4 bg-glass rounded w-2/3" />
+              <div className="h-32 bg-glass rounded w-full" />
             </div>
           }>
             {children}

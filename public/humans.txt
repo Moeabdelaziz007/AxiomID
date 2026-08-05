@@ -1,0 +1,13 @@
+# AxiomID Humans.txt
+# The humans behind AxiomID
+
+## Team
+Mohamed Abdelaziz (Founder) - moeabdelaziz007
+GitHub: https://github.com/Moeabdelaziz007
+Email: moe@axiomid.app
+
+## Site
+Last updated: 2026-07-26
+Standards: HTML5, CSS3, TypeScript, Next.js 16
+Components: React, Tailwind CSS, Framer Motion
+Identity: DID, TrustChain, Pi Network

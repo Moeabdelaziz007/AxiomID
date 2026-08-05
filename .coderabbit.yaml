@@ -1,17 +1,32 @@
 # CodeRabbit Configuration for AxiomID
 # Docs: https://docs.coderabbit.ai/reference/configuration
+# Expanded: deeper path instructions, auto-fix suggestions, SOUL alignment,
+# Zero/OSSIE integration checks, and Meticulous coverage awareness.
 
 reviews:
-  # Start with chill, move to assertive after 2 weeks of tuning
-  profile: "chill"
+  # Assertive now — we've been on chill long enough and CI is mature.
+  profile: "assertive"
+
+  # Request review from CodeRabbit on every new PR
+  review_status: true
+
+  # Add a commit status check so PRs can be gated on CodeRabbit approval
+  review_status_check:
+    enabled: true
+    context: "CodeRabbit Review"
+    target: "approval"
 
   auto_review:
     enabled: true
-    drafts: false              # Skip draft PRs
+    drafts: false
     base_branches:
       - main
+    # Review PRs that touch config/infra too, not just src/
+    ignore_title_keywords: []
+    # Auto-request review on PRs opened by bots too
+    review_bots: true
 
-  # Exclude files that don't benefit from AI review
+  # High-signal changes only
   path_filters:
     - "!**/*.lock"
     - "!**/node_modules/**"
@@ -29,78 +44,203 @@ reviews:
     - "!**/coverage/**"
     - "!**/.vercel/**"
     - "!**/stitch-*.html"
+    - "!**/.husky/**"
+    - "!**/pnpm-lock.yaml"
 
-  # Global review instructions
+  # ── Global review instructions ──
   instructions: |
-    Follow AxiomID engineering covenant (AGENTS.md).
-    No `any` types. No eslint-disable. No setTimeout in API routes.
-    All commits use IQRA Chronicle format: type(scope): description ۞
-    Trust score = XP (70%) + stamps (30%), range 0-100.
-    Soul system has 5 gates: Muraqabah, Ethical, Sab'iyyah, Tawbah, Self-Review.
+    Follow AxiomID engineering covenant (AGENTS.md) strictly.
+    Enforce ALL Top-10 rules:
+      1. Muraqabah & Honesty — no hidden bugs, no fake tests
+      2. Strict TS — no `any`, no `as any`, no type assertions bypassing checks
+      3. Pi SDK browser-only — guard with `typeof window !== 'undefined'`
+      4. Dynamic sandbox detection — no hardcoded sandbox:true/false
+      5. Pi Browser UA in mock auth requests
+      6. Bilingual helper — `const t = (en, ar) => (lang === 'en' ? en : ar)`
+      7. Clamp negative zero in math functions
+      8. Standard Jest matchers — no `.toBeFinite()`, use `Number.isFinite()`
+      9. Stateless Vercel Functions — use waitUntil, no background daemons
+     10. IQRA Chronicle commit format: `type(scope): description ۞`
 
-  # Path-specific instructions (the most powerful feature)
+    Trust Score: XP*0.5 + Stamps*0.2 + Tenure*0.1 + SemanticTrust*0.2 (legacy: XP*0.7 + Stamps*0.3), range 0-100.
+    SOUL: 5 gates (Muraqabah, Ethical, Sab'iyyah, Tawbah, Self-Review).
+    TrustChain: append-only, hash-chained, intention-bearing.
+    did:axiom: W3C DID method — verify resolver changes carefully.
+    Zero/OSSIE: Trust Score defined as OSSIE semantic model (semantic/ossie/axiomid-trust.yaml).
+      Policy graph hashes on SpendRequest should be enforced.
+
+    When reviewing test files:
+      - Every getByText that could match multiple elements MUST use getAllByText
+      - Mock contexts must reflect real component behavior
+      - checkPiBrowser() does NOT check window.Pi anymore (removed for false-positive prevention)
+      - Tests must not rely on window.Pi alone to set isPiBrowser=true
+
+    When reviewing new dependencies:
+      - Check for security advisories
+      - Check bundle size impact
+      - Prefer server-side over client-side imports
+
+  # ── Path-specific instructions (expanded + deepened) ──
   path_instructions:
     - path: "src/app/api/**"
       instructions: |
-        Review for: auth checks (requireAuth), Zod validation,
-        rate limiting, error response format, logger.error() in catch blocks.
-        No setTimeout. Use waitUntil for async work.
+        CRITICAL checks for every API route:
+        - Auth: requireAuth() or CRON_SECRET check on every route
+        - Zod validation on ALL inputs (body, query, params)
+        - Rate limiting on auth/payment endpoints
+        - Error format: { error: string, code?: string } with correct HTTP status
+        - logger.error() in catch blocks, never console.error in production routes
+        - No setTimeout in API routes — use waitUntil() for post-response work
+        - No raw SQL — use Prisma client
+        - Decimal handling: use Prisma.Decimal, not float
+        - CORS headers on public endpoints
+        - Check for TOCTOU (time-of-check to time-of-use) in payment flows
 
-    - path: "backend/src/**"
+    - path: "src/app/api/spend-request/**"
       instructions: |
-        Review for: timing-safe auth (X-Shared-Secret), D1 parameterized queries,
-        KV cache TTL, CORS headers, error boundaries.
-        Env type must match wrangler.toml bindings exactly.
+        HIGH-RISK payment path:
+        - Verify SpendRequest status transitions (pending→approved→completed, no skipping)
+        - Check amount > 0 and within agent limits
+        - Ensure expiresAt is checked before approval
+        - Verify Pi payment ID is unique before linking
+        - TrustChain event must be appended on every state transition
+        - Policy graph hash validation (Zero integration): if policyGraphHash exists,
+          reject if TrustChain tip hash doesn't match
 
-    - path: "src/lib/soul/**"
+    - path: "src/lib/pi-sdk.ts"
       instructions: |
-        Review for: async/await correctness, 5000ms timeout on AI calls,
-        ethical evaluation completeness, Telegram notification error handling.
-        soul-loop.ts has 5 gates (Barakah was removed).
+        Pi SDK is browser-only (typeof window !== 'undefined').
+        - No hardcoded sandbox:true/false — use determineSandboxMode()
+        - checkPiBrowser() uses navigator.userAgent regex /Pi Browser|minepi|PiApp/i
+          and does NOT check window.Pi anymore
+        - Auth requests must include Pi Browser User-Agent header in tests
+        - createPayment: verify payment DTO shape matches Pi API v2
+        - Ads API: check isAdReady before showAd
 
     - path: "src/lib/trust.ts"
       instructions: |
-        Trust score formula: XP (70%) + stamps (30%), clamped 0-100.
-        Never hardcode default trust score (was 85, fixed to 0).
+        Trust score formula: XP*0.5 + Stamps*0.2 + Tenure*0.1 + SemanticTrust*0.2
+        Legacy fallback (no tenure/semantic): XP*0.7 + Stamps*0.3
+        Clamped 0-100. Never hardcode default (was 85, fixed to 0).
+        TOTAL_STAMPS = 10. Ensure imports of this constant, not magic numbers.
+
+    - path: "src/lib/trust-score.ts"
+      instructions: |
+        computeTrustScore uses ACTIONS map with weights and decay.
+        Decay: 0.8 floor, -0.1 per 90 days inactive.
+        Stellar anchor: 1.15x multiplier.
+        Mining streak capped at 5 months.
+
+    - path: "src/lib/trust-chain.ts"
+      instructions: |
+        Append-only, hash-chained event log.
+        - Every append must include parentHash linking to chain tip
+        - eventHash = sha256(parentHash + serializedAction)
+        - actionData includes type, xp, metadata, userId, and timestamp
+        - No delete/update operations — only append
+
+    - path: "src/lib/validators.ts"
+      instructions: |
+        Zod schemas for all inputs. Check:
+        - SpendRequestCreate: amount > 0, description <= 500 chars, context >= 100 chars
+        - SpendRequestAction: status enum validation
+        - No any types in schema outputs — use z.infer
 
     - path: "src/components/**"
       instructions: |
-        Review for: "use client" directive on client components,
-        framer-motion spring easing [0.16, 1, 0.3, 1],
-        responsive design, accessibility (aria labels).
+        - "use client" directive on client components
+        - framer-motion spring easing [0.16, 1, 0.3, 1]
+        - Responsive: mobile-first, test at 375px, 768px, 1280px
+        - Accessibility: aria labels, keyboard navigation, focus traps in modals
+        - No inline styles for dynamic values — use Tailwind classes
+        - Bilingual: use t(en, ar) helper, not hardcoded strings
+        - getByText in tests: check for multiple element matches
+        - ErrorBoundary wrapping for dynamic content sections
+
+    - path: "src/components/claim/**"
+      instructions: |
+        Claim flow components:
+        - ConnectStep renders "Pi Browser Required" when !isPiBrowser && !walletConnected
+          This text appears in BOTH ConnectStep and the modal → tests must use getAllByText
+        - Demo mode: connectDemo() sets walletConnected without real Pi auth
+        - Step navigation: verify prevStep/nextStep guards
 
     - path: "src/app/api/daily-review/**"
       instructions: |
-        CRON_SECRET must be set. Return 503 if env var missing.
+        CRON endpoint: CRON_SECRET must be verified. Return 503 if missing.
         Never bypass auth for scheduled endpoints.
+        Uses calculateTrustScore from trust.ts — verify formula consistency.
+
+    - path: "semantic/**"
+      instructions: |
+        OSSIE semantic models — the SINGLE source of truth for metrics.
+        - Validate against osi-schema.json before merge
+        - Version field must match Apache Ossie spec (0.2.0.dev0)
+        - Metrics must reference real dataset fields
+        - No hardcoded values — all metrics defined as expressions
+        - ai_context.instructions must guide AI agents to use these definitions
+
+    - path: "docs/**"
+      instructions: |
+        Documentation PRs:
+        - Verify code references match actual file paths
+        - Check for broken internal links
+        - Ensure Arabic translations are present for user-facing docs
+        - ZERO_OSSIE_INTEGRATION.md: verify claims against actual Zero/OSSIE behavior
 
     - path: "**/*.test.*"
       instructions: |
-        Focus on: edge cases, proper assertions, mock cleanup.
-        No skipped tests. Test count must never decrease.
+        Test quality gates:
+        - Edge cases: empty inputs, null, undefined, boundary values
+        - Proper assertions: no .toBeFinite(), use Number.isFinite()
+        - Mock cleanup in afterEach
+        - No skipped tests (it.skip / xit)
+        - Test count must never decrease
+        - getByText → getAllByText if multiple elements possible
+        - checkPiBrowser mock: window.Pi alone does NOT set isPiBrowser=true
 
     - path: "prisma/**"
       instructions: |
-        Review for: index on frequently queried columns,
-        proper migration naming, no data loss in migrations.
+        - Index on frequently queried columns (agentId, userId, status)
+        - No data loss in migrations — always provide rollback
+        - Decimal fields: @db.Decimal(20, 8) for currency
+        - Cascade deletes: verify intent (user delete → agent delete is correct)
 
-  # Chat settings
+    - path: ".github/workflows/**"
+      instructions: |
+        - Check for secrets usage — never hardcode tokens
+        - Verify job dependencies (needs: syntax)
+        - Ensure timeout-minutes is set on long jobs
+        - Check for outdated action versions (use v4+ of actions/checkout etc.)
+
+    - path: "next.config.ts"
+      instructions: |
+        - Verify withSentryConfig defaults
+        - CSP headers: must include Pi domains (sandbox.minepi.com, *.pinet.com, sdk.minepi.com)
+        - No experimental flags without testing
+
+    - path: ".coderabbit.yaml"
+      instructions: |
+        Self-review: verify path_instructions match actual codebase structure.
+        Ensure profile is appropriate (assertive for mature repos).
+
+  # ── Chat settings ──
   chat:
-    auto_reply: true           # Auto-reply to @coderabbitai mentions
+    auto_reply: true
 
-  # Tools (enable/disable specific review tools)
+  # ── Tools (expanded) ──
   tools:
     ruff:
-      enabled: false           # Not a Python project
+      enabled: false
     mypy:
-      enabled: false           # Not a Python project
-
-# Sequence diagrams for complex PRs
-summarize:
-  enabled: true
-  language: "en"
-
-# Layout diagrams
-layout:
-  diagrams:
-    enabled: true
+      enabled: false
+    eslint:
+      enabled: true
+      config_file: ".eslintrc.json"
+    biome:
+      enabled: false
+    gitleaks:
+      enabled: true
+    semgrep:
+      enabled: true
+      config_file: ".semgrep.yml"

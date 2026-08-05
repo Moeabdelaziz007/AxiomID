@@ -57,7 +57,7 @@ export function OnboardingModal({
   const stateValue = getOnboardingState(user);
 
   const stateConfigs: Record<OnboardingState, { label: string; colorClass: string }> = {
-    VISITOR: { label: t("onboarding_state_visitor"), colorClass: "text-zinc-500 border-zinc-800 bg-zinc-900/50" },
+    VISITOR: { label: t("onboarding_state_visitor"), colorClass: "text-faint border-zinc-800 bg-zinc-900/50" },
     CONNECTED: { label: t("onboarding_state_connected"), colorClass: "text-blue-400 border-blue-500/20 bg-blue-500/5" },
     PARTIAL_VERIFIED: { label: t("onboarding_state_partial_kyc"), colorClass: "text-amber-400 border-amber-500/20 bg-amber-500/5" },
     VERIFIED: { label: t("onboarding_state_verified"), colorClass: "text-green-400 border-green-500/20 bg-green-500/5" },
@@ -99,7 +99,7 @@ export function OnboardingModal({
       tabIndex={-1}
     >
       <div
-        className="bento-card max-w-md w-full p-6 sm:p-8 relative flex flex-col border border-white/10 shadow-2xl animate-[scaleIn_0.3s_ease-out]"
+        className="bento-card max-w-md w-full p-6 sm:p-8 relative flex flex-col border border-glass-hover shadow-2xl animate-[scaleIn_0.3s_ease-out]"
       >
         <div className="flex justify-between items-start mb-6">
           <div>
@@ -112,14 +112,14 @@ export function OnboardingModal({
               </span>
             </div>
           </div>
-          <button onClick={onSkip} className="text-faint hover:text-surface text-xs font-mono border border-white/5 hover:border-white/10 px-2.5 py-1 rounded">
+          <button onClick={onSkip} className="text-faint hover:text-surface text-xs font-mono border border-glass hover:border-glass-hover px-2.5 py-1 rounded">
             {t("onboarding_modal_skip")}
           </button>
         </div>
 
         <div className="flex gap-2 mb-6">
           {[1, 2, 3].map((s) => (
-            <div key={s} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${s === step ? "bg-neon-green" : s < step ? "bg-neon-green/40" : "bg-white/10"}`} />
+            <div key={s} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${s === step ? "bg-neon-green" : s < step ? "bg-neon-green/40" : "bg-glass-hover"}`} />
           ))}
         </div>
 
@@ -169,7 +169,7 @@ export function OnboardingModal({
                   value={agentName}
                   onChange={(e) => setAgentName(e.target.value)}
                   placeholder={t("onboarding_modal_agent_name_placeholder")}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-surface placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
+                  className="w-full bg-glass border border-glass-hover rounded-lg px-4 py-2.5 text-sm text-surface placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
                 />
                 <button onClick={() => onCreateAgent(agentName)} disabled={agentLoading} className="btn-primary w-full py-3 text-xs tracking-wider">
                   {agentLoading ? t("onboarding_modal_creating") : t("onboarding_modal_create_btn")}
@@ -186,7 +186,7 @@ export function OnboardingModal({
                 {t("onboarding_modal_ready_desc")}
               </p>
               {user && (
-                <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl text-xs space-y-2 font-mono">
+                <div className="p-3 bg-white/[0.02] border border-glass rounded-xl text-xs space-y-2 font-mono">
                   <div className="flex justify-between">
                     <span className="text-faint">{t("onboarding_modal_agent_label")}</span>
                     <span className="text-neon-green">{user.agent?.name || t("onboarding_default_agent_name")}</span>

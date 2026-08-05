@@ -78,7 +78,7 @@ export function RecentActivity({ user }: { user: { xp: number; trustScore: numbe
 
   if (activities.length === 0) {
     return (
-      <div className="bento-card p-5 text-center text-xs text-zinc-500 font-mono">
+      <div className="bento-card p-5 text-center text-xs text-faint font-mono">
         {t("no_activity")}
       </div>
     );
@@ -86,19 +86,19 @@ export function RecentActivity({ user }: { user: { xp: number; trustScore: numbe
 
   return (
     <div className="bento-card p-5">
-      <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest mb-4">
+      <h3 className="text-xs font-bold font-mono text-faint uppercase tracking-widest mb-4">
         {t("recent_activity")}
       </h3>
       <div className="space-y-2">
         {activities.map((a) => (
-          <div key={a.id} className="flex items-center gap-3 p-2.5 rounded-xl border border-white/5 bg-white/[0.01] hover:bg-white/[0.02] transition-colors">
-            <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/[0.06] flex items-center justify-center shrink-0">
+          <div key={a.id} className="flex items-center gap-3 p-2.5 rounded-xl border border-glass bg-white/[0.01] hover:bg-white/[0.02] transition-colors">
+            <div className="w-7 h-7 rounded-lg bg-glass border border-white/[0.06] flex items-center justify-center shrink-0">
               {ICON_MAP[a.type]}
             </div>
             <div className="flex-1 min-w-0">
               <span className="text-xs text-surface font-mono block truncate">{a.description}</span>
             </div>
-            <span className="text-[9px] text-zinc-500 font-mono shrink-0" suppressHydrationWarning>
+            <span className="text-[9px] text-faint font-mono shrink-0" suppressHydrationWarning>
               {getRelativeTime(a.timestamp, language)}
             </span>
           </div>

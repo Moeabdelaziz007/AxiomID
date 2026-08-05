@@ -16,7 +16,7 @@ export function DiagnosticsSkeleton() {
       </div>
       <div className="flex flex-col gap-3">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="flex flex-col gap-2 p-4 rounded-lg border border-white/5">
+          <div key={i} className="flex flex-col gap-2 p-4 rounded-lg border border-glass">
             <div className="flex items-center gap-2">
               <SkeletonLine width="3rem" height="1rem" />
               <SkeletonLine width="5rem" height="0.75rem" />

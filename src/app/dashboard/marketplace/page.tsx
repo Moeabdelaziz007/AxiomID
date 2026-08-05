@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 import { useWallet } from "../../context/wallet-context";
 import { motion } from "framer-motion";
 import { Dna, Download, Star, Coins } from "lucide-react";
@@ -305,9 +306,15 @@ export default function MarketplacePage() {
         const data = await res.json();
         throw new Error(data?.message || data?.error || 'Install failed (' + res.status + ')');
       }
+      posthog.capture("skill_installed", {
+        skill_slug: skill.slug,
+        skill_name: skill.name,
+        price_pi: skill.pricePi,
+      });
       toast.success(t("marketplace_install_success"));
       openDetail(skill.slug);
     } catch (err) {
+      posthog.captureException(err instanceof Error ? err : new Error(String(err)));
       setError(err instanceof Error ? err.message : "Failed to install skill");
     } finally {
       setInstalling(false);
@@ -327,9 +334,14 @@ export default function MarketplacePage() {
         const data = await res.json();
         throw new Error(data?.message || data?.error || 'Uninstall failed (' + res.status + ')');
       }
+      posthog.capture("skill_uninstalled", {
+        skill_slug: skill.slug,
+        skill_name: skill.name,
+      });
       toast.success(t("marketplace_uninstall_success") || "Skill uninstalled successfully!");
       openDetail(skill.slug);
     } catch (err) {
+      posthog.captureException(err instanceof Error ? err : new Error(String(err)));
       setError(err instanceof Error ? err.message : "Failed to uninstall skill");
     } finally {
       setInstalling(false);
@@ -361,6 +373,11 @@ export default function MarketplacePage() {
       const savedReview = await res.json();
       const reviewObj = savedReview.data || savedReview;
       setReviews(prev => [reviewObj, ...prev]);
+      posthog.capture("skill_reviewed", {
+        skill_slug: selectedSkill.slug,
+        skill_name: selectedSkill.name,
+        rating: newRating,
+      });
       toast.success(t("marketplace_review_success") || "Review submitted successfully!");
       setNewReviewText("");
       setSelectedSkill(prev => {
@@ -436,7 +453,7 @@ export default function MarketplacePage() {
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   placeholder={t("marketplace_search")}
-                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-surface placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
+                  className="flex-1 bg-glass border border-glass-hover rounded-lg px-4 py-2.5 text-sm text-surface placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
                 />
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by tier">
                   {["", "BASIC_TOOL", "ADVANCED_TOOL", "ADVANCED_INFRASTRUCTURE", "PRO", "SOVEREIGN"].map((tier) => (
@@ -446,7 +463,7 @@ export default function MarketplacePage() {
                       className={`px-3 py-1.5 rounded-lg text-[10px] font-mono border transition-colors ${
                         filterTier === tier
                           ? "bg-neon-green/10 text-neon-green border-neon-green/30"
-                          : "bg-white/5 text-faint border-white/10 hover:border-white/20"
+                          : "bg-glass text-faint border-glass-hover hover:border-white/20"
                       }`}
                     >
                       {tier ? t(TIER_LABEL_KEYS[tier] || tier) : t("marketplace_all")}
@@ -457,14 +474,14 @@ export default function MarketplacePage() {
 
               {/* Tag filters */}
               {availableTags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 items-center border-t border-white/5 pt-3" role="group" aria-label="Filter by tag">
+                <div className="flex flex-wrap gap-1.5 items-center border-t border-glass pt-3" role="group" aria-label="Filter by tag">
                   <span className="text-[10px] font-mono text-faint me-2">{t("marketplace_tags") || "Tags:"}</span>
                   <button
                     onClick={() => handleTagChange("")}
                     className={`px-2.5 py-1 rounded-md text-[9px] font-mono border transition-colors ${
                       selectedTag === ""
                         ? "bg-electric-blue/10 text-electric-blue border-electric-blue/30"
-                        : "bg-white/5 text-faint border-white/10 hover:border-white/20"
+                        : "bg-glass text-faint border-glass-hover hover:border-white/20"
                     }`}
                   >
                     {t("marketplace_all") || "All"}
@@ -526,9 +543,9 @@ export default function MarketplacePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="bento-card p-6 animate-pulse">
-                    <div className="h-4 bg-white/5 rounded w-3/4 mb-3" />
-                    <div className="h-3 bg-white/5 rounded w-1/2 mb-4" />
-                    <div className="h-8 bg-white/5 rounded" />
+                    <div className="h-4 bg-glass rounded w-3/4 mb-3" />
+                    <div className="h-3 bg-glass rounded w-1/2 mb-4" />
+                    <div className="h-8 bg-glass rounded" />
                   </div>
                 ))}
               </div>
@@ -627,7 +644,7 @@ export default function MarketplacePage() {
                         <span>{t("marketplace_signed")}</span>
                       </div>
 
-                      <div className="flex items-center justify-between text-[9px] font-mono border-t border-white/5 pt-3 mt-1 relative z-10">
+                      <div className="flex items-center justify-between text-[9px] font-mono border-t border-glass pt-3 mt-1 relative z-10">
                         <div className="flex items-center gap-3">
                           <span style={{ color: "var(--text-muted)" }}>
                             <Download className="w-3 h-3 inline me-1" />{skill.installCount}
@@ -670,14 +687,14 @@ export default function MarketplacePage() {
         onClick={(e) => { if (e.target === dialogRef.current) closeModal(); }}
       >
           <div
-            className="bento-card max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 border border-white/10"
+            className="bento-card max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 border border-glass-hover"
             onClick={(e) => e.stopPropagation()}
           >
             {detailLoading ? (
               <div className="space-y-4 animate-pulse">
-                <div className="h-6 bg-white/5 rounded w-1/2" />
-                <div className="h-4 bg-white/5 rounded w-3/4" />
-                <div className="h-32 bg-white/5 rounded" />
+                <div className="h-6 bg-glass rounded w-1/2" />
+                <div className="h-4 bg-glass rounded w-3/4" />
+                <div className="h-32 bg-glass rounded" />
               </div>
             ) : selectedSkill && (
               <motion.div
@@ -694,7 +711,7 @@ export default function MarketplacePage() {
                   </div>
                   <button
                     onClick={closeModal}
-                    className="text-faint hover:text-surface text-xs font-mono px-2 py-0.5 border border-white/5 rounded"
+                    className="text-faint hover:text-surface text-xs font-mono px-2 py-0.5 border border-glass rounded"
                   >
                     {t("marketplace_close")}
                   </button>
@@ -743,7 +760,7 @@ export default function MarketplacePage() {
                   <p className="text-[10px] font-mono mb-2" style={{ color: "var(--text-muted)" }}>
                     {t("marketplace_manifest_desc")}
                   </p>
-                  <pre className="bg-black/40 border border-white/5 rounded-lg p-3 text-[10px] font-mono text-neon-green overflow-x-auto max-h-48 scrollbar-thin whitespace-pre-wrap">
+                  <pre className="bg-black/40 border border-glass rounded-lg p-3 text-[10px] font-mono text-neon-green overflow-x-auto max-h-48 scrollbar-thin whitespace-pre-wrap">
                     {selectedSkill.manifestMd}
                   </pre>
                 </div>
@@ -757,7 +774,7 @@ export default function MarketplacePage() {
                     <p className="text-[10px] font-mono mb-2" style={{ color: "var(--text-muted)" }}>
                       {t("marketplace_script_desc")}
                     </p>
-                    <pre className="bg-black/40 border border-white/5 rounded-lg p-3 text-[10px] font-mono text-electric-blue overflow-x-auto max-h-48 scrollbar-thin whitespace-pre-wrap">
+                    <pre className="bg-black/40 border border-glass rounded-lg p-3 text-[10px] font-mono text-electric-blue overflow-x-auto max-h-48 scrollbar-thin whitespace-pre-wrap">
                       {selectedSkill.agentScript}
                     </pre>
                   </div>
@@ -769,7 +786,7 @@ export default function MarketplacePage() {
                     <h3 className="text-xs font-mono font-bold mb-2" style={{ color: "var(--text-secondary)" }}>
                       {t("marketplace_test_suite")}
                     </h3>
-                    <pre className="bg-black/40 border border-white/5 rounded-lg p-3 text-[10px] font-mono text-amber-400 overflow-x-auto max-h-48 scrollbar-thin whitespace-pre-wrap">
+                    <pre className="bg-black/40 border border-glass rounded-lg p-3 text-[10px] font-mono text-amber-400 overflow-x-auto max-h-48 scrollbar-thin whitespace-pre-wrap">
                       {selectedSkill.testSuite}
                     </pre>
                   </div>
@@ -777,24 +794,24 @@ export default function MarketplacePage() {
 
                 {/* Version History (Changelog) */}
                 {(versionsLoading || versions.length > 0) && (
-                  <div className="mb-6 border-t border-white/5 pt-4">
+                  <div className="mb-6 border-t border-glass pt-4">
                     <h3 className="text-xs font-mono font-bold mb-2 text-surface">
                       {t("marketplace_version_history") || "Version History & Changelogs"}
                     </h3>
                     {versionsLoading ? (
                       <div className="space-y-2 animate-pulse">
-                        <div className="h-10 bg-white/5 rounded" />
+                        <div className="h-10 bg-glass rounded" />
                       </div>
                     ) : (
                       <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin pr-1">
                         {versions.map((ver) => (
-                          <div key={ver.id} className="bg-white/5 border border-white/5 rounded-lg p-2.5 text-[9px] font-mono">
+                          <div key={ver.id} className="bg-glass border border-glass rounded-lg p-2.5 text-[9px] font-mono">
                             <div className="flex justify-between items-center mb-1">
                               <span className="text-emerald-400 font-bold">v{ver.version}</span>
                               <span className="text-faint">{new Date(ver.createdAt).toLocaleDateString()}</span>
                             </div>
                             {ver.changelog && (
-                              <p className="text-subtle leading-relaxed whitespace-pre-wrap mt-1 border-t border-white/5 pt-1">{ver.changelog}</p>
+                              <p className="text-subtle leading-relaxed whitespace-pre-wrap mt-1 border-t border-glass pt-1">{ver.changelog}</p>
                             )}
                           </div>
                         ))}
@@ -804,14 +821,14 @@ export default function MarketplacePage() {
                 )}
 
                 {/* Reviews & Ratings Section */}
-                <div className="mb-6 border-t border-white/5 pt-4">
+                <div className="mb-6 border-t border-glass pt-4">
                   <h3 className="text-xs font-mono font-bold mb-3 text-surface">
                     {t("marketplace_reviews") || "Community Reviews"}
                   </h3>
 
                   {/* Add Review Form */}
                   {selectedSkill.isInstalled && user && (
-                    <form onSubmit={handleAddReview} className="bg-white/5 border border-white/10 rounded-lg p-3 mb-4">
+                    <form onSubmit={handleAddReview} className="bg-glass border border-glass-hover rounded-lg p-3 mb-4">
                       <h4 className="text-[10px] font-mono font-bold mb-2 text-surface">{t("marketplace_add_review") || "Write a Review"}</h4>
                       <div className="flex gap-2 items-center mb-2">
                         <span className="text-[9px] font-mono text-faint">{t("marketplace_rating") || "Rating:"}</span>
@@ -831,10 +848,12 @@ export default function MarketplacePage() {
                         </div>
                       </div>
                       <textarea
+                        id="review-text"
+                        name="reviewText"
                         value={newReviewText}
                         onChange={(e) => setNewReviewText(e.target.value)}
                         placeholder={t("marketplace_review_placeholder") || "Share your feedback about this skill..."}
-                        className="w-full bg-black/20 border border-white/10 rounded p-2 text-[10px] font-mono text-surface placeholder-gray-600 focus:outline-none focus:border-emerald-500/40 mb-2 min-h-[40px] resize-y"
+                        className="w-full bg-black/20 border border-glass-hover rounded p-2 text-[10px] font-mono text-surface placeholder-gray-600 focus:outline-none focus:border-emerald-500/40 mb-2 min-h-[40px] resize-y"
                         required
                       />
                       <button
@@ -850,15 +869,15 @@ export default function MarketplacePage() {
                   {/* Reviews List */}
                   {reviewsLoading ? (
                     <div className="space-y-2 animate-pulse">
-                      <div className="h-10 bg-white/5 rounded" />
-                      <div className="h-10 bg-white/5 rounded" />
+                      <div className="h-10 bg-glass rounded" />
+                      <div className="h-10 bg-glass rounded" />
                     </div>
                   ) : reviews.length === 0 ? (
                     <p className="text-[9px] font-mono text-muted text-center py-2">{t("marketplace_no_reviews") || "No reviews yet."}</p>
                   ) : (
                     <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin pr-1">
                       {reviews.map((rev) => (
-                        <div key={rev.id} className="border-b border-white/5 pb-2 last:border-b-0">
+                        <div key={rev.id} className="border-b border-glass pb-2 last:border-b-0">
                           <div className="flex justify-between items-center mb-1">
                             <div className="flex gap-1.5 items-center">
                               <span className="text-[9px] font-mono text-surface font-bold">User {rev.userId.slice(0, 8)}</span>
@@ -879,7 +898,7 @@ export default function MarketplacePage() {
                   )}
                 </div>
 
-                <div className="flex gap-3 mt-6 border-t border-white/5 pt-4">
+                <div className="flex gap-3 mt-6 border-t border-glass pt-4">
                   {selectedSkill.isInstalled ? (
                     <button
                       onClick={() => handleUninstall(selectedSkill)}

@@ -9,6 +9,7 @@ import { calculateTier } from '@/lib/tiers';
 import { encryptToken, hashPiUid } from '@/lib/crypto';
 import { createPiDid } from '@/lib/did';
 import { getSandboxDevToken } from '@/lib/sandbox-token';
+import { getPostHogClient } from '@/lib/posthog-server';
 
 interface PiApiUser {
   uid: string;
@@ -168,6 +169,29 @@ export async function POST(request: NextRequest) {
     }
 
     const tier = calculateTier(user.xp);
+    const isNew = !existingUser;
+
+    const posthog = getPostHogClient();
+    posthog.identify({
+      distinctId: user.id,
+      properties: {
+        tier,
+        kycStatus: user.kycStatus,
+        hasAgent: !!user.agent,
+      },
+    });
+    if (isNew) {
+      posthog.capture({
+        distinctId: user.id,
+        event: 'user_signed_up',
+        properties: {
+          tier,
+          kycStatus: user.kycStatus,
+          source: 'pi_network',
+        },
+      });
+    }
+    await posthog.flush();
 
     return apiSuccess({
       userId: user.id,

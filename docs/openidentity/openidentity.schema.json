@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://axiomid.app/.well-known/openidentity.schema.json",
+  "title": "OpenIdentity",
+  "description": "JSON Schema for OpenIdentity documents — the open identity layer for AI agents (v0.1)",
+  "type": "object",
+  "version": "0.1",
+
+  "$defs": {
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^(https?|wss?)://"
+    },
+    "iso8601": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+    },
+    "did": {
+      "type": "string",
+      "pattern": "^did:axiom:"
+    },
+    "attestation": {
+      "type": "object",
+      "properties": {
+        "provider": { "type": "string" },
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["verified", "pending", "unverified"] },
+        "verified_at": { "$ref": "#/$defs/iso8601" },
+        "proof": { "type": "string" },
+        "level": { "type": "integer", "minimum": 0, "maximum": 5 }
+      },
+      "required": ["provider", "type", "status"]
+    },
+
+    "openidentity": {
+      "description": "Minimal bootstrap identity manifest — /.well-known/openidentity.md",
+      "type": "object",
+      "properties": {
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
+        "did": { "$ref": "#/$defs/did" },
+        "name": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 500 },
+        "documentation": { "$ref": "#/$defs/url" },
+        "image": { "$ref": "#/$defs/url" },
+        "well_known": {
+          "type": "object",
+          "properties": {
+            "openidentity": { "$ref": "#/$defs/url" },
+            "passport": { "$ref": "#/$defs/url" },
+            "agent_card": { "$ref": "#/$defs/url" },
+            "auth": { "$ref": "#/$defs/url" },
+            "skills": { "$ref": "#/$defs/url" },
+            "wallet": { "$ref": "#/$defs/url" }
+          },
+          "required": ["openidentity", "passport", "agent_card"]
+        },
+        "attestations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/attestation" }
+        },
+        "created_at": { "$ref": "#/$defs/iso8601" },
+        "updated_at": { "$ref": "#/$defs/iso8601" }
+      },
+      "required": ["version", "did", "name", "well_known"],
+      "additionalProperties": false
+    },
+
+    "passport": {
+      "description": "Full agent genome document — /.well-known/passport.md",
+      "type": "object",
+      "properties": {
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
+        "did": { "$ref": "#/$defs/did" },
+        "name": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 500 },
+        "publicId": { "type": "string", "pattern": "^ag_" },
+        "status": { "type": "string", "enum": ["active", "paused", "inactive", "sleeping"] },
+        "tier": { "type": "string", "enum": ["visitor", "citizen", "validator", "sovereign"] },
+        "xp": { "type": "integer", "minimum": 0 },
+        "image": { "$ref": "#/$defs/url" },
+        "owner": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "did": { "$ref": "#/$defs/did" },
+            "url": { "$ref": "#/$defs/url" }
+          },
+          "required": []
+        },
+        "openidentity": { "$ref": "#/$defs/url" },
+        "passport": { "$ref": "#/$defs/url" },
+        "agent_card": { "$ref": "#/$defs/url" },
+        "auth": { "$ref": "#/$defs/url" },
+        "skills": { "$ref": "#/$defs/url" },
+        "wallet": { "$ref": "#/$defs/url" },
+        "identity": { "$ref": "#/$defs/url" },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string" },
+              "endpoint": { "$ref": "#/$defs/url" },
+              "version": { "type": "string" }
+            },
+            "required": ["type", "endpoint"]
+          }
+        },
+        "attestations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/attestation" }
+        },
+        "memory": {
+          "type": "object",
+          "properties": {
+            "working": { "type": "string" },
+            "long_term": { "$ref": "#/$defs/url" },
+            "knowledge": { "$ref": "#/$defs/url" },
+            "archive": { "$ref": "#/$defs/url" }
+          }
+        },
+        "credentials": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string" },
+              "credentialStatus": { "$ref": "#/$defs/url" }
+            }
+          }
+        },
+        "links": {
+          "type": "object",
+          "description": "Social and external links for this agent",
+          "properties": {
+            "website": { "$ref": "#/$defs/url" },
+            "github": { "$ref": "#/$defs/url" },
+            "twitter": { "$ref": "#/$defs/url" },
+            "discord": { "$ref": "#/$defs/url" },
+            "farcaster": { "$ref": "#/$defs/url" }
+          }
+        },
+        "created_at": { "$ref": "#/$defs/iso8601" },
+        "updated_at": { "$ref": "#/$defs/iso8601" }
+      },
+      "required": ["version", "did", "name", "owner", "created_at", "updated_at"],
+      "additionalProperties": true
+    }
+  },
+
+  "oneOf": [
+    { "$ref": "#/$defs/openidentity" },
+    { "$ref": "#/$defs/passport" }
+  ]
+}

@@ -12,6 +12,7 @@ import { anchorVcHash } from "@/lib/stellar-anchoring";
 import { SlugParamSchema } from "@/lib/validators";
 import { logger } from "@/lib/logger";
 import { getKyaStatus, getKycStatus } from "../_utils";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 const AGENT_SELECT = {
   agent: {
@@ -117,6 +118,21 @@ export async function POST(
         logger.error("Stellar anchoring failed (non-fatal)", { error: anchorErr });
       }
     }
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: auth.user.id,
+      event: 'passport_published',
+      properties: {
+        cid: ipfsResult.cid,
+        trust_score: trustScore,
+        tier: user.tier,
+        kya_status: passportAttestation.kyaStatus,
+        kyc_status: passportAttestation.kycStatus,
+        stamp_count: stamps.length,
+      },
+    });
+    await posthog.flush();
 
     return apiSuccess({
       cid: ipfsResult.cid,

@@ -35,7 +35,7 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 40 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="fixed bottom-[calc(64px+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-40 backdrop-blur-xl h-[60vh] sm:h-[45vh] overflow-hidden flex flex-col border-t border-white/10"
+      className="fixed bottom-[calc(64px+env(safe-area-inset-bottom,0px))] md:bottom-0 left-0 right-0 z-40 backdrop-blur-xl h-[60vh] sm:h-[45vh] overflow-hidden flex flex-col border-t border-glass-hover"
       style={{ 
         paddingBottom: "0px", 
         background: "rgba(3, 3, 5, 0.98)",
@@ -43,7 +43,7 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
       }}
     >
       {/* ── TOP TELEMETRY BAR ── */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-1.5 bg-[#08080c] border-b border-white/5 font-mono text-[9px] text-faint">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-1.5 bg-[#08080c] border-b border-glass font-mono text-[9px] text-faint">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1 text-emerald-400">
             <Activity className="w-3 h-3 animate-pulse" />
@@ -52,18 +52,18 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
         </div>
         <div className="flex items-center gap-3">
           <span>DID: {user?.did ? `${user.did.slice(0, 18)}...` : "UNRESOLVED"}</span>
-          <span className="hidden sm:inline border-l border-white/10 pl-3">NODE: 4001/TCP</span>
+          <span className="hidden sm:inline border-l border-glass-hover pl-3">NODE: 4001/TCP</span>
         </div>
       </div>
  
       {/* ── INTERACTIVE TUI PANELS ── */}
       <div className="flex-1 flex overflow-hidden">
         {/* PANEL 1: Left Telemetry & System Specs (Lazygit Style) */}
-        <div className="w-64 border-r border-white/5 bg-black/40 p-4 font-mono text-[10px] space-y-4 hidden md:block select-none text-subtle">
+        <div className="w-64 border-r border-glass bg-black/40 p-4 font-mono text-[10px] space-y-4 hidden md:block select-none text-subtle">
           <div>
             <div className="text-electric-blue font-bold mb-1.5 flex items-center gap-1">
               <span>┌─ SYSTEM CONFIG </span>
-              <span className="flex-1 border-t border-dashed border-white/10 ml-1"></span>
+              <span className="flex-1 border-t border-dashed border-glass-hover ml-1"></span>
             </div>
             <div className="space-y-1 pl-2">
               <div>HOST: <code>did:axiom:l0-gate</code></div>
@@ -76,7 +76,7 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
           <div>
             <div className="text-neon-green font-bold mb-1.5 flex items-center gap-1">
               <span>┌─ SECURITY TRUST </span>
-              <span className="flex-1 border-t border-dashed border-white/10 ml-1"></span>
+              <span className="flex-1 border-t border-dashed border-glass-hover ml-1"></span>
             </div>
             <div className="space-y-1 pl-2">
               <div>L0 SECURITY: <code>HIGH_SHIELD</code></div>
@@ -89,7 +89,7 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
           <div>
             <div className="text-axiom-purple font-bold mb-1.5 flex items-center gap-1">
               <span>┌─ ACTIVE MODULES </span>
-              <span className="flex-1 border-t border-dashed border-white/10 ml-1"></span>
+              <span className="flex-1 border-t border-dashed border-glass-hover ml-1"></span>
             </div>
             <div className="space-y-1 pl-2">
               <div>⎔ <code>pg-connector.mcp</code> [UP]</div>
@@ -102,18 +102,18 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
         {/* PANEL 2: Central Interactive Log Terminal */}
         <div className="flex-1 flex flex-col min-w-0 bg-black/20">
           {/* Header Controls */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-[#0a0a0f]">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-glass bg-[#0a0a0f]">
             <div className="flex items-center gap-2">
               <Terminal className="w-4 h-4 text-neon-green" />
               <span className="text-xs font-mono font-bold text-surface tracking-wider">{t('terminal_title')}</span>
-              <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-white/5 border border-white/5 text-faint">
+              <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-glass border border-glass text-faint">
                 {logs.length + walletLogs.length} LOGS
               </span>
             </div>
             <div className="flex items-center gap-1.5">
               <button
                 onClick={onClear}
-                className="text-[10px] font-mono transition-all px-2.5 py-1.5 rounded border border-white/5 hover:border-white/20 hover:bg-white/5 flex items-center gap-1.5"
+                className="text-[10px] font-mono transition-all px-2.5 py-1.5 rounded border border-glass hover:border-white/20 hover:bg-glass flex items-center gap-1.5"
                 style={{ color: "var(--text-muted)" }}
                 title={t('terminal_clear')}
                 aria-label={t('terminal_clear')}
@@ -132,7 +132,7 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
               </button>
               <button
                 onClick={onClose}
-                className="transition-colors ms-1 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5"
+                className="transition-colors ms-1 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-glass"
                 style={{ color: 'var(--text-muted)' }}
                 title={t('close')}
                 aria-label={t('close')}
@@ -147,7 +147,7 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
           {/* Scrollable Logs Output */}
           <div ref={scrollRef} role="log" aria-live="polite" aria-label="System logs" className="overflow-y-auto flex-1 p-4 font-mono text-[10px] leading-relaxed scrollbar-thin space-y-1.5 selection:bg-neon-green/20">
             {visibleLogs.map((line, i) => (
-              <div key={`init-${i}`} className="flex items-start gap-2 border-l border-white/5 pl-2">
+              <div key={`init-${i}`} className="flex items-start gap-2 border-l border-glass pl-2">
                 <span className="text-electric-blue select-none shrink-0">⎔</span>
                 <span className="text-subtle">{line}</span>
               </div>
@@ -177,13 +177,13 @@ export function TerminalOverlay({ logs, walletLogs, onClear, onRunTest, onClose 
       </div>
  
       {/* ── BOTTOM TUI KEYBINDINGS HELP BAR (Lazygit Style) ── */}
-      <div className="bg-[#050508] border-t border-white/5 px-4 py-2 font-mono text-[9px] text-faint select-none">
+      <div className="bg-[#050508] border-t border-glass px-4 py-2 font-mono text-[9px] text-faint select-none">
         <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
-          <span><kbd className="bg-white/10 text-surface px-1 rounded mr-1 font-sans">Esc</kbd> {language === "ar" ? "إغلاق" : "Exit"}</span>
+          <span><kbd className="bg-glass-hover text-surface px-1 rounded mr-1 font-sans">Esc</kbd> {language === "ar" ? "إغلاق" : "Exit"}</span>
           <span><kbd className="bg-neon-green/20 text-neon-green px-1 rounded mr-1 font-sans">Space</kbd> {t('terminal_run_test')}</span>
-          <span><kbd className="bg-white/10 text-surface px-1 rounded mr-1 font-sans">Ctrl+L</kbd> {t('terminal_clear')}</span>
-          <span className="hidden sm:inline"><kbd className="bg-white/10 text-surface px-1 rounded mr-1 font-sans">F1</kbd> {language === "ar" ? "دليل المساعدة" : "Help Docs"}</span>
-          <span className="hidden sm:inline"><kbd className="bg-white/10 text-surface px-1 rounded mr-1 font-sans">Tab</kbd> {language === "ar" ? "تبديل النوافذ" : "Switch Pane"}</span>
+          <span><kbd className="bg-glass-hover text-surface px-1 rounded mr-1 font-sans">Ctrl+L</kbd> {t('terminal_clear')}</span>
+          <span className="hidden sm:inline"><kbd className="bg-glass-hover text-surface px-1 rounded mr-1 font-sans">F1</kbd> {language === "ar" ? "دليل المساعدة" : "Help Docs"}</span>
+          <span className="hidden sm:inline"><kbd className="bg-glass-hover text-surface px-1 rounded mr-1 font-sans">Tab</kbd> {language === "ar" ? "تبديل النوافذ" : "Switch Pane"}</span>
         </div>
       </div>
     </motion.div>

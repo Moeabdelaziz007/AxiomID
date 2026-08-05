@@ -67,12 +67,12 @@ export function PassportView() {
   // Identity is still being built
   if (passport && passport.jobStatus && passport.jobStatus !== "COMPLETED" && passport.jobStatus !== "ACTIVE") {
       return (
-         <div className="w-full max-w-lg flex flex-col items-center text-center p-8 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
+         <div className="w-full max-w-lg flex flex-col items-center text-center p-8 bg-glass border border-glass-hover rounded-2xl backdrop-blur-md">
              <div className="w-16 h-16 rounded-full border-4 border-electric-blue border-t-transparent animate-spin mx-auto mb-6" />
              <h2 className="text-2xl font-bold font-mono text-white mb-2">Preparing your AI...</h2>
-             <p className="text-zinc-400 font-mono text-sm mb-8">Status: {passport.jobStatus}</p>
+             <p className="text-faint font-mono text-sm mb-8">Status: {passport.jobStatus}</p>
              <div className="space-y-2 text-xs font-mono text-left bg-black/30 p-4 rounded-xl w-full">
-                 <div className="flex items-center gap-2 text-zinc-500"><CheckCircle2 className="w-3 h-3" /> Reserving Domain</div>
+                 <div className="flex items-center gap-2 text-faint"><CheckCircle2 className="w-3 h-3" /> Reserving Domain</div>
                  <div className="flex items-center gap-2 text-emerald-400 animate-pulse"><Loader2 className="w-3 h-3 animate-spin" /> Provisioning Identity Engine</div>
                  <div className="flex items-center gap-2 text-zinc-700"> Generating DID Document</div>
                  <div className="flex items-center gap-2 text-zinc-700"> Issuing Sovereign Passport</div>

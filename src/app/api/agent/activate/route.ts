@@ -5,6 +5,7 @@ import { getClientIp } from "@/lib/ip";
 import { logger } from "@/lib/logger";
 import { requireAuth } from "@/lib/auth-middleware";
 import { prisma } from "@/lib/prisma";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 /**
  * Activates an authenticated user's agent after rate-limit verification.
@@ -34,6 +35,16 @@ export async function POST(request: NextRequest) {
     `;
 
     if (result.length > 0) {
+      const posthog = getPostHogClient();
+      posthog.capture({
+        distinctId: user.id,
+        event: 'agent_activated',
+        properties: {
+          agent_id: result[0].id,
+        },
+      });
+      await posthog.flush();
+
       return apiSuccess({
         agentId: result[0].id,
         status: result[0].status,

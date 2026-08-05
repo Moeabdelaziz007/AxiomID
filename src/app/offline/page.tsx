@@ -17,7 +17,7 @@ export default function OfflinePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#10131a] text-white flex items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-surface-deep text-surface flex items-center justify-center p-6 relative overflow-hidden">
       {/* Background Glows */}
       <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-electric-blue/10 rounded-full blur-[120px]" />
       <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-neon-green/10 rounded-full blur-[120px]" />
@@ -30,7 +30,7 @@ export default function OfflinePage() {
         <div className="mb-8 flex justify-center">
           <div className="relative">
             <div className="absolute inset-0 bg-electric-blue/20 rounded-full blur-xl animate-pulse" />
-            <div className="relative p-6 bg-black/40 border border-white/10 rounded-full backdrop-blur-xl">
+            <div className="relative p-6 bg-black/40 border border-glass-hover rounded-full backdrop-blur-xl">
               <WifiOff className="w-12 h-12 text-electric-blue" />
             </div>
           </div>

@@ -33,11 +33,11 @@ export default async function Home() {
 
   return (
     <>
-      <main className="flex min-h-screen flex-col items-center bg-grid relative overflow-hidden" id="main-content">
+      <main className="flex min-h-screen flex-col items-center bg-grid relative overflow-hidden" id="main-content" role="main">
         {/* Dynamic Background Effects */}
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] spotlight-primary rounded-full pointer-events-none" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] spotlight-accent rounded-full pointer-events-none" />
-        <div className="scanline" />
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] spotlight-primary rounded-full pointer-events-none" aria-hidden="true" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] spotlight-accent rounded-full pointer-events-none" aria-hidden="true" />
+        <div className="scanline" aria-hidden="true" />
 
         <Header />
 

@@ -3,21 +3,26 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Fingerprint, Brain, Zap, Shield, Globe, TerminalSquare, Search, Lock, Code2 } from "lucide-react";
+import { useLanguage } from "@/app/context/language-context";
 
 type TabId = 'roadmap' | 'architecture' | 'capsule';
 
 export default function InteractiveShowcase() {
   const [activeTab, setActiveTab] = useState<TabId>('roadmap');
+  const { language } = useLanguage();
+  const t = (en: string, ar: string) => (language === "en" ? en : ar);
+
+  const tabs = [
+    { id: 'roadmap' as TabId, label: t('Protocol Roadmap', 'خارطة طريق البروتوكول'), icon: <Globe className="w-4 h-4" /> },
+    { id: 'architecture' as TabId, label: t('Identity Core', 'نواة الهوية'), icon: <Brain className="w-4 h-4" /> },
+    { id: 'capsule' as TabId, label: t('Identity Capsule', 'كبسولة الهوية'), icon: <Lock className="w-4 h-4" /> },
+  ];
 
   return (
     <div className="w-full flex flex-col gap-8 mb-16">
       {/* Tabs */}
       <div className="flex justify-center gap-2 mb-4">
-        {[
-          { id: 'roadmap' as TabId, label: 'Protocol Roadmap', icon: <Globe className="w-4 h-4" /> },
-          { id: 'architecture' as TabId, label: 'Identity Core', icon: <Brain className="w-4 h-4" /> },
-          { id: 'capsule' as TabId, label: 'Identity Capsule', icon: <Lock className="w-4 h-4" /> },
-        ].map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -49,39 +54,40 @@ export default function InteractiveShowcase() {
               className="w-full h-full flex flex-col gap-6"
             >
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold font-mono text-white mb-2">Evolution of the Protocol</h3>
-                <p className="text-sm text-zinc-400 font-mono">From MVP to a Global Autonomous Identity Network.</p>
+                <h3 className="text-2xl font-bold font-mono text-white mb-2">{t('Evolution of the Protocol', 'تطور البروتوكول')}</h3>
+                <p className="text-sm text-zinc-400 font-mono">{t('From MVP to a Global Autonomous Identity Network.', 'من النموذج الأولي إلى شبكة هوية ذاتية الحكم عالمية.')}</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-                <div className="hidden md:block absolute top-1/2 left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-electric-blue/20 via-axiom-purple/20 to-emerald-400/20 z-0" />
+                {/* Connector line — offset to compensate for middle card translate */}
+                <div className="hidden md:block absolute top-[calc(50%-2px)] left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-electric-blue/20 via-axiom-purple/20 to-emerald-400/20 z-0" />
                 
                 <div className="bg-[#101217] border border-white/10 rounded-2xl p-6 relative z-10 hover:border-electric-blue/50 transition-colors">
                   <div className="w-8 h-8 rounded-full bg-electric-blue/20 text-electric-blue flex items-center justify-center font-bold font-mono text-sm mb-4 border border-electric-blue/50">Q3</div>
-                  <h4 className="font-bold text-white mb-2 font-mono">Identity-First AI</h4>
+                  <h4 className="font-bold text-white mb-2 font-mono">{t('Identity-First AI', 'الذكاء الاصطناعي بهوية أولاً')}</h4>
                   <ul className="text-xs text-zinc-400 space-y-2 font-mono">
-                    <li className="flex items-center gap-2"><Check /> Single-click Agent Creation</li>
-                    <li className="flex items-center gap-2"><Check /> Sovereign Subdomains</li>
-                    <li className="flex items-center gap-2"><Check /> DDD Orchestration Engine</li>
+                    <li className="flex items-center gap-2"><Check /> {t('Single-click Agent Creation', 'إنشاء العميل بنقرة واحدة')}</li>
+                    <li className="flex items-center gap-2"><Check /> {t('Sovereign Subdomains', 'نطاقات فرعية سيادية')}</li>
+                    <li className="flex items-center gap-2"><Check /> {t('DDD Orchestration Engine', 'محرك تنسيق DDD')}</li>
                   </ul>
                 </div>
 
                 <div className="bg-[#101217] border border-white/10 rounded-2xl p-6 relative z-10 hover:border-axiom-purple/50 transition-colors transform md:-translate-y-4 shadow-xl">
                   <div className="w-8 h-8 rounded-full bg-axiom-purple/20 text-axiom-purple flex items-center justify-center font-bold font-mono text-sm mb-4 border border-axiom-purple/50">Q4</div>
-                  <h4 className="font-bold text-white mb-2 font-mono">Portable Trust</h4>
+                  <h4 className="font-bold text-white mb-2 font-mono">{t('Portable Trust', 'الثقة المحمولة')}</h4>
                   <ul className="text-xs text-zinc-400 space-y-2 font-mono">
-                    <li className="flex items-center gap-2"><Check /> Identity Capsule Export</li>
-                    <li className="flex items-center gap-2"><Check /> Federated Trust Graphs</li>
-                    <li className="flex items-center gap-2"><Check /> Cross-chain DID Anchoring</li>
+                    <li className="flex items-center gap-2"><Check /> {t('Identity Capsule Export', 'تصدير كبسولة الهوية')}</li>
+                    <li className="flex items-center gap-2"><Check /> {t('Federated Trust Graphs', 'رسوم ثقة فيدرالية')}</li>
+                    <li className="flex items-center gap-2"><Check /> {t('Cross-chain DID Anchoring', 'تثبيت DID عبر السلاسل')}</li>
                   </ul>
                 </div>
 
                 <div className="bg-[#101217] border border-white/10 rounded-2xl p-6 relative z-10 hover:border-emerald-400/50 transition-colors">
                   <div className="w-8 h-8 rounded-full bg-emerald-400/20 text-emerald-400 flex items-center justify-center font-bold font-mono text-sm mb-4 border border-emerald-400/50">Q1</div>
-                  <h4 className="font-bold text-white mb-2 font-mono">Autonomous Network</h4>
+                  <h4 className="font-bold text-white mb-2 font-mono">{t('Autonomous Network', 'شبكة ذاتية الحكم')}</h4>
                   <ul className="text-xs text-zinc-400 space-y-2 font-mono">
-                    <li className="flex items-center gap-2"><Check /> Cloudflare Workflows Gen</li>
-                    <li className="flex items-center gap-2"><Check /> Multi-Agent Delegation</li>
-                    <li className="flex items-center gap-2"><Check /> Staking & Slashing Core</li>
+                    <li className="flex items-center gap-2"><Check /> {t('Cloudflare Workflows Gen', 'توليد تدفقات Cloudflare')}</li>
+                    <li className="flex items-center gap-2"><Check /> {t('Multi-Agent Delegation', 'تفويض متعدد العملاء')}</li>
+                    <li className="flex items-center gap-2"><Check /> {t('Staking & Slashing Core', 'نواة التخزين والخصم')}</li>
                   </ul>
                 </div>
 
@@ -99,9 +105,15 @@ export default function InteractiveShowcase() {
               className="w-full h-full flex flex-col md:flex-row items-center gap-8"
             >
               <div className="flex-1 space-y-4">
-                <h3 className="text-2xl font-bold font-mono text-white">Event-Driven Job Orchestration</h3>
+                <h3 className="text-2xl font-bold font-mono text-white">{t('Event-Driven Job Orchestration', 'تنسيق المهام الموجهة بالأحداث')}</h3>
                 <p className="text-sm text-zinc-400 font-mono leading-relaxed">
-                  AxiomID utilizes Domain-Driven Design (DDD) to abstract complex infrastructure. Agent creation is handled by an <span className="text-electric-blue">Execution Engine</span> resolving Capability Packs into discrete Provider Adapters (Cloudflare, Pi SDK, Ghost.build).
+                  {t(
+                    'AxiomID utilizes Domain-Driven Design (DDD) to abstract complex infrastructure. Agent creation is handled by an',
+                    'يستخدم AxiomID تصميم المجال (DDD) لتجريد البنية التحتية المعقدة. يتم معالجة إنشاء العميل بواسطة'
+                  )} <span className="text-electric-blue">{t('Execution Engine', 'محرك التنفيذ')}</span> {t(
+                    'resolving Capability Packs into discrete Provider Adapters (Cloudflare, Pi SDK, Ghost.build).',
+                    'الذي يحول حزم القدرات إلى محولات مزود منفصلة (Cloudflare، Pi SDK، Ghost.build).'
+                  )}
                 </p>
                 <div className="bg-[#101217] rounded-xl p-4 border border-white/10 font-mono text-[10px] sm:text-xs text-zinc-300 overflow-x-auto shadow-inner">
                   <pre className="text-emerald-400">await</pre> <span className="text-blue-400">engine</span>.<span className="text-yellow-200">execute</span>(jobId);<br/><br/>
@@ -158,19 +170,19 @@ export default function InteractiveShowcase() {
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl pointer-events-none" />
                  </div>
               </div>
-              <div className="flex-1 space-y-4 text-center md:text-left">
-                <h3 className="text-2xl font-bold font-mono text-white">The Identity Capsule</h3>
+              <div className="flex-1 space-y-4 text-center md:text-start">
+                <h3 className="text-2xl font-bold font-mono text-white">{t('The Identity Capsule', 'كبسولة الهوية')}</h3>
                 <p className="text-sm text-zinc-400 font-mono leading-relaxed">
-                  AxiomID goes beyond a profile page by introducing the portable <span className="text-white">passport.jsonld</span> format. 
+                  {t('AxiomID goes beyond a profile page by introducing the portable', 'يتجاوز AxiomID صفحة الملف الشخصي من خلال تقديم')} <span className="text-white">passport.jsonld</span> {t('format.', 'التنسيق المحمول.')}
                 </p>
-                <ul className="text-xs text-zinc-300 font-mono space-y-3 mt-4 text-left inline-block">
-                  <li className="flex items-center gap-3"><Code2 className="w-4 h-4 text-electric-blue" /> Verifiable DID Credentials</li>
-                  <li className="flex items-center gap-3"><Code2 className="w-4 h-4 text-emerald-400" /> Trust Score History</li>
-                  <li className="flex items-center gap-3"><Code2 className="w-4 h-4 text-axiom-purple" /> Installed Capability Packs</li>
-                  <li className="flex items-center gap-3"><Code2 className="w-4 h-4 text-zinc-400" /> Embedded Base Genome</li>
+                <ul className="text-xs text-zinc-300 font-mono space-y-3 mt-4 text-start inline-block">
+                  <li className="flex items-center gap-3"><Code2 className="w-4 h-4 text-electric-blue" /> {t('Verifiable DID Credentials', 'بيانات DID قابلة للتحقق')}</li>
+                  <li className="flex items-center gap-3"><Code2 className="w-4 h-4 text-emerald-400" /> {t('Trust Score History', 'سجل درجة الثقة')}</li>
+                  <li className="flex items-center gap-3"><Code2 className="w-4 h-4 text-axiom-purple" /> {t('Installed Capability Packs', 'حزم القدرات المثبتة')}</li>
+                  <li className="flex items-center gap-3"><Code2 className="w-4 h-4 text-zinc-400" /> {t('Embedded Base Genome', 'الجينوم الأساسي المضمّن')}</li>
                 </ul>
                 <p className="text-xs text-zinc-500 font-mono italic mt-4">
-                  * Any compliant agent runtime can import this capsule to instantly inherit the sovereign identity and privileges.
+                  {t('* Any compliant agent runtime can import this capsule to instantly inherit the sovereign identity and privileges.', '* أي وقت تشغيل عميل متوافق يمكنه استيراد هذه الكبسولة لوراثة الهوية السيادية والامتيازات فوراً.')}
                 </p>
               </div>
             </motion.div>

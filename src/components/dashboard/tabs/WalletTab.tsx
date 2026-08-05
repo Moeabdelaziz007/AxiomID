@@ -14,11 +14,11 @@ export function WalletTab() {
   return (
     <div className="space-y-5">
       <div className="bento-card p-5">
-        <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-3">
+        <h3 className="text-xs uppercase tracking-wider font-semibold text-faint mb-3">
           Wallet
         </h3>
         <div className="flex items-center gap-3">
-          <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider">
+          <span className="text-[9px] font-mono text-faint uppercase tracking-wider">
             Connected:
           </span>
           <span className="text-[9px] font-mono text-emerald-400">
@@ -35,10 +35,10 @@ export function WalletTab() {
 
       {/* Transaction history — placeholder until API is available */}
       <div className="bento-card p-5">
-        <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-3">
+        <h3 className="text-xs uppercase tracking-wider font-semibold text-faint mb-3">
           Transaction History
         </h3>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-faint">
           Transaction history will appear here once the API is available.
         </p>
       </div>

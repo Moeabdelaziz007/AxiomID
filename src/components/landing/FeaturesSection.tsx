@@ -50,7 +50,7 @@ export default function FeaturesSection({ t }: FeaturesSectionProps) {
             <div className="absolute top-4 end-4 text-3xl font-mono font-bold text-white/5 group-hover:text-electric-blue/5 transition-colors">
               {item.step}
             </div>
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/5 border border-white/10 group-hover:border-electric-blue/20 transition-all duration-300">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-glass border border-glass-hover group-hover:border-electric-blue/20 transition-all duration-300">
               {item.icon}
             </div>
             <div>
@@ -58,10 +58,10 @@ export default function FeaturesSection({ t }: FeaturesSectionProps) {
                 {item.title}
               </h3>
             </div>
-            <p className="text-sm leading-relaxed text-zinc-400">{item.desc}</p>
-            <div className="mt-auto pt-4 border-t border-white/5 flex items-center gap-2">
+            <p className="text-sm leading-relaxed text-faint">{item.desc}</p>
+            <div className="mt-auto pt-4 border-t border-glass flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-electric-blue animate-pulse" />
-              <span className="text-[11px] font-mono text-zinc-400">{item.badge}</span>
+              <span className="text-[11px] font-mono text-faint">{item.badge}</span>
             </div>
           </div>
         ))}

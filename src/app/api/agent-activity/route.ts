@@ -38,8 +38,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const url = new URL(request.url);
-    const parsedDays = parseInt(url.searchParams.get("days") || "7", 10);
-    const days = Number.isNaN(parsedDays) ? 7 : Math.min(30, Math.max(1, parsedDays));
+    const days = Math.min(30, Math.max(1, parseInt(url.searchParams.get("days") || "7", 10)));
     const agentId = url.searchParams.get("agentId");
 
     // Try TimescaleDB continuous aggregate first (fast path)
@@ -73,8 +72,8 @@ export async function GET(request: NextRequest) {
       const grouped = await prisma.agentLog.groupBy({
         by: ["level", "source"],
         where,
-        _count: { _all: true },
-        orderBy: { _count: { id: "desc" } },
+        _count: { level: true },
+        orderBy: { _count: { level: "desc" } },
         take: 50,
       });
 
@@ -82,7 +81,7 @@ export async function GET(request: NextRequest) {
         day: since.toISOString().slice(0, 10),
         logLevel: g.level,
         logSource: g.source,
-        entryCount: g._count._all,
+        entryCount: g._count.level,
       }));
     }
 

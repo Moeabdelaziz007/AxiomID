@@ -54,7 +54,7 @@ export default function DiagnosticsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#10131a] text-white p-4 sm:p-8">
+    <div className="min-h-screen bg-surface-deep text-surface p-4 sm:p-8">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>

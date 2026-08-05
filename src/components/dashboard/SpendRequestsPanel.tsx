@@ -150,17 +150,17 @@ export function SpendRequestsPanel({ onApprove }: SpendRequestsPanelProps) {
   if (loading) {
     return (
       <div className="bento-card p-5">
-        <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-3">
+        <h3 className="text-xs uppercase tracking-wider font-semibold text-faint mb-3">
           Pending Spend Requests
         </h3>
-        <p className="text-xs font-mono text-zinc-500 text-center py-4">Loading...</p>
+        <p className="text-xs font-mono text-faint text-center py-4">Loading...</p>
       </div>
     );
   }
 
   return (
     <div className="bento-card p-5">
-      <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-3">
+      <h3 className="text-xs uppercase tracking-wider font-semibold text-faint mb-3">
         Pending Spend Requests
         {requests.length > 0 && (
           <span className="ml-2 px-1.5 py-0.5 text-[10px] font-mono bg-amber-500/20 text-amber-400 rounded">
@@ -174,7 +174,7 @@ export function SpendRequestsPanel({ onApprove }: SpendRequestsPanelProps) {
       )}
 
       {requests.length === 0 ? (
-        <p className="text-xs font-mono text-zinc-500 text-center py-4">
+        <p className="text-xs font-mono text-faint text-center py-4">
           No pending requests
         </p>
       ) : (
@@ -186,25 +186,25 @@ export function SpendRequestsPanel({ onApprove }: SpendRequestsPanelProps) {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-mono text-zinc-400">
+                  <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-mono text-faint">
                     {req.agent.name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-xs font-mono text-zinc-300">
+                  <span className="text-xs font-mono text-subtle">
                     {req.agent.name}
                   </span>
                 </div>
-                <span className="text-[10px] font-mono text-zinc-500">
+                <span className="text-[10px] font-mono text-faint">
                   {getTimeLeft(req.expiresAt)}
                 </span>
               </div>
 
-              <p className="text-xs text-zinc-400">{req.description}</p>
+              <p className="text-xs text-faint">{req.description}</p>
 
               <div className="flex items-center justify-between">
                 <span className="text-sm font-mono text-emerald-400">
                   {req.amount} {req.currency}
                 </span>
-                <span className="text-[10px] font-mono text-zinc-500">
+                <span className="text-[10px] font-mono text-faint">
                   {new Date(req.createdAt).toLocaleString()}
                 </span>
               </div>
@@ -216,7 +216,7 @@ export function SpendRequestsPanel({ onApprove }: SpendRequestsPanelProps) {
                     value={rejectReason}
                     onChange={(e) => setRejectReason(e.target.value)}
                     placeholder="Reason (optional)"
-                    className="flex-1 px-2 py-1 text-xs font-mono bg-zinc-900 border border-zinc-700 rounded text-zinc-300"
+                    className="flex-1 px-2 py-1 text-xs font-mono bg-zinc-900 border border-zinc-700 rounded text-subtle"
                   />
                   <button
                     onClick={() => handleReject(req.id)}
@@ -227,7 +227,7 @@ export function SpendRequestsPanel({ onApprove }: SpendRequestsPanelProps) {
                   </button>
                   <button
                     onClick={() => { setRejectingId(null); setRejectReason(""); }}
-                    className="px-2 py-1 text-[10px] font-mono bg-zinc-800 text-zinc-400 rounded hover:bg-zinc-700"
+                    className="px-2 py-1 text-[10px] font-mono bg-zinc-800 text-faint rounded hover:bg-zinc-700"
                   >
                     Cancel
                   </button>
@@ -248,7 +248,7 @@ export function SpendRequestsPanel({ onApprove }: SpendRequestsPanelProps) {
                   <button
                     onClick={() => setRejectingId(req.id)}
                     disabled={actionLoading === req.id}
-                    className="px-3 py-1.5 text-xs font-mono bg-zinc-800 text-zinc-400 rounded hover:bg-zinc-700 focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:outline-none transition-all disabled:opacity-50"
+                    className="px-3 py-1.5 text-xs font-mono bg-zinc-800 text-faint rounded hover:bg-zinc-700 focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:outline-none transition-all disabled:opacity-50"
                   >
                     Reject
                   </button>

@@ -1,0 +1,60 @@
+name: Meticulous
+
+on:
+  push:
+    branches:
+      - main
+  pull_request: {}
+  workflow_dispatch: {}
+
+permissions:
+  actions: write
+  contents: read
+  issues: write
+  pull-requests: write
+  statuses: read
+
+jobs:
+  test:
+    name: Meticulous
+    if: false # Disabled — not configured (no METICULOUS_API_TOKEN, no pnpm-lock)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6.0.9
+        with:
+          version: 10
+          run_install: false
+
+      - name: Use Node.js LTS
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: pnpm
+
+      - name: Cache node_modules
+        uses: actions/cache@v6
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            node-modules-${{ runner.os }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build project
+        env:
+          METICULOUS_BUILD: "true"
+        run: pnpm build
+
+      - name: Run Meticulous tests (cloud replay)
+        uses: alwaysmeticulous/report-diffs-action/cloud-compute@v1.74.0
+        with:
+          api-token: ${{ secrets.METICULOUS_API_TOKEN }}
+          app-command: pnpm start
+          app-port: 3000

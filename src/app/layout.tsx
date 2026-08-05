@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
@@ -13,7 +14,9 @@ import { Toaster } from "sonner";
 import InstallPWA from "@/components/pwa/InstallPWA";
 import DynamicThemeColor from "@/components/pwa/DynamicThemeColor";
 import SovereignSplash from "@/components/pwa/SovereignSplash";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Providers } from "./providers";
+import { JsonLd } from "@/components/JsonLd";
 
 // Preload fonts for better performance
 const geistSans = Geist({
@@ -117,6 +120,7 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  manifest: '/manifest.webmanifest',
   verification: process.env.GOOGLE_SITE_VERIFICATION
     ? { google: process.env.GOOGLE_SITE_VERIFICATION }
     : undefined,
@@ -125,6 +129,7 @@ export const metadata: Metadata = {
     'apple-mobile-web-app-status-bar-style': 'black-translucent',
     'apple-mobile-web-app-title': 'AxiomID',
     'mobile-web-app-capable': 'yes',
+    'virtual-protocol-site-verification': '02985324a1093a757f83d0d6ea4f33b5',
   },
 };
 
@@ -133,16 +138,36 @@ export const metadata: Metadata = {
  *
  * @returns The application root element.
  */
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Detect language from Accept-Language header to prevent FOUC on RTL
+  const headerList = await headers();
+  const acceptLang = headerList.get("accept-language") || "";
+  const isArabic = acceptLang.toLowerCase().startsWith("ar") || 
+    acceptLang.toLowerCase().includes("ar,");
+  const lang = isArabic ? "ar" : "en";
+  const dir = isArabic ? "rtl" : "ltr";
+
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang={lang} dir={dir} className="scroll-smooth">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen overflow-x-hidden`}
       >
+        {/* Meticulous session recorder — must be the first script to load so it
+            can instrument fetch/XHR before any other code runs.
+            Native <script> tag (not next/script) — no defer/async per Meticulous docs.
+            Active in dev + Vercel preview only. */}
+        {(process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview") && (
+          <Script
+            src="https://snippet.meticulous.ai/v1/meticulous.js"
+            data-recording-token="vLG050AH1euDRiGTNmjgufmEM5grQe7SkNzEiGvl"
+            data-is-production-environment="false"
+            strategy="beforeInteractive"
+          />
+        )}
         <a href="#main-content" className="skip-link">
           Skip to content
         </a>
@@ -157,7 +182,7 @@ export default function RootLayout({
 
                 <Providers>
                   <MotionConfig reducedMotion="user">
-                    {children}
+                    <ErrorBoundary>{children}</ErrorBoundary>
                   </MotionConfig>
                 </Providers>
               </WalletProvider>
@@ -191,47 +216,55 @@ export default function RootLayout({
            }}
          />
           <InstallPWA />
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "WebApplication",
-                "name": "AxiomID",
-                "url": "https://axiomid.app",
-                "description": "Prove human intent behind AI actions with decentralized identity verification. Create your sovereign AI passport with Pi Network.",
-                "applicationCategory": "IdentityApplication",
-                "operatingSystem": "Web",
-                "offers": {
-                  "@type": "Offer",
-                  "price": "0",
-                  "priceCurrency": "USD"
-                },
-                "creator": {
-                  "@type": "Person",
-                  "name": "Mohamed Abdelaziz",
-                  "url": "https://github.com/Moeabdelaziz007"
-                },
-                "publisher": {
-                  "@type": "Organization",
-                  "name": "AxiomID",
-                  "url": "https://axiomid.app"
-                },
-                "sameAs": [
-                  "https://github.com/Moeabdelaziz007/AxiomID",
-                  "https://minepi.com"
-                ],
-                "featureList": [
-                  "Decentralized Identity (DID)",
-                  "Sovereign Passports",
-                  "Trust Score Verification",
-                  "AI Agent Governance",
-                  "Pi Network Authentication",
-                  "Verifiable Credentials"
-                ]
-              })
-            }}
-          />
+<JsonLd
+  data={{
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "AxiomID",
+    "url": "https://axiomid.app",
+    "description": "Prove human intent behind AI actions with decentralized identity verification. Create your sovereign AI passport with Pi Network.",
+    "applicationCategory": "IdentityApplication",
+    "category": "Identity & Verification",
+    "operatingSystem": "Web",
+    "inLanguage": ["en", "ar"],
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "AggregateOffer",
+      "priceCurrency": "PI",
+      "lowPrice": "0",
+      "highPrice": "100",
+      "offerCount": 4,
+      "offers": [
+        { "@type": "Offer", "name": "Visitor", "price": "0", "priceCurrency": "PI", "description": "Limited read-only access" },
+        { "@type": "Offer", "name": "Citizen", "price": "0", "priceCurrency": "PI", "description": "Social stamps and basic agent access (100 XP)" },
+        { "@type": "Offer", "name": "Validator", "price": "25", "priceCurrency": "PI", "description": "Agent delegation and marketplace install (500 XP)" },
+        { "@type": "Offer", "name": "Sovereign", "price": "100", "priceCurrency": "PI", "description": "Full trust, vault staking, vouching power (1000 XP)" }
+      ]
+    },
+    "creator": {
+      "@type": "Person",
+      "name": "Mohamed Abdelaziz",
+      "url": "https://github.com/Moeabdelaziz007"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "AxiomID",
+      "url": "https://axiomid.app"
+    },
+    "sameAs": [
+      "https://github.com/Moeabdelaziz007/AxiomID",
+      "https://minepi.com"
+    ],
+    "featureList": [
+      "Decentralized Identity (DID)",
+      "Sovereign Passports",
+      "Trust Score Verification",
+      "AI Agent Governance",
+      "Pi Network Authentication",
+      "Verifiable Credentials"
+    ]
+  }}
+/>
        </body>
      </html>
 

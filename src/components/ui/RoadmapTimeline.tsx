@@ -63,7 +63,7 @@ export default function RoadmapTimeline() {
   ];
 
   return (
-    <div className="relative border-l border-white/5 ml-4 pl-6 space-y-8 my-10">
+    <div className="relative border-l border-glass ml-4 pl-6 space-y-8 my-10">
       {items.map((item, index) => {
         const isCompleted = item.status === "completed";
         const isActive = item.status === "active";
@@ -71,7 +71,7 @@ export default function RoadmapTimeline() {
         return (
           <div key={index} className="relative group">
             {/* Timeline bullet indicator */}
-            <div className="absolute -left-[35px] top-1 z-10 flex items-center justify-center bg-[#10131a]">
+            <div className="absolute -left-[35px] top-1 z-10 flex items-center justify-center bg-surface-deep">
               {isCompleted ? (
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 filter drop-shadow-[0_0_6px_rgba(52,211,153,0.3)]" />
               ) : isActive ? (
@@ -90,7 +90,7 @@ export default function RoadmapTimeline() {
                   ? "border-emerald-500/10 bg-emerald-500/[0.01] hover:border-emerald-500/20" 
                   : isActive 
                     ? "border-electric-blue/20 bg-electric-blue/[0.02] shadow-[0_0_15px_rgba(59,130,246,0.05)] hover:border-electric-blue/30"
-                    : "border-white/5 bg-white/[0.005] hover:border-white/10"
+                    : "border-glass bg-white/[0.005] hover:border-glass-hover"
               }`}
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -100,21 +100,21 @@ export default function RoadmapTimeline() {
                       ? "bg-emerald-500/10 text-emerald-400" 
                       : isActive 
                         ? "bg-electric-blue/15 text-electric-blue"
-                        : "bg-zinc-800 text-zinc-500"
+                        : "bg-zinc-800 text-faint"
                   }`}
                 >
                   {item.phase}
                 </span>
-                <span className="text-[10px] font-mono text-zinc-500 uppercase">
+                <span className="text-[10px] font-mono text-faint uppercase">
                   {isCompleted ? t("Completed", "مكتمل") : isActive ? t("Active Development", "تطوير نشط") : t("Future Goal", "هدف مستقبلي")}
                 </span>
               </div>
 
               <h3 className="text-sm font-bold text-white font-mono mt-3">{t(item.titleEn, item.titleAr)}</h3>
-              <p className="text-xs text-zinc-400 mt-1 leading-relaxed">{t(item.descEn, item.descAr)}</p>
+              <p className="text-xs text-faint mt-1 leading-relaxed">{t(item.descEn, item.descAr)}</p>
 
               {/* Sub items checklist */}
-              <ul className="mt-4 space-y-2 border-t border-white/5 pt-4 text-[11px] font-mono text-zinc-500">
+              <ul className="mt-4 space-y-2 border-t border-glass pt-4 text-[11px] font-mono text-faint">
                 {(language === "en" ? item.itemsEn : item.itemsAr).map((sub, i) => (
                   <li key={i} className="flex items-center gap-2">
                     <span className={isCompleted ? "text-emerald-400" : isActive ? "text-electric-blue" : "text-zinc-600"}>

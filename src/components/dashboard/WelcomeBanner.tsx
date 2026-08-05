@@ -33,7 +33,7 @@ export function WelcomeBanner({ username, tier, levelProgress, xp }: WelcomeBann
               {language === "en" ? `Hello, ${username}.` : `مرحباً، ${username}.`}
             </h2>
             <div className="flex items-center gap-3">
-              <span className="text-sm text-zinc-400">
+              <span className="text-sm text-faint">
                 {language === "en" ? "Trust Score:" : "نقاط الثقة:"}
               </span>
               <span className="text-sm font-mono font-bold text-neon-green">{tier}</span>
@@ -41,14 +41,14 @@ export function WelcomeBanner({ username, tier, levelProgress, xp }: WelcomeBann
           </div>
           <div className="flex-shrink-0 glass-card px-5 py-3 rounded-xl border border-white/[0.06]">
             <div className="text-right">
-              <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider block">{t('xp_balance')}</span>
+              <span className="text-[9px] font-mono text-faint uppercase tracking-wider block">{t('xp_balance')}</span>
               <span className="font-mono text-xl font-bold text-neon-green">{xp.toLocaleString()}</span>
-              <span className="text-[10px] font-mono text-zinc-500 ml-1">XP</span>
+              <span className="text-[10px] font-mono text-faint ml-1">XP</span>
             </div>
           </div>
         </div>
         <div className="mt-4">
-          <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 mb-1.5">
+          <div className="flex justify-between items-center text-[10px] font-mono text-faint mb-1.5">
             <span>{t('level_progress')}</span>
             <span>
               {xp.toLocaleString()} {nextXP ? `/ ${nextXP.toLocaleString()} XP` : "XP (MAX)"}

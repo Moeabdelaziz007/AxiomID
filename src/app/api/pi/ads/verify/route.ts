@@ -6,6 +6,7 @@ import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limiter";
 import { getClientIp } from "@/lib/ip";
 import { requireAuth } from "@/lib/auth-middleware";
 import { calculateTier } from "@/lib/tiers";
+import { getActionUseCount, computePristineMultiplier } from "@/lib/rewards/pristine-path";
 import { z } from "zod";
 
 export const maxDuration = 30;
@@ -88,7 +89,9 @@ export async function POST(request: NextRequest) {
       return apiError("FORBIDDEN", "Ad reward has not been granted by the Pi Network");
     }
 
-    const xpReward = 10;
+    const pristineUses = await getActionUseCount(auth.user.id, 'watch_ad');
+    const { multiplier: pristineMul } = computePristineMultiplier(pristineUses, 'watch_ad');
+    const xpReward = Math.round(10 * pristineMul);
 
     // 4. Atomically record XP reward in transaction
     const result = await prisma.$transaction(async (tx) => {

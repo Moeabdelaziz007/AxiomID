@@ -4,6 +4,9 @@
 
 export interface Env {
   SHARED_SECRET_TOKEN_VERCEL_CF: string;
+  GITHUB_WEBHOOK_SECRET: string;
+  GITHUB_APP_ID: string;
+  GITHUB_APP_PRIVATE_KEY: string;
   PERPLEXITY_API_KEY: string;
   CACHE_KV: KVNamespace;
   DB: D1Database;

@@ -58,21 +58,21 @@ export default function PassportKeyManager({ did, onSign }: PassportKeyManagerPr
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="border-t border-white/10 pt-4 mt-4 space-y-4"
+      className="border-t border-glass-hover pt-4 mt-4 space-y-4"
     >
       {/* Key Management */}
       <div>
-        <h4 className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-2">
+        <h4 className="text-[10px] font-mono uppercase tracking-widest text-faint mb-2">
           {t("Key Management", "إدارة المفاتيح")}
         </h4>
         <div className="flex items-center gap-2">
-          <code className="text-[11px] font-mono text-zinc-300 bg-white/5 px-2 py-1 rounded flex-1 overflow-hidden text-ellipsis">
+          <code className="text-[11px] font-mono text-subtle bg-glass px-2 py-1 rounded flex-1 overflow-hidden text-ellipsis">
             {truncatedDid}
           </code>
           <button
             type="button"
             onClick={handleCopy}
-            className="text-[10px] font-mono px-2 py-1 rounded bg-white/5 hover:bg-white/10 transition-colors text-zinc-400"
+            className="text-[10px] font-mono px-2 py-1 rounded bg-glass hover:bg-glass-hover transition-colors text-faint"
           >
             {copied ? t("Copied!", "تم النسخ!") : t("Copy DID", "نسخ المعرف")}
           </button>
@@ -81,7 +81,7 @@ export default function PassportKeyManager({ did, onSign }: PassportKeyManagerPr
 
       {/* Sign */}
       <div>
-        <h4 className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-2">
+        <h4 className="text-[10px] font-mono uppercase tracking-widest text-faint mb-2">
           {t("Sign with DID key", "التوقيع بمفتاح المعرف")}
         </h4>
         <div className="flex gap-2">
@@ -91,7 +91,7 @@ export default function PassportKeyManager({ did, onSign }: PassportKeyManagerPr
             onChange={(e) => setPayload(e.target.value)}
             placeholder={t("Payload to sign...", "الحمولة للتوقيع...")}
             aria-label={t("Payload to sign", "الحمولة للتوقيع")}
-            className="flex-1 text-[11px] font-mono bg-white/5 border border-white/10 rounded px-2 py-1 text-zinc-300 placeholder:text-zinc-600"
+            className="flex-1 text-[11px] font-mono bg-glass border border-glass-hover rounded px-2 py-1 text-subtle placeholder:text-zinc-600"
           />
           <button
             type="button"
@@ -103,7 +103,7 @@ export default function PassportKeyManager({ did, onSign }: PassportKeyManagerPr
           </button>
         </div>
         {signature && (
-          <div className="mt-2 text-[10px] font-mono text-zinc-500 break-all">
+          <div className="mt-2 text-[10px] font-mono text-faint break-all">
             {t("Signature:", "التوقيع:")} {signature}
           </div>
         )}

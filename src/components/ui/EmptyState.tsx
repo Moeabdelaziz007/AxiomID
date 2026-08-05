@@ -22,7 +22,7 @@ export function EmptyState({ title, titleAr, desc, descAr, action, icon }: Empty
 
   return (
     <div className="flex flex-col items-center py-16 text-center">
-      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+      <div className="w-16 h-16 rounded-full bg-glass flex items-center justify-center mb-4">
         {icon ?? <Sparkles className="w-8 h-8 text-electric-blue opacity-50" />}
       </div>
       <h3 className="text-lg font-mono mb-2" style={{ color: "var(--text-primary)" }}>

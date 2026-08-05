@@ -26,7 +26,7 @@ const TESTNET_BASE = "https://testnet.axiomid.app";
 const basePassport = {
   username: "alice",
   walletAddress: "GD5XABC",
-  stellarAddress: "GA456DEF",
+  piWalletAddress: "GA456DEF",
   did: "did:axiom:alice",
   tier: "Pioneer",
   xp: 100,
@@ -595,5 +595,88 @@ describe("AxiomSDK – verifyPassport with null agent fields", () => {
     expect(passport.agentName).toBeNull();
     expect(passport.agentStatus).toBeNull();
     expect(passport.agentPublicKey).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AxiomSDK – Passport field rename (stellarAddress -> piWalletAddress)
+// ---------------------------------------------------------------------------
+
+describe("AxiomSDK – Passport piWalletAddress field", () => {
+  let fetchSpy: jest.SpyInstance;
+  let sdk: AxiomSDK;
+
+  beforeEach(() => {
+    sdk = new AxiomSDK({ network: "mainnet" });
+    fetchSpy = jest.spyOn(global, "fetch");
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+
+  it("passes through the piWalletAddress field from the API response", async () => {
+    fetchSpy.mockResolvedValueOnce(mockOk(basePassport));
+
+    const passport = await sdk.verifyPassport("alice");
+
+    expect(passport.piWalletAddress).toBe("GA456DEF");
+  });
+
+  it("passes through an empty string piWalletAddress unchanged", async () => {
+    fetchSpy.mockResolvedValueOnce(mockOk({ ...basePassport, piWalletAddress: "" }));
+
+    const passport = await sdk.verifyPassport("alice");
+
+    expect(passport.piWalletAddress).toBe("");
+  });
+
+  it("does not synthesize piWalletAddress from a legacy stellarAddress field", async () => {
+    const legacyPassport: Record<string, unknown> = { ...basePassport };
+    delete legacyPassport.piWalletAddress;
+    legacyPassport.stellarAddress = "GA456DEF";
+    fetchSpy.mockResolvedValueOnce(mockOk(legacyPassport));
+
+    const passport = await sdk.verifyPassport("alice");
+
+    expect(passport.piWalletAddress).toBeUndefined();
+    expect((passport as unknown as Record<string, unknown>).stellarAddress).toBe(
+      "GA456DEF"
+    );
+  });
+
+  it("passes through a null piWalletAddress without throwing", async () => {
+    fetchSpy.mockResolvedValueOnce(
+      mockOk({ ...basePassport, piWalletAddress: null })
+    );
+
+    const passport = await sdk.verifyPassport("alice");
+
+    expect(passport.piWalletAddress).toBeNull();
+  });
+
+  it("passes through long/unusual piWalletAddress values unchanged (no truncation or mutation)", async () => {
+    const weirdAddress = `GA${"1".repeat(54)}`;
+    fetchSpy.mockResolvedValueOnce(
+      mockOk({ ...basePassport, piWalletAddress: weirdAddress })
+    );
+
+    const passport = await sdk.verifyPassport("alice");
+
+    expect(passport.piWalletAddress).toBe(weirdAddress);
+    expect(passport.piWalletAddress).toHaveLength(56);
+  });
+
+  it("does not leak piWalletAddress into the getTrustScore projection", async () => {
+    fetchSpy.mockResolvedValueOnce(mockOk(basePassport));
+
+    const trustScore = await sdk.getTrustScore("did:axiom:alice");
+
+    expect(trustScore).toEqual({
+      did: basePassport.did,
+      score: basePassport.trustScore,
+      tier: basePassport.tier,
+    });
+    expect(trustScore).not.toHaveProperty("piWalletAddress");
   });
 });

@@ -1,3 +1,32 @@
-# These are supported funding model platforms
-github: Moeabdelaziz007
-custom: ['https://axiomid.app/claim']
+# =============================================================================
+# PAI Universe — Funding & Sponsorship
+# =============================================================================
+# Protocol-first, open-source agentic infrastructure on Pi Network.
+# Identity (AxiomID) · Discovery (ADP) · Memory (PAI-Memory) · MCP tooling
+# Marketplace (PAI) — built for all, owned by none.
+#
+# Sponsorship funds: edge infrastructure (Workers/D1/Vectorize), open-source
+# maintenance, and the agent bounty program.
+#
+# Primary: GitHub Sponsors (zero platform fee, dev-first)
+# Community: Telegram (announcements, governance, support)
+# =============================================================================
+
+# GitHub Sponsors — primary funding channel
+github: [Moeabdelaziz007]
+patreon: # single Patreon username
+open_collective: # single Open Collective username
+ko_fi: # single Ko-fi username
+tidelift: # npm/babel
+community_bridge: # cloud-foundry
+liberapay: # single Liberapay username
+issuehunt: # single IssueHunt username
+lfx_crowdfunding: # cloud-foundry
+polar: # single Polar username
+buy_me_a_coffee: # single Buy Me a Coffee username
+thanks_dev: # single thanks.dev username
+
+# Custom links — highest visibility first
+custom:
+  - https://github.com/sponsors/Moeabdelaziz007
+  - https://t.me/PAI_Universe

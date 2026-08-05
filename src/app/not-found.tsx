@@ -26,7 +26,7 @@ export default function NotFound() {
           </p>
         </div>
 
-        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 font-mono text-[10px] text-faint">
+        <div className="bg-glass border border-glass-hover rounded-xl px-4 py-2 font-mono text-[10px] text-faint">
           <span className="text-neon-green">ERROR</span>: did:axiom:not-found:404
         </div>
 

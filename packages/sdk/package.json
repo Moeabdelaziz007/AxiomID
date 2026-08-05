@@ -1,12 +1,20 @@
 {
   "name": "@axiomid/sdk",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "description": "AxiomID SDK — Verify passports, resolve DIDs, query trust scores",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
   "files": [
     "dist",
+    "src",
     "README.md",
     "LICENSE"
   ],
@@ -15,6 +23,22 @@
     "test": "jest --runInBand --forceExit",
     "type-check": "tsc --noEmit"
   },
+  "keywords": [
+    "axiomid",
+    "sdk",
+    "identity",
+    "did",
+    "passport",
+    "trust-score",
+    "pi-network"
+  ],
+  "homepage": "https://axiomid.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Moeabdelaziz007/AxiomID.git",
+    "directory": "packages/sdk"
+  },
+  "author": "Mohamed Abdelaziz <https://github.com/Moeabdelaziz007>",
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^25",

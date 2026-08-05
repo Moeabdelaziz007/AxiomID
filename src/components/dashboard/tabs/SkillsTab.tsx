@@ -52,26 +52,26 @@ export function SkillsTab() {
 
       {/* Marketplace browse — simple card grid */}
       <div className="bento-card p-5">
-        <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-4">
+        <h3 className="text-xs uppercase tracking-wider font-semibold text-faint mb-4">
           Marketplace
         </h3>
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="p-3 rounded-xl border border-white/5 bg-white/[0.02]">
-                <div className="h-4 bg-white/5 rounded animate-pulse mb-2 w-2/3" />
-                <div className="h-3 bg-white/5 rounded animate-pulse w-full" />
+              <div key={i} className="p-3 rounded-xl border border-glass bg-white/[0.02]">
+                <div className="h-4 bg-glass rounded animate-pulse mb-2 w-2/3" />
+                <div className="h-3 bg-glass rounded animate-pulse w-full" />
               </div>
             ))}
           </div>
         ) : skills.length === 0 ? (
-          <p className="text-xs text-zinc-500 text-center py-4">No skills available yet</p>
+          <p className="text-xs text-faint text-center py-4">No skills available yet</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {skills.map((skill) => (
               <div
                 key={skill.id}
-                className="p-3 rounded-xl border border-white/5 bg-white/[0.02] hover:border-axiom-purple/30 transition-colors"
+                className="p-3 rounded-xl border border-glass bg-white/[0.02] hover:border-axiom-purple/30 transition-colors"
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-zinc-200 font-mono">{skill.name}</span>
@@ -79,7 +79,7 @@ export function SkillsTab() {
                     {skill.tier}
                   </span>
                 </div>
-                <p className="text-xs text-zinc-400 line-clamp-2">{skill.description}</p>
+                <p className="text-xs text-faint line-clamp-2">{skill.description}</p>
                 {skill.soulPrinciple && <SoulBadge principle={skill.soulPrinciple} />}
               </div>
             ))}

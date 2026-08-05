@@ -159,12 +159,12 @@ function interceptPiSdk() {
 
 function interceptFetch() {
   origFetch = window.fetch.bind(window);
-  const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : (input as Request)?.url || "unknown";
-    const method = init?.method || "GET";
+  window.fetch = (async (...args: Parameters<typeof globalThis.fetch>) => {
+    const url = typeof args[0] === "string" ? args[0] : args[0] instanceof URL ? args[0].toString() : (args[0] as Request)?.url || "unknown";
+    const method = args[1]?.method || "GET";
 
     try {
-      const response = await origFetch!(input, init);
+      const response = await origFetch!(...args);
 
       if (url.includes("/api/") && !response.ok) {
         const body = await response.clone().text().catch(() => "unreadable");
@@ -177,16 +177,12 @@ function interceptFetch() {
       }
 
       return response;
-    } catch (error) {
-      if (url.includes("/api/")) {
-        sendDiagnostic("error", "api", `API ${method} ${url} → network error`, {
-          error: error instanceof Error ? error.message : String(error),
-          method,
-        });
-      }
-      throw error;
+    } catch (err: unknown) {
+      sendDiagnostic("error", "network", `Fetch failed: ${method} ${url}`, {
+        error: (err as Error)?.message || String(err),
+        type: (err as Error)?.name,
+      });
+      throw err;
     }
-  };
-  // Cast to preserve fetch properties like preconnect
-  window.fetch = customFetch as typeof fetch;
+  }) as unknown as typeof fetch;
 }

@@ -1,0 +1,130 @@
+/* ═══════════════════════════════════════════════════════
+   PAI Design System — Enterprise Grade
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Root Tokens ─────────────────────────────────── */
+:root {
+  /* Typography */
+  --font-display: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  
+  /* Theme */
+  --pai-green: #39FF14;
+  
+  /* Text */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.72);
+  --text-tertiary: rgba(255, 255, 255, 0.48);
+  --text-muted: rgba(255, 255, 255, 0.32);
+  
+  /* Surfaces */
+  --bg-primary: #000000;
+  --bg-card: #0a0a0a;
+  --bg-elevated: #111111;
+  
+  /* Borders */
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-accent: rgba(57, 255, 20, 0.30);
+  
+  /* Shadows */
+  --shadow-glow: 0 0 24px rgba(57, 255, 20, 0.12);
+  
+  /* Glass */
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: 20px;
+  
+  /* Spacing */
+  --space-4: 8px;
+  --space-6: 16px;
+  --space-8: 24px;
+  --space-9: 32px;
+  --space-10: 40px;
+  --space-12: 64px;
+  --space-13: 80px;
+  --space-14: 96px;
+
+  /* Radius */
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-pill: 9999px;
+}
+
+/* ── Base ──────────────────────────────────────── */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+body {
+  font-family: var(--font-display);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow-x: hidden;
+}
+::selection { background: var(--pai-green); color: #000; }
+
+/* ── Glass Nav (Apple-inspired) ─────────────────── */
+.glass-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+  height: 56px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.8);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8);
+  border-bottom: 1px solid var(--glass-border);
+  transition: background 0.3s ease;
+}
+
+/* ── Glass Card ─────────────────────────────────── */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px) saturate(1.5);
+  -webkit-backdrop-filter: blur(12px) saturate(1.5);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+}
+
+/* ── Container ──────────────────────────────────── */
+.container-pai {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-8);
+}
+
+/* ── Section ────────────────────────────────────── */
+.section-pai {
+  padding: var(--space-14) 0;
+  position: relative;
+}
+
+/* ── Unique Sections ────────────────────────────── */
+.hero-pai {
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-13) 0 var(--space-12);
+}
+
+/* ── Endpoint Grid ──────────────────────────────── */
+.grid-pai {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-6);
+}
+
+/* ── Gradient Text ──────────────────────────────── */
+.text-gradient-pai {
+  background: linear-gradient(135deg, #39FF14, #22c55e, #39FF14);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media (max-width: 768px) {
+  .hero-pai { min-height: 70vh; }
+  .grid-pai { grid-template-columns: 1fr; }
+}

@@ -48,24 +48,24 @@ export function AgentStatsCard({ tier, xp, agentName, agentStatus, trustScore }:
     <div className="glass-card p-5 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-axiom-purple/10 to-transparent rounded-full blur-2xl opacity-60 pointer-events-none" />
       
-      <h3 className="text-xs uppercase tracking-wider font-semibold mb-4 text-zinc-500 relative z-10">
+      <h3 className="text-xs uppercase tracking-wider font-semibold mb-4 text-faint relative z-10">
         {t('agent_stats')}
       </h3>
       <div className="grid grid-cols-2 gap-4 relative z-10">
         <div>
-          <p className="text-[11px] text-zinc-500">{language === "en" ? "Tier" : "المستوى"}</p>
+          <p className="text-[11px] text-faint">{language === "en" ? "Tier" : "المستوى"}</p>
           <p className="text-sm font-mono mt-0.5 text-surface font-semibold">{tier}</p>
         </div>
         <div>
-          <p className="text-[11px] text-zinc-500">{language === "en" ? "Experience" : "الخبرة"}</p>
+          <p className="text-[11px] text-faint">{language === "en" ? "Experience" : "الخبرة"}</p>
           <p className="text-sm font-mono mt-0.5 text-surface font-semibold">{xp.toLocaleString()}</p>
         </div>
         <div>
-          <p className="text-[11px] text-zinc-500">{language === "en" ? "Agent" : "العميل"}</p>
+          <p className="text-[11px] text-faint">{language === "en" ? "Agent" : "العميل"}</p>
           <p className="text-sm font-mono mt-0.5 text-surface font-semibold truncate">{agentName || t('status_none')}</p>
         </div>
         <div>
-          <p className="text-[11px] text-zinc-500">{language === "en" ? "Trust Score" : "نقاط الثقة"}</p>
+          <p className="text-[11px] text-faint">{language === "en" ? "Trust Score" : "نقاط الثقة"}</p>
           <p className="text-sm font-mono mt-0.5 text-surface font-semibold">{trustScore}%</p>
         </div>
       </div>
@@ -73,13 +73,13 @@ export function AgentStatsCard({ tier, xp, agentName, agentStatus, trustScore }:
       {/* Sparkline */}
       <div className="mt-3 pt-3 border-t border-white/[0.06] relative z-10">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider">{language === "ar" ? "تقدم النقاط" : "XP Progress"}</span>
+          <span className="text-[9px] font-mono text-faint uppercase tracking-wider">{language === "ar" ? "تقدم النقاط" : "XP Progress"}</span>
         </div>
         <Sparkline xp={xp} />
       </div>
 
       <div className="flex items-center justify-between pt-3 mt-2 border-t border-white/[0.06] relative z-10">
-        <span className="text-[11px] text-zinc-500">{language === "en" ? "Status" : "الحالة"}</span>
+        <span className="text-[11px] text-faint">{language === "en" ? "Status" : "الحالة"}</span>
         <span className="text-xs font-mono flex items-center gap-1.5" style={{ color: agentStatus === "ACTIVE" ? "var(--color-success)" : agentStatus === "PAUSED" ? "var(--color-warning)" : "var(--text-muted)" }}>
           <span className={`w-1.5 h-1.5 rounded-full ${agentStatus === "ACTIVE" ? "bg-green-500" : agentStatus === "PAUSED" ? "bg-amber-500" : "bg-gray-500"}`} />
           {agentStatus}

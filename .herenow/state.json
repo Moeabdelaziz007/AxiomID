@@ -1,0 +1,16 @@
+{
+  "publishes": {
+    "smooth-kayak-2jgv": {
+      "siteUrl": "https://smooth-kayak-2jgv.here.now/",
+      "claimToken": "621b516af71d79c91ec3f7e2a4fc53776f30c872eb2d99f86657e96492d7b12b",
+      "claimUrl": "https://here.now/claim?slug=smooth-kayak-2jgv&token=621b516af71d79c91ec3f7e2a4fc53776f30c872eb2d99f86657e96492d7b12b",
+      "expiresAt": "2026-07-18T07:59:40.101Z"
+    },
+    "regal-cobble-8pmm": {
+      "siteUrl": "https://regal-cobble-8pmm.here.now/",
+      "claimToken": "5315e8e37cc74219a7b080be3fd5467d1eebceb388d8812bfc40cd9b019c4061",
+      "claimUrl": "https://here.now/claim?slug=regal-cobble-8pmm&token=5315e8e37cc74219a7b080be3fd5467d1eebceb388d8812bfc40cd9b019c4061",
+      "expiresAt": "2026-07-18T07:59:44.269Z"
+    }
+  }
+}

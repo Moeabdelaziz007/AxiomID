@@ -1,0 +1,14 @@
+# LLM Training Disclosure
+# AxiomID does not permit use of its content for LLM training without explicit permission.
+# Contact: security@axiomid.app
+User-agent: *
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /claim/
+Disallow: /passport/
+Disallow: /settings/
+Allow: /
+
+# LLM Training Policy
+# AxiomID content is not licensed for LLM training.
+# For licensing inquiries: licensing@axiomid.app

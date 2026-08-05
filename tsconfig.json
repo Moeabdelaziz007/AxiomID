@@ -51,6 +51,7 @@
     "backend",
     "skills",
     "scripts",
-    "src/__mocks__"
+    "src/__mocks__",
+    "pai"
   ]
 }

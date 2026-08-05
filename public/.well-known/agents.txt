@@ -1,0 +1,21 @@
+# AxiomID Agent Ecosystem
+# Agent Discovery Protocol
+Agent-Endpoint: https://axiomid.app/api/agents
+Agent-Discovery: https://axiomid.app/.well-known/agent-card.json
+Agent-Manifest: https://axiomid.app/api/agent/manifest
+
+# Supported Agent Types
+# - Human users (DID-based identity)
+# - AI Agents (DID-based, with capabilities manifest)
+# - Sovereign Agents (self-sovereign, DID-based)
+# - Service Agents (API-based, scoped permissions)
+
+# Agent Communication Protocol
+# - DIDComm v2 for peer-to-peer messaging
+# - JSON-RPC 2.0 for RPC calls
+# - MCP (Model Context Protocol) for tool use
+
+# Capability Discovery
+# POST https://axiomid.app/api/agent/identity/claim
+# GET  https://axiomid.app/api/agent/manifest
+# GET  https://axiomid.app/api/agents

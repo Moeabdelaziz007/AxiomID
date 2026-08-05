@@ -1,7 +1,7 @@
 export interface Passport {
   username: string;
   walletAddress: string;
-  stellarAddress: string;
+  piWalletAddress: string;
   did: string;
   tier: string;
   xp: number;

@@ -153,7 +153,7 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
       {/* Overview Block */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Trust Gauge card */}
-        <div className="bento-card p-6 flex items-center justify-between border border-white/5 bg-white/[0.01]">
+        <div className="bento-card p-6 flex items-center justify-between border border-glass bg-white/[0.01]">
           <div className="space-y-2">
             <h3 className="text-sm font-bold text-surface font-mono uppercase tracking-wider">{t('trust_score')}</h3>
             <p className="text-xs text-subtle max-w-[160px] leading-relaxed">
@@ -169,7 +169,7 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
         </div>
 
         {/* Progress Card */}
-        <div className="bento-card p-6 flex flex-col justify-between border border-white/5 bg-white/[0.01] md:col-span-2 col-span-1">
+        <div className="bento-card p-6 flex flex-col justify-between border border-glass bg-white/[0.01] md:col-span-2 col-span-1">
           <div className="flex justify-between items-start">
             <div>
               <h3 className="text-sm font-bold text-surface font-mono uppercase tracking-wider">{t('level_progress')}</h3>
@@ -183,7 +183,7 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
           </div>
 
           <div className="space-y-2 mt-4">
-            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+            <div className="h-2 w-full bg-glass rounded-full overflow-hidden border border-glass">
               <div
                 className="h-full bg-gradient-to-r from-neon-green to-electric-blue transition-all duration-500 rounded-full"
                 style={{ width: `${progressPercent}%` }}
@@ -211,7 +211,7 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
             <p className="text-sm font-bold text-neon-green font-mono">
               {language === "en" ? "Be the first Pioneer!" : "كن أول رائد!"}
             </p>
-            <p className="text-xs text-zinc-400 mt-2">
+            <p className="text-xs text-faint mt-2">
               {language === "en"
                 ? "Start earning stamps and XP by connecting your accounts and completing actions."
                 : "ابدأ في جني الطوابع والخبرة من خلال ربط حساباتك وإنجاز العمليات."}
@@ -244,7 +244,7 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
         onClick={handleBackdropClick}
         className="bg-transparent p-4 focus:outline-none"
       >
-        <div className="bento-card max-w-lg w-full p-6 border border-white/10 shadow-2xl bg-black">
+        <div className="bento-card max-w-lg w-full p-6 border border-glass-hover shadow-2xl bg-black">
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 id="vc-dialog-title" className="text-base font-bold text-surface font-mono">
@@ -256,7 +256,7 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
             </div>
             <button
               onClick={() => vcDialogRef.current?.close()}
-              className="text-faint hover:text-surface text-xs font-mono border border-white/5 hover:border-white/10 px-3 py-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded cursor-pointer"
+              className="text-faint hover:text-surface text-xs font-mono border border-glass hover:border-glass-hover px-3 py-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded cursor-pointer"
             >
               {t('close')}
             </button>
@@ -264,7 +264,7 @@ export function StampBoard({ user, claimAction, connectWallet }: StampBoardProps
 
           {activeVc && (
             <div className="space-y-4">
-              <pre className="text-[9px] text-neon-green font-mono bg-black/80 p-3 rounded-lg border border-white/5 overflow-x-auto max-h-64 scrollbar-thin">
+              <pre className="text-[9px] text-neon-green font-mono bg-black/80 p-3 rounded-lg border border-glass overflow-x-auto max-h-64 scrollbar-thin">
                 {JSON.stringify(activeVc, null, 2)}
               </pre>
 

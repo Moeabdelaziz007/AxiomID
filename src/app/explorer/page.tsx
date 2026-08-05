@@ -81,13 +81,13 @@ export default function ExplorerPage() {
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-surface">
               {language === "en" ? "Live Identity Ledger" : "مستكشف الهوية المباشر"}
             </h1>
-            <p className="text-xs sm:text-sm text-zinc-400 mt-1 max-w-xl">
+            <p className="text-xs sm:text-sm text-faint mt-1 max-w-xl">
               {language === "en" 
                 ? "Audit the cryptographic state of registered agents, verifiable credentials, and decentralized identifiers anchored to the Stellar and Pi networks."
                 : "تحقق من الحالة التشفيرية للعملاء المسجلين والشهادات القابلة للتحقق والهويات اللامركزية المرتبطة بشبكتي Stellar و Pi."}
             </p>
           </div>
-          <div className="flex-shrink-0 glass-card px-4 py-2 rounded-xl text-[10px] font-mono text-zinc-500 relative z-10">
+          <div className="flex-shrink-0 glass-card px-4 py-2 rounded-xl text-[10px] font-mono text-faint relative z-10">
             NETWORK STATUS: <span className="text-neon-green font-bold">ONLINE</span>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function ExplorerPage() {
               <Zap className="w-7 h-7 text-red-400" />
             </div>
             <h3 className="text-sm font-bold text-white mb-1">Unable to Fetch Explorer Data</h3>
-            <p className="text-xs text-zinc-500 font-mono mb-4">{error.message}</p>
+            <p className="text-xs text-faint font-mono mb-4">{error.message}</p>
             <button
               onClick={() => refetch()}
               className="btn-primary px-4 py-2 text-xs font-mono"
@@ -116,7 +116,7 @@ export default function ExplorerPage() {
               <Bot className="w-7 h-7 text-electric-blue" />
             </div>
             <h3 className="text-sm font-bold text-surface mb-1">{language === "en" ? "No Agents Registered Yet" : "لم يتم تسجيل عملاء بعد"}</h3>
-            <p className="text-xs text-zinc-500 font-mono max-w-sm mx-auto">
+            <p className="text-xs text-faint font-mono max-w-sm mx-auto">
               {language === "en" 
                 ? "The protocol is live. Be the first pioneer to register an agent and appear on the explorer."
                 : "البروتوكول مباشر. كن أول رائد يسجل عميلاً ويظهر على المستكشف."}
@@ -141,7 +141,7 @@ export default function ExplorerPage() {
                     {stat.icon}
                   </div>
                   <div>
-                    <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider block">{stat.label}</span>
+                    <span className="text-[9px] font-mono text-faint uppercase tracking-wider block">{stat.label}</span>
                     <h3 className="text-lg font-bold font-mono text-surface mt-0.5">
                       <AnimatedCounter target={stat.value} duration={1000} />
                     </h3>
@@ -162,7 +162,7 @@ export default function ExplorerPage() {
                 
                 {/* Tier Distribution Bento */}
                 <div className="bento-card p-5">
-                  <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest mb-4">
+                  <h3 className="text-xs font-bold font-mono text-faint uppercase tracking-widest mb-4">
                     {language === "en" ? "Identity Tier Distribution" : "توزيع طبقات الهوية"}
                   </h3>
                   <div className="space-y-3">
@@ -178,9 +178,9 @@ export default function ExplorerPage() {
                         <div key={item.tier}>
                           <div className="flex justify-between items-center text-[10px] font-mono mb-1">
                             <span style={{ color: item.color }} className="font-bold">{item.tier.toUpperCase()}</span>
-                            <span className="text-zinc-400">{item.count} ({Math.round(percent)}%)</span>
+                            <span className="text-faint">{item.count} ({Math.round(percent)}%)</span>
                           </div>
-                          <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                          <div className="h-1 bg-glass rounded-full overflow-hidden">
                             <div className="h-full rounded-full" style={{ backgroundColor: item.color, width: `${percent}%` }} />
                           </div>
                         </div>
@@ -191,18 +191,18 @@ export default function ExplorerPage() {
 
                 {/* Recent Payments Ledger */}
                 <div className="bento-card p-5">
-                  <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest mb-4">
+                  <h3 className="text-xs font-bold font-mono text-faint uppercase tracking-widest mb-4">
                     {language === "en" ? "Recent Payments Ledger" : "سجل المدفوعات الأخيرة"}
                   </h3>
                   {data.recentPayments.length > 0 ? (
                     <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
                       {data.recentPayments.map((pay) => (
-                        <div key={pay.id} className="flex justify-between items-center p-2 rounded-lg border border-white/5 bg-white/[0.01]">
+                        <div key={pay.id} className="flex justify-between items-center p-2 rounded-lg border border-glass bg-white/[0.01]">
                           <div className="min-w-0">
                             <span className="text-[10px] font-mono text-white block truncate">
                               @{pay.user.piUsername || pay.user.walletAddress.slice(0, 10)}
                             </span>
-                            <span className="text-[8px] font-mono text-zinc-500 block truncate">
+                            <span className="text-[8px] font-mono text-faint block truncate">
                               {pay.memo || "Gas Fee Payment"}
                             </span>
                           </div>
@@ -210,7 +210,7 @@ export default function ExplorerPage() {
                             <span className="text-[10px] font-mono text-emerald-400 font-bold block">
                               +{pay.amount} PI
                             </span>
-                            <span className="text-[8px] font-mono text-zinc-500" suppressHydrationWarning>
+                            <span className="text-[8px] font-mono text-faint" suppressHydrationWarning>
                               {new Date(pay.createdAt).toLocaleTimeString()}
                             </span>
                           </div>

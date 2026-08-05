@@ -77,7 +77,7 @@ export default function LeaderboardPage() {
           <Trophy className="w-6 h-6 text-amber-400" />
           {language === "en" ? "Sovereign Leaderboard" : "لوحة الصدارة العامة"}
         </h1>
-        <p className="text-xs sm:text-sm text-zinc-400 mt-1 max-w-xl mx-auto leading-relaxed">
+        <p className="text-xs sm:text-sm text-faint mt-1 max-w-xl mx-auto leading-relaxed">
           Pioneers sorted by global Experience Points (XP) earned from social verifications, transaction validation activity, and oracle stamp binding.
         </p>
       </div>
@@ -133,7 +133,7 @@ export default function LeaderboardPage() {
               <Trophy className="w-8 h-8 text-amber-400" />
             </div>
             <h2 className="text-xl font-bold text-white mb-2">{language === "en" ? "Be the First Sovereign" : "كن السيادي الأول"}</h2>
-            <p className="text-sm text-zinc-400 max-w-md mx-auto mb-6">
+            <p className="text-sm text-faint max-w-md mx-auto mb-6">
               {language === "en" 
                 ? "The leaderboard is empty. Connect your wallet and start earning XP to claim the #1 spot and become the first Sovereign."
                 : "لوحة الصدارة فارغة. اربط محفظتك وابدأ في كسب نقاط الخبرة لاحتلال المرتبة الأولى وتصبح السيادي الأول."}
@@ -162,7 +162,7 @@ export default function LeaderboardPage() {
 
           {/* Search bar */}
           <div className="relative max-w-md mx-auto">
-            <Search className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
+            <Search className="w-4 h-4 text-faint absolute left-3.5 top-3.5" />
             <input
               type="text"
               placeholder={language === "en" ? "Search handle or address..." : "ابحث عن اسم مستخدم أو عنوان..."}
@@ -181,7 +181,7 @@ export default function LeaderboardPage() {
                 className={`px-3 py-1.5 rounded-lg text-[10px] font-mono uppercase tracking-wider transition-all ${
                   tierFilter === TIER_FILTERS_EN[i]
                     ? "bg-electric-blue/20 text-electric-blue border border-electric-blue/30"
-                    : "text-zinc-500 border border-white/[0.04] hover:border-white/[0.08] hover:text-zinc-300"
+                    : "text-faint border border-white/[0.04] hover:border-white/[0.08] hover:text-subtle"
                 }`}
               >
                 {tier}
@@ -190,8 +190,8 @@ export default function LeaderboardPage() {
           </div>
 
           {/* Remaining Ranks Table */}
-          <div className="bento-card overflow-hidden border border-white/5 bg-[#101217]/80">
-            <div className="p-4 border-b border-white/5 bg-white/[0.01] flex justify-between items-center text-[10px] font-mono text-zinc-500">
+          <div className="bento-card overflow-hidden border border-glass bg-surface-deep/80">
+            <div className="p-4 border-b border-glass bg-white/[0.01] flex justify-between items-center text-[10px] font-mono text-faint">
               <span>{language === "en" ? "PIONEER REGISTRY" : "سجل رواد البروتوكول"}</span>
               <span>{tableUsers.length} {language === "en" ? "FOUND" : "وجد"}</span>
             </div>
@@ -199,7 +199,7 @@ export default function LeaderboardPage() {
             <div className="overflow-x-auto no-scrollbar">
               <table className="w-full text-left font-mono text-xs select-none">
                 <thead>
-                  <tr className="border-b border-white/5 text-[10px] text-zinc-500 bg-white/[0.005]">
+                  <tr className="border-b border-glass text-[10px] text-faint bg-white/[0.005]">
                     <th className="py-3 px-4 text-center w-12">#</th>
                     <th className="py-3 px-4">{language === "en" ? "PIONEER" : "الرائد"}</th>
                     <th className="py-3 px-4 text-center">{language === "en" ? "TIER" : "الطبقة"}</th>
@@ -215,7 +215,7 @@ export default function LeaderboardPage() {
                     const borderColor = tierColor;
                     return (
                       <tr key={user.id} className="group relative hover:bg-white/[0.02] transition-all hover:scale-[1.005] hover:shadow-[0_2px_12px_rgba(0,0,0,0.2)]" style={{ borderLeft: `3px solid ${borderColor}` }}>
-                        <td className="py-3 px-4 text-center font-bold text-zinc-400">
+                        <td className="py-3 px-4 text-center font-bold text-faint">
                           {user.rank}
                         </td>
                         <td className="py-3 px-4">
@@ -225,7 +225,7 @@ export default function LeaderboardPage() {
                           >
                             @{user.piUsername || `${user.walletAddress.slice(0, 8)}...${user.walletAddress.slice(-6)}`}
                           </Link>
-                          <span className="text-[9px] text-zinc-500 block truncate max-w-[200px] mt-0.5">
+                          <span className="text-[9px] text-faint block truncate max-w-[200px] mt-0.5">
                             {user.id}
                           </span>
                         </td>
@@ -237,7 +237,7 @@ export default function LeaderboardPage() {
                             {user.tier}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-center font-bold text-zinc-300">
+                        <td className="py-3 px-4 text-center font-bold text-subtle">
                           {user.stampsCount}
                         </td>
                         <td className="py-3 px-4 text-center font-bold text-emerald-400">
@@ -270,10 +270,10 @@ export default function LeaderboardPage() {
 
             {/* Load More */}
             {hasMore && (
-              <div className="p-4 border-t border-white/5 flex justify-center">
+              <div className="p-4 border-t border-glass flex justify-center">
                 <button
                   onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-mono text-zinc-400 border border-white/10 hover:bg-white/5 hover:border-white/20 transition-all"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-mono text-faint border border-glass-hover hover:bg-glass hover:border-white/20 transition-all"
                 >
                   {language === "ar" ? "عرض 20 المزيد" : "Show 20 more"}
                   <ChevronDown className="w-3.5 h-3.5" />

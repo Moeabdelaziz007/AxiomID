@@ -106,12 +106,12 @@ export default function NetworkGraph({ nodes }: NetworkGraphProps) {
   return (
     <div className="bento-card p-5 flex flex-col items-center relative overflow-hidden">
       <div className="absolute top-4 left-4">
-        <h3 className="text-xs font-bold font-mono text-zinc-400 uppercase tracking-widest">{t("Active Node Graph", "رسم بياني للعقد النشطة")}</h3>
-        <p className="text-[10px] text-zinc-500 font-mono mt-0.5">{t("Click nodes to inspect identities", "انقر على العقد لفحص الهويات")}</p>
+        <h3 className="text-xs font-bold font-mono text-faint uppercase tracking-widest">{t("Active Node Graph", "رسم بياني للعقد النشطة")}</h3>
+        <p className="text-[10px] text-faint font-mono mt-0.5">{t("Click nodes to inspect identities", "انقر على العقد لفحص الهويات")}</p>
       </div>
 
       {/* Mini Stats */}
-      <div className="flex items-center gap-4 mt-2 mb-3 text-[9px] font-mono text-zinc-500">
+      <div className="flex items-center gap-4 mt-2 mb-3 text-[9px] font-mono text-faint">
         <span>{t(`${nodes.length} nodes`, `${nodes.length} عقد`)}</span>
         <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />{t(`${activeNodes.length} active`, `${activeNodes.length} نشطة`)}</span>
         {nodes.length > 0 && <span>{t(`Top trust: ${Math.max(...nodes.map((n) => n.xp))} XP`, `أعلى ثقة: ${Math.max(...nodes.map((n) => n.xp))} XP`)}</span>}
@@ -258,7 +258,7 @@ export default function NetworkGraph({ nodes }: NetworkGraphProps) {
       </div>
 
       {/* Selected Node Details Box */}
-      <div className="w-full mt-4 p-4 rounded-xl border border-white/5 bg-white/[0.01] min-h-[90px] flex flex-col justify-center">
+      <div className="w-full mt-4 p-4 rounded-xl border border-glass bg-white/[0.01] min-h-[90px] flex flex-col justify-center">
         {selectedNode ? (
           <div>
             <div className="flex items-center justify-between">
@@ -276,7 +276,7 @@ export default function NetworkGraph({ nodes }: NetworkGraphProps) {
                 {selectedNode.tier.toUpperCase()}
               </span>
             </div>
-            <p className="text-[10px] font-mono text-zinc-500 mt-1 truncate">
+            <p className="text-[10px] font-mono text-faint mt-1 truncate">
               {t("DID:", "المعرف:")} {selectedNode.did || t("did:axiom:unconnected", "did:axiom:غير متصل")}
             </p>
             {selectedNode.agent && (

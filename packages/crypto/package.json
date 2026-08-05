@@ -1,12 +1,20 @@
 {
   "name": "@axiomid/crypto",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "description": "Sovereign identity cryptography for AxiomID — Ed25519 key derivation, signing, and verification.",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
   "files": [
     "dist",
+    "src",
     "README.md",
     "LICENSE"
   ],
@@ -15,6 +23,21 @@
     "test": "jest --runInBand --forceExit",
     "type-check": "tsc --noEmit"
   },
+  "keywords": [
+    "axiomid",
+    "identity",
+    "cryptography",
+    "ed25519",
+    "sovereign",
+    "did"
+  ],
+  "homepage": "https://axiomid.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Moeabdelaziz007/AxiomID.git",
+    "directory": "packages/crypto"
+  },
+  "author": "Mohamed Abdelaziz <https://github.com/Moeabdelaziz007>",
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^25",

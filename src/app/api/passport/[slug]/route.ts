@@ -144,6 +144,24 @@ export async function GET(
 
     return apiError("NOT_FOUND", "No passport found for this slug");
   } catch (error) {
+    // Demo passport fallback — works without database seeding
+    if (decodedSlug === "demo") {
+      return apiSuccess({
+        username: "Demo Agent",
+        walletAddress: "0xDEMO0000000000000000000000000000000000",
+        stellarAddress: null,
+        did: "did:axiom:demo:00000000-0000-0000-0000-000000000000",
+        tier: "visitor",
+        xp: 0,
+        trustScore: 50,
+        kycStatus: null,
+        agent: { publicId: "demo", name: "AxiomID Demo Agent", status: "active" },
+        stamps: [],
+        agentPublicKey: null,
+        createdAt: new Date().toISOString(),
+        isDemo: true,
+      }, 200, { "Cache-Control": "public, s-maxage=300" });
+    }
     logger.error("[PASSPORT-API] Database error:", error);
     return apiError("INTERNAL_ERROR", "Failed to retrieve passport");
   }

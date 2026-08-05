@@ -1,0 +1,8 @@
+{
+  "clientId": "YOUR_AUTONOMA_CLIENT_ID",
+  "secretId": "YOUR_AUTONOMA_SECRET_ID",
+  "pairingCode": "YOUR_AUTONOMA_PAIRING_CODE",
+  "mcpEndpoint": "https://api.autonoma.app/v1/mcp/onboarding",
+  "project": "axiomid",
+  "framework": "nextjs"
+}

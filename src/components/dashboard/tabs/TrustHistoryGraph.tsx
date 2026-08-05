@@ -37,9 +37,9 @@ export function TrustHistoryGraph({ username }: TrustHistoryGraphProps) {
   if (loading) {
     return (
       <div className="bento-card p-5">
-        <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-4">Trust History</h3>
+        <h3 className="text-xs uppercase tracking-wider font-semibold text-faint mb-4">Trust History</h3>
         <div className="h-32 flex items-center justify-center">
-          <div className="h-4 bg-white/5 rounded animate-pulse w-1/2" />
+          <div className="h-4 bg-glass rounded animate-pulse w-1/2" />
         </div>
       </div>
     );
@@ -48,8 +48,8 @@ export function TrustHistoryGraph({ username }: TrustHistoryGraphProps) {
   if (data.length === 0) {
     return (
       <div className="bento-card p-5">
-        <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-4">Trust History</h3>
-        <p className="text-xs font-mono text-zinc-500 text-center py-8">No trust history yet</p>
+        <h3 className="text-xs uppercase tracking-wider font-semibold text-faint mb-4">Trust History</h3>
+        <p className="text-xs font-mono text-faint text-center py-8">No trust history yet</p>
       </div>
     );
   }
@@ -76,7 +76,7 @@ export function TrustHistoryGraph({ username }: TrustHistoryGraphProps) {
 
   return (
     <div className="bento-card p-5">
-      <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-4">Trust History</h3>
+      <h3 className="text-xs uppercase tracking-wider font-semibold text-faint mb-4">Trust History</h3>
       <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-auto">
         {/* Grid lines */}
         {[0, 0.25, 0.5, 0.75, 1].map((pct) => {

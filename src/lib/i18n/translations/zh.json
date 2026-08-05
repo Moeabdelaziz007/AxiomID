@@ -1,0 +1,99 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "error": "错误",
+    "retry": "重试",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "view": "查看",
+    "create": "创建",
+    "update": "更新",
+    "search": "搜索",
+    "filter": "筛选",
+    "sort": "排序",
+    "clear": "清除",
+    "confirm": "确认",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "close": "关闭",
+    "open": "打开",
+    "yes": "是",
+    "no": "否",
+    "ok": "确定",
+    "copy": "复制",
+    "copied": "已复制！",
+    "download": "下载",
+    "upload": "上传",
+    "refresh": "刷新",
+    "settings": "设置",
+    "profile": "个人资料",
+    "logout": "登出",
+    "login": "登录",
+    "register": "注册",
+    "welcome": "欢迎",
+    "language": "语言",
+    "theme": "主题",
+    "darkMode": "深色模式",
+    "lightMode": "浅色模式",
+    "system": "跟随系统"
+  },
+  "nav": {
+    "home": "首页",
+    "docs": "文档",
+    "skills": "技能",
+    "playground": "游乐场",
+    "pricing": "定价",
+    "about": "关于",
+    "blog": "博客",
+    "github": "GitHub",
+    "discord": "Discord",
+    "twitter": "Twitter"
+  },
+  "hero": {
+    "badge": "PAI = BYE",
+    "title": "代理经济的操作系统",
+    "subtitle": "在 Pi Network 上构建、部署和货币化 AI 代理。6000 万用户。1800 万 KYC。原生支付。可验证身份。",
+    "ctaPrimary": "立即开始 →",
+    "ctaSecondary": "查看文档",
+    "stats": {
+      "users": "6000 万+ Pi 用户",
+      "kyc": "1800 万+ KYC 验证",
+      "revenue": "$4/验证 ACP",
+      "skills": "50+ 技能就绪"
+    }
+  },
+  "features": {
+    "identity": {
+      "title": "通用身份",
+      "description": "did:agent DID + Pi KYC + TrustChain 声誉。可移植、可验证、主权。",
+      "features": ["did:agent DID", "Pi KYC 验证", "TrustChain 声誉", "OpenIdentity 清单"]
+    },
+    "payments": {
+      "title": "原生支付",
+      "description": "ACP 支付 + Pi/USDC 结算。一行代码支付。内置托管。",
+      "features": ["ACP 协议", "Pi/USDC 支付", "托管和发票", "收入分成 90/10"]
+    },
+    "skills": {
+      "title": "可组合技能",
+      "description": "代理能力的 npm。安装、组合、货币化。内置收入分成。",
+      "features": ["50+ 技能", "收入分成 90/10", "ZK 验证", "沙箱执行"]
+    }
+  },
+  "cta": {
+    "getStarted": "立即开始 →",
+    "viewDocs": "查看文档",
+    "joinDiscord": "加入 Discord",
+    "starGitHub": "GitHub 点赞",
+    "joinWaitlist": "加入等待列表"
+  },
+  "footer": {
+    "tagline": "代理经济的操作系统",
+    "copyright": "© 2026 PAI. 以爱、诚实、信任和安全第一构建。",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "contact": "联系我们"
+  }
+}

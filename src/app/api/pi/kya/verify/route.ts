@@ -10,6 +10,7 @@ import { calculateTier } from '@/lib/tiers';
 import { calculateActionHash, GENESIS_HASH } from '@/lib/trust-chain';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { getActionUseCount, computePristineMultiplier } from '@/lib/rewards/pristine-path';
 import { z } from 'zod';
 
 const VerifyKycSchema = z.object({
@@ -75,6 +76,10 @@ export async function POST(request: NextRequest) {
       timestamp: s.createdAt,
     }));
 
+    const pristineUses = await getActionUseCount(user.id, 'complete_kyc');
+    const { multiplier: pristineMul } = computePristineMultiplier(pristineUses, 'complete_kyc');
+    const kycXp = Math.round(200 * pristineMul);
+
     let stampCreated = false;
 
     // Atomic: persist KYC status + stamp + XP + tier + audit record + ledger together
@@ -101,13 +106,13 @@ export async function POST(request: NextRequest) {
                 userId: user.id,
                 type: 'complete_kyc',
                 provider: 'pi_network',
-                xpAwarded: 200,
+                xpAwarded: kycXp,
               },
             });
 
             const { xp: totalXp } = await tx.user.update({
               where: { id: user.id },
-              data: { xp: { increment: 200 } },
+              data: { xp: { increment: kycXp } },
               select: { xp: true },
             });
 
@@ -115,7 +120,7 @@ export async function POST(request: NextRequest) {
             await tx.xpLedger.create({
               data: {
                 userId: user.id,
-                amount: 200,
+                amount: kycXp,
                 reason: 'action_claim',
                 reference: JSON.stringify({ type: 'complete_kyc' }),
                 balance: totalXp,
@@ -139,7 +144,7 @@ export async function POST(request: NextRequest) {
             const actionTimestamp = new Date();
             const actionHash = calculateActionHash(parentHash, {
               type: 'complete_kyc',
-              xp: 200,
+              xp: kycXp,
               metadata: '{}',
               userId: user.id,
               timestamp: actionTimestamp,
@@ -149,7 +154,7 @@ export async function POST(request: NextRequest) {
               data: { 
                 userId: user.id,
                 type: 'complete_kyc',
-                xp: 200,
+                xp: kycXp,
                 metadata: '{}',
                 hash: actionHash,
                 parentHash,
@@ -172,7 +177,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (stampCreated) {
-      stampsToScore.push({ type: 'complete_kyc', xp: 200, timestamp: new Date() });
+      stampsToScore.push({ type: 'complete_kyc', xp: kycXp, timestamp: new Date() });
     }
 
     const computedTrustScore = computeTrustScore(stampsToScore, false, user.lastActive);

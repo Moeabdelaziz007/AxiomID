@@ -5,6 +5,7 @@ import { apiError, apiSuccess, rateLimitHeaders } from '@/lib/errors';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { requireAuth } from '@/lib/auth-middleware';
+import { getPostHogClient } from '@/lib/posthog-server';
 
 /**
  * Installs a published skill into the authenticated user's agent.
@@ -143,6 +144,20 @@ export async function POST(
         }
       });
     }
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: user.id,
+      event: 'skill_install_completed',
+      properties: {
+        skill_slug: skill.slug,
+        skill_name: skill.name,
+        skill_tier: skill.tier,
+        price_pi: skill.pricePi,
+        version: skill.version,
+      },
+    });
+    await posthog.flush();
 
     return apiSuccess({
       installed: true,

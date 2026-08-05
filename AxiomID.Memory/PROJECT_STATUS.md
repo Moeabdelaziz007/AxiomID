@@ -1,7 +1,7 @@
 # AxiomID — Project Status & Knowledge Base
 
 > **The single source of truth for the AxiomID project.**
-> Updated: 2026-07-15 | Version: 0.1.2
+> Updated: 2026-07-17 | Version: 0.2.0
 
 ---
 
@@ -17,20 +17,20 @@ AxiomID is the **Human Authorization Protocol** for AI agents and humans. Pi Bro
 
 | Metric | Value |
 |--------|-------|
-| **Version** | 0.1.2 |
-| **Test Files** | 180 |
-| **Test Cases** | 3,541 (passing, +1 from `it()`+`test()` blocks) |
+| **Version** | 0.2.0 |
+| **Test Files** | 189 |
+| **Test Cases** | 3,289 (passing, `it()`+`test()` blocks) |
 | **Test Lines** | ~39,500+ |
-| **E2E Files** | 15 (Playwright) |
+| **E2E Files** | 14 (Playwright, `.e2e.ts`) |
 | **E2E Lines** | ~2,500 |
-| **API Route Dirs** | 27 |
-| **Prisma Models** | 25 |
+| **API Route Dirs** | 62 |
+| **Prisma Models** | 26 |
 | **Tech Stack** | Next.js 16, React 19, Prisma 6, Tailwind 4, Framer Motion 12 |
 | **Database** | PostgreSQL (Prisma) + D1 (edge) + Vectorize (semantic) |
 | **Auth** | Pi Network SDK + Ed25519 sovereign keys |
 | **CI/CD** | GitHub Actions → Vercel |
-| **Open PRs** | 14 (see section 4) |
-| **Open Issues** | 5 (#153, #222-#225) — #221 closed |
+| **Open PRs** | 3 (#365, #364, #360) |
+| **Open Issues** | 8 (#153, #222-#225, #367, #368, #369) |
 
 ---
 
@@ -100,35 +100,84 @@ AxiomID is the **Human Authorization Protocol** for AI agents and humans. Pi Bro
 ### PR #342 Closed ❌ (Jul 15)
 - 0 files changed — empty commit, tree identical to parent
 
-### PR #346: Dead Code Cleanup 🔄 OPEN (Jul 15)
+### PR #346: Dead Code Cleanup ✅ (Jul 15)
 - 24 files deleted (HeroDemo, 8 skeletons, 15 unused hooks)
+- knip + manual review strategy
 - CI green (was failing — fixed HeroDemo mock refs in home-page + passport-hero tests)
 
-### PR #347: Pi Verification Fallback 🔄 OPEN (Jul 15)
+### PR #347: Pi Verification Fallback ✅ (Jul 15)
 - KYC fallback: check RELEASED payments if Pi API returns false
 - wallet_address scope added to authenticate()
 - Full E2E payment lifecycle test
 
-### PR #348: AGENTS.md Rebrand 🔄 OPEN (Jul 15)
+### PR #348: AGENTS.md Rebrand ✅ (Jul 15)
 - amrikyy → AxiomID rebranding in SOUL Protocol section
 - New Agentic API First Protocol section added
 
-### Security PRs (Jules) 🔄 OPEN
-- #337: Hardcoded secrets in e2e + auth-middleware tests
-- #339: Auth bypass + sandbox vulnerabilities
-- #338: Trust delegation IDOR ✅ rebased (Jul 15)
-- #340: Mass credential IDOR ✅ rebased (Jul 15, approved by human)
+### Security PRs (Jules) ✅ Merged (Jul 15)
+- #337: Hardcoded secrets in e2e + auth-middleware tests ✅
+- #339: Auth bypass + sandbox vulnerabilities ✅
+- #338: Trust delegation IDOR ✅ (rebased Jul 15)
+- #340: Mass credential IDOR ✅ (rebased Jul 15, approved by human)
 
-### Coverage PRs (Jules) 🔄 OPEN
-- #332: Sanitize library ✅ rebased (Jul 15)
-- #333: Trust.ts fallbacks
-- #334: Auth-middleware 100%
-- #335: vc.ts RSA branches
-- #336: Tiers library ✅ rebased (Jul 15, .idea/workspace.xml stripped)
+### Coverage PRs (Jules) ✅ Merged (Jul 15-16)
+- #332: Sanitize library ✅ (rebased Jul 15)
+- #333: Trust.ts fallbacks ✅
+- #334: Auth-middleware 100% ✅
+- #335: vc.ts RSA branches ✅
+- #336: Tiers library ✅ (rebased Jul 15, .idea/workspace.xml stripped)
 
-### Refactor PRs (Jules) 🔄 OPEN
-- #327: console.log → console.info
-- #329: Diagnostics error logging (needs human approval)
+### Refactor PRs (Jules) ✅ Merged (Jul 15)
+- #327: console.log → console.info ✅
+- #329: Diagnostics error logging ✅
+
+### PR #351: PiVerify KYC-as-a-Service ✅ (Jul 15)
+- External KYC integration via Pi Network (PiVerify)
+- KYC-as-a-service pattern for identity verification
+
+### PR #352: Data Architecture Documentation ✅ (Jul 15)
+- Expanded data architecture from 15 to 200+ lines
+- Comprehensive documentation of data layer
+
+### PR #363: Mock useLanguage in DevModeBanner Test ✅ (Jul 16)
+- Fixed CI failure: mock useLanguage in DevModeBanner test
+- i18n test stability improvement
+
+### PR #361: Pi Browser Detection Fix ✅ (Jul 16)
+- Pi Browser detection fix for auth flow
+- Demo mode for regular browsers (non-Pi)
+
+### PR #362: Secondary CTA Polish, Skeleton Fade, Interactive Command Demo ✅ (Jul 16)
+- Secondary CTA polish (visual hierarchy)
+- Skeleton fade animation
+- Interactive command demo component
+
+### PR #335: vc.ts RSA + Mismatched Algorithm Test Coverage ✅ (Jul 16)
+- RSA branch coverage in vc.ts
+- Mismatched algorithm branch coverage
+
+### PR #333: trust.ts Coverage Improvement ✅ (Jul 16)
+- Improved test coverage for trust.ts fallback branches
+
+### PR #332: Sanitize Library Test Coverage ✅ (Jul 15)
+- Comprehensive test coverage for sanitize library
+
+### PR #329: Diagnostics Error Logging Refactor ✅ (Jul 15)
+- Properly log exceptions in diagnostics reporting
+- Error logging refactor
+
+### PR #327: console.log → console.info ✅ (Jul 15)
+- Replaced console.log with console.info across codebase
+- Logging hygiene improvement
+
+### PR #359: Payment Completion Flow + Tier 1 SBT Minting ✅ (Jul 16)
+- Payment completion flow implementation
+- Tier 1 Soulbound Token (SBT) minting — non-transferable identity tokens
+- Integration of payment → SBT mint pipeline
+
+### PR #366: Virtual Protocol Site Verification ✅ (Jul 17)
+- Meta tag for Virtual Protocol agent registry verification
+- Site verification for agent registry listing
 
 ---
 
@@ -136,31 +185,33 @@ AxiomID is the **Human Authorization Protocol** for AI agents and humans. Pi Bro
 
 | Task | Status | Branch |
 |------|--------|--------|
-| Dead Code Cleanup (#346) | Agent Review | `feat/dead-code-cleanup` |
-| Pi Verification Fallback (#347) | Agent Review | `feat/pi-verification-fallback` |
-| AGENTS.md Rebrand (#348) | Agent Review | `feat/agents-md-rebrand` |
-| Security PRs (#337→#339→#338→#340) | Merge after CI (all rebased) | Various Jules branches |
-| Coverage PRs (#336→#335→#334→#333→#332) | Merge after CI (332, 336 rebased) | Various Jules branches |
+| PR #360 | Open — agent review | feature branch |
+| PR #364 | Open — agent review | feature branch |
+| PR #365 | Open — agent review | feature branch |
+| did:axiom DID Method Spec | Drafting in `openidentity.md` repo | `feat/openidentity-specs` |
+| AxiomID.Memory 5-Layer Architecture | Planning — L1-L5 memory stack | design phase |
 
 ---
 
 ## 5. What's Planned
 
 ### Near-term
-- **Security Group Merge:** #337 → #339 → #338 (rebase) → #340 (rebase)
-- **Refactor Group Merge:** #327, #329
-- **Coverage Group Merge:** #336 (rebase) → #335 → #334 → #333 → #332 (rebase)
+- **did:axiom DID Method Spec:** Finalize W3C-compliant DID method in `openidentity.md` repo
+- **AxiomID.Memory 5-Layer Architecture:** Implement L1-L5 memory stack (GitHub → Neon+Supabase → Ghost.build+HowNow → Upstash+GH Actions → Cloudflare D1+Vectorize)
+- **Open PR Resolution:** Merge #360, #364, #365 after CI + review
 
 ### Medium-term
 - **Zod Validation:** Add to `/api/agent/public` (CodeRabbit request)
 - **Retry-After Header:** Add to 429 responses (CodeRabbit request)
 - **Observability:** Metrics, tracing, logging
 - **Performance:** Benchmark write throughput, query latency
+- **Virtual Protocol Registry:** Full agent registry integration after site verification
 
 ### Long-term
 - **IQRA:** Deploy Cloudflare D1 + Vectorize (already seeded)
 - **P8 DNS:** Add `*.axiomid.app` CNAME in Cloudflare
 - **Pi Browser Testing:** Deploy to Vercel, domain verification
+- **SBT Tier 2/3:** Expand Soulbound Token minting beyond Tier 1
 
 ---
 

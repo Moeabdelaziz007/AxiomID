@@ -129,7 +129,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
                 value={form.slug}
                 onChange={(e) => setForm({ ...form, slug: e.target.value })}
                 placeholder="my-skill-name"
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none focus:border-neon-green/40"
+                className="w-full bg-black/40 border border-glass-hover rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none focus:border-neon-green/40"
               />
             </div>
             <div>
@@ -139,7 +139,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="My Skill Name"
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none focus:border-neon-green/40"
+                className="w-full bg-black/40 border border-glass-hover rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none focus:border-neon-green/40"
               />
             </div>
           </div>
@@ -151,7 +151,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Short description of what this skill does"
-              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none focus:border-neon-green/40"
+              className="w-full bg-black/40 border border-glass-hover rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none focus:border-neon-green/40"
             />
           </div>
 
@@ -178,7 +178,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
                   onChange={(e) => updateSection(field.key, e.target.value)}
                   placeholder={field.placeholder}
                   rows={field.key === "operationalFlow" || field.key === "failureModes" ? 4 : 2}
-                  className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-surface font-mono focus:outline-none focus:border-neon-green/40 resize-none placeholder:text-white/20"
+                  className="w-full bg-black/40 border border-glass-hover rounded-lg px-3 py-2 text-[10px] text-surface font-mono focus:outline-none focus:border-neon-green/40 resize-none placeholder:text-white/20"
                 />
               </div>
             ))}
@@ -194,7 +194,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
               onChange={(e) => setForm({ ...form, agentScript: e.target.value })}
               placeholder={`export async function runSkill(context) {\n  // Agent logic here\n  return { success: true };\n}`}
               rows={6}
-              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-electric-blue font-mono focus:outline-none focus:border-neon-green/40 resize-none"
+              className="w-full bg-black/40 border border-glass-hover rounded-lg px-3 py-2 text-[10px] text-electric-blue font-mono focus:outline-none focus:border-neon-green/40 resize-none"
             />
           </div>
 
@@ -208,7 +208,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
               onChange={(e) => setForm({ ...form, testSuite: e.target.value })}
               placeholder={`describe('my-skill', () => {\n  it('should do something', () => {\n    expect(true).toBe(true);\n  });\n});`}
               rows={4}
-              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-amber-400 font-mono focus:outline-none focus:border-neon-green/40 resize-none"
+              className="w-full bg-black/40 border border-glass-hover rounded-lg px-3 py-2 text-[10px] text-amber-400 font-mono focus:outline-none focus:border-neon-green/40 resize-none"
             />
           </div>
 
@@ -219,7 +219,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
                 id="skill-tier"
                 value={form.tier}
                 onChange={(e) => setForm({ ...form, tier: e.target.value })}
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none"
+                className="w-full bg-black/40 border border-glass-hover rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none"
               >
                 {Object.entries(TIER_LABELS).map(([k, v]) => (
                   <option key={k} value={k}>{v}</option>
@@ -235,7 +235,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
                 onChange={(e) => setForm({ ...form, pricePi: parseFloat(e.target.value) || 0 })}
                 min="0"
                 step="0.01"
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none"
+                className="w-full bg-black/40 border border-glass-hover rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none"
               />
             </div>
             <div>
@@ -244,7 +244,7 @@ export function PublishSkillForm({ onPublished }: PublishSkillFormProps) {
                 id="skill-version"
                 value={form.version}
                 onChange={(e) => setForm({ ...form, version: e.target.value })}
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none"
+                className="w-full bg-black/40 border border-glass-hover rounded-lg px-3 py-2 text-xs text-surface font-mono focus:outline-none"
               />
             </div>
           </div>

@@ -88,8 +88,8 @@ export async function handleMcp(request: Request, env: Env): Promise<Response> {
               { name: "did_create", description: "Create a new DID", inputSchema: { type: "object", properties: { piUsername: { type: "string" }, trustLevel: { type: "number" } }, required: ["piUsername"] } },
               { name: "trust_score", description: "Get trust score for a DID", inputSchema: { type: "object", properties: { did: { type: "string" } }, required: ["did"] } },
               { name: "trust_delegate", description: "Delegate trust between DIDs", inputSchema: { type: "object", properties: { delegatorDid: { type: "string" }, delegateeDid: { type: "string" }, trustLevel: { type: "number" } }, required: ["delegatorDid", "delegateeDid", "trustLevel"] } },
-              { name: "trust_chain", description: "Resolve trust chain", inputSchema: { type: "object", properties: { sourceDid: { type: "string" }, targetDid: { type: "string" } }, required: ["sourceDid", "targetDid"] } },
-              { name: "presence_heartbeat", description: "Send agent heartbeat", inputSchema: { type: "object", properties: { agentId: { type: "string" } }, required: ["agentId"] } },
+              { name: "trust_chain", description: "Resolve trust chain", inputSchema: { type: "object", properties: { sourceDid: { type: "string" }, targetDid: { type: "string" }, callerDid: { type: "string" } }, required: ["sourceDid", "targetDid", "callerDid"] } },
+              { name: "presence_heartbeat", description: "Send agent heartbeat", inputSchema: { type: "object", properties: { agentId: { type: "string" }, metadata: { type: "object" } }, required: ["agentId"] } },
               { name: "presence_status", description: "Get agent presence", inputSchema: { type: "object", properties: { agentId: { type: "string" } }, required: ["agentId"] } },
               { name: "skill_list", description: "List marketplace skills", inputSchema: { type: "object", properties: {} } },
               { name: "skill_install", description: "Install a skill", inputSchema: { type: "object", properties: { slug: { type: "string" }, userDid: { type: "string" }, version: { type: "string" } }, required: ["slug", "userDid"] } },
@@ -134,9 +134,13 @@ export async function handleMcp(request: Request, env: Env): Promise<Response> {
 
   // MCP SSE endpoint for streaming
   if (request.method === "GET" && url.pathname === "/mcp") {
-    return new Response("AxiomID MCP Server - Use POST /mcp for JSON-RPC", {
-      headers: { "Content-Type": "text/plain" },
-    });
+    return new Response(
+      "AxiomID MCP Server v1.0 — Use POST /mcp for JSON-RPC\n" +
+      "Docs: https://github.com/Moeabdelaziz007/AxiomID/blob/main/docs/mcp-server.md\n" +
+      "Tools: did_resolve, did_create, trust_score, trust_delegate, trust_chain, " +
+      "presence_heartbeat, presence_status, skill_list, skill_install, harvest_query, harvest_result",
+      { headers: { "Content-Type": "text/plain", "Access-Control-Allow-Origin": "https://axiomid.app" } },
+    );
   }
 
   return new Response("Not Found", { status: 404 });
@@ -278,12 +282,12 @@ async function handleToolCall(
         .first<{ memory_limit: number }>();
 
       const memoryLimit = agent?.memory_limit || 500;
-      const existing = await d1.db
+      const keyExists = await d1.db
         .prepare("SELECT 1 FROM agent_memories WHERE agent_id = ? AND key = ? LIMIT 1")
         .bind(agentId, key)
         .first();
 
-      if (!existing) {
+      if (!keyExists) {
         const currentCount = await d1.db
           .prepare("SELECT COUNT(*) as cnt FROM agent_memories WHERE agent_id = ?")
           .bind(agentId)

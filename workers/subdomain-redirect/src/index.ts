@@ -3,20 +3,19 @@
  *
  * Routes *.axiomid.app to axiomid.app/passport/[subdomain]
  * Example: amrikyy.axiomid.app → axiomid.app/passport/amrikyy
- *
- * Ponytail: No new UI needed — the passport viewer already exists.
- * This worker is just DNS routing.
+ * Apex domain (axiomid.app/*) passes through to Vercel origin.
  */
 
 const PASSPORT_BASE = "https://axiomid.app/passport";
 const VALID_SUBDOMAIN = /^[a-z0-9][a-z0-9-]{2,29}$/;
+
+// Real proxied apps (Vercel) — must reach origin, never redirect.
+const PASSTHROUGH_SUBDOMAINS = new Set(["www", "gspace"]);
+
 const RESERVED_SUBDOMAINS = new Set([
   "api", "dashboard", "app", "status", "admin", "dev", "blog",
   "mail", "ftp", "ns1", "ns2", "smtp", "pop", "imap", "cdn", "assets",
 ]);
-
-// Real proxied apps (Vercel/Workers) — must reach origin, never redirect.
-const PASSTHROUGH_SUBDOMAINS = new Set(["www", "gspace", "signaling", "piverify", "discover", "agent", "memory", "mcp", "verify", "dev-portal"]);
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -31,12 +30,6 @@ const worker = {
 };
 
 async function handleRequest(request: Request): Promise<Response> {
-  // CRITICAL: Bypass for WebSocket upgrades - pass through untouched
-  const upgradeHeader = request.headers.get('Upgrade');
-  if (upgradeHeader?.toLowerCase() === 'websocket') {
-    return fetch(request);
-  }
-
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
@@ -57,7 +50,7 @@ async function handleRequest(request: Request): Promise<Response> {
 
   const subdomain = parts[0].toLowerCase();
 
-  // Real proxied apps must reach their origin (Vercel/Workers) untouched
+  // Real proxied apps must reach their origin (Vercel) untouched
   if (PASSTHROUGH_SUBDOMAINS.has(subdomain)) {
     return fetch(request);
   }

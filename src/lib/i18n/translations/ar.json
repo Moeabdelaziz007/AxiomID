@@ -1,0 +1,99 @@
+{
+  "common": {
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "retry": "إعادة المحاولة",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "view": "عرض",
+    "create": "إنشاء",
+    "update": "تحديث",
+    "search": "بحث",
+    "filter": "تصفية",
+    "sort": "ترتيب",
+    "clear": "مسح",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "close": "إغلاق",
+    "open": "فتح",
+    "yes": "نعم",
+    "no": "لا",
+    "ok": "موافق",
+    "copy": "نسخ",
+    "copied": "تم النسخ!",
+    "download": "تحميل",
+    "upload": "رفع",
+    "refresh": "تحديث",
+    "settings": "الإعدادات",
+    "profile": "الملف الشخصي",
+    "logout": "تسجيل الخروج",
+    "login": "تسجيل الدخول",
+    "register": "تسجيل",
+    "welcome": "مرحباً",
+    "language": "اللغة",
+    "theme": "السمة",
+    "darkMode": "الوضع الداكن",
+    "lightMode": "الوضع الفاتح",
+    "system": "النظام"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "docs": "المستندات",
+    "skills": "المهارات",
+    "playground": "ساحة اللعب",
+    "pricing": "التسعير",
+    "about": "حول",
+    "blog": "المدونة",
+    "github": "GitHub",
+    "discord": "Discord",
+    "twitter": "Twitter"
+  },
+  "hero": {
+    "badge": "PAI = BYE",
+    "title": "نظام التشغيل لاقتصاد الوكلاء",
+    "subtitle": "بناء ونشر وتحقيق الدخل من وكلاء الذكاء الاصطناعي على شبكة Pi. 60 مليون مستخدم. 18 مليون KYC. مدفوعات أصلية. هوية قابلة للتحقق.",
+    "ctaPrimary": "ابدأ الآن →",
+    "ctaSecondary": "عرض المستندات",
+    "stats": {
+      "users": "60M+ مستخدم Pi",
+      "kyc": "18M+ تم التحقق بـ KYC",
+      "revenue": "$4/التحقق ACP",
+      "skills": "50+ مهارة جاهزة"
+    }
+  },
+  "features": {
+    "identity": {
+      "title": "هوية عالمية",
+      "description": "معرّفات did:agent + KYC الخاص بـ Pi + سمعة TrustChain. قابلة للنقل، قابلة للتحقق، ذات سيادة.",
+      "features": ["معرّفات did:agent", "التحقق بـ Pi KYC", "سمعة TrustChain", "بيانات OpenIdentity"]
+    },
+    "payments": {
+      "title": "مدفوعات أصلية",
+      "description": "مدفوعات ACP + تسوية Pi/USDC. مدفوعات بسطر واحد. ضمان مدمج.",
+      "features": ["بروتوكول ACP", "مدفوعات Pi/USDC", "ضمان وفواتير", "تقسيم الإيرادات 90/10"]
+    },
+    "skills": {
+      "title": "مهارات قابلة للتركيب",
+      "description": "npm لقدرات الوكلاء. ثبّت، ركب، حقق دخلاً. مشاركة إيرادات مدمجة.",
+      "features": ["50+ مهارة", "تقسيم إيرادات 90/10", "تحقق ZK", "تنفيذ في بيئة معزولة"]
+    }
+  },
+  "cta": {
+    "getStarted": "ابدأ الآن →",
+    "viewDocs": "عرض المستندات",
+    "joinDiscord": "انضم لـ Discord",
+    "starGitHub": "ضع نجمة على GitHub",
+    "joinWaitlist": "انضم لقائمة الانتظار"
+  },
+  "footer": {
+    "tagline": "نظام تشغيل اقتصاد الوكلاء",
+    "copyright": "© 2026 PAI. مبني بالحب، الأمانة، الثقة والأمان أولاً.",
+    "privacy": "الخصوصية",
+    "terms": "الشروط",
+    "contact": "تواصل معنا"
+  }
+}

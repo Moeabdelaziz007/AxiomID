@@ -10,6 +10,6 @@
   "keywords": ["did", "identity", "w3c", "agent", "pai", "pi-network", "axiomid"],
   "author": "Mohamed Abdelaziz <mohamed@pai.build>",
   "dependencies": {
-    "@pai/atom": "1.0.0-immutable"
+    "@pai/atom": "file:../atom"
   }
 }

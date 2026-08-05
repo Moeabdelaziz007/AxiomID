@@ -43,7 +43,7 @@ export function DeployStep({
         <div className="space-y-6">
           {/* Agent Name Input */}
           <div className="space-y-2 text-left">
-            <label className="text-[10px] font-mono text-zinc-500 uppercase block">
+            <label className="text-[10px] font-mono text-faint uppercase block">
               {t("Agent Name", "اسم الوكيل")}
             </label>
             <input
@@ -51,7 +51,7 @@ export function DeployStep({
               placeholder={t("My Agent", "وكيل جديد")}
               value={agentName}
               onChange={(e) => setAgentName(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white focus:outline-none focus:border-electric-blue/30"
+              className="w-full bg-glass border border-glass-hover rounded-xl px-4 py-3 text-xs font-mono text-white focus:outline-none focus:border-electric-blue/30"
             />
           </div>
 
@@ -68,7 +68,7 @@ export function DeployStep({
                 </span>
               </div>
               <div className="space-y-3">
-                <div className="flex justify-between border-b border-white/5 pb-2">
+                <div className="flex justify-between border-b border-glass pb-2">
                   <span className="font-mono text-xs text-white/40">
                     {t("Agent Name", "اسم الوكيل")}
                   </span>
@@ -76,7 +76,7 @@ export function DeployStep({
                     {agentName || t("My Agent", "وكيل جديد")}
                   </span>
                 </div>
-                <div className="flex justify-between border-b border-white/5 pb-2">
+                <div className="flex justify-between border-b border-glass pb-2">
                   <span className="font-mono text-xs text-white/40">
                     {t("Status", "الحالة")}
                   </span>
@@ -84,7 +84,7 @@ export function DeployStep({
                     {t("READY", "جاهز")}
                   </span>
                 </div>
-                <div className="flex justify-between border-b border-white/5 pb-2">
+                <div className="flex justify-between border-b border-glass pb-2">
                   <span className="font-mono text-xs text-white/40">
                     {t("Trust", "الثقة")}
                   </span>
@@ -109,7 +109,7 @@ export function DeployStep({
              whileTap={{ scale: 0.97, transition: { ease: [0.16, 1, 0.3, 1] as const } }}
              onClick={() => handleDeploy(agentName)}
              disabled={isDeploying || !agentName.trim()}
-             className="w-full max-w-sm mx-auto bg-gradient-to-r from-neon-green/90 to-green-500 text-black font-sans font-bold py-4 px-8 rounded-xl backdrop-blur-md shadow-lg shadow-neon-green/10 border border-white/10 flex items-center justify-center gap-3 hover:shadow-lg hover:shadow-neon-green/20 transition-shadow disabled:opacity-50"
+             className="w-full max-w-sm mx-auto bg-gradient-to-r from-neon-green/90 to-green-500 text-black font-sans font-bold py-4 px-8 rounded-xl backdrop-blur-md shadow-lg shadow-neon-green/10 border border-glass-hover flex items-center justify-center gap-3 hover:shadow-lg hover:shadow-neon-green/20 transition-shadow disabled:opacity-50"
            >
              <Rocket className="w-5 h-5" />
              {t("ACTIVATE AGENT", "تفعيل الوكيل")}
@@ -154,7 +154,7 @@ export function DeployStep({
             <motion.button
               whileHover={{ scale: 1.03, transition: { ease: [0.16, 1, 0.3, 1] as const } }}
               whileTap={{ scale: 0.97, transition: { ease: [0.16, 1, 0.3, 1] as const } }}
-              className="w-full max-w-sm mx-auto bg-gradient-to-r from-electric-blue to-blue-600 text-white font-sans font-bold py-4 px-8 rounded-xl backdrop-blur-md shadow-lg shadow-electric-blue/10 border border-white/10 flex items-center justify-center gap-3 hover:shadow-lg hover:shadow-electric-blue/20 transition-shadow"
+              className="w-full max-w-sm mx-auto bg-gradient-to-r from-electric-blue to-blue-600 text-white font-sans font-bold py-4 px-8 rounded-xl backdrop-blur-md shadow-lg shadow-electric-blue/10 border border-glass-hover flex items-center justify-center gap-3 hover:shadow-lg hover:shadow-electric-blue/20 transition-shadow"
             >
               {t("ENTER DASHBOARD", "الدخول إلى لوحة التحكم")}
               <ChevronRight className="w-5 h-5" />

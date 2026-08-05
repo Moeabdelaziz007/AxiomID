@@ -79,6 +79,7 @@ describe("WalletProvider & WalletContext", () => {
     });
 
     expect(contextValue.user).toBeNull();
+    // External browser with no Pi UA — isPiBrowser stays false
     expect(contextValue.isPiBrowser).toBe(false);
     expect(mockFetch).not.toHaveBeenCalled();
   });
@@ -97,28 +98,12 @@ describe("WalletProvider & WalletContext", () => {
       expect(contextValue.isLoading).toBe(false);
     });
 
-    expect(contextValue.isPiBrowser).toBe(true);
-  });
-
-  it("detects Pi Browser via window.Pi when SDK is loaded", async () => {
-    (window as unknown as Record<string, unknown>).Pi = {
-      authenticate: jest.fn(),
-    };
-
-    let contextValue: ReturnType<typeof useWallet> | undefined;
-    render(
-      <WalletProvider>
-        <TestConsumer onUpdate={(val) => { contextValue = val; }} />
-      </WalletProvider>
-    );
-
     await waitFor(() => {
-      expect(contextValue.isLoading).toBe(false);
+      expect(contextValue.isPiBrowser).toBe(true);
     });
-
-    expect(contextValue.isPiBrowser).toBe(true);
-    delete (window as unknown as Record<string, unknown>).Pi;
   });
+
+  // window.Pi check was removed from checkPiBrowser() — UA/iframe detection remains.
 
   it("restores user status via API if external browser has saved credentials in localStorage", async () => {
     localStorage.setItem("axiomid_wallet", "demo:wallet123");

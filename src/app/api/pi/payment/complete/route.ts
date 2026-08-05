@@ -8,6 +8,8 @@ import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
 import { getClientIp } from '@/lib/ip';
 import { calculateTier } from '@/lib/tiers';
 import { requireAuth } from '@/lib/auth-middleware';
+import { getPostHogClient } from '@/lib/posthog-server';
+import { getActionUseCount, computePristineMultiplier } from '@/lib/rewards/pristine-path';
 
 export const maxDuration = 30;
 
@@ -90,6 +92,9 @@ export async function POST(request: NextRequest) {
       return apiError('PI_PAYMENT_FAILED', `Pi API error: ${piResponse.status}`);
     }
 
+    const pristineUses = await getActionUseCount(payment.userId!, 'pi_payment');
+    const { multiplier: pristineMul } = computePristineMultiplier(pristineUses, 'pi_payment');
+
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const updatedPayment = await tx.piPayment.update({
         where: { paymentId },
@@ -114,7 +119,7 @@ export async function POST(request: NextRequest) {
       if (payment.userId && payment.userId !== 'unknown') {
         const user = await tx.user.findUnique({ where: { id: payment.userId } });
         if (user) {
-          const xpReward = Math.floor(payment.amount * 10);
+          const xpReward = Math.round(Math.floor(payment.amount * 10) * pristineMul);
           newBalance = user.xp + xpReward;
           newTier = calculateTier(newBalance);
 
@@ -146,6 +151,19 @@ export async function POST(request: NextRequest) {
 
       return { updatedPayment, updatedUser, newTier, newBalance };
     });
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: auth.user.id,
+      event: 'pi_payment_completed',
+      properties: {
+        payment_id: paymentId,
+        amount_pi: payment.amount,
+        xp_earned: result.newBalance,
+        tier: result.newTier,
+      },
+    });
+    await posthog.flush();
 
     return apiSuccess({
       status: 'completed',

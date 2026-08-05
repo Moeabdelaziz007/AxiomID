@@ -58,7 +58,7 @@ export function ConnectStep({
           whileTap={{ scale: 0.97, transition: { ease: [0.16, 1, 0.3, 1] as const } }}
           onClick={handleConnect}
           disabled={isConnecting}
-          className="w-full max-w-sm mx-auto bg-gradient-to-r from-electric-blue/80 to-blue-600/80 text-white font-sans font-semibold py-4 px-8 rounded-xl backdrop-blur-md shadow-lg shadow-electric-blue/10 border border-white/10 flex items-center justify-center gap-3 hover:shadow-lg hover:shadow-electric-blue/20 transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full max-w-sm mx-auto bg-gradient-to-r from-electric-blue/80 to-blue-600/80 text-white font-sans font-semibold py-4 px-8 rounded-xl backdrop-blur-md shadow-lg shadow-electric-blue/10 border border-glass-hover flex items-center justify-center gap-3 hover:shadow-lg hover:shadow-electric-blue/20 transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isConnecting ? (
             <>

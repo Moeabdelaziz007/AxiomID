@@ -45,7 +45,7 @@ export function IdentityTab({ user, claimAction, claimKya, connectWallet }: Iden
               }}
             />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl flex items-center justify-center pointer-events-none">
-              <span className="text-xs font-mono text-white tracking-widest uppercase bg-black/60 px-3 py-1.5 rounded-lg border border-white/10">
+              <span className="text-xs font-mono text-white tracking-widest uppercase bg-black/60 px-3 py-1.5 rounded-lg border border-glass-hover">
                 View Passport
               </span>
             </div>

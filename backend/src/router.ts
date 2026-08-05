@@ -15,8 +15,11 @@ import { handleMcp } from "./mcp/handler";
 import { handleSearch, handleSearchSimilar } from "./routes/search";
 import { handleAgentSearch, handleAgentSimilar } from "./routes/agent-discovery-search";
 import { handleTruthAsk, handleDailyTruth } from "./routes/truth-rag";
+import { handleGitHubWebhook } from "./routes/github-webhook";
 import { TrustEmbedder } from "./vectors/trust-embedder";
 import { generateId } from "./lib/utils";
+import { handleDidResolve } from "./routes/did";
+import { handleVcVerify } from "./routes/vc";
 
 export class Router {
   private kv: KVHelper;
@@ -84,6 +87,32 @@ export class Router {
 
     if (path === "/api/search/similar" && method === "GET") {
       return handleSearchSimilar(request, this.env);
+    }
+
+    // --- GitHub App Webhook (Amrikky CI Intelligence Agent) ---
+    if (path === "/webhook" && method === "POST") {
+      return handleGitHubWebhook(request, this.env);
+    }
+
+    // --- GitHub App Webhook ping (health check) ---
+    if (path === "/webhook" && method === "GET") {
+      return jsonResponse({
+        service: "Amrikky CI Intelligence Agent",
+        status: "active",
+        webhook: "POST /webhook",
+        events: ["pull_request", "installation", "ping"],
+        piReferral: "https://minepi.com/amrikyy",
+      });
+    }
+
+    // --- DID Resolution (public) ---
+    if (path.startsWith("/api/resolve/") && method === "GET") {
+      return handleDidResolve(request, this.env);
+    }
+
+    // --- VC Verification (public check endpoint) ---
+    if (path === "/api/vc/verify" && method === "POST") {
+      return handleVcVerify(request, this.env);
     }
 
     // --- Agent Discovery (semantic search via Vectorize + Workers AI) ---

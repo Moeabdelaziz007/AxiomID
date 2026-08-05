@@ -76,7 +76,7 @@ export function StampCard({
     <div className={`bento-card p-5 relative flex flex-col justify-between min-h-[160px] border transition-all duration-300 ${
       isConnected
         ? "border-neon-green/30 bg-neon-green/[0.02] animate-stamp-unlock stamp-earned"
-        : "border-white/5 stamp-pending"
+        : "border-glass stamp-pending"
     }`}>
       <XPBurst xp={xp} trigger={triggerXP} />
 
@@ -101,7 +101,7 @@ export function StampCard({
         <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full ${
           isConnected
             ? "bg-neon-green/10 text-neon-green border border-neon-green/20"
-            : "bg-white/5 text-subtle border border-white/5"
+            : "bg-glass text-subtle border border-glass"
         }`}>
           {isConnected ? t('claimed') : `+${xp} XP`}
         </span>
@@ -120,13 +120,16 @@ export function StampCard({
           </button>
         ) : showInput ? (
           <form onSubmit={handleSubmit} className="space-y-2">
+            <label htmlFor="stamp-handle" className="sr-only">{t('placeholder_username')}</label>
             <input
+              id="stamp-handle"
+              name="handle"
               type="text"
               required
               value={handle}
               onChange={(e) => setHandle(e.target.value)}
               placeholder={t('placeholder_username')}
-              className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-surface placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
+              className="w-full bg-black/40 border border-glass-hover rounded-lg px-2.5 py-1.5 text-xs text-surface placeholder-gray-600 focus:outline-none focus:border-neon-green/40 font-mono"
             />
             <div className="flex gap-1.5">
               <button

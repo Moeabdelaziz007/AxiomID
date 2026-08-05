@@ -213,9 +213,9 @@ export default function InteractivePassportCard({ user, readonly = false, locked
             </div>
             <span className="font-mono text-xs font-semibold tracking-wider text-white">AXIOM<span style={{ color: tierColor }}>ID</span></span>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10">
+          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-glass border border-glass-hover">
             <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tierColor }} />
-            <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase">{t("agent_passport")}</span>
+            <span className="text-[9px] font-mono tracking-widest text-faint uppercase">{t("agent_passport")}</span>
           </div>
         </div>
 
@@ -241,19 +241,19 @@ export default function InteractivePassportCard({ user, readonly = false, locked
                 <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
               )}
             </div>
-            <p className="text-[10px] font-mono text-zinc-400 mt-1 break-all select-all">{displayAddress}</p>
+            <p className="text-[10px] font-mono text-faint mt-1 break-all select-all">{displayAddress}</p>
             <div className="mt-2.5 flex flex-wrap gap-1.5">
               <span className={`px-2 py-0.5 rounded text-[8px] font-mono uppercase tracking-wider font-semibold border ${
                 isKya 
                   ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
-                  : "bg-white/5 text-zinc-500 border-white/5"
+                  : "bg-glass text-faint border-glass"
               }`}>
                 KYA {isKya ? t("status_verified") : "LOCKED"}
               </span>
               <span className={`px-2 py-0.5 rounded text-[8px] font-mono uppercase tracking-wider font-semibold border ${
                 isKyc 
                   ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
-                  : "bg-white/5 text-zinc-500 border-white/5"
+                  : "bg-glass text-faint border-glass"
               }`}>
                 KYC {isKyc ? t("status_verified") : "LOCKED"}
               </span>
@@ -269,10 +269,10 @@ export default function InteractivePassportCard({ user, readonly = false, locked
         {/* Lock Overlay for locked status */}
         {locked && (
           <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none" style={{ transform: "translateZ(50px)" }}>
-            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shadow-lg backdrop-blur-md">
-              <Lock className="w-4 h-4 text-zinc-400" />
+            <div className="w-10 h-10 rounded-full bg-glass border border-glass-hover flex items-center justify-center shadow-lg backdrop-blur-md">
+              <Lock className="w-4 h-4 text-faint" />
             </div>
-            <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mt-2 bg-black/60 px-2 py-1 rounded border border-white/5">
+            <span className="text-[9px] font-mono text-faint uppercase tracking-widest mt-2 bg-black/60 px-2 py-1 rounded border border-glass">
               CONNECT TO PROVISION
             </span>
           </div>
@@ -282,11 +282,11 @@ export default function InteractivePassportCard({ user, readonly = false, locked
         <div className={`flex items-center justify-between border-t pt-4 z-10 transition-all ${locked ? "opacity-30" : ""}`} style={{ borderColor: "rgba(255, 255, 255, 0.08)", transform: "translateZ(30px)" }}>
           <div className="flex gap-4">
             <div>
-              <span className="text-[8px] font-mono text-zinc-500 block uppercase tracking-wider">{t("trust_score")}</span>
+              <span className="text-[8px] font-mono text-faint block uppercase tracking-wider">{t("trust_score")}</span>
               <span className="text-xs sm:text-sm font-bold font-mono text-white">{trustScore}%</span>
             </div>
-            <div className="border-l border-white/5 pl-4">
-              <span className="text-[8px] font-mono text-zinc-500 block uppercase tracking-wider">{t("xp_balance")}</span>
+            <div className="border-l border-glass pl-4">
+              <span className="text-[8px] font-mono text-faint block uppercase tracking-wider">{t("xp_balance")}</span>
               <span className="text-xs sm:text-sm font-bold font-mono" style={{ color: tierColor }}>{xp.toLocaleString()}</span>
             </div>
           </div>
@@ -307,21 +307,21 @@ export default function InteractivePassportCard({ user, readonly = false, locked
           <button
             onClick={handleExportImage}
             disabled={isExporting}
-            className="p-2 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md border border-white/10 transition-colors tooltip-trigger"
+            className="p-2 bg-glass-hover hover:bg-white/20 rounded-full backdrop-blur-md border border-glass-hover transition-colors tooltip-trigger"
             title={t("export_image") || "Export as Image"}
           >
             <Download className="w-4 h-4 text-white" />
           </button>
           <button
             onClick={handleMintSBT}
-            className="p-2 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md border border-white/10 transition-colors tooltip-trigger"
+            className="p-2 bg-glass-hover hover:bg-white/20 rounded-full backdrop-blur-md border border-glass-hover transition-colors tooltip-trigger"
             title={t("mint_sbt") || "Mint as SBT (Stellar)"}
           >
             <Coins className="w-4 h-4 text-amber-400" />
           </button>
           <button
             onClick={handleShare}
-            className="p-2 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md border border-white/10 transition-colors tooltip-trigger"
+            className="p-2 bg-glass-hover hover:bg-white/20 rounded-full backdrop-blur-md border border-glass-hover transition-colors tooltip-trigger"
             title={t("share_passport") || "Share"}
           >
             <Share2 className="w-4 h-4 text-blue-400" />

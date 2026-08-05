@@ -10,7 +10,7 @@
   "keywords": ["reputation", "trust", "trustchain", "eigenvector", "pagerank", "agent", "pai"],
   "author": "Mohamed Abdelaziz <mohamed@pai.build>",
   "dependencies": {
-    "@pai/atom": "1.0.0-immutable",
-    "@pai/identity-did": "0.1.0"
+    "@pai/atom": "file:../atom",
+    "@pai/identity-did": "file:../identity-did"
   }
 }

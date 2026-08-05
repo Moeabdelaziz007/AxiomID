@@ -262,7 +262,7 @@ export default function SettingsPage() {
           <aside className="lg:w-56 shrink-0">
             <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
               {/* Avatar */}
-              <div className="hidden lg:flex flex-col items-center mb-4 pb-4 border-b border-white/5 w-full">
+              <div className="hidden lg:flex flex-col items-center mb-4 pb-4 border-b border-glass w-full">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-electric-blue to-neon-green flex items-center justify-center text-black font-mono font-bold text-lg mb-3">
                   {userInitials}
                 </div>
@@ -279,7 +279,7 @@ export default function SettingsPage() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-mono text-xs whitespace-nowrap transition-all ${
                       isActive
-                        ? "bg-white/[0.08] text-white border border-white/10"
+                        ? "bg-white/[0.08] text-white border border-glass-hover"
                         : "text-white/40 hover:text-white/70 hover:bg-white/[0.03] border border-transparent"
                     }`}
                   >
@@ -383,20 +383,20 @@ export default function SettingsPage() {
                     </svg>
                     <div className="absolute flex flex-col items-center justify-center">
                       <span className="text-xl font-bold font-mono text-white">{progressPercent.toFixed(0)}%</span>
-                      <span className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest">{t('settings_progress_label')}</span>
+                      <span className="text-[8px] font-mono text-faint uppercase tracking-widest">{t('settings_progress_label')}</span>
                     </div>
                   </div>
                   <div className="flex-1 space-y-3 w-full">
                     <div className="flex justify-between items-end">
                       <div>
-                        <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider block">{t('current_tier')}</span>
+                        <span className="text-[9px] font-mono text-faint uppercase tracking-wider block">{t('current_tier')}</span>
                         <p className="text-xl font-black tracking-wider text-white">{tier.toUpperCase()}</p>
                       </div>
-                      <div className="text-end text-[10px] font-mono text-zinc-400">
+                      <div className="text-end text-[10px] font-mono text-faint">
                         {xp >= 1000 ? t('settings_max_level') : `${(range.max - xp).toLocaleString()} ${t('settings_xp_needed')}`}
                       </div>
                     </div>
-                    <div className="flex justify-between text-[10px] font-mono text-zinc-600 border-t border-white/5 pt-2">
+                    <div className="flex justify-between text-[10px] font-mono text-zinc-600 border-t border-glass pt-2">
                       <span>{range.min.toLocaleString()} XP</span>
                       <span>{range.max.toLocaleString()} XP</span>
                     </div>
@@ -426,10 +426,10 @@ export default function SettingsPage() {
                     return (
                       <div
                         key={id}
-                        className={`flex flex-col justify-between p-4 rounded-2xl border border-white/5 bg-[#14161d] transition-all duration-300 ${hoverStyle} min-h-[140px]`}
+                        className={`flex flex-col justify-between p-4 rounded-2xl border border-glass bg-[#14161d] transition-all duration-300 ${hoverStyle} min-h-[140px]`}
                       >
                         <div className="flex items-start justify-between">
-                          <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-zinc-300">
+                          <div className="w-9 h-9 rounded-xl bg-glass flex items-center justify-center text-subtle">
                             {icon}
                           </div>
                           {connected ? (
@@ -437,14 +437,14 @@ export default function SettingsPage() {
                               {t('connected')}
                             </span>
                           ) : (
-                            <span className="text-[9px] font-mono text-zinc-500">+{platformXp} XP</span>
+                            <span className="text-[9px] font-mono text-faint">+{platformXp} XP</span>
                           )}
                         </div>
                         <div className="mt-4">
                           <h4 className="text-xs font-bold text-white font-mono">{label}</h4>
-                          <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">{t('settings_xp_reward')} +{platformXp} XP</p>
+                          <p className="text-[10px] text-faint mt-0.5 font-mono">{t('settings_xp_reward')} +{platformXp} XP</p>
                         </div>
-                        <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
+                        <div className="mt-4 pt-3 border-t border-glass flex items-center justify-between">
                           {connected ? (
                             <>
                               <button onClick={() => openDisconnectModal(id)} className="btn-ghost text-[10px] font-mono text-red-400 hover:text-red-300 px-2 py-1">
@@ -539,7 +539,7 @@ export default function SettingsPage() {
                   <p className="text-xs mb-4 font-mono" style={{ color: 'var(--text-muted)' }}>{t('settings_danger_desc')}</p>
                   <div className="space-y-3">
                     {PLATFORMS.filter(({ id }) => isPlatformConnected(id)).map(({ id, label }) => (
-                      <div key={id} className="flex items-center justify-between py-3 px-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                      <div key={id} className="flex items-center justify-between py-3 px-4 rounded-xl border border-glass bg-white/[0.02]">
                         <span className="font-mono text-xs text-white/60">{label}</span>
                         <button
                           onClick={() => openDisconnectModal(id)}
@@ -581,12 +581,13 @@ export default function SettingsPage() {
               </label>
               <input
                 id="handle-input"
+                name="handleInput"
                 type={activePlatform === "complete_kyc" ? "email" : "text"}
                 required
                 placeholder={activePlatform === "complete_kyc" ? t('settings_link_email_placeholder') : t('settings_link_placeholder')}
                 value={handleInput}
                 onChange={(e) => setHandleInput(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-surface focus:border-neon-green outline-none font-mono"
+                className="w-full bg-glass border border-glass-hover rounded px-3 py-2 text-sm text-surface focus:border-neon-green outline-none font-mono"
               />
             </div>
             <div className="flex gap-2 justify-end pt-2">
@@ -615,10 +616,10 @@ export default function SettingsPage() {
           <p className="text-xs text-subtle font-mono mb-4">
             {t('settings_vc_desc')}
           </p>
-          <pre className="font-mono text-[10px] leading-relaxed bg-white/5 p-4 rounded-xl border border-white/10 overflow-auto max-h-80 text-neon-green whitespace-pre-wrap select-all">
+          <pre className="font-mono text-[10px] leading-relaxed bg-glass p-4 rounded-xl border border-glass-hover overflow-auto max-h-80 text-neon-green whitespace-pre-wrap select-all">
             {JSON.stringify(activeVc, null, 2)}
           </pre>
-          <div className="flex gap-2 justify-end pt-4 border-t border-white/10 mt-4">
+          <div className="flex gap-2 justify-end pt-4 border-t border-glass-hover mt-4">
             <button onClick={copyVcPayload} className="btn-primary text-xs px-4 py-2 flex items-center gap-1.5">
               {copied ? <span className="flex items-center gap-1.5">{t('copied')} <CheckCircle className="w-4 h-4 text-emerald-400" /></span> : t('copy_payload')}
             </button>

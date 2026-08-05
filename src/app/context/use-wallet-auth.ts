@@ -3,6 +3,7 @@
 import { useCallback, useRef, useEffect } from "react";
 import { connectPi, checkPiBrowser, PiSdkError, PiSdkErrorCode, determineSandboxMode } from "@/lib/pi-sdk";
 import { buildPiSignInUrl, getPiOAuthClientId } from "@/lib/pi-signin";
+import posthog from "posthog-js";
 
 import { logger } from "@/lib/logger";
 import {
@@ -52,6 +53,9 @@ export function useWalletAuth({
   }, []);
 
   const logout = useCallback(() => {
+    posthog.capture("wallet_disconnected");
+    posthog.reset();
+
     removeLocalStorageItem("pi_access_token");
     removeLocalStorageItem("axiomid_wallet");
     setLocalStorageItem("axiomid_logged_out", "true");
@@ -182,6 +186,17 @@ export function useWalletAuth({
         setUser(mapApiUser(data, {
           stellarAddress: stellarAddress,
         }));
+
+        posthog.identify(data.data?.userId || data.userId, {
+          tier: data.data?.tier || data.tier,
+          kycStatus: data.data?.kycStatus || data.kycStatus,
+        });
+        posthog.capture("wallet_connected", {
+          tier: data.data?.tier || data.tier,
+          has_agent: data.data?.hasAgent || data.hasAgent,
+          kycStatus: data.data?.kycStatus || data.kycStatus,
+        });
+
         pushLog("Wallet authenticated successfully!");
         return true;
       }

@@ -1,27 +1,19 @@
-User-agent: GPTBot
-Allow: /
-Allow: /llms.txt
-Allow: /api/did-document
-Disallow: /api/
-Disallow: /dashboard/
-
-User-agent: ClaudeBot
-Allow: /
-Disallow: /api/
-Disallow: /dashboard/
-
-User-agent: PerplexityBot
-Allow: /
-Disallow: /api/
-Disallow: /dashboard/
-
-User-agent: Bytespider
-Disallow: /
-
-User-agent: AhrefsBot
-Disallow: /
-
+# AxiomID Robots.txt
 User-agent: *
-Allow: /llms.txt
-Allow: /.well-known/
-Allow: /api/did-document
+Allow: /
+
+# Disallow private/admin areas
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /claim/
+Disallow: /passport/
+Disallow: /settings/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /_vercel/
+
+# Sitemap
+Sitemap: https://axiomid.app/sitemap.xml
+
+# Host
+Host: axiomid.app

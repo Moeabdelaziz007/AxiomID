@@ -1,0 +1,136 @@
+name: Reusable Security Scan
+description: Security scanning for PAI repos (CodeQL, OSV, TruffleHog, Supply Chain)
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: "Working directory"
+        required: false
+        type: string
+        default: "."
+      language:
+        description: "CodeQL language (javascript, python, go, etc.)"
+        required: false
+        type: string
+        default: "javascript"
+    secrets:
+      CLOUDFLARE_API_TOKEN:
+        required: false
+      CLOUDFLARE_ACCOUNT_ID:
+        required: false
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ inputs.language }}
+          queries: +security-extended,security-and-quality
+      
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+      
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ inputs.language }}"
+
+  osv-scanner:
+    name: OSV Vulnerability Scanner
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run OSV Scanner
+        uses: google/osv-scanner@v1
+        with:
+          args: --format=json --output=osv-results.json .
+      
+      - name: Upload OSV Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: osv-scan-results
+          path: ${{ inputs.working-directory }}/osv-results.json
+
+  secret-scan:
+    name: Secret Scan (TruffleHog)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: .
+          base: ""
+          head: HEAD
+          extra_args: --json --fail
+        continue-on-error: true
+
+  supply-chain:
+    name: Supply Chain Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for suspicious patterns
+        run: |
+          # Check for .pth files, setup hooks, install scripts
+          find . -name "*.pth" -o -name "setup.py" -o -name "setup.cfg" -o -name "pyproject.toml" | head -20
+          # Check package.json for suspicious scripts
+          if [ -f package.json ]; then
+            cat package.json | jq -r '.scripts | to_entries[] | "\(.key): \(.value)"' | grep -iE "(install|postinstall|preinstall|prepare|prepublish)" || true
+          fi
+
+  security-gate:
+    name: Security Gate
+    needs: [codeql, osv-scanner, secret-scan, supply-chain]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check security results
+        run: |
+          FAILED=0
+          for job in codeql osv-scanner secret-scan supply-chain; do
+            RESULT="${{ needs.$job.result }}"
+            if [[ "$RESULT" == "failure" ]]; then
+              echo "❌ $job: $RESULT"
+              FAILED=1
+            elif [[ "$RESULT" == "success" ]]; then
+              echo "✅ $job: $RESULT"
+            else
+              echo "⏭️  $job: $RESULT"
+            fi
+          done
+          if [[ $FAILED -eq 1 ]]; then
+            echo "::error::Security scan failed"
+            exit 1
+          fi
+          echo "✅ All security checks passed"

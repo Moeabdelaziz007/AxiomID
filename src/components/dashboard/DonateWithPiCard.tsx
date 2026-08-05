@@ -52,7 +52,7 @@ export function DonateWithPiCard() {
               <Heart className="w-4 h-4 text-rose-400" />
               {isAr ? "ادعم AxiomID" : "Support AxiomID"}
             </h3>
-            <p className="text-xs text-zinc-400 mt-1">
+            <p className="text-xs text-faint mt-1">
               {isAr ? "تبرعك يساعد في نمو الشبكة. اختر أي مبلغ." : "Your donation keeps the network growing. Choose any amount."}
             </p>
           </div>
@@ -68,7 +68,7 @@ export function DonateWithPiCard() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-mono border transition-all ${
                     !custom && amount === val
                       ? "bg-rose-500/20 border-rose-500/40 text-rose-200"
-                      : "border-white/10 text-zinc-400 hover:border-rose-400/30 hover:text-rose-300"
+                      : "border-glass-hover text-faint hover:border-rose-400/30 hover:text-rose-300"
                   }`}
                 >
                   {val} π
@@ -81,7 +81,7 @@ export function DonateWithPiCard() {
                 placeholder={isAr ? "مخصص" : "Custom"}
                 value={custom}
                 onChange={(e) => { setCustom(e.target.value); setAmount(0); }}
-                className="w-20 px-2 py-1.5 rounded-lg text-xs font-mono bg-white/5 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-rose-400/40 transition-colors"
+                className="w-20 px-2 py-1.5 rounded-lg text-xs font-mono bg-glass border border-glass-hover text-white placeholder-zinc-500 focus:outline-none focus:border-rose-400/40 transition-colors"
               />
             </div>
 
@@ -108,7 +108,7 @@ export function DonateWithPiCard() {
             <p className="text-sm text-rose-200 font-mono font-bold">
               {isAr ? "شكراً لك!" : "Thank You!"}
             </p>
-            <p className="text-xs text-zinc-400 mt-1">
+            <p className="text-xs text-faint mt-1">
               {isAr ? "دعمك يجعل AxiomID ممكنًا." : "Your support makes AxiomID possible."}
             </p>
             <button

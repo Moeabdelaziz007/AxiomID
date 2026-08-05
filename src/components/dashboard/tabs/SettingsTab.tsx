@@ -52,7 +52,7 @@ export function SettingsTab() {
       {/* Vanity URL */}
       {vanityUrl && (
         <div className="bento-card p-5">
-          <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-3">
+          <h3 className="text-xs uppercase tracking-wider font-semibold text-faint mb-3">
             Your Vanity URL
           </h3>
           <div className="flex items-center gap-3">
@@ -71,7 +71,7 @@ export function SettingsTab() {
                 className="p-1.5 rounded hover:bg-white/[0.05] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50"
                 aria-label="Share vanity URL"
               >
-                <Share2 className="w-3.5 h-3.5 text-zinc-500" />
+                <Share2 className="w-3.5 h-3.5 text-faint" />
               </button>
               <button
                 onClick={handleCopy}
@@ -81,12 +81,12 @@ export function SettingsTab() {
                 {copied ? (
                   <Check className="w-3.5 h-3.5 text-emerald-400" />
                 ) : (
-                  <Copy className="w-3.5 h-3.5 text-zinc-500" />
+                  <Copy className="w-3.5 h-3.5 text-faint" />
                 )}
               </button>
             </div>
           </div>
-          <p className="text-[10px] text-zinc-500 mt-2">
+          <p className="text-[10px] text-faint mt-2">
             Share this URL to show your passport and trust score.
           </p>
         </div>
@@ -94,17 +94,17 @@ export function SettingsTab() {
 
       {/* User info summary */}
       <div className="bento-card p-5">
-        <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-3">
+        <h3 className="text-xs uppercase tracking-wider font-semibold text-faint mb-3">
           Account
         </h3>
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <User className="w-4 h-4 text-zinc-500" />
-            <span className="text-sm font-mono text-zinc-300">{user?.piUsername || "Not set"}</span>
+            <User className="w-4 h-4 text-faint" />
+            <span className="text-sm font-mono text-subtle">{user?.piUsername || "Not set"}</span>
           </div>
           <div className="flex items-center gap-3">
-            <AtSign className="w-4 h-4 text-zinc-500" />
-            <span className="text-[10px] font-mono text-zinc-500">
+            <AtSign className="w-4 h-4 text-faint" />
+            <span className="text-[10px] font-mono text-faint">
               {user?.walletAddress
                 ? `${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}`
                 : "Not connected"}
@@ -115,7 +115,7 @@ export function SettingsTab() {
 
       {/* Quick links to full settings */}
       <div className="bento-card p-5">
-        <h3 className="text-xs uppercase tracking-wider font-semibold text-zinc-400 mb-3">
+        <h3 className="text-xs uppercase tracking-wider font-semibold text-faint mb-3">
           Settings
         </h3>
         <div className="space-y-2">
@@ -123,15 +123,15 @@ export function SettingsTab() {
             href="/dashboard/settings"
             className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.03] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric-blue"
           >
-            <Shield className="w-4 h-4 text-zinc-500" />
-            <span className="text-xs font-mono text-zinc-300">Full Settings →</span>
+            <Shield className="w-4 h-4 text-faint" />
+            <span className="text-xs font-mono text-subtle">Full Settings →</span>
           </Link>
           <Link
             href="/dashboard/settings"
             className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.03] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric-blue"
           >
-            <Zap className="w-4 h-4 text-zinc-500" />
-            <span className="text-xs font-mono text-zinc-300">XP Ledger →</span>
+            <Zap className="w-4 h-4 text-faint" />
+            <span className="text-xs font-mono text-subtle">XP Ledger →</span>
           </Link>
         </div>
       </div>
