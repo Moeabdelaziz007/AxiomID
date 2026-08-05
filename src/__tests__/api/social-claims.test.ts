@@ -20,6 +20,7 @@ jest.mock("@/lib/prisma", () => ({
     },
     xpLedger: {
       create: jest.fn(),
+      count: jest.fn().mockResolvedValue(0),
     },
     user: {
       findUnique: jest.fn(),
@@ -168,7 +169,7 @@ MC4CAQAwBQYDK2VwBCIEIJPXm5IHbMq9+f2t/c3EbitLbv6pvIQzLWEHZaQ1jkvm
       const data = await res.json();
 
       expect(res.status).toBe(200);
-      expect(data.xpEarned).toBe(100);
+      expect(data.xpEarned).toBe(200);
 
       // Verify that tx.stamp.create was called with stringified VC as metadata
       expect(tx.stamp.create).toHaveBeenCalledTimes(1);

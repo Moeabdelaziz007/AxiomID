@@ -6,11 +6,10 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import TrustTiers from "@/components/TrustTiers";
 import StatsBar from "@/components/StatsBar";
-import InteractiveShowcase from "@/components/landing/InteractiveShowcase";
-import InteractiveCommandDemo from "@/components/landing/InteractiveCommandDemo";
 
 import HeroSection from "@/components/landing/HeroSection";
 import FeaturesSection, { SectionHeader } from "@/components/landing/FeaturesSection";
+import { LazyLandingSections } from "@/components/landing/LazyLandingSections";
 
 export const revalidate = 60;
 
@@ -34,11 +33,11 @@ export default async function Home() {
 
   return (
     <>
-      <main className="flex min-h-screen flex-col items-center bg-grid relative overflow-hidden" id="main-content">
+      <main className="flex min-h-screen flex-col items-center bg-grid relative overflow-hidden" id="main-content" role="main">
         {/* Dynamic Background Effects */}
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] spotlight-primary rounded-full pointer-events-none" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] spotlight-accent rounded-full pointer-events-none" />
-        <div className="scanline" />
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] spotlight-primary rounded-full pointer-events-none" aria-hidden="true" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] spotlight-accent rounded-full pointer-events-none" aria-hidden="true" />
+        <div className="scanline" aria-hidden="true" />
 
         <Header />
 
@@ -49,15 +48,8 @@ export default async function Home() {
           <StatsBar />
         </div>
 
-        {/* Interactive Showcase Section */}
-        <div className="w-full max-w-6xl px-4 sm:px-6 mt-16 sm:mt-24 z-10">
-          <InteractiveShowcase />
-        </div>
-
-        {/* Interactive Command Demo */}
-        <div className="w-full max-w-6xl px-4 sm:px-6 mt-16 sm:mt-24 z-10">
-          <InteractiveCommandDemo />
-        </div>
+        {/* Below-fold lazy-loaded sections */}
+        <LazyLandingSections />
 
         <FeaturesSection t={t} />
 

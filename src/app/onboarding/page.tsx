@@ -242,8 +242,10 @@ export default function OnboardingPage() {
                 {step === 2 && (
                   <div key="step-2-details" className="space-y-4 animate-fadeInUp">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-mono text-faint uppercase block">{t("onboarding_agent_name_label")}</label>
+                      <label htmlFor="onboarding-agent-name" className="text-[10px] font-mono text-faint uppercase block">{t("onboarding_agent_name_label")}</label>
                       <input
+                        id="onboarding-agent-name"
+                        name="agentName"
                         type="text"
                         placeholder={t("onboarding_agent_name_placeholder")}
                         value={agentName}

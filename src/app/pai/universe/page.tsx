@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ParticleGrid, NeonButton, MorphCard, ScrollReveal, Typewriter, TrustMeter } from '@/components/wow-moments'
+import { ParticleGrid, NeonButton, MorphCard, ScaleIn, Typewriter, TrustMeter } from '@/components/wow-moments'
 import { PAIShowcase } from '@/components/pai/PAIShowcase'
 import PAITerminalDemo from '@/components/pai/PAITerminalDemo'
 import { useMagnetic, useRipple, useActiveScale, useStagger } from '@/lib/use-physics'
@@ -42,7 +42,7 @@ export default function PaiUniversePage() {
       {/* Hero */}
       <section className="min-h-screen flex items-center justify-center relative z-10 pt-14">
         <div className="container-pai text-center">
-          <ScrollReveal>
+          <ScaleIn>
             <span className="neon-pulse text-xs font-mono text-[#39FF14] tracking-[0.2em] uppercase mb-6 block">
               Pi Network × AI
             </span>
@@ -57,21 +57,21 @@ export default function PaiUniversePage() {
               <NeonButton href="#endpoints">Explore Endpoints</NeonButton>
               <NeonButton href="#why" className="!bg-white/5">Build Your Agent</NeonButton>
             </div>
-          </ScrollReveal>
+          </ScaleIn>
         </div>
       </section>
 
       {/* PAIShowcase — 3-tab animated */}
       <section className="section-pai relative z-10">
         <div className="container-pai">
-          <ScrollReveal>
+          <ScaleIn>
             <h2 className="text-[clamp(28px,5vw,48px)] font-semibold text-center mb-4 tracking-tight">
               The <span className="text-gradient-pai">PAI</span> Universe
             </h2>
             <p className="text-white/40 text-center mb-10 max-w-2xl mx-auto">
               Three views of the same universe. Services, agents, and trust — all connected.
             </p>
-          </ScrollReveal>
+          </ScaleIn>
           <PAIShowcase />
         </div>
       </section>
@@ -79,18 +79,18 @@ export default function PaiUniversePage() {
       {/* Endpoint Grid */}
       <section id="endpoints" className="section-pai relative z-10">
         <div className="container-pai">
-          <ScrollReveal>
+          <ScaleIn>
             <h2 className="text-[clamp(28px,5vw,48px)] font-semibold text-center mb-4 tracking-tight">
               The <span className="text-gradient-pai">.PAI</span> Endpoints
             </h2>
             <p className="text-white/40 text-center mb-14 max-w-2xl mx-auto">
               Each endpoint is a Single Source of Truth. Every agent trip ends at a beautiful, secure, verifiable destination.
             </p>
-          </ScrollReveal>
+          </ScaleIn>
 
           <div className="grid-pai">
             {endpoints.map((ep, i) => (
-              <ScrollReveal key={ep.id} delay={i * 60}>
+              <ScaleIn key={ep.id} delay={i * 60}>
                 <MorphCard className="p-6">
                   <Link href={`/pai/${ep.id}`} className="block">
                     <div className="flex items-center justify-between mb-3">
@@ -111,7 +111,7 @@ export default function PaiUniversePage() {
                     <TrustMeter score={ep.trust} size="sm" />
                   </Link>
                 </MorphCard>
-              </ScrollReveal>
+              </ScaleIn>
             ))}
           </div>
         </div>
@@ -120,14 +120,14 @@ export default function PaiUniversePage() {
       {/* PAITerminalDemo — 50s teletype loop */}
       <section className="section-pai relative z-10">
         <div className="container-pai">
-          <ScrollReveal>
+          <ScaleIn>
             <h2 className="text-[clamp(28px,5vw,48px)] font-semibold text-center mb-4 tracking-tight">
               The <span className="text-gradient-pai">Loop</span>
             </h2>
             <p className="text-white/40 text-center mb-10 max-w-2xl mx-auto">
               Four steps. Init, prompt, run, verify. The self-play cycle that evolves every agent.
             </p>
-          </ScrollReveal>
+          </ScaleIn>
           <PAITerminalDemo />
         </div>
       </section>
@@ -135,24 +135,24 @@ export default function PaiUniversePage() {
       {/* Why PAI */}
       <section id="why" className="section-pai relative z-10">
         <div className="container-pai">
-          <ScrollReveal>
+          <ScaleIn>
             <h2 className="text-[clamp(28px,5vw,48px)] font-semibold text-center mb-4 tracking-tight">
               Why <span className="text-gradient-pai">PAI</span>
             </h2>
             <p className="text-white/40 text-center mb-14 max-w-xl mx-auto">
               The agentic layer designed for the next billion.
             </p>
-          </ScrollReveal>
+          </ScaleIn>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {whyCards.map((card) => (
-              <ScrollReveal key={card.title}>
+              <ScaleIn key={card.title}>
                 <div className="glass-card p-8 text-center h-full">
                   <span className="text-3xl mb-4 block">{card.icon}</span>
                   <h3 className="text-lg font-semibold mb-3">{card.title}</h3>
                   <p className="text-sm text-white/40 leading-relaxed">{card.desc}</p>
                 </div>
-              </ScrollReveal>
+              </ScaleIn>
             ))}
           </div>
         </div>

@@ -581,6 +581,7 @@ export default function SettingsPage() {
               </label>
               <input
                 id="handle-input"
+                name="handleInput"
                 type={activePlatform === "complete_kyc" ? "email" : "text"}
                 required
                 placeholder={activePlatform === "complete_kyc" ? t('settings_link_email_placeholder') : t('settings_link_placeholder')}

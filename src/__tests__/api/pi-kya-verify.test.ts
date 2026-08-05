@@ -50,13 +50,14 @@ jest.mock('@/lib/prisma', () => ({
     user: { findUnique: jest.fn(), update: jest.fn() },
     stamp: { findUnique: jest.fn().mockResolvedValue(null) },
     action: { create: jest.fn(), findFirst: jest.fn().mockResolvedValue({ hash: 'prev-hash' }) },
+    xpLedger: { create: jest.fn(), count: jest.fn().mockResolvedValue(0) },
     $transaction: jest.fn(async (fn: any) => fn({
       stamp: {
         findUnique: jest.fn().mockResolvedValue(null),
         create: jest.fn().mockResolvedValue({}),
       },
       user: { update: jest.fn().mockResolvedValue({ xp: 200 }) },
-      xpLedger: { create: jest.fn().mockResolvedValue({}) },
+      xpLedger: { create: jest.fn().mockResolvedValue({}), count: jest.fn().mockResolvedValue(0) },
       action: {
         create: jest.fn().mockResolvedValue({}),
         findFirst: jest.fn().mockResolvedValue({ hash: 'prev-hash' }),
@@ -148,7 +149,7 @@ describe('POST /api/pi/kya/verify', () => {
     expect(data.computedTrustScore).toBe(45);
     // Note: Jest captures array by reference — stampsToScore is mutated after computeTrustScore call
     expect(mockComputeTrust).toHaveBeenCalledWith(
-      expect.arrayContaining([expect.objectContaining({ type: 'complete_kyc', xp: 200 })]),
+      expect.arrayContaining([expect.objectContaining({ type: 'complete_kyc', xp: 400 })]),
       false,
       null,
     );
@@ -250,7 +251,7 @@ describe('POST /api/pi/kya/verify', () => {
       expect.arrayContaining([
         expect.objectContaining({ type: 'connect_twitter', xp: 10 }),
         expect.objectContaining({ type: 'daily_pow', xp: 5 }),
-        expect.objectContaining({ type: 'complete_kyc', xp: 200 }),
+        expect.objectContaining({ type: 'complete_kyc', xp: 400 }),
       ]),
       false,
       now,
@@ -389,7 +390,7 @@ describe('POST /api/pi/kya/verify — action hash-chain (PR change)', () => {
 
     expect(calculateActionHash).toHaveBeenCalledWith(
       GENESIS_HASH,
-      expect.objectContaining({ type: 'complete_kyc', xp: 200, userId: 'user-1' })
+      expect.objectContaining({ type: 'complete_kyc', xp: 400, userId: 'user-1' })
     );
   });
 
@@ -446,7 +447,7 @@ describe('POST /api/pi/kya/verify — action hash-chain (PR change)', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           type: 'complete_kyc',
-          xp: 200,
+          xp: 400,
           hash: 'mock-hash-abc',
         }),
       })

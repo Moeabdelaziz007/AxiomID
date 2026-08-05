@@ -364,12 +364,12 @@ export default function TopologyPage() {
       {/* slim breadcrumb */}
       <div className="fixed top-14 left-0 right-0 z-40 flex items-center justify-between px-6 py-2 bg-[rgba(13,13,20,0.6)] backdrop-blur-[12px] border-b border-[rgba(255,255,255,0.04)]">
         <div className="flex items-center gap-2">
-          <Link href="/" className="group flex items-center gap-1.5 text-[10px] font-mono text-white/30 hover:text-white/60 transition-colors">
+          <Link href="/pai" className="group flex items-center gap-1.5 text-[10px] font-mono text-white/30 hover:text-white/60 transition-colors">
             <span className="w-1 h-1 rounded-full bg-white/20 group-hover:bg-[#39FF14] transition-colors" />
             Universe
           </Link>
           <span className="w-1 h-1 rounded-full bg-white/10" />
-          <Link href="/ppp" className="group flex items-center gap-1.5 text-[10px] font-mono text-white/30 hover:text-white/60 transition-colors">
+          <Link href="/pai/ppp" className="group flex items-center gap-1.5 text-[10px] font-mono text-white/30 hover:text-white/60 transition-colors">
             <span className="w-1 h-1 rounded-full bg-white/20 group-hover:bg-[#39FF14] transition-colors" />
             PPP
           </Link>

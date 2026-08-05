@@ -51,6 +51,43 @@ export class PresenceDO extends DurableObject {
   }
 }
 
+// --- Durable Object: Agent State (email inbox + agent memory) ---
+export class AgentStateDO extends DurableObject {
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env);
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+
+    if (url.pathname.endsWith("/email") && request.method === "POST") {
+      const email = await request.json().catch(() => null);
+      if (!email) {
+        return new Response("Invalid email payload", { status: 400 });
+      }
+      // Append to the agent's durable email inbox (keyed by agentId = DO name)
+      const agentId = this.ctx.id.name;
+      const inboxKey = `inbox:${agentId}`;
+      const inbox = (await this.ctx.storage.get<unknown[]>(inboxKey)) || [];
+      inbox.push({ ...(email as object), receivedAt: new Date().toISOString() });
+      await this.ctx.storage.put(inboxKey, inbox.slice(-200)); // cap at 200 emails
+      return new Response(JSON.stringify({ ok: true, inboxSize: inbox.length }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (url.pathname.endsWith("/inbox") && request.method === "GET") {
+      const agentId = this.ctx.id.name;
+      const inbox = (await this.ctx.storage.get<unknown[]>(`inbox:${agentId}`)) || [];
+      return new Response(JSON.stringify({ agentId, emails: inbox }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response("Not Found", { status: 404 });
+  }
+}
+
 // --- Worker Entry ---
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {

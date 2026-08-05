@@ -1,0 +1,193 @@
+name: "Detect Changes"
+description: "Classify changed files into CI lanes for PAI universe repos"
+inputs:
+  github-token:
+    description: "GitHub token for API access"
+    required: true
+  base-ref:
+    description: "Base ref for comparison (default: main)"
+    required: false
+    default: "main"
+  head-ref:
+    description: "Head ref for comparison (default: PR head or current commit)"
+    required: false
+    default: ""
+outputs:
+  node:
+    description: "Node/TS changes (packages, apps)"
+    value: ${{ steps.classify.outputs.node }}
+  nextjs:
+    description: "Next.js app changes"
+    value: ${{ steps.classify.outputs.nextjs }}
+  cf-workers:
+    description: "Cloudflare Workers changes"
+    value: ${{ steps.classify.outputs.cf-workers }}
+  mono:
+    description: "Monorepo root changes (package.json, pnpm-workspace, turbo.json)"
+    value: ${{ steps.classify.outputs.mono }}
+  docs:
+    description: "Documentation changes"
+    value: ${{ steps.classify.outputs.docs }}
+  config:
+    description: "Config/CI changes (turbo, eslint, tsconfig, workflows)"
+    value: ${{ steps.classify.outputs.config }}
+  security:
+    description: "Security-sensitive files (auth, crypto, keys, tokens)"
+    value: ${{ steps.classify.outputs.security }}
+  deps:
+    description: "Dependency changes"
+    value: ${{ steps.classify.outputs.deps }}
+  ci-review:
+    description: "CI-sensitive files requiring maintainer review"
+    value: ${{ steps.classify.outputs.config }}
+  changed-files:
+    description: "JSON array of changed file paths"
+    value: ${{ steps.classify.outputs.changed-files }}
+  event-name:
+    description: "GitHub event name"
+    value: ${{ steps.classify.outputs.event-name }}
+runs:
+  using: "composite"
+  steps:
+    - name: Get changed files
+      id: get-changes
+      shell: bash
+      run: |
+        set -euo pipefail
+        
+        BASE_REF="${{ inputs.base-ref }}"
+        HEAD_REF="${{ inputs.head-ref }}"
+        GH_TOKEN="${{ inputs.github-token }}"
+        
+        if [ -n "$HEAD_REF" ]; then
+          # PR or explicit head ref
+          DIFF=$(gh api repos/${{ github.repository }}/compare/${BASE_REF}...${HEAD_REF} --jq '.files[].filename' 2>/dev/null || echo "")
+        else
+          # Push event - compare against previous commit
+          DIFF=$(git diff --name-only HEAD^ HEAD 2>/dev/null || echo "")
+        fi
+        
+        if [ -z "$DIFF" ]; then
+          echo "files=" >> "$GITHUB_OUTPUT"
+        else
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$DIFF" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+        fi
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+    
+    - name: Classify changes
+      id: classify
+      shell: python3
+      run: |
+        import json
+        import os
+        import sys
+        
+        files = os.environ.get("FILES", "").strip().split("\n")
+        files = [f.strip() for f in files if f.strip()]
+        
+        # PAI Universe lane definitions
+        NODE_PKG = ("package.json",)
+        NEXTJS = ("next.config.", "src/app/", "src/pages/", "public/", "next-env.d.ts", "app/", "pages/")
+        CF_WORKERS = ("wrangler.jsonc", "wrangler.toml", "wrangler.yaml", "src/worker.ts", "src/index.ts", "worker.ts")
+        MONOREPO = ("turbo.json", "pnpm-workspace.yaml", "pnpm-workspace.yml", "packages/")
+        DOCS = ("README", "docs/", "doc/", ".md", "CHANGELOG", "CONTRIBUTING", "LICENSE", "ARCHITECTURE", "DESIGN", "DEPLOYMENT")
+        CONFIG = ("tsconfig", "eslint", "prettier", ".github/", "dependabot", "renovate", "turbo.json", "pnpm-workspace", ".nvmrc", ".node-version", "package.json", "pnpm-lock.yaml", "package-lock.json", "yarn.lock", ".tool-versions")
+        SECURITY = ("auth", "middleware", "crypto", "secret", "token", "key", "password", "credential", "jwt", "oauth", "session", "permission", "authorization", "signing", "verify", "hash", "encrypt", "decrypt", "sign", "wallet", "did", "identity", "kyc", "trustchain", "zk")
+        DEPS = ("package.json", "pnpm-lock.yaml", "package-lock.json", "yarn.lock", "pnpm-workspace.yaml", "pnpm-workspace.yml", "requirements.txt", "pyproject.toml", "Cargo.toml", "go.mod", "go.sum")
+        PROSE_ONLY = (".md", ".txt", ".rst", ".adoc", "LICENSE", "CODE_OF_CONDUCT", "CONTRIBUTING", "CHANGELOG", "README", "docs/", "doc/", "website/", "site/", ".github/ISSUE_TEMPLATE", ".github/PULL_REQUEST_TEMPLATE", ".github/dependabot.yml", ".github/renovate.json")
+        
+        def is_prose_only(path: str) -> bool:
+            path_lower = path.lower()
+            return any(path_lower.startswith(p.lower().rstrip('/')) or path_lower.endswith(p.lower()) for p in PROSE_ONLY)
+        
+        def matches_any(path: str, patterns: tuple) -> bool:
+            path_lower = path.lower()
+            return any(
+                path_lower == p.lower() or 
+                path_lower.startswith(p.lower().rstrip('/') + '/') or
+                path_lower.endswith(p.lower())
+                for p in patterns
+            )
+        
+        if not files or any(p.startswith(".github/") for p in files):
+            result = {k: "true" for k in [
+                "node", "nextjs", "cf-workers", "mono", 
+                "docs", "config", "security", "deps",
+                "changed-files", "event-name"
+            ]}
+        else:
+            has_node = False
+            has_nextjs = False
+            has_cf_workers = False
+            has_mono = False
+            has_docs = False
+            has_config = False
+            has_security = False
+            has_deps = False
+            
+            for path in files:
+                if not path:
+                    continue
+                    
+                if matches_any(path, NODE_PKG):
+                    has_node = True
+                    has_config = True
+                
+                if matches_any(path, NEXTJS):
+                    has_nextjs = True
+                    has_node = True
+                
+                if matches_any(path, CF_WORKERS):
+                    has_cf_workers = True
+                    has_node = True
+                
+                if matches_any(path, MONOREPO):
+                    has_mono = True
+                    has_node = True
+                    has_config = True
+                
+                if matches_any(path, DOCS):
+                    has_docs = True
+                
+                if matches_any(path, CONFIG):
+                    has_config = True
+                
+                if matches_any(path, SECURITY):
+                    has_security = True
+                
+                if matches_any(path, DEPS):
+                    has_deps = True
+                    has_config = True
+            
+            non_prose = [p for p in files if not is_prose_only(p)]
+            if not non_prose:
+                result = {
+                    "node": "false", "nextjs": "false", "cf-workers": "false", "mono": "false",
+                    "docs": "true", "config": "false", "security": "false", "deps": "false",
+                    "changed-files": json.dumps(files), "event-name": os.environ.get("EVENT_NAME", "unknown")
+                }
+            else:
+                result = {
+                    "node": "true" if has_node else "false",
+                    "nextjs": "true" if has_nextjs else "false",
+                    "cf-workers": "true" if has_cf_workers else "false",
+                    "mono": "true" if has_mono else "false",
+                    "docs": "true" if has_docs else "false",
+                    "config": "true" if has_config else "false",
+                    "security": "true" if has_security else "false",
+                    "deps": "true" if has_deps else "false",
+                    "changed-files": json.dumps(files),
+                    "event-name": os.environ.get("EVENT_NAME", "unknown")
+                }
+        
+        github_output = os.environ.get("GITHUB_OUTPUT")
+        if github_output:
+            with open(github_output, "a") as f:
+                for k, v in result.items():
+                    f.write(f"{k}={v}\n")
+        
+        for k, v in result.items():
+            print(f"{k}={v}")

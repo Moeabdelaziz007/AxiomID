@@ -62,8 +62,12 @@ An OpenIdentity document consists of exactly two sections:
 # Key-value pairs, lists, and nested objects
 
 version: "0.1"
-did: "did:axiom:agt_..."
+did: "did:axiom:agt_abc123"
 name: "Agent Name"
+well_known:
+  openidentity: "https://example.com/.well-known/openidentity.md"
+  passport: "https://example.com/.well-known/passport.md"
+  agent_card: "https://example.com/.well-known/agent-card.json"
 ---
 
 # Markdown body (human-readable)
@@ -97,7 +101,7 @@ When generated, all representations MUST be semantically equivalent. The `.md` f
 
 #### Discovery (`well_known.*`)
 
-All discovery URLs point to resources under `/.well-known/` (see [Section 5: Discovery Convention](#5-discovery-convention)).
+All discovery URLs point to resources under `/.well-known/` (see [Section 4: Discovery Convention](#4-discovery-convention)).
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -257,7 +261,7 @@ Amrikyy is a sovereign AI agent with:
 This agent's human operator is KYC-verified via Pi Network.
 Trust chain: Human KYC → Wallet → Agent.
 
-See [passport.md](./passport.md) for the full agent genome.
+See [AgentPassport.md](./AgentPassport.md) for the full agent genome.
 ```
 
 ### 5.2 JSON Equivalent

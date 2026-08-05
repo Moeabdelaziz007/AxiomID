@@ -36,8 +36,8 @@ body {
 
   /* ── Typography ──────────────────────────────────────── */
   --text-primary: #fafafa;
-  --text-secondary: #d4d4d8;
-  --text-muted: #a1a1aa;
+  --text-secondary: #e4e4e7; /* Improved contrast on dark bg */
+  --text-muted: #b4b4bb; /* Improved contrast on dark bg */
   --font-mono: var(--font-geist-mono), 'SF Mono', monospace;
 
   /* ── Semantic Tokens ─────────────────────────────────── */
@@ -85,9 +85,9 @@ body {
   --bg-card-dim: #f4f5f8;
   --card-border: #d4d8e3;
   --card-border-hover: #9ca3b0;
-  --text-primary: #18181b;
-  --text-secondary: #52525b;
-  --text-muted: #71717a;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
 
   /* ── Glass/overlay (theme-aware) ─────────────────────── */
   --glass-bg: rgba(0, 0, 0, 0.05);
@@ -1420,5 +1420,33 @@ a:focus-visible {
     animation: none;
     opacity: 0.6;
   }
+}
+
+/* ── Hero Visual Animations ──────────────────────────────── */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animate-spin-slow.reverse {
+  animation: reverse 25s linear infinite;
 }
 

@@ -31,8 +31,13 @@ Desktop.ini
 # debug
 *.log
 
-# env files
-.env*
+# env files — NEVER COMMIT
+.env
+.env.local
+.env.production
+.env.development
+.env.staging
+# But keep example files
 !.env.example
 
 # vercel
@@ -88,3 +93,4 @@ task.md
 .devin/
 .idea/
 .env.local
+.env*

@@ -11,9 +11,9 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import HeroSection from "@/components/landing/HeroSection";
 
-jest.mock("@/components/landing/HeroCards", () => ({
+jest.mock("@/components/landing/HeroFlow", () => ({
   __esModule: true,
-  default: () => <div data-testid="hero-cards-stub" />,
+  default: () => <div data-testid="hero-flow-stub" />,
 }));
 
 function makeT(overrides: Record<string, string> = {}) {
@@ -37,13 +37,13 @@ describe("HeroSection — rendering", () => {
 
   it("renders the static hero headline", () => {
     render(<HeroSection t={makeT()} />);
-    expect(screen.getByText("hero_create_your")).toBeInTheDocument();
-    expect(screen.getByText("hero_ai_identity")).toBeInTheDocument();
+    expect(screen.getByText("landing_headline_en")).toBeInTheDocument();
+    expect(screen.getByText("landing_headline_rules_en")).toBeInTheDocument();
   });
 
-  it("renders the HeroCards child component", () => {
+  it("renders the HeroFlow child component", () => {
     render(<HeroSection t={makeT()} />);
-    expect(screen.getByTestId("hero-cards-stub")).toBeInTheDocument();
+    expect(screen.getByTestId("hero-flow-stub")).toBeInTheDocument();
   });
 });
 

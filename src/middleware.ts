@@ -7,7 +7,7 @@ const ROOT_DOMAIN = "axiomid.app";
 
 const RESERVED_SUBDOMAINS = new Set([
   "www", "api", "mail", "app", "admin", "dashboard",
-  "docs", "blog", "status", "cdn", "assets", "static", "build"
+  "docs", "openid", "blog", "status", "cdn", "assets", "static", "build"
 ]);
 
 const CORS_ALLOWED_ORIGINS = [
@@ -16,6 +16,7 @@ const CORS_ALLOWED_ORIGINS = [
   "http://localhost:3000",
   "http://localhost:3001",
   "https://axiomid.vercel.app",
+  "https://axiomid-app-axiom-id.vercel.app",
   "https://app.minepi.com",
   "https://sandbox.minepi.com",
 ];
@@ -25,6 +26,9 @@ function isAllowedHost(host: string): boolean {
   if (plain === "localhost" || plain === "127.0.0.1") return true;
   if (plain === ROOT_DOMAIN || plain === `www.${ROOT_DOMAIN}`) return true;
   if (plain.endsWith(`.${ROOT_DOMAIN}`)) return true;
+  // Security hardening: .vercel.app hosts are NOT allowed (wildcard removed).
+  // Vercel preview deployments remain valid as CORS origins only
+  // (see CORS_ALLOWED_ORIGINS), never as request hosts.
   return false;
 }
 
@@ -36,6 +40,8 @@ function getAllowedOrigin(origin: string | null): string | null {
     if (host === ROOT_DOMAIN || host.endsWith(`.${ROOT_DOMAIN}`)) return origin;
     if (CORS_ALLOWED_ORIGINS.includes(origin)) return origin;
     if (host === "localhost" || host === "127.0.0.1") return origin;
+    // Security hardening: no .vercel.app wildcard — only the explicit
+    // production preview hosts in CORS_ALLOWED_ORIGINS are allowed.
   } catch {
     // invalid origin
   }

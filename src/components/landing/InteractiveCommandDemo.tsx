@@ -8,7 +8,47 @@ import { CheckCircle2, Loader2, Wallet, Shield, Rocket } from "lucide-react";
 
 interface LogEntry {
   text: string;
-  type: "input" | "output" | "success" | "info";
+  type: "input" | "output" | "success" | "info" | "error";
+}
+
+interface StatusStats {
+  registeredUsers: number;
+  totalAgents: number;
+  activeAgents: number;
+  totalPayments: number;
+  totalXpEarned: number;
+  activeUsers: number;
+  averageTrustScore: number;
+  verificationRate: number;
+}
+
+interface ExplorerResponse {
+  stats: {
+    registeredUsers: number;
+    totalAgents: number;
+    activeAgents: number;
+    totalPayments: number;
+    totalXpEarned: number;
+  };
+  recentPayments: Array<{
+    amount: number;
+    status: string;
+    memo: string;
+    user: { piUsername: string; walletAddress: string };
+  }>;
+  activeNodes: Array<{
+    piUsername: string;
+    did: string;
+    tier: string;
+    xp: number;
+    agent: { name: string; status: string } | null;
+  }>;
+  tierDistribution: {
+    Visitor: number;
+    Citizen: number;
+    Validator: number;
+    Sovereign: number;
+  };
 }
 
 function typeText(
@@ -39,60 +79,27 @@ function typeText(
   });
 }
 
-interface LogRef {
-  cmdIndex: number; // -1 for non-command logs (initial message)
-  lineIndex: number; // -1 for input prompt lines
-  type: LogEntry["type"];
-  customEn?: string; // only for cmdIndex === -1
-  customAr?: string;
+async function fetchJson<T>(path: string, signal?: AbortSignal): Promise<T> {
+  const res = await fetch(path, { signal, headers: { Accept: "application/json" } });
+  const body = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error(body?.error || `HTTP ${res.status}`);
+  }
+  return body as T;
 }
 
 export default function InteractiveCommandDemo() {
   const { language } = useLanguage();
   const t = (en: string, ar: string) => (language === "en" ? en : ar);
 
-  const COMMANDS = [
-    {
-      id: "connect",
-      icon: Wallet,
-      label: t("connect wallet", "ربط المحفظة"),
-      output: [
-        { text: t("Pi SDK detected — initiating handshake...", "تم اكتشاف Pi SDK — بدء الاتصال..."), type: "info" as const },
-        { text: t("✓ Wallet connected: pi:8f3a...b2e1", "✓ تم ربط المحفظة: pi:8f3a...b2e1"), type: "success" as const },
-        { text: t("✓ Stellar address: GB7X...N4Y2", "✓ عنوان Stellar: GB7X...N4Y2"), type: "success" as const },
-        { text: t("Ready for verification step.", "جاهز لخطوة التحقق."), type: "output" as const },
-      ],
-    },
-    {
-      id: "verify",
-      icon: Shield,
-      label: t("verify identity", "التحقق من الهوية"),
-      output: [
-        { text: t("Submitting KYC credentials to TrustChain...", "إرسال بيانات KYC إلى TrustChain..."), type: "info" as const },
-        { text: t("✓ Pi KYC: VERIFIED (level 3)", "✓ Pi KYC: تم التحقق (المستوى 3)"), type: "success" as const },
-        { text: t("✓ Trust score computed: 87/100", "✓ تم حساب درجة الثقة: 87/100"), type: "success" as const },
-        { text: t("Identity capsule sealed. Ready to deploy.", "تم إغلاق كبسولة الهوية. جاهز للنشر."), type: "output" as const },
-      ],
-    },
-    {
-      id: "deploy",
-      icon: Rocket,
-      label: t("deploy agent", "نشر العميل"),
-      output: [
-        { text: t("Generating sovereign agent keypair...", "توليد زوج مفاتيح العميل السيادي..."), type: "info" as const },
-        { text: t("✓ Agent passport minted on-chain", "✓ تم صك جواز سفر العميل على الشبكة"), type: "success" as const },
-        { text: t("✓ DID: did:axiom:a1b2...c3d4", "✓ المعرف الرقمي: did:axiom:a1b2...c3d4"), type: "success" as const },
-        { text: t("Agent Axiom Sentinel is now ACTIVE.", "العميل Axiom Sentinel نشط الآن."), type: "output" as const },
-        { text: t("→ View passport at axiomid.app/passport/a1b2...c3d4", "← عرض جواز السفر في axiomid.app/passport/a1b2...c3d4"), type: "info" as const },
-      ],
-    },
-  ];
-
   const [activeStep, setActiveStep] = useState(0);
-  // Store log entries as references to command indices + line indices so they
-  // re-resolve on language toggle, rather than caching static translated strings
-  const [logRefs, setLogRefs] = useState<LogRef[]>([
-    { cmdIndex: -1, lineIndex: -1, type: "output" as const, customEn: "AxiomID Agent Protocol v1.0 — interactive demo", customAr: "بروتوكول عميل AxiomID الإصدار 1.0 — عرض تجريبي تفاعلي" },
+  const [logs, setLogs] = useState<LogEntry[]>(() => [
+    {
+      text: language === "en"
+        ? "AxiomID Agent Protocol v1.0 — live terminal (real API data)"
+        : "بروتوكول عميل AxiomID الإصدار 1.0 — طرفية مباشرة (بيانات API حقيقية)",
+      type: "output" as const,
+    },
   ]);
   const [isRunning, setIsRunning] = useState(false);
   const [currentOutput, setCurrentOutput] = useState<LogEntry[]>([]);
@@ -110,22 +117,37 @@ export default function InteractiveCommandDemo() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [logRefs, currentOutput]);
+  }, [logs, currentOutput]);
 
-  // Resolve log refs to display text based on current language
-  const resolveLog = (ref: LogRef): LogEntry => {
-    if (ref.cmdIndex === -1) {
-      return { text: language === "en" ? (ref.customEn ?? "") : (ref.customAr ?? ""), type: ref.type };
+  const streamLines = async (
+    lines: LogEntry[],
+    signal: AbortSignal
+  ): Promise<void> => {
+    const outputLines: LogEntry[] = [];
+    for (const line of lines) {
+      if (signal.aborted) return;
+      const entry: LogEntry = { text: "", type: line.type };
+      outputLines.push(entry);
+      setCurrentOutput([...outputLines]);
+      await typeText(
+        line.text,
+        (txt) => {
+          if (!signal.aborted) {
+            entry.text = txt;
+            setCurrentOutput([...outputLines]);
+          }
+        },
+        signal
+      );
+      if (signal.aborted) return;
+      await new Promise<void>((resolve) => {
+        const timeout = setTimeout(resolve, 120);
+        signal.addEventListener("abort", () => clearTimeout(timeout));
+      });
     }
-    const cmd = COMMANDS[ref.cmdIndex];
-    if (ref.lineIndex === -1) {
-      return { text: `$ ${cmd.label}`, type: ref.type };
-    }
-    const line = cmd.output[ref.lineIndex];
-    return { text: line.text, type: line.type };
+    setCurrentOutput([]);
+    setLogs((prev) => [...prev, ...outputLines].slice(-100));
   };
-
-  const resolvedLogs = logRefs.map(resolveLog);
 
   const runCommand = async (index: number) => {
     if (isRunning || index > activeStep) return;
@@ -136,45 +158,91 @@ export default function InteractiveCommandDemo() {
     abortControllerRef.current = controller;
     const signal = controller.signal;
 
-    const cmd = COMMANDS[index];
-    setLogRefs((prev) => [...prev, { cmdIndex: index, lineIndex: -1, type: "input" as const }].slice(-100));
+    const labels = [
+      t("connect to network", "الاتصال بالشبكة"),
+      t("verify DID compliance", "التحقق من توافق DID"),
+      t("inspect agent registry", "فحص سجل العملاء"),
+    ];
 
-    const outputRefs: LogRef[] = [];
-    const outputLines: LogEntry[] = [];
-    for (let li = 0; li < cmd.output.length; li++) {
-      if (signal.aborted) break;
-      const line = cmd.output[li];
-      const ref = { cmdIndex: index, lineIndex: li, type: line.type };
-      outputRefs.push(ref);
-      const entry: LogEntry = { text: "", type: line.type };
-      outputLines.push(entry);
-      setCurrentOutput([...outputLines]);
-      await typeText(
-        line.text,
-        (tText) => {
-          if (!signal.aborted) {
-            entry.text = tText;
-            setCurrentOutput([...outputLines]);
-          }
-        },
-        signal
-      );
-      if (signal.aborted) break;
-      await new Promise<void>((resolve) => {
-        const timeout = setTimeout(resolve, 150);
-        signal.addEventListener("abort", () => clearTimeout(timeout));
-      });
-    }
+    setLogs((prev) => [...prev, { text: `$ ${labels[index]}`, type: "input" as const }].slice(-100));
 
-    if (!signal.aborted) {
+    try {
+      if (index === 0) {
+        setLogs((prev) => [...prev, { text: t("→ GET /api/status", "→ GET /api/status"), type: "info" as const }].slice(-100));
+        const data = await fetchJson<{ network: string; version: string; stats: StatusStats }>(
+          "/api/status",
+          signal
+        );
+        const s = data.stats;
+        await streamLines(
+          [
+            { text: t(`✓ Network ${data.network} v${data.version} online`, `✓ الشبكة ${data.network} v${data.version} نشطة`), type: "success" as const },
+            { text: t(`✓ ${s.registeredUsers.toLocaleString()} registered identities`, `✓ ${s.registeredUsers.toLocaleString()} هوية مسجلة`), type: "success" as const },
+            { text: t(`✓ ${s.totalAgents.toLocaleString()} agents deployed (${s.activeAgents} ACTIVE)`, `✓ ${s.totalAgents.toLocaleString()} عميل منشور (${s.activeAgents} نشط)`), type: "success" as const },
+            { text: t(`✓ ${s.totalXpEarned.toLocaleString()} XP earned, avg trust ${s.averageTrustScore}/100`, `✓ ${s.totalXpEarned.toLocaleString()} خبرة مكتسبة، متوسط الثقة ${s.averageTrustScore}/100`), type: "success" as const },
+            { text: t("Network handshake complete.", "اكتمل مصافحة الشبكة."), type: "output" as const },
+          ],
+          signal
+        );
+      } else if (index === 1) {
+        setLogs((prev) => [...prev, { text: t("→ GET /api/did-document", "→ GET /api/did-document"), type: "info" as const }].slice(-100));
+        const doc = await fetchJson<{
+          id: string;
+          verificationMethod?: Array<{ id: string; type?: string }>;
+          service?: Array<{ id: string; type: string; serviceEndpoint: string }>;
+        }>("/api/did-document", signal);
+        const vm = doc.verificationMethod?.[0];
+        await streamLines(
+          [
+            { text: t(`✓ DID resolved: ${doc.id}`, `✓ تم حل المعرف: ${doc.id}`), type: "success" as const },
+            ...(vm
+              ? [{ text: t(`✓ Verification method: ${vm.id}`, `✓ طريقة التحقق: ${vm.id}`), type: "success" as const }]
+              : []),
+            ...(doc.service && doc.service.length > 0
+              ? [{ text: t(`✓ ${doc.service.length} services (passport, agents, credential-status)`, `✓ ${doc.service.length} خدمات (جواز السفر، العملاء، حالة الاعتماد)`), type: "success" as const }]
+              : []),
+            { text: t("W3C DID compliance verified on-chain.", "تم التحقق من توافق W3C DID."), type: "output" as const },
+          ],
+          signal
+        );
+      } else {
+        setLogs((prev) => [...prev, { text: t("→ GET /api/explorer", "→ GET /api/explorer"), type: "info" as const }].slice(-100));
+        const data = await fetchJson<ExplorerResponse>("/api/explorer", signal);
+        const topAgent = data.activeNodes[0];
+        const topPayment = data.recentPayments[0];
+        const tiers = data.tierDistribution;
+        await streamLines(
+          [
+            { text: t(`✓ ${data.activeNodes.length} live agent nodes`, `✓ ${data.activeNodes.length} عقدة عميل حية`), type: "success" as const },
+            { text: t(`✓ Tiers — Visitor ${tiers.Visitor} · Citizen ${tiers.Citizen} · Validator ${tiers.Validator} · Sovereign ${tiers.Sovereign}`, `✓ المستويات — زائر ${tiers.Visitor} · مواطن ${tiers.Citizen} · مدقق ${tiers.Validator} · سيادي ${tiers.Sovereign}`), type: "success" as const },
+            ...(topAgent
+              ? [{ text: t(`✓ Top node: @${topAgent.piUsername} (${topAgent.agent?.name ?? "no agent"}, XP ${topAgent.xp})`, `✓ أفضل عقدة: @${topAgent.piUsername} (${topAgent.agent?.name ?? "بدون عميل"}, خبرة ${topAgent.xp})`), type: "success" as const }]
+              : []),
+            ...(topPayment
+              ? [{ text: t(`✓ Latest payment: ${topPayment.amount} Pi — ${topPayment.memo || topPayment.status}`, `✓ أحدث دفعة: ${topPayment.amount} Pi — ${topPayment.memo || topPayment.status}`), type: "success" as const }]
+              : []),
+            { text: t("Agent registry is ACTIVE — claim yours to join the network.", "سجل العملاء نشط — طالب بهويتك للانضمام إلى الشبكة."), type: "output" as const },
+          ],
+          signal
+        );
+      }
+      setActiveStep((prev) => Math.min(prev + 1, 3));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
       setCurrentOutput([]);
-      setLogRefs((prev) => [...prev, ...outputRefs].slice(-100));
-      setActiveStep((prev) => Math.min(prev + 1, COMMANDS.length));
+      setLogs((prev) => [...prev, { text: `✗ ${message}`, type: "error" as const }].slice(-100));
+    } finally {
       setIsRunning(false);
     }
   };
 
-  const allDone = activeStep >= COMMANDS.length;
+  const allDone = activeStep >= 3;
+
+  const COMMANDS = [
+    { id: "connect", icon: Wallet, label: t("connect to network", "الاتصال بالشبكة") },
+    { id: "verify", icon: Shield, label: t("verify DID compliance", "التحقق من توافق DID") },
+    { id: "deploy", icon: Rocket, label: t("inspect agent registry", "فحص سجل العملاء") },
+  ];
 
   return (
     <div className="w-full">
@@ -189,8 +257,8 @@ export default function InteractiveCommandDemo() {
           </h2>
           <p className="text-sm text-subtle font-sans mt-1 max-w-md">
             {t(
-              "Click each step to simulate the sovereign identity claim flow.",
-              "انقر فوق كل خطوة لمحاكاة تدفق مطالبة الهوية السيادية."
+              "Click each step to query the live AxiomID network — real data, no simulation.",
+              "انقر فوق كل خطوة للاستعلام عن شبكة AxiomID المباشرة — بيانات حقيقية، بدون محاكاة."
             )}
           </p>
         </div>
@@ -240,14 +308,17 @@ export default function InteractiveCommandDemo() {
             <div className="w-2.5 h-2.5 rounded-full bg-neon-green/60" />
           </div>
           <span className="text-[10px] font-mono text-subtle ml-2">
-            {t("agent-command-loop — bash", "حلقة-أوامر-العميل — bash")}
+            {t("agent-command-loop — live", "حلقة-أوامر-العميل — مباشر")}
+          </span>
+          <span className="ml-auto flex items-center gap-1.5 text-[9px] font-mono text-neon-green">
+            <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-pulse" />
+            {t("LIVE", "مباشر")}
           </span>
         </div>
 
         {/* Terminal body */}
         <div className="p-4 sm:p-6 font-mono text-xs leading-relaxed max-h-[400px] overflow-y-auto">
-          {resolvedLogs.map((entry, i) => {
-            return (
+          {logs.map((entry, i) => (
             <div key={i} className="mb-1">
               {entry.type === "input" ? (
                 <div className="flex items-start gap-2">
@@ -258,12 +329,13 @@ export default function InteractiveCommandDemo() {
                 <div className="ml-4 text-neon-green/90">{entry.text}</div>
               ) : entry.type === "info" ? (
                 <div className="ml-4 text-electric-blue/80">{entry.text}</div>
+              ) : entry.type === "error" ? (
+                <div className="ml-4 text-red-400">{entry.text}</div>
               ) : (
                 <div className="ml-4 text-subtle">{entry.text}</div>
               )}
             </div>
-            );
-          })}
+          ))}
 
           {/* Current output streaming */}
           <AnimatePresence mode="popLayout">
@@ -275,28 +347,12 @@ export default function InteractiveCommandDemo() {
                 transition={{ ease: [0.16, 1, 0.3, 1] }}
                 className="mb-1"
               >
-                {entry.type === "success" ? (
-                  <div className="ml-4 text-neon-green/90">
-                    {entry.text}
-                    {!entry.text.endsWith(" ") && showCursor && (
-                      <span className="text-neon-green animate-pulse">▊</span>
-                    )}
-                  </div>
-                ) : entry.type === "info" ? (
-                  <div className="ml-4 text-electric-blue/80">
-                    {entry.text}
-                    {!entry.text.endsWith(" ") && showCursor && (
-                      <span className="text-electric-blue animate-pulse">▊</span>
-                    )}
-                  </div>
-                ) : (
-                  <div className="ml-4 text-subtle">
-                    {entry.text}
-                    {!entry.text.endsWith(" ") && showCursor && (
-                      <span className="text-subtle animate-pulse">▊</span>
-                    )}
-                  </div>
-                )}
+                <div className={`ml-4 ${entry.type === "success" ? "text-neon-green/90" : entry.type === "info" ? "text-electric-blue/80" : "text-subtle"}`}>
+                  {entry.text}
+                  {!entry.text.endsWith(" ") && showCursor && (
+                    <span className="animate-pulse">▊</span>
+                  )}
+                </div>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -318,14 +374,14 @@ export default function InteractiveCommandDemo() {
               <div className="flex items-center gap-2 text-neon-green font-semibold">
                 <CheckCircle2 className="w-4 h-4" />
                 {t(
-                  "Agent identity claim complete — your sovereign passport is active.",
-                  "اكتملت مطالبة هوية العميل - جواز سفرك السيادي نشط."
+                  "Live network verified — these queries ran against the real AxiomID API.",
+                  "تم التحقق من الشبكة المباشرة — تم تنفيذ هذه الاستعلامات على واجهة AxiomID الحقيقية."
                 )}
               </div>
               <div className="mt-2 text-[10px] text-subtle">
                 {t(
-                  "→ This is what happens when you claim your identity on AxiomID.",
-                  "← هذا ما يحدث عندما تطالب بهويتك على AxiomID."
+                  "→ This is the same data powering axiomid.app in production.",
+                  "← هذه هي نفس البيانات التي تعمل عليها axiomid.app في الإنتاج."
                 )}
                 <Link
                   href="/claim"

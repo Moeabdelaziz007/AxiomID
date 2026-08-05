@@ -1,6 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useState, ReactNode, CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, ReactNode, CSSProperties } from 'react'
+
+// Simple seeded random for deterministic particle generation (pure function)
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed) * 10000
+  return x - Math.floor(x)
+}
 
 /* ─────────────────────────────────────────────
    FadeIn — enters with opacity + translate Y
@@ -136,13 +142,59 @@ export function TiltCard({ children, className = '', maxTilt = 8 }: {
 export function ParticleField({ count = 30, color = 'rgba(57,255,20,0.3)', className = '' }: {
   count?: number; color?: string; className?: string
 }) {
-  const particles = Array.from({ length: count }, (_, i) => ({
-    id: i,
-    left: `${Math.random() * 100}%`,
-    delay: `${Math.random() * 8}s`,
-    size: 2 + Math.random() * 3,
-    duration: 6 + Math.random() * 8,
-  }))
+  // Deterministic particle generation using seeded random (pure, no Math.random in render)
+  const particles = useMemo(() =>
+    Array.from({ length: count }, (_, i) => ({
+      id: i,
+      left: `${seededRandom(i * 1000 + 1) * 100}%`,
+      delay: `${seededRandom(i * 1000 + 2) * 8}s`,
+      size: 2 + seededRandom(i * 1000 + 3) * 3,
+      duration: 6 + seededRandom(i * 1000 + 4) * 8,
+    })), [count])
+
+  return (
+    <div className={className} style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+      <style>{`
+        @keyframes pai-particle-drift {
+          0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 0.5; }
+          100% { transform: translateY(-120px) translateX(40px) scale(0.3); opacity: 0; }
+        }
+      `}</style>
+      {particles.map(p => (
+        <div key={p.id}
+          style={{
+            position: 'absolute',
+            left: p.left,
+            bottom: '-10px',
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            borderRadius: '50%',
+            background: color,
+            boxShadow: `0 0 ${p.size * 2}px ${color}`,
+            animation: `pai-particle-drift ${p.duration}s ease-in ${p.delay}s infinite`,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────────
+   ParticleBackground — floating particles variant
+   ───────────────────────────────────────────── */
+export function ParticleBackground({ className = '', color = '#39FF14', count = 60 }: {
+  className?: string; color?: string; count?: number
+}) {
+  const particles = useMemo(() =>
+    Array.from({ length: count }, (_, i) => ({
+      id: i,
+      left: `${seededRandom(i * 1000 + 1) * 100}%`,
+      delay: `${seededRandom(i * 1000 + 2) * 8}s`,
+      size: 2 + seededRandom(i * 1000 + 3) * 3,
+      duration: 6 + seededRandom(i * 1000 + 4) * 8,
+    })), [count])
 
   return (
     <div className={className} style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
@@ -180,17 +232,25 @@ export function Typewriter({ text, speed = 50, className = '', onComplete }: {
   text: string; speed?: number; className?: string; onComplete?: () => void
 }) {
   const [displayed, setDisplayed] = useState('')
-  const [cursor, setCursor] = useState(true)
+  const [done, setDone] = useState(false)
+  const iRef = useRef(0)
+  const completedRef = useRef(false)
 
   useEffect(() => {
-    let i = 0
+    iRef.current = 0
+    setDisplayed('')
+    setDone(false)
+    completedRef.current = false
     const interval = setInterval(() => {
-      i++
-      setDisplayed(text.slice(0, i))
-      if (i >= text.length) {
+      iRef.current++
+      setDisplayed(text.slice(0, iRef.current))
+      if (iRef.current >= text.length) {
         clearInterval(interval)
-        setTimeout(() => setCursor(false), 1000)
-        onComplete?.()
+        setDone(true)
+        if (!completedRef.current && onComplete) {
+          completedRef.current = true
+          onComplete()
+        }
       }
     }, speed)
     return () => clearInterval(interval)
@@ -198,109 +258,65 @@ export function Typewriter({ text, speed = 50, className = '', onComplete }: {
 
   return (
     <span className={className}>
-      {displayed}
-      {cursor && <span style={{ animation: 'pai-blink 1s step-end infinite' }}>▌</span>}
+      {displayed}<span className="typewriter-cursor" style={{ opacity: done ? 0 : 1 }}>▎</span>
     </span>
   )
 }
 
 /* ─────────────────────────────────────────────
-   MorphingView — each step morphs the UI
-   AlphaZero Sandbox: the page IS the state
+   MorphingView — morphing between different views
    ───────────────────────────────────────────── */
-export function MorphingView({ current, views, className = '' }: {
-  current: number; views: ReactNode[]; className?: string
-}) {
-  const prevRef = useRef(current)
-
+export function MorphingView({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={className} style={{ position: 'relative', overflow: 'hidden' }}>
-      {views.map((view, i) => (
-        <div key={i}
-          style={{
-            position: i === current ? 'relative' : 'absolute',
-            inset: 0,
-            opacity: i === current ? 1 : 0,
-            transform: i === current
-              ? 'translateX(0) scale(1)'
-              : i < current
-                ? 'translateX(-60px) scale(0.95)'
-                : 'translateX(60px) scale(0.95)',
-            transition: 'opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1)',
-            pointerEvents: i === current ? 'auto' : 'none',
-          }}>
-          {view}
-        </div>
-      ))}
+    <div className={className} style={{ opacity: 1, transition: 'opacity 300ms ease-in-out' }}>
+      {children}
     </div>
   )
 }
 
 /* ─────────────────────────────────────────────
-   NeuralNetworkViz — simple animated NN
+   NeuralNetworkViz — neural network visualization
    ───────────────────────────────────────────── */
 export function NeuralNetworkViz({ className = '' }: { className?: string }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const animRef = useRef<number>(0)
+  return (
+    <div className={className} style={{ width: '100%', height: 200, background: 'transparent' }}>
+      <svg viewBox="0 0 400 200" width="100%" height="100%">
+        <defs>
+          <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#39FF14" stopOpacity="1" />
+            <stop offset="100%" stopColor="#39FF14" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <g stroke="#39FF14" strokeWidth="0.5" opacity="0.3">
+          <line x1="50" y1="100" x2="150" y2="100" />
+          <line x1="150" y1="100" x2="250" y2="100" />
+          <line x1="150" y1="100" x2="150" y2="50" />
+          <line x1="150" y1="100" x2="150" y2="150" />
+        </g>
+        <g>
+          <circle cx="50" cy="100" r="8" fill="url(#nodeGlow)" />
+          <circle cx="150" cy="100" r="12" fill="url(#nodeGlow)" />
+          <circle cx="250" cy="100" r="8" fill="url(#nodeGlow)" />
+          <circle cx="150" cy="50" r="6" fill="url(#nodeGlow)" />
+          <circle cx="150" cy="150" r="6" fill="url(#nodeGlow)" />
+        </g>
+      </svg>
+    </div>
+  )
+}
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    const W = canvas.width = canvas.clientWidth * 2
-    const H = canvas.height = canvas.clientHeight * 2
-
-    const layers = [8, 12, 16, 10, 6]
-    const neurons = layers.map((count, li) =>
-      Array.from({ length: count }, (_, ni) => ({
-        x: (W / (layers.length + 1)) * (li + 1),
-        y: (H / (count + 1)) * (ni + 1),
-        phase: Math.random() * Math.PI * 2,
-      }))
-    )
-
-    let t = 0
-    const draw = () => {
-      t += 0.02
-      ctx!.clearRect(0, 0, W, H)
-
-      // Draw connections
-      for (let l = 0; l < neurons.length - 1; l++) {
-        for (const a of neurons[l]) {
-          for (const b of neurons[l + 1]) {
-            const alpha = 0.04 + 0.06 * (0.5 + 0.5 * Math.sin(t + a.phase + b.phase))
-            ctx!.strokeStyle = `rgba(57, 255, 20, ${alpha})`
-            ctx!.lineWidth = 1
-            ctx!.beginPath()
-            ctx!.moveTo(a.x, a.y)
-            ctx!.lineTo(b.x, b.y)
-            ctx!.stroke()
-          }
-        }
-      }
-
-      // Draw neurons
-      for (const layer of neurons) {
-        for (const n of layer) {
-          const pulse = 0.5 + 0.5 * Math.sin(t * 2 + n.phase)
-          const r = 4 + pulse * 3
-          ctx!.beginPath()
-          ctx!.arc(n.x, n.y, r, 0, Math.PI * 2)
-          ctx!.fillStyle = `rgba(57, 255, 20, ${0.3 + pulse * 0.5})`
-          ctx!.fill()
-          ctx!.strokeStyle = `rgba(57, 255, 20, ${0.5 + pulse * 0.3})`
-          ctx!.lineWidth = 1.5
-          ctx!.stroke()
-        }
-      }
-
-      animRef.current = requestAnimationFrame(draw)
-    }
-    draw()
-    return () => cancelAnimationFrame(animRef.current)
-  }, [])
-
-  return <canvas ref={canvasRef} className={className} style={{ width: '100%', height: '100%' }} />
+/* ─────────────────────────────────────────────
+   TrustMeter — visual trust score bar
+   ───────────────────────────────────────────── */
+export function TrustMeter({ score, size = 'md' }: { score: number; size?: 'sm' | 'md' | 'lg' }) {
+  const h = size === 'sm' ? 3 : size === 'lg' ? 8 : 5
+  const color = score >= 85 ? '#39FF14' : score >= 70 ? '#ffd700' : '#ff6b6b'
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ flex: 1, height: h, background: 'rgba(255,255,255,0.06)', borderRadius: h / 2, overflow: 'hidden' }}>
+        <div style={{ width: `${score}%`, height: '100%', background: color, borderRadius: h / 2, transition: 'width 1s ease-out' }} />
+      </div>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: size === 'sm' ? 10 : 12, color }}>{score}</span>
+    </div>
+  )
 }

@@ -67,8 +67,13 @@ The canonical format is **Markdown with YAML frontmatter** (same dual-use patter
 ---
 # YAML frontmatter — machine-readable
 version: "0.1"
-name: "My Agent"
 did: "did:axiom:agt_abc123"
+name: "My Agent"
+owner:
+  name: "Mohamed Abdelaziz"
+  did: "did:axiom:usr_88f2x"
+created_at: "2026-07-16T00:00:00Z"
+updated_at: "2026-07-17T12:00:00Z"
 ---
 
 # Markdown body — human-readable
@@ -504,7 +509,7 @@ Users can:
 - Opt out of knowledge graph inclusion
 - Export all data associated with their DID
 
-See the full privacy policy at [privacy.md](./privacy.md).
+See the full privacy policy at [Privacy Policy](https://axiomid.app/privacy).
 ```
 
 ### 5.8 Contact
@@ -632,7 +637,7 @@ This Passport
 ```
 
 Each link in the chain is cryptographically attested. See the
-[KYA specification](OpenIdentity.md#6-kya-protocol) for details.
+[KYA specification](KYA.md) for details.
 
 ## Memory Architecture
 

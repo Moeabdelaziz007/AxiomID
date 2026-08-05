@@ -36,6 +36,10 @@ export class D1Helper {
       'CREATE TABLE IF NOT EXISTS trust_delegations (delegator_did TEXT NOT NULL, delegatee_did TEXT NOT NULL, trust_level REAL DEFAULT 0.5, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, expires_at DATETIME, PRIMARY KEY (delegator_did, delegatee_did))',
       'CREATE INDEX IF NOT EXISTS idx_delegation_delegatee ON trust_delegations(delegatee_did)',
       'CREATE TABLE IF NOT EXISTS skill_installs (id TEXT PRIMARY KEY, skill_slug TEXT NOT NULL, user_did TEXT NOT NULL, version TEXT, installed_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(skill_slug, user_did))',
+      'CREATE TABLE IF NOT EXISTS agent_memories (id TEXT PRIMARY KEY, agent_id TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL, tags TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, UNIQUE(agent_id, key))',
+      'CREATE INDEX IF NOT EXISTS idx_memory_agent ON agent_memories(agent_id)',
+      'CREATE INDEX IF NOT EXISTS idx_memory_created ON agent_memories(created_at)',
+      'CREATE TABLE IF NOT EXISTS agents (id TEXT PRIMARY KEY, memory_limit INTEGER DEFAULT 500, status TEXT DEFAULT \'active\', created_at DATETIME DEFAULT CURRENT_TIMESTAMP)',
     ];
 
     await this.db.batch(stmts.map((sql) => this.db.prepare(sql)));
