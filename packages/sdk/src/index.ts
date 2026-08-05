@@ -1,14 +1,4 @@
-export { AxiomSDK, AxiomIDError } from "./client";
-export type {
-  AxiomSDKConfig,
-  Passport,
-  Stamp,
-  Stamps,
-  StampResult,
-  DIDDocument,
-  VerificationMethod,
-  TrustScore,
-  TrustBreakdown,
-  Skill,
-  SearchSkillsResponse,
-} from "./types";
+export * from './types.js';
+export * from './client.js';
+export * from './subscriber-collaboration.js';
+export * from './ossie-bridge.js';

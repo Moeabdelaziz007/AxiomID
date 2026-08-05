@@ -17,6 +17,7 @@ export interface Env {
   AI_GATEWAY: AiGateway;
   SEARCH_VECTORS: VectorizeIndex;
   ENVIRONMENT: string;
+  EMAIL: SendEmail;
 }
 
 export interface HarvestJob {

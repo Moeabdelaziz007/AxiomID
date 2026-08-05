@@ -65,7 +65,20 @@ packages/sdk/dist
 *.db
 *.db-journal
 
-# misc caches
+# pai — PAI ecosystem kits & tools
+/pai/kits/
+/pai/blueprints/
+/pai/docs/
+/pai/scripts/
+/pai/templates/
+/pai/references/
+/pai/plans/
+/pai/youtube/
+/pai/community/
+/pai/lib/
+/pai/master/
+/pai/monetization/
+/pai/pai-website/
 .cache/
 .swc/
 stitch-*.html
@@ -94,3 +107,6 @@ task.md
 .idea/
 .env.local
 .env*
+
+# wrangler local runtime state
+**/.wrangler/

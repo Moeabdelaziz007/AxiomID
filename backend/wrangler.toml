@@ -59,5 +59,9 @@ binding = "AI_GATEWAY"
 binding = "SEARCH_VECTORS"
 index_name = "axiomid-truth"
 
+# --- Email Sending ---
+[[send_email]]
+name = "EMAIL"
+
 # --- Secrets (set via `wrangler secret put`) ---
 # PERPLEXITY_API_KEY = set via `wrangler secret put PERPLEXITY_API_KEY`

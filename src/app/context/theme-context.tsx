@@ -61,3 +61,18 @@ export function useTheme() {
   }
   return ctx;
 }
+
+export function DynamicThemeColor() {
+  const { theme } = useTheme();
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "theme-color");
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", theme === "dark" ? "#09090b" : "#ffffff");
+  }, [theme]);
+  return null;
+}

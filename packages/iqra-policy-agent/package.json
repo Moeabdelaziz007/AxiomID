@@ -1,0 +1,18 @@
+{
+  "name": "@axiomid/iqra-policy-agent",
+  "version": "1.0.0",
+  "description": "Zero-Trust Agentic Policy Agent & Runtime Firewall inspired by AWS Network Policy eBPF architecture.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --import tsx/esm src/iqra-policy-agent.test.ts"
+  },
+  "keywords": [
+    "agentic-security",
+    "network-policy",
+    "ebpf-agent-firewall",
+    "muraqabah-security",
+    "iqra"
+  ]
+}

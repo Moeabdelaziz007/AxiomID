@@ -1,0 +1,34 @@
+# ============================================================
+# GITHUB LINGUIST & GIT CONFIGURATION (.gitattributes)
+# Ensures accurate TypeScript language classification on GitHub
+# ============================================================
+
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# ------------------------------------------------------------
+# 1. DOCUMENTATION & SCHEMAS (Excluded from language stats)
+# ------------------------------------------------------------
+*.md linguist-documentation
+docs/** linguist-documentation
+AxiomID.Memory/** linguist-documentation
+*.schema.json linguist-documentation
+
+# ------------------------------------------------------------
+# 2. GENERATED & VENDORED FILES (Excluded from language stats)
+# ------------------------------------------------------------
+package-lock.json linguist-generated=true
+pnpm-lock.yaml linguist-generated=true
+yarn.lock linguist-generated=true
+*.min.js linguist-generated=true
+*.min.css linguist-generated=true
+dist/** linguist-generated=true
+.next/** linguist-generated=true
+build/** linguist-generated=true
+
+# ------------------------------------------------------------
+# 3. CODEBASE PRIMARY LANGUAGES (TypeScript & Python)
+# ------------------------------------------------------------
+*.ts linguist-detectable=true
+*.tsx linguist-detectable=true
+*.py linguist-detectable=true

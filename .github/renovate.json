@@ -1,0 +1,61 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":disableDependencyDashboard"
+  ],
+  "labels": ["dependencies", "automated", "renovate"],
+  "commitMessagePrefix": "deps(renovate):",
+  "commitMessageAction": "bump",
+  "prConcurrentLimit": 5,
+  "rebaseWhen": "conflicted",
+  "automerge": true,
+  "automergeType": "pr",
+  "platformAutomerge": true,
+  "schedule": ["before 9am on monday"],
+  "packageRules": [
+    {
+      "description": "Auto-merge patch updates for all deps",
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
+    },
+    {
+      "description": "Auto-merge minor updates — grouped",
+      "matchUpdateTypes": ["minor"],
+      "groupName": "minor dependencies",
+      "automerge": true
+    },
+    {
+      "description": "Major updates — manual review only",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["dependencies", "breaking-change"]
+    },
+    {
+      "description": "Backend worker deps (separate from main app)",
+      "matchFileNames": ["backend/package.json"],
+      "labels": ["dependencies", "area:backend"],
+      "groupName": "backend worker"
+    },
+    {
+      "description": "Crypto package",
+      "matchFileNames": ["packages/crypto/package.json"],
+      "labels": ["dependencies", "area:crypto"],
+      "groupName": "crypto package"
+    },
+    {
+      "description": "SDK package",
+      "matchFileNames": ["packages/sdk/package.json"],
+      "labels": ["dependencies", "area:sdk"],
+      "groupName": "sdk package"
+    }
+  ],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "pai/**"
+  ],
+  "vulnerabilityAlerts": {
+    "labels": ["security", "urgent"],
+    "automerge": true
+  }
+}

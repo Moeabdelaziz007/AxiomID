@@ -46,6 +46,9 @@ jobs:
       - name: Test
         run: npm test -- --ci --runInBand
 
+      - name: Worker tests (standalone scripts)
+        run: npm run test --prefix workers/pai-7loop-router
+
       - name: Dead code check
         run: npx knip --no-progress
         continue-on-error: true

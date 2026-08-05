@@ -20,6 +20,7 @@ import { TrustEmbedder } from "./vectors/trust-embedder";
 import { generateId } from "./lib/utils";
 import { handleDidResolve } from "./routes/did";
 import { handleVcVerify } from "./routes/vc";
+import { handleEmailSend } from "./routes/email";
 
 export class Router {
   private kv: KVHelper;
@@ -132,6 +133,11 @@ export class Router {
     // --- Data Sync Status (public) ---
     if (path === "/api/sync" && method === "GET") {
       return this.handleSyncStatus();
+    }
+
+    // --- Email Sending (shared-secret auth) ---
+    if (path === "/api/email/send" && method === "POST") {
+      return handleEmailSend(request, this.env);
     }
 
     // --- Embedding utility (shared-secret auth, for ingest script) ---

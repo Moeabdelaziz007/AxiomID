@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 200" width="1200" height="200">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050505" />
+      <stop offset="50%" stop-color="#0a1a0a" />
+      <stop offset="100%" stop-color="#050505" />
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00FF41" stop-opacity="0" />
+      <stop offset="20%" stop-color="#00FF41" stop-opacity="0.3" />
+      <stop offset="50%" stop-color="#00FF41" stop-opacity="0.8" />
+      <stop offset="80%" stop-color="#00FF41" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#00FF41" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="200" fill="url(#bg)"/>
+  <rect x="0" y="195" width="1200" height="5" fill="url(#glow)"/>
+  <text x="100" y="100" font-family="'Courier New', monospace" font-size="48" fill="#00FF41" font-weight="bold">&gt;_</text>
+  <text x="100" y="155" font-family="'Courier New', monospace" font-size="20" fill="#555">// identity layer for the agentic era</text>
+  <text x="100" y="180" font-family="'Courier New', monospace" font-size="14" fill="#333">w3c-did · trustchain · ed25519 · sovereign</text>
+  <circle cx="1100" cy="50" r="2" fill="#00FF41" opacity="0.5">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1120" cy="40" r="1.5" fill="#00FF41" opacity="0.3">
+    <animate attributeName="opacity" values="0.3;0.8;0.3" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1080" cy="60" r="1" fill="#00FF41" opacity="0.4">
+    <animate attributeName="opacity" values="0.4;0.9;0.4" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+</svg>

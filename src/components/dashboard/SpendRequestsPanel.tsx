@@ -187,10 +187,10 @@ export function SpendRequestsPanel({ onApprove }: SpendRequestsPanelProps) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] font-mono text-faint">
-                    {req.agent.name.charAt(0).toUpperCase()}
+                    {req.agent?.name?.charAt(0)?.toUpperCase() || "?"}
                   </div>
                   <span className="text-xs font-mono text-subtle">
-                    {req.agent.name}
+                    {req.agent?.name || "Unknown"}
                   </span>
                 </div>
                 <span className="text-[10px] font-mono text-faint">
@@ -204,7 +204,7 @@ export function SpendRequestsPanel({ onApprove }: SpendRequestsPanelProps) {
                 <span className="text-sm font-mono text-emerald-400">
                   {req.amount} {req.currency}
                 </span>
-                <span className="text-[10px] font-mono text-faint">
+                <span className="text-[10px] font-mono text-faint" suppressHydrationWarning>
                   {new Date(req.createdAt).toLocaleString()}
                 </span>
               </div>

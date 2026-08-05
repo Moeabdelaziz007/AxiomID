@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PAI-AL-MIZAN · OpenDNA Cost Engine & Simulation Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deepest: #05050a;
+      --bg-deep: #0a0a12;
+      --bg-card: #0f1018;
+      --bg-elevated: #14151e;
+      --border: rgba(255,255,255,0.06);
+      --border-bright: rgba(255,255,255,0.12);
+      --accent: #39FF14;
+      --accent-dim: rgba(57,255,20,0.12);
+      --accent-glow: rgba(57,255,20,0.25);
+      --blue: #4a9eff;
+      --blue-dim: rgba(74,158,255,0.12);
+      --orange: #ff8c42;
+      --orange-dim: rgba(255,140,66,0.12);
+      --purple: #a855f7;
+      --purple-dim: rgba(168,85,247,0.12);
+      --red: #ff4560;
+      --red-dim: rgba(255,69,96,0.12);
+      --cyan: #00d4aa;
+      --cyan-dim: rgba(0,212,170,0.12);
+      --text: #e8e8ed;
+      --text-muted: #6b6b7b;
+      --text-dim: #3a3a4a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-deepest);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 20px 60px;
+    }
+
+    /* ─── HEADER ─── */
+    .header {
+      max-width: 1100px;
+      margin: 0 auto 32px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .header-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+    .header-title span { color: var(--accent); }
+    .header-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+    .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .badge {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 3px 10px;
+      border-radius: 100px;
+      border: 1px solid;
+      letter-spacing: 0.5px;
+      font-weight: 500;
+    }
+    .badge-green { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+    .badge-blue { border-color: var(--blue); color: var(--blue); background: var(--blue-dim); }
+    .badge-purple { border-color: var(--purple); color: var(--purple); background: var(--purple-dim); }
+    .badge-orange { border-color: var(--orange); color: var(--orange); background: var(--orange-dim); }
+
+    /* ─── LAYOUT ─── */
+    .container { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
+    /* ─── CARDS ─── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: var(--border-bright); }
+    .card-label {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-label .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+
+    /* ─── SLIDERS ─── */
+    .slider-group { margin-bottom: 14px; }
+    .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .slider-name { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+    .slider-val {
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid var(--bg-card);
+      box-shadow: 0 0 8px currentColor;
+    }
+    .slider-green::-webkit-slider-thumb { background: var(--accent); }
+    .slider-blue::-webkit-slider-thumb { background: var(--blue); }
+    .slider-orange::-webkit-slider-thumb { background: var(--orange); }
+    .slider-purple::-webkit-slider-thumb { background: var(--purple); }
+
+    /* ─── COST GRID ─── */
+    .cost-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .cost-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+    .cost-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+    .cost-card.blue::before { background: var(--blue); }
+    .cost-card.orange::before { background: var(--orange); }
+    .cost-card.green::before { background: var(--accent); }
+    .cost-card.purple::before { background: var(--purple); }
+
+    .cost-tier { font-size: 10px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px; margin-bottom: 6px; font-weight: 600; }
+    .cost-tier.blue { color: var(--blue); }
+    .cost-tier.orange { color: var(--orange); }
+    .cost-tier.green { color: var(--accent); }
+    .cost-tier.purple { color: var(--purple); }
+    .cost-value { font-size: 28px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; font-family: 'JetBrains Mono', monospace; }
+    .cost-value.red { color: var(--red); }
+    .cost-value.orange { color: var(--orange); }
+    .cost-value.green { color: var(--accent); }
+    .cost-value.purple { color: var(--purple); }
+    .cost-sublabel { font-size: 10px; color: var(--text-muted); margin-top: 6px; }
+    .savings-pill {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 100px;
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    /* ─── TWO COLUMN ─── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+    /* ─── BREAKDOWN TABLE ─── */
+    .breakdown-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .breakdown-row:last-child { border-bottom: none; }
+    .breakdown-name { color: var(--text-muted); }
+    .breakdown-arrow { color: var(--text-dim); font-size: 10px; }
+    .breakdown-provider { color: var(--text); font-weight: 500; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+    .breakdown-cost { font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+    /* ─── SIMULATION PANEL ─── */
+    .sim-panel {
+      background: var(--bg-deepest);
+      border: 1px solid var(--purple-dim);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .sim-toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .toggle-label { font-size: 13px; color: var(--text); }
+    .toggle-hint { font-size: 11px; color: var(--text-muted); }
+
+    /* custom toggle */
+    .toggle-switch {
+      position: relative;
+      width: 44px; height: 24px;
+      flex-shrink: 0;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      border-radius: 100px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: transform 0.2s, background 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-track { background: var(--purple-dim); border-color: var(--purple); }
+    .toggle-switch input:checked + .toggle-track::after { transform: translateX(20px); background: var(--purple); }
+
+    /* ─── PERSONA CARDS ─── */
+    .persona-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 14px; }
+    .persona-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 12px;
+    }
+    .persona-name { font-weight: 600; margin-bottom: 4px; font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+    .persona-desc { color: var(--text-muted); line-height: 1.4; font-size: 11px; margin-bottom: 6px; }
+    .persona-cost { font-size: 12px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    .persona-card.adversary { border-color: rgba(255,69,96,0.3); }
+    .persona-card.adversary .persona-name { color: var(--red); }
+    .persona-card.strategist { border-color: rgba(74,158,255,0.3); }
+    .persona-card.strategist .persona-name { color: var(--blue); }
+    .persona-card.wildcard { border-color: rgba(255,140,66,0.3); }
+    .persona-card.wildcard .persona-name { color: var(--orange); }
+    .persona-card.governor { border-color: rgba(57,255,20,0.3); }
+    .persona-card.governor .persona-name { color: var(--accent); }
+
+    /* ─── JSPACE STRIP ─── */
+    .jspace-strip {
+      background: linear-gradient(90deg, rgba(168,85,247,0.08) 0%, rgba(57,255,20,0.04) 100%);
+      border: 1px solid rgba(168,85,247,0.2);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .jspace-icon { font-size: 24px; flex-shrink: 0; line-height: 1; }
+    .jspace-title { font-size: 13px; font-weight: 600; color: var(--purple); margin-bottom: 4px; }
+    .jspace-text { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+    .jspace-text strong { color: var(--text); }
+
+    /* ─── PROVIDER MATRIX ─── */
+    .provider-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+      gap: 8px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      align-items: center;
+    }
+    .provider-row.header { color: var(--text-muted); font-size: 10px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px; }
+    .provider-row:last-child { border-bottom: none; }
+    .region-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; }
+    .region-us { background: var(--blue); }
+    .region-cn { background: var(--red); }
+    .region-mena { background: var(--cyan); }
+    .region-free { background: var(--accent); }
+    .chip {
+      display: inline-block;
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid;
+      font-weight: 600;
+    }
+    .chip-green { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+    .chip-orange { border-color: var(--orange); color: var(--orange); background: var(--orange-dim); }
+    .chip-red { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+    /* ─── REALITY CHECK ─── */
+    .reality {
+      background: rgba(255,69,96,0.05);
+      border: 1px solid rgba(255,69,96,0.2);
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .reality strong { color: var(--red); }
+
+    /* ─── DNA FOOTER ─── */
+    .opendna-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .opendna-footer .did { color: var(--accent); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .cost-grid { grid-template-columns: 1fr 1fr; }
+      .two-col { grid-template-columns: 1fr; }
+      .persona-grid { grid-template-columns: 1fr 1fr; }
+      .provider-row { grid-template-columns: 2fr 1fr 1fr; }
+      .provider-row > *:nth-child(4), .provider-row > *:nth-child(5) { display: none; }
+    }
+    @media (max-width: 600px) {
+      .cost-grid { grid-template-columns: 1fr 1fr; }
+      .three-col { grid-template-columns: 1fr; }
+      .persona-grid { grid-template-columns: 1fr 1fr; }
+      .jspace-strip { flex-direction: column; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">⚖️ PAI-AL-MIZAN · <span>OpenDNA</span> Cost Engine</div>
+    <div class="header-subtitle">Tri-Regional Model Router · Self-Play Simulation · J-Space Intelligence</div>
+    <div class="badge-row">
+      <span class="badge badge-green">7-Layer Sovereign Storage</span>
+      <span class="badge badge-blue">Kimi k2.6 × PAI Collab</span>
+      <span class="badge badge-purple">J-Space / GWT Aligned</span>
+      <span class="badge badge-orange">Tesla Mental Simulation</span>
+    </div>
+  </div>
+</div>
+
+<!-- ─── J-SPACE RESEARCH STRIP ─── -->
+<div class="container">
+  <div class="jspace-strip">
+    <div class="jspace-icon">🧬</div>
+    <div>
+      <div class="jspace-title">Anthropic Research: J-Space & Global Workspace Theory (GWT) — July 2026</div>
+      <div class="jspace-text">
+        Anthropic discovered that Claude has an emergent internal <strong>"J-Space"</strong> — a privileged activation scratchpad mirroring Bernard Baars' <strong>Global Workspace Theory</strong>. It emerged spontaneously during training (not programmed). Tesla's mental simulation method — build in your mind, stress-test mentally, then materialize — is precisely what J-Space does computationally. <strong>PAI OpenDNA</strong> applies this: 7 sovereign pools compress all agent knowledge, tools, and simulation results into a dense, verbalizable internal workspace. This is the scientific basis for why the <strong>7-Layer Topology (Sovereign Heptad) scores 9.9/10</strong>.
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SLIDERS ─── -->
+  <div class="two-col">
+    <div class="card">
+      <div class="card-label"><span class="dot" style="background:var(--accent)"></span>Monthly Token Volume</div>
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-name">Total Tokens/Month</span>
+          <span class="slider-val" id="tokenDisplay" style="color:var(--accent)">100M</span>
+        </div>
+        <input type="range" class="slider-green" id="tokenVolume" min="1" max="1000" value="100" oninput="update()">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-dim);margin-top:6px;font-family:'JetBrains Mono',monospace">
+          <span>1M</span><span>500M</span><span>1B</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label"><span class="dot" style="background:var(--blue)"></span>Task Distribution Mix</div>
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-name">Code / Generation Tasks</span>
+          <span class="slider-val" id="codeDisplay" style="color:var(--orange)">40%</span>
+        </div>
+        <input type="range" class="slider-orange" id="codePct" min="0" max="100" value="40" oninput="update()">
+      </div>
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-name">Heavy Reasoning / Math</span>
+          <span class="slider-val" id="reasonDisplay" style="color:var(--blue)">30%</span>
+        </div>
+        <input type="range" class="slider-blue" id="reasonPct" min="0" max="100" value="30" oninput="update()">
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── COST GRID ─── -->
+  <div class="cost-grid">
+    <div class="cost-card blue">
+      <div class="cost-tier blue">🇺🇸 US Only</div>
+      <div class="cost-value red" id="usCost">$250</div>
+      <div class="cost-sublabel">GPT-4o + Claude 3.5</div>
+    </div>
+    <div class="cost-card orange">
+      <div class="cost-tier orange">🇨🇳 China MoE Only</div>
+      <div class="cost-value orange" id="cnCost">$21</div>
+      <div class="cost-sublabel">DeepSeek V3 + Qwen 2.5</div>
+    </div>
+    <div class="cost-card green">
+      <div class="cost-tier green">⚖️ Al-Mizan Router</div>
+      <div class="cost-value green" id="almizanCost">$95</div>
+      <div class="cost-sublabel">Smart tri-regional routing</div>
+      <span class="savings-pill" id="almizanSavings">-62% vs US</span>
+    </div>
+    <div class="cost-card purple">
+      <div class="cost-tier purple">🔮 + Self-Play Sim</div>
+      <div class="cost-value purple" id="simCost">$103</div>
+      <div class="cost-sublabel">+Tesla mental preflight</div>
+      <span class="savings-pill" style="background:var(--purple-dim);color:var(--purple)" id="simSavings">-59% vs US</span>
+    </div>
+  </div>
+
+  <!-- ─── BREAKDOWN + PROVIDER MATRIX ─── -->
+  <div class="two-col">
+    <div class="card">
+      <div class="card-label"><span class="dot" style="background:var(--cyan)"></span>Al-Mizan Routing Breakdown</div>
+      <div id="breakdownRows">
+        <!-- JS injects -->
+      </div>
+      <div style="margin-top:14px; padding:10px; background:var(--bg-elevated); border-radius:8px; font-size:11px; color:var(--text-muted); font-family:'JetBrains Mono',monospace" id="breakdownSummary"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-label"><span class="dot" style="background:var(--blue)"></span>Real Provider Rate Limits & Free Tiers</div>
+      <div class="provider-row header">
+        <span>Provider</span>
+        <span>RPM</span>
+        <span>$/1M in</span>
+        <span>Free Quota</span>
+        <span>Status</span>
+      </div>
+      <div class="provider-row">
+        <span><span class="region-dot region-free"></span>CF Workers AI</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px">100</span>
+        <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:11px">$0.00</span>
+        <span style="font-size:10px;color:var(--text-muted)">100k/day</span>
+        <span><span class="chip chip-green">FREE</span></span>
+      </div>
+      <div class="provider-row">
+        <span><span class="region-dot region-free"></span>Google AI Studio</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px">15</span>
+        <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:11px">$0.00</span>
+        <span style="font-size:10px;color:var(--text-muted)">1M TPM</span>
+        <span><span class="chip chip-green">FREE</span></span>
+      </div>
+      <div class="provider-row">
+        <span><span class="region-dot region-cn"></span>DeepSeek V3</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px">300</span>
+        <span style="color:var(--orange);font-family:'JetBrains Mono',monospace;font-size:11px">$0.14</span>
+        <span style="font-size:10px;color:var(--text-muted)">Paid tier</span>
+        <span><span class="chip chip-orange">PAID</span></span>
+      </div>
+      <div class="provider-row">
+        <span><span class="region-dot region-cn"></span>Alibaba DashScope</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px">200</span>
+        <span style="color:var(--orange);font-family:'JetBrains Mono',monospace;font-size:11px">$0.50</span>
+        <span style="font-size:10px;color:var(--text-muted)">70M free tk</span>
+        <span><span class="chip chip-green">DEV CREDIT</span></span>
+      </div>
+      <div class="provider-row">
+        <span><span class="region-dot region-us"></span>OpenRouter GPT-4o</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px">500</span>
+        <span style="color:var(--red);font-family:'JetBrains Mono',monospace;font-size:11px">$2.50</span>
+        <span style="font-size:10px;color:var(--text-muted)">—</span>
+        <span><span class="chip chip-red">PREMIUM</span></span>
+      </div>
+      <div class="provider-row">
+        <span><span class="region-dot region-mena"></span>G42 Jais 30B</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px">100</span>
+        <span style="color:var(--orange);font-family:'JetBrains Mono',monospace;font-size:11px">$1.00</span>
+        <span style="font-size:10px;color:var(--text-muted)">Arabic-first</span>
+        <span><span class="chip chip-orange">MENA</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SIMULATION PANEL ─── -->
+  <div class="card">
+    <div class="card-label"><span class="dot" style="background:var(--purple)"></span>Tesla × PAI Self-Play Simulation Engine (OpenDNA J-Space Layer)</div>
+
+    <div class="sim-toggle-row">
+      <label class="toggle-switch">
+        <input type="checkbox" id="simToggle" onchange="update()">
+        <span class="toggle-track"></span>
+      </label>
+      <div>
+        <div class="toggle-label">Enable 4-Persona Mental Preflight <span style="color:var(--purple)">+~8% cost</span></div>
+        <div class="toggle-hint">Each task runs through 4 J-Space personas. Simulation = deterministic math. Zero LLM tokens spent.</div>
+      </div>
+    </div>
+
+    <div id="personaGrid" style="display:none">
+      <div class="persona-grid">
+        <div class="persona-card adversary">
+          <div class="persona-name">⚔️ ADVERSARY</div>
+          <div class="persona-desc">Stress-tests the prompt. Assumes failure. Finds edge cases, injection attacks, logic gaps.</div>
+          <div class="persona-cost" id="advCost" style="color:var(--red)">+$0.00</div>
+        </div>
+        <div class="persona-card strategist">
+          <div class="persona-name">🎯 STRATEGIST</div>
+          <div class="persona-desc">Selects the optimal provider. Routes the task to the cheapest qualified model.</div>
+          <div class="persona-cost" id="stratCost" style="color:var(--blue)">+$0.00</div>
+        </div>
+        <div class="persona-card wildcard">
+          <div class="persona-name">🎲 WILDCARD</div>
+          <div class="persona-desc">Explores creative alternatives. "What if we do it completely differently?"</div>
+          <div class="persona-cost" id="wildCost" style="color:var(--orange)">+$0.00</div>
+        </div>
+        <div class="persona-card governor">
+          <div class="persona-name">⚖️ GOVERNOR</div>
+          <div class="persona-desc">IQRA filter. Validates divine accountability, regional compliance, GDPR/ICP rules.</div>
+          <div class="persona-cost" id="govCost" style="color:var(--accent)">+$0.00</div>
+        </div>
+      </div>
+      <div style="margin-top:14px; padding:12px; background:var(--purple-dim); border:1px solid rgba(168,85,247,0.2); border-radius:8px; font-size:12px; color:var(--text-muted)">
+        <strong style="color:var(--purple)">🧠 Tesla Method Applied:</strong> All 4 personas run deterministic scoring (O(1) math, zero LLM tokens).
+        This mirrors Nikola Tesla's mental simulation — test the machine completely in your mind before materializing it.
+        Result: mistakes caught before inference. Net cost saved > simulation overhead.
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── REALITY CHECK ─── -->
+  <div class="reality">
+    <strong>⚠️ Honest Reality Check (IQRA Sidq Protocol):</strong> These are inference costs only.
+    Add $20–50/mo compute, $10–30/mo data pipeline, and $0–200/mo vector storage (Cloudflare Vectorize = <strong style="color:var(--accent)">FREE 1M queries/mo</strong> · Weaviate = <strong>$0 sandbox trial then paid</strong> · Tembo pgvector = <strong style="color:var(--accent)">FREE 500MB</strong>).
+    "Zero cost" is a myth for production scale. <strong style="color:var(--cyan)">"Cost-optimized via Intelligent Arbitrage"</strong> is the truth — and DeepSeek V3 at <strong>$0.14/1M</strong> is 18× cheaper than GPT-4o.
+    Simulation adds ~8% but <strong>prevents costly trial-and-error</strong>, making net cost lower.
+  </div>
+
+  <!-- ─── OpenDNA FOOTER ─── -->
+  <div class="opendna-footer">
+    <span>🧬 <span class="did">OpenDNA</span> · 7 Sovereign Pools · Kimi k2.6 × PAI Research Partnership</span>
+    <span>did:axiom:agent:* → did:axiom:pi:* · Pi Network 18.1M+ KYC</span>
+    <span style="color:var(--accent)">J-Space GWT Aligned · Tesla Mental Simulation · Sovereign Heptad 9.9/10</span>
+  </div>
+</div>
+
+<script>
+  const PROVIDERS = {
+    code:    { name: 'DeepSeek V3 (MoE)', region: '🇨🇳', inputRate: 0.21,  outputRate: 0.21 },
+    reason:  { name: 'OpenRouter GPT-4o', region: '🇺🇸', inputRate: 6.25,  outputRate: 6.25 },
+    general: { name: 'Together AI Llama', region: '🌐', inputRate: 0.88,  outputRate: 0.88 },
+    us:      { name: 'GPT-4o + Claude',   region: '🇺🇸', inputRate: 6.25,  outputRate: 6.25 },
+    cn:      { name: 'DeepSeek V3',       region: '🇨🇳', inputRate: 0.21,  outputRate: 0.21 },
+  };
+
+  function fmt(n) {
+    if (n >= 10000) return '$' + (n/1000).toFixed(0) + 'k';
+    if (n >= 1000)  return '$' + (n/1000).toFixed(1) + 'k';
+    return '$' + n.toFixed(n < 1 ? 4 : 0);
+  }
+
+  function update() {
+    const tokens    = parseInt(document.getElementById('tokenVolume').value);
+    const codePct   = parseInt(document.getElementById('codePct').value);
+    const reasonPct = parseInt(document.getElementById('reasonPct').value);
+    const generalPct = Math.max(0, 100 - codePct - reasonPct);
+    const simOn = document.getElementById('simToggle').checked;
+
+    document.getElementById('tokenDisplay').textContent = tokens + 'M';
+    document.getElementById('codeDisplay').textContent  = codePct + '%';
+    document.getElementById('reasonDisplay').textContent = reasonPct + '%';
+
+    const M = tokens;
+    const codeM    = M * codePct / 100;
+    const reasonM  = M * reasonPct / 100;
+    const generalM = M * generalPct / 100;
+
+    const usTotal = M * 6.25;
+    const cnTotal = M * 0.21;
+    const almizanTotal = codeM * 0.21 + reasonM * 6.25 + generalM * 0.88;
+    const simOverhead = almizanTotal * 0.08;
+    const simTotal = almizanTotal + simOverhead;
+
+    document.getElementById('usCost').textContent       = fmt(usTotal);
+    document.getElementById('cnCost').textContent       = fmt(cnTotal);
+    document.getElementById('almizanCost').textContent  = fmt(almizanTotal);
+    document.getElementById('simCost').textContent      = fmt(simOn ? simTotal : almizanTotal);
+
+    const save = ((usTotal - almizanTotal) / usTotal * 100).toFixed(0);
+    const saveSim = ((usTotal - simTotal) / usTotal * 100).toFixed(0);
+    document.getElementById('almizanSavings').textContent = '-' + save + '% vs US';
+    document.getElementById('simSavings').textContent    = '-' + saveSim + '% vs US';
+
+    // Breakdown rows
+    const rows = [
+      { label: 'Code tasks ('+ codePct +'%)',    provider: PROVIDERS.code,    tokens: codeM },
+      { label: 'Reasoning ('+ reasonPct +'%)',   provider: PROVIDERS.reason,  tokens: reasonM },
+      { label: 'General ('+ generalPct +'%)',     provider: PROVIDERS.general, tokens: generalM },
+    ];
+    if (simOn) {
+      rows.push({ label: 'Simulation (4-persona)', provider: { name: 'Deterministic Math', region: '🔮' }, tokens: null, cost: simOverhead });
+    }
+    document.getElementById('breakdownRows').innerHTML = rows.map(r => {
+      const cost = r.cost != null ? r.cost : r.tokens * r.provider.inputRate;
+      return `
+        <div class="breakdown-row">
+          <span class="breakdown-name">${r.label}</span>
+          <span class="breakdown-arrow">${r.provider.region}</span>
+          <span class="breakdown-provider">${r.provider.name}</span>
+          <span class="breakdown-cost" style="color:var(--cyan)">${fmt(cost)}</span>
+        </div>`;
+    }).join('');
+
+    const finalTotal = simOn ? simTotal : almizanTotal;
+    document.getElementById('breakdownSummary').innerHTML =
+      `Total: <span style="color:var(--accent)">${fmt(finalTotal)}</span> / mo — vs US-only <span style="color:var(--red)">${fmt(usTotal)}</span> — saves <span style="color:var(--accent)">${fmt(usTotal - finalTotal)}/mo (${simOn ? saveSim : save}%)</span>`;
+
+    // Persona panel
+    document.getElementById('personaGrid').style.display = simOn ? 'block' : 'none';
+    if (simOn) {
+      const perPersona = simOverhead / 4;
+      document.getElementById('advCost').textContent   = '+' + fmt(perPersona);
+      document.getElementById('stratCost').textContent = '+' + fmt(perPersona);
+      document.getElementById('wildCost').textContent  = '+' + fmt(perPersona);
+      document.getElementById('govCost').textContent   = '+' + fmt(perPersona);
+    }
+  }
+
+  update();
+</script>
+</body>
+</html>

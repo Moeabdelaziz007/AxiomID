@@ -137,7 +137,7 @@ export default function AgentPage({ params }: { params: Promise<{ username: stri
                   </span>
                 </div>
                 {agent.agent.lastActive && (
-                  <div className="flex items-center gap-1 text-[10px] font-mono text-faint">
+                  <div className="flex items-center gap-1 text-[10px] font-mono text-faint" suppressHydrationWarning>
                     <Clock className="w-3 h-3" />
                     {new Date(agent.agent.lastActive).toLocaleDateString()}
                   </div>

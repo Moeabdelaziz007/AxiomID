@@ -808,7 +808,7 @@ export default function MarketplacePage() {
                           <div key={ver.id} className="bg-glass border border-glass rounded-lg p-2.5 text-[9px] font-mono">
                             <div className="flex justify-between items-center mb-1">
                               <span className="text-emerald-400 font-bold">v{ver.version}</span>
-                              <span className="text-faint">{new Date(ver.createdAt).toLocaleDateString()}</span>
+                              <span className="text-faint" suppressHydrationWarning>{new Date(ver.createdAt).toLocaleDateString()}</span>
                             </div>
                             {ver.changelog && (
                               <p className="text-subtle leading-relaxed whitespace-pre-wrap mt-1 border-t border-glass pt-1">{ver.changelog}</p>
@@ -887,7 +887,7 @@ export default function MarketplacePage() {
                                 ))}
                               </div>
                             </div>
-                            <span className="text-faint text-[8px] font-mono">{new Date(rev.createdAt).toLocaleDateString()}</span>
+                            <span className="text-faint text-[8px] font-mono" suppressHydrationWarning>{new Date(rev.createdAt).toLocaleDateString()}</span>
                           </div>
                           {rev.review && (
                             <p className="text-subtle text-[9px] font-mono leading-relaxed whitespace-pre-wrap">{rev.review}</p>
