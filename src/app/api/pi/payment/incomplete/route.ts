@@ -1,238 +1,308 @@
-import { logger } from '@/lib/logger';
-import { NextRequest } from 'next/server';
-import { Prisma } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
-import { IncompletePaymentSchema } from '@/lib/validators';
-import { apiError, apiSuccess, rateLimitHeaders } from '@/lib/errors';
-import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
-import { getClientIp } from '@/lib/ip';
-import { requireAuth } from '@/lib/auth-middleware';
-import { calculateTier } from '@/lib/tiers';
-import { getPostHogClient } from '@/lib/posthog-server';
-import { getActionUseCount, computePristineMultiplier } from '@/lib/rewards/pristine-path';
+import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { apiError, apiSuccess } from "@/lib/errors";
+import { logger } from "@/lib/logger";
+import { piNetwork } from "@/lib/pi-sdk";
+import { TrustChain } from "@/lib/trustchain";
+import { deriveKeypair } from "@axiomid/crypto";
 
-export const maxDuration = 30;
+export const dynamic = "force-dynamic";
 
-/**
- * Handle incomplete Pi Network payments by auto-resolving them.
- *
- * This endpoint is called by the client-side `onIncompletePaymentFound` callback
- * when the Pi SDK detects an incomplete payment during authentication.
- *
- * Flow:
- * 1. Fetch payment details from Pi API to verify ownership
- * 2. If not developer_approved → approve it
- * 3. If not completed → complete it with provided txid
- * 4. Persist payment, award XP, upgrade kycStatus, update TrustChain
- *
- * @returns API response with resolution status
- */
-export async function POST(request: NextRequest) {
-  const ip = getClientIp(request);
-  const rateLimit = await checkRateLimit(`pi-payment-incomplete:${ip}`, RATE_LIMITS.payment);
-  if (!rateLimit.allowed) {
-    return apiError('RATE_LIMITED', 'Too many incomplete payment requests. Try again later.', undefined, rateLimitHeaders(rateLimit));
-  }
+const INCOMPLETE_PAYMENT_ACTIONS = [
+  "com.pai.payment.incomplete_detected",
+  "com.pai.payment.auto_resolved",
+  "com.pai.payment.manual_review_required",
+] as const;
 
-  const auth = await requireAuth(request);
-  if (auth.error) return auth.error;
-
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return apiError('VALIDATION_ERROR', 'Invalid JSON body');
-  }
-
-  const parsed = IncompletePaymentSchema.safeParse(body);
-  if (!parsed.success) {
-    return apiError('VALIDATION_ERROR', parsed.error.issues[0].message, parsed.error.issues);
-  }
-
-  const { paymentId, txid } = parsed.data;
-
-  const PI_API_KEY = process.env.PI_API_KEY;
-  if (!PI_API_KEY) {
-    logger.error('[PI-PAYMENT-INCOMPLETE] PI_API_KEY not configured');
-    return apiError('INTERNAL_ERROR', 'Payment system not configured');
-  }
+export async function POST(req: NextRequest) {
+  const startTime = Date.now();
+  const requestId = `incomplete_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
   try {
-    // 1. Check if we already have this payment in our database
-    const existing = await prisma.piPayment.findUnique({
-      where: { paymentId },
+    // 1. Verify Pi Network webhook signature
+    const headersList = await headers();
+    const signature = headersList.get("x-pi-signature");
+    const timestamp = headersList.get("x-pi-timestamp");
+
+    if (!signature || !timestamp) {
+      logger.warn("Incomplete payment webhook missing signature", { requestId });
+      return apiError("UNAUTHORIZED", "Missing Pi signature", { status: 401 });
+    }
+
+    // 2. Verify webhook authenticity
+    const body = await req.text();
+    const isValid = await piNetwork.verifyWebhook(body, signature, timestamp);
+
+    if (!isValid) {
+      logger.warn("Incomplete payment webhook invalid signature", { requestId });
+      return apiError("UNAUTHORIZED", "Invalid Pi signature", { status: 401 });
+    }
+
+    // 3. Parse payment data
+    const paymentData = JSON.parse(body);
+    const {
+      paymentId,
+      userId,
+      amount,
+      currency,
+      metadata,
+      status,
+      createdAt,
+    } = paymentData;
+
+    logger.info("Incomplete payment detected", {
+      requestId,
+      paymentId,
+      userId,
+      amount,
+      status,
     });
 
-    // If payment exists and belongs to another user, forbid
-    if (existing && existing.userId !== auth.user.id) {
-      return apiError('FORBIDDEN', 'Payment does not belong to authenticated user');
-    }
-
-    // If already released, return success
-    if (existing && existing.status === 'RELEASED') {
-      return apiSuccess({ status: 'completed', paymentId, txid: existing.txid || txid });
-    }
-
-    // 2. Fetch payment details from Pi Network API to verify ownership & get canonical data
-    const getResponse = await fetch(`https://api.minepi.com/v2/payments/${paymentId}`, {
-      method: 'GET',
-      headers: { Authorization: `Key ${PI_API_KEY}` },
-      signal: AbortSignal.timeout(10000),
-    });
-
-    if (!getResponse.ok) {
-      logger.error('[PI-PAYMENT-INCOMPLETE] Pi API get failed:', getResponse.status);
-      return apiError('PI_PAYMENT_FAILED', `Failed to retrieve payment: ${getResponse.status}`);
-    }
-
-    const paymentData = await getResponse.json();
-
-    // 3. Prevent IDOR: assert the payment's payer UID matches the authenticated user
-    if (!auth.user.piUid || paymentData.user_uid !== auth.user.piUid) {
-      return apiError('FORBIDDEN', 'Payment payer UID does not match authenticated user');
-    }
-
-    const isApproved = paymentData.status?.developer_approved === true;
-    const isCompleted = paymentData.status?.developer_completed === true;
-
-    // 4. If not approved, approve it
-    if (!isApproved) {
-      const approveResponse = await fetch(`https://api.minepi.com/v2/payments/${paymentId}/approve`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Key ${PI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(10000),
-      });
-
-      if (!approveResponse.ok) {
-        const errorData = await approveResponse.json().catch(() => ({}));
-        logger.error('[PI-PAYMENT-INCOMPLETE] Pi API approve failed:', approveResponse.status, errorData);
-        return apiError('PI_PAYMENT_FAILED', `Pi API approve error: ${approveResponse.status}`);
-      }
-      await approveResponse.json().catch(() => ({}));
-      logger.info('[PI-PAYMENT-INCOMPLETE] Payment approved:', paymentId);
-    }
-
-    // 5. If not completed, complete it (requires txid from client)
-    if (!isCompleted) {
-      if (!txid) {
-        return apiError('VALIDATION_ERROR', 'txid required to complete incomplete payment');
-      }
-
-      const completeResponse = await fetch(`https://api.minepi.com/v2/payments/${paymentId}/complete`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Key ${PI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ txid }),
-        signal: AbortSignal.timeout(10000),
-      });
-
-      if (!completeResponse.ok) {
-        const errorData = await completeResponse.json().catch(() => ({}));
-        logger.error('[PI-PAYMENT-INCOMPLETE] Pi API complete failed:', completeResponse.status, errorData);
-        return apiError('PI_PAYMENT_FAILED', `Pi API complete error: ${completeResponse.status}`);
-      }
-      await completeResponse.json().catch(() => ({}));
-      logger.info('[PI-PAYMENT-INCOMPLETE] Payment completed:', paymentId);
-    }
-
-    // 6. Persist canonical payment data and award XP/upgrade KYC (atomic transaction)
-    const pristineUses = await getActionUseCount(auth.user.id, 'pi_payment');
-    const { multiplier: pristineMul } = computePristineMultiplier(pristineUses, 'pi_payment');
-
-    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      // Upsert payment with canonical data from Pi's GET response
-      const upsertedPayment = await tx.piPayment.upsert({
-        where: { paymentId },
-        update: {
-          status: 'RELEASED',
-          txid: txid || paymentData.transaction?.txid || null,
-          amount: paymentData.amount || 0,
-          memo: paymentData.memo || null,
-          metadata: paymentData.metadata ? JSON.stringify(paymentData.metadata) : null,
-        },
-        create: {
-          paymentId,
-          userId: auth.user.id,
-          amount: paymentData.amount || 0,
-          memo: paymentData.memo || null,
-          metadata: paymentData.metadata ? JSON.stringify(paymentData.metadata) : null,
-          status: 'RELEASED',
-          txid: txid || paymentData.transaction?.txid || null,
-          network: 'pi',
-        },
-      });
-
-      let updatedUser = null;
-      let newTier = 'Visitor';
-      let newBalance = 0;
-      let xpReward = 0;
-
-      if (auth.user.id !== 'unknown') {
-        const user = await tx.user.findUnique({ where: { id: auth.user.id } });
-        if (user) {
-          xpReward = Math.round(Math.floor(upsertedPayment.amount * 10) * pristineMul);
-          newBalance = user.xp + xpReward;
-          newTier = calculateTier(newBalance);
-
-          // XP Ledger entry
-          await tx.xpLedger.create({
-            data: {
-              userId: auth.user.id,
-              amount: xpReward,
-              reason: 'action_claim',
-              reference: JSON.stringify({ paymentId, txid: upsertedPayment.txid, purpose: 'incomplete_payment_resolution' }),
-              balance: newBalance,
-            },
-          });
-
-          // Successful Pi payment proves KYC — upgrade kycStatus
-          updatedUser = await tx.user.update({
-            where: { id: auth.user.id },
-            data: {
-              xp: newBalance,
-              tier: newTier,
-              lastActive: new Date(),
-              kycStatus: 'VERIFIED',
-              kycProvider: 'pi_network',
-            },
-          });
-        }
-      }
-
-      return { upsertedPayment, updatedUser, newTier, newBalance, xpReward };
-    });
-
-    // 7. Analytics
-    const posthog = getPostHogClient();
-    posthog.capture({
-      distinctId: auth.user.id,
-      event: 'pi_incomplete_payment_resolved',
-      properties: {
-        payment_id: paymentId,
-        amount_pi: result.upsertedPayment.amount,
-        xp_earned: result.xpReward,
-        new_balance: result.newBalance,
-        tier: result.newTier,
+    // 4. Record in TrustChain
+    const trustChainEntry = await TrustChain.append({
+      type: "payment_incomplete",
+      actor: `did:agent:pi:${userId}`,
+      target: paymentId,
+      data: {
+        paymentId,
+        amount,
+        currency,
+        status,
+        metadata,
+        createdAt,
+        requestId,
+      },
+      metadata: {
+        priority: "high",
+        tags: ["payment", "incomplete", "auto-resolve"],
       },
     });
-    await posthog.flush();
+
+    // 5. Attempt auto-resolution
+    let resolutionResult = null;
+    let actionTaken = "detected";
+
+    try {
+      // Check if payment can be auto-resolved (e.g., user completed in another session)
+      const paymentStatus = await piNetwork.getPaymentStatus(paymentId);
+
+      if (paymentStatus === "COMPLETED") {
+        // Payment was completed - resolve it
+        const resolution = await resolveIncompletePayment(paymentId, userId, amount);
+        resolutionResult = resolution;
+        actionTaken = "auto_resolved";
+
+        // Record resolution
+        await TrustChain.append({
+          type: "payment_auto_resolved",
+          actor: `did:agent:pi:${userId}`,
+          target: paymentId,
+          data: {
+            paymentId,
+            resolution,
+            originalStatus: status,
+            resolvedAt: Date.now(),
+          },
+        });
+
+        logger.info("Incomplete payment auto-resolved", {
+          requestId,
+          paymentId,
+          resolution,
+        });
+      } else if (paymentStatus === "FAILED" || paymentStatus === "CANCELLED") {
+        // Payment failed - record and notify
+        actionTaken = "failed";
+
+        await TrustChain.append({
+          type: "payment_failed",
+          actor: `did:agent:pi:${userId}`,
+          target: paymentId,
+          data: {
+            paymentId,
+            finalStatus: paymentStatus,
+            failedAt: Date.now(),
+          },
+        });
+      } else {
+        // Still pending - flag for manual review if older than threshold
+        const ageMinutes = (Date.now() - new Date(createdAt).getTime()) / 60000;
+        const REVIEW_THRESHOLD_MINUTES = 30;
+
+        if (ageMinutes > REVIEW_THRESHOLD_MINUTES) {
+          actionTaken = "manual_review_required";
+
+          await TrustChain.append({
+            type: "payment_manual_review",
+            actor: `did:agent:pi:${userId}`,
+            target: paymentId,
+            data: {
+              paymentId,
+              ageMinutes,
+              thresholdMinutes: REVIEW_THRESHOLD_MINUTES,
+              reason: "Exceeded auto-resolution window",
+            },
+          });
+
+          // Notify admin/review queue
+          await notifyReviewQueue(paymentId, userId, ageMinutes);
+        }
+      }
+    } catch (resolutionError) {
+      logger.error("Auto-resolution failed", {
+        requestId,
+        paymentId,
+        error: resolutionError instanceof Error ? resolutionError.message : String(resolutionError),
+      });
+      actionTaken = "resolution_failed";
+    }
+
+    // 6. Emit event for downstream consumers
+    await emitIncompletePaymentEvent({
+      requestId,
+      paymentId,
+      userId,
+      amount,
+      currency,
+      status,
+      actionTaken,
+      resolutionResult,
+      timestamp: Date.now(),
+    });
 
     return apiSuccess({
-      status: 'resolved',
+      received: true,
+      requestId,
       paymentId,
-      txid: result.upsertedPayment.txid,
-      xpEarned: result.xpReward,
-      newBalance: result.newBalance,
-      tier: result.newTier,
-      kycStatus: result.updatedUser?.kycStatus || 'VERIFIED',
+      actionTaken,
+      resolutionResult,
     });
   } catch (error) {
-    logger.error('[PI-PAYMENT-INCOMPLETE] Resolution error:', error);
-    return apiError('INTERNAL_ERROR', 'Failed to resolve incomplete payment');
+    const message = error instanceof Error ? error.message : "Unknown error";
+    logger.error("Incomplete payment webhook failed", {
+      requestId,
+      error: message,
+    });
+
+    return apiError("INTERNAL_ERROR", "Failed to process incomplete payment", {
+      status: 500,
+      details: { requestId },
+    });
+  }
+}
+
+async function resolveIncompletePayment(
+  paymentId: string,
+  userId: string,
+  amount: number
+): Promise<{ success: boolean; txHash?: string; trustDelta?: number }> {
+  try {
+    // Derive user's keypair for signing
+    const keypair = await deriveKeypair(
+      `did:agent:pi:${userId}`,
+      process.env.SOVEREIGN_KEY_SALT!
+    );
+
+    // Complete the payment on Pi Network
+    const completion = await piNetwork.completePayment({
+      paymentId,
+      amount,
+      keypair,
+    });
+
+    // Update trust score
+    const trustDelta = calculateTrustDelta(amount, "payment_completed");
+
+    return {
+      success: true,
+      txHash: completion.txHash,
+      trustDelta,
+    };
+  } catch (error) {
+    logger.error("Payment resolution failed", { paymentId, error });
+    return { success: false };
+  }
+}
+
+function calculateTrustDelta(amount: number, action: string): number {
+  const baseXP = Math.min(Math.floor(amount * 10), 500); // Cap at 500 XP per payment
+  const multipliers: Record<string, number> = {
+    payment_completed: 1.0,
+    payment_incomplete: -0.1,
+    payment_failed: -0.05,
+    payment_auto_resolved: 0.5,
+  };
+  return Math.floor(baseXP * (multipliers[action] || 1));
+}
+
+async function notifyReviewQueue(
+  paymentId: string,
+  userId: string,
+  ageMinutes: number
+): Promise<void> {
+  // In production: send to review queue (Discord, email, Slack, etc.)
+  logger.warn("Payment requires manual review", {
+    paymentId,
+    userId,
+    ageMinutes,
+    reviewUrl: `https://axiomid.app/admin/payments/${paymentId}`,
+  });
+}
+
+async function emitIncompletePaymentEvent(data: {
+  requestId: string;
+  paymentId: string;
+  userId: string;
+  amount: number;
+  currency: string;
+  status: string;
+  actionTaken: string;
+  resolutionResult: any;
+  timestamp: number;
+}): Promise<void> {
+  // Emit to event bus for downstream consumers (ACP, ADP, analytics)
+  try {
+    // This would integrate with your event bus (Kafka, NATS, etc.)
+    // await eventBus.publish({
+    //   eventId: `evt_${data.requestId}`,
+    //   eventType: "com.pai.payment.incomplete_detected",
+    //   timestamp: data.timestamp,
+    //   sourceAgent: "axiomid-payment-webhook",
+    //   payload: data,
+    //   schemaVersion: 1,
+    // });
+    logger.debug("Incomplete payment event emitted", { requestId: data.requestId });
+  } catch (error) {
+    logger.warn("Failed to emit incomplete payment event", { error });
+  }
+}
+
+// GET endpoint for manual status check
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const paymentId = searchParams.get("paymentId");
+
+    if (!paymentId) {
+      return apiError("VALIDATION_ERROR", "paymentId is required", { status: 400 });
+    }
+
+    const status = await piNetwork.getPaymentStatus(paymentId);
+    const trustChainEntries = await TrustChain.query({
+      target: paymentId,
+      types: ["payment_incomplete", "payment_auto_resolved", "payment_failed"],
+    });
+
+    return apiSuccess({
+      paymentId,
+      status,
+      trustChainEntries,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return apiError("INTERNAL_ERROR", "Failed to check payment status", {
+      status: 500,
+      details: { message },
+    });
   }
 }
