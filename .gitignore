@@ -13,6 +13,10 @@ backend/package-lock.json
 /build
 
 # testing
+/playwright-report/
+/test-results/
+/blob-report/
+/playwright/.cache/
 /coverage
 
 # misc

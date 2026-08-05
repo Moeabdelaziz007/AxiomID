@@ -16,7 +16,15 @@ import DynamicThemeColor from "@/components/pwa/DynamicThemeColor";
 import SovereignSplash from "@/components/pwa/SovereignSplash";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Providers } from "./providers";
-import { JsonLd } from "@/components/JsonLd";
+
+/** Escape HTML special characters in JSON-LD structured data. */
+function escapeJsonLd(json: string): string {
+  return json
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/</g, "&lt;");
+}
 
 // Preload fonts for better performance
 const geistSans = Geist({
@@ -191,16 +199,6 @@ export default async function RootLayout({
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />
-        {/* Meticulous session recorder — only loads when token is set (staging/preview envs)
-         * Docs: https://www.meticulous.ai/ | Full catalog: docs/AGENT_SERVICE_CATALOG.md §13
-         * Setup: Set NEXT_PUBLIC_METICULOUS_TOKEN in Vercel env → deploy preview → click through flows */}
-        {process.env.NEXT_PUBLIC_METICULOUS_TOKEN && (
-          <Script
-            src="https://rec.meticulous.ai/v1/standalone/recorder.min.js"
-            data-project-id={process.env.NEXT_PUBLIC_METICULOUS_TOKEN}
-            strategy="afterInteractive"
-          />
-        )}
          <Toaster
            theme="dark"
            position="bottom-right"
@@ -216,55 +214,58 @@ export default async function RootLayout({
            }}
          />
           <InstallPWA />
-<JsonLd
-  data={{
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "AxiomID",
-    "url": "https://axiomid.app",
-    "description": "Prove human intent behind AI actions with decentralized identity verification. Create your sovereign AI passport with Pi Network.",
-    "applicationCategory": "IdentityApplication",
-    "category": "Identity & Verification",
-    "operatingSystem": "Web",
-    "inLanguage": ["en", "ar"],
-    "isAccessibleForFree": true,
-    "offers": {
-      "@type": "AggregateOffer",
-      "priceCurrency": "PI",
-      "lowPrice": "0",
-      "highPrice": "100",
-      "offerCount": 4,
-      "offers": [
-        { "@type": "Offer", "name": "Visitor", "price": "0", "priceCurrency": "PI", "description": "Limited read-only access" },
-        { "@type": "Offer", "name": "Citizen", "price": "0", "priceCurrency": "PI", "description": "Social stamps and basic agent access (100 XP)" },
-        { "@type": "Offer", "name": "Validator", "price": "25", "priceCurrency": "PI", "description": "Agent delegation and marketplace install (500 XP)" },
-        { "@type": "Offer", "name": "Sovereign", "price": "100", "priceCurrency": "PI", "description": "Full trust, vault staking, vouching power (1000 XP)" }
-      ]
-    },
-    "creator": {
-      "@type": "Person",
-      "name": "Mohamed Abdelaziz",
-      "url": "https://github.com/Moeabdelaziz007"
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "AxiomID",
-      "url": "https://axiomid.app"
-    },
-    "sameAs": [
-      "https://github.com/Moeabdelaziz007/AxiomID",
-      "https://minepi.com"
-    ],
-    "featureList": [
-      "Decentralized Identity (DID)",
-      "Sovereign Passports",
-      "Trust Score Verification",
-      "AI Agent Governance",
-      "Pi Network Authentication",
-      "Verifiable Credentials"
-    ]
-  }}
-/>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: escapeJsonLd(JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "WebApplication",
+                "name": "AxiomID",
+                "url": "https://axiomid.app",
+                "description": "Prove human intent behind AI actions with decentralized identity verification. Create your sovereign AI passport with Pi Network.",
+                "applicationCategory": "IdentityApplication",
+                "category": "Identity & Verification",
+                "operatingSystem": "Web",
+                "inLanguage": ["en", "ar"],
+                "isAccessibleForFree": true,
+                "offers": {
+                  "@type": "AggregateOffer",
+                  "priceCurrency": "PI",
+                  "lowPrice": "0",
+                  "highPrice": "100",
+                  "offerCount": 4,
+                  "offers": [
+                    { "@type": "Offer", "name": "Visitor", "price": "0", "priceCurrency": "PI", "description": "Limited read-only access" },
+                    { "@type": "Offer", "name": "Citizen", "price": "0", "priceCurrency": "PI", "description": "Social stamps and basic agent access (100 XP)" },
+                    { "@type": "Offer", "name": "Validator", "price": "25", "priceCurrency": "PI", "description": "Agent delegation and marketplace install (500 XP)" },
+                    { "@type": "Offer", "name": "Sovereign", "price": "100", "priceCurrency": "PI", "description": "Full trust, vault staking, vouching power (1000 XP)" }
+                  ]
+                },
+                "creator": {
+                  "@type": "Person",
+                  "name": "Mohamed Abdelaziz",
+                  "url": "https://github.com/Moeabdelaziz007"
+                },
+                "publisher": {
+                  "@type": "Organization",
+                  "name": "AxiomID",
+                  "url": "https://axiomid.app"
+                },
+                "sameAs": [
+                  "https://github.com/Moeabdelaziz007/AxiomID",
+                  "https://minepi.com"
+                ],
+                "featureList": [
+                  "Decentralized Identity (DID)",
+                  "Sovereign Passports",
+                  "Trust Score Verification",
+                  "AI Agent Governance",
+                  "Pi Network Authentication",
+                  "Verifiable Credentials"
+                ]
+              })),
+            }}
+          />
        </body>
      </html>
 

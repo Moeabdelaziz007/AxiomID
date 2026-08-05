@@ -71,12 +71,16 @@ export class TrustEngine {
     const dialecticScore = await this.computeDialectic(did);
 
     // Weighted combination
-    const score = Math.min(1,
-      xpScore * 0.35 +
-      stampsScore * 0.25 +
-      delegationScore * 0.25 +
-      dialecticScore * 0.15
-    );
+    // FIX (P1): Clamp to [0, 1], normalize negative zero, default missing scores to 0
+    const safeXp = Number.isFinite(xpScore) ? xpScore : 0;
+    const safeStamps = Number.isFinite(stampsScore) ? stampsScore : 0;
+    const safeDelegation = Number.isFinite(delegationScore) ? delegationScore : 0;
+    const safeDialectic = Number.isFinite(dialecticScore) ? dialecticScore : 0;
+
+    let score = safeXp * 0.35 + safeStamps * 0.25 + safeDelegation * 0.25 + safeDialectic * 0.15;
+    score = Math.max(0, Math.min(1, score));
+    // Normalize negative zero to positive zero (Rule #7 from AGENTS.md)
+    score = score === 0 ? 0 : score;
 
     const result: TrustResult = {
       did,

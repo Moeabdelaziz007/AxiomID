@@ -1,7 +1,7 @@
 # AxiomID — Project Status & Knowledge Base
 
 > **The single source of truth for the AxiomID project.**
-> Updated: 2026-07-17 | Version: 0.2.0
+> Updated: 2026-07-20 | Version: 0.2.0 | Verified with pygount + grep + gh CLI
 
 ---
 
@@ -18,13 +18,14 @@ AxiomID is the **Human Authorization Protocol** for AI agents and humans. Pi Bro
 | Metric | Value |
 |--------|-------|
 | **Version** | 0.2.0 |
-| **Test Files** | 189 |
-| **Test Cases** | 3,289 (passing, `it()`+`test()` blocks) |
+| **Test Files** | 187 |
+| **Test Cases** | 3,208 (it()/test() blocks, verified via grep 20 Jul 2026) |
 | **Test Lines** | ~39,500+ |
 | **E2E Files** | 14 (Playwright, `.e2e.ts`) |
 | **E2E Lines** | ~2,500 |
-| **API Route Dirs** | 62 |
+| **API Route Dirs** | 28 (top-level under /api/) |
 | **Prisma Models** | 26 |
+| **Pages** | 30 (page.tsx files) |
 | **Tech Stack** | Next.js 16, React 19, Prisma 6, Tailwind 4, Framer Motion 12 |
 | **Database** | PostgreSQL (Prisma) + D1 (edge) + Vectorize (semantic) |
 | **Auth** | Pi Network SDK + Ed25519 sovereign keys |
@@ -217,7 +218,7 @@ AxiomID is the **Human Authorization Protocol** for AI agents and humans. Pi Bro
 
 ## 6. Architecture
 
-### Route Inventory (27 API dirs)
+### Route Inventory (28 API route dirs)
 
 **Public:**
 - `/` Landing
@@ -229,7 +230,7 @@ AxiomID is the **Human Authorization Protocol** for AI agents and humans. Pi Bro
 - `/status` Service health
 - `/dashboard` Main dashboard (Identity, Marketplace, Settings tabs)
 
-**API Routes (27 dirs):**
+**API Routes (28 dirs):**
 - `/api/admin` Admin operations
 - `/api/agent` Agent CRUD
 - `/api/agents` Agent listing
@@ -272,7 +273,7 @@ AxiomID is the **Human Authorization Protocol** for AI agents and humans. Pi Bro
 | `src/lib/math-physics.ts` | Math/physics engine (2,068 lines) |
 | `prisma/schema.prisma` | Database schema |
 
-### Database Models (25)
+### Database Models (26)
 
 | Model | Purpose |
 |-------|---------|

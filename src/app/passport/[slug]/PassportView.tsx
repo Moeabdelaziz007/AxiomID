@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { AgentPassport } from "@/components/AgentPassport";
-import { AgentQR } from "@/components/AgentQR";
+import { PassportQR } from "@/components/PassportQR";
 import Link from "next/link";
 import { useLanguage } from "../../context/language-context";
 import { sharePassport } from "@/lib/pi-native-features";
@@ -124,7 +124,7 @@ export function PassportView() {
           </div>
  
           <div className="mt-8 flex flex-col items-center gap-3">
-            <AgentQR did={passport.did} />
+            <PassportQR did={passport.did} />
             <button
               onClick={handleShare}
               className="btn-primary text-xs flex items-center gap-2 px-4 py-2"

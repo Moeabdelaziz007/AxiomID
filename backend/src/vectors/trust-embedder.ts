@@ -88,16 +88,34 @@ export class TrustEmbedder {
 
   /**
    * Query similar trust profiles from Vectorize.
+   *
+   * FIX (P0): Previously re-embedded the DID with dummy values (0.5, 0),
+   * producing a query vector unrelated to the agent's actual stored vector.
+   * Now fetches the agent's real stored vector by ID and queries with it.
+   * Different agent IDs → different query vectors → different results.
    */
   async querySimilar(did: string, topK: number = 5): Promise<SearchResult[]> {
-    const values = await this.embedTrustProfile(did, 0.5, 0);
+    const vectorId = `trust:${did}`;
 
-    const results = await this.env.SEARCH_VECTORS.query(values, {
-      topK,
+    // Fetch the agent's actual stored vector
+    const vectors = await this.env.SEARCH_VECTORS.getByIds([vectorId]);
+    const source = vectors.find((v) => v.id === vectorId);
+
+    if (!source?.values) {
+      // Agent not in index — return empty, do NOT fall back to a dummy vector
+      return [];
+    }
+
+    const results = await this.env.SEARCH_VECTORS.query(source.values, {
+      topK: topK + 1, // +1 to exclude self
       returnMetadata: true,
     });
 
-    return results.matches.map(this.mapMatch);
+    // Exclude self from results
+    return results.matches
+      .filter((m) => m.id !== vectorId)
+      .slice(0, topK)
+      .map(this.mapMatch);
   }
 
   /**

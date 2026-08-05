@@ -1,0 +1,48 @@
+name = "pai-sim-loop"
+main = "src/worker.ts"
+compatibility_date = "2026-07-20"
+compatibility_flags = ["nodejs_compat"]
+
+# ─── Workers AI: 10K Neurons/day free (reflection step) ───────────────
+[ai]
+binding = "AI"
+
+# ─── D1: Simulation records (5GB, 5M reads/day free) ──────────────────
+[[d1_databases]]
+binding = "DB"
+database_name = "pai-sim-loop"
+database_id = "CREATE_WITH: npx wrangler d1 create pai-sim-loop"
+
+# ─── Queues: Async iteration pipeline (10K ops/day free) ──────────────
+[[queues.producers]]
+binding = "SIM_QUEUE"
+queue = "pai-sim-queue"
+
+[[queues.consumers]]
+queue = "pai-sim-queue"
+max_batch_size = 1
+max_batch_timeout = 1
+max_retries = 3
+
+# ─── Durable Object: Simulation state (free plan) ─────────────────────
+[[durable_objects.bindings]]
+name = "SIMULATION_DO"
+class_name = "SimulationDO"
+
+# ─── Browser Rendering: 10 min/day free (optional sandbox) ────────────
+# Uncomment after: npx wrangler r2 bucket create pai-sim-loop-browser
+# [browser]
+# binding = "BROWSER"
+
+# ─── Cron Triggers: 5 per account free (every 12 hours) ───────────────
+[triggers]
+crons = ["0 */12 * * *"]
+
+# ─── Durable Object migration ─────────────────────────────────────────
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SimulationDO"]
+
+# ─── Observability ────────────────────────────────────────────────────
+[observability]
+enabled = true

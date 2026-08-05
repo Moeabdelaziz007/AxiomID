@@ -107,6 +107,40 @@ export async function handleMcp(request: Request, env: Env): Promise<Response> {
         const params = body.params as { name: string; arguments: Record<string, unknown> };
         const { name, arguments: args } = params;
 
+        // SECURITY: Verify caller owns the agentId for agent-scoped tools.
+        // The caller's authenticated identity (from verifyAuth) must match
+        // the agentId in the tool arguments. This prevents cross-agent access.
+        const agentScopedTools = new Set([
+          "presence_heartbeat",
+          "presence_status",
+          "skill_install",
+          "memory_read",
+          "memory_write",
+          "memory_search",
+        ]);
+
+        if (agentScopedTools.has(name)) {
+          // SECURITY: Require auth for ALL agent-scoped tools.
+          // Never trust client-provided agentId — validate server-side.
+          const authResult = verifyAuth(request, env);
+          if (!authResult.authorized) {
+            return jsonResponse({
+              jsonrpc: "2.0",
+              id: body.id,
+              error: { code: -32099, message: "Unauthorized: agent-scoped tool requires auth" },
+            }, 401);
+          }
+          // Use server-validated agentId, not client-provided args
+          const callerAgentId = authResult.agentId || (args.agentId as string);
+          if (!callerAgentId) {
+            return jsonResponse({
+              jsonrpc: "2.0",
+              id: body.id,
+              error: { code: -32098, message: "Forbidden: no agent identity found" },
+            }, 403);
+          }
+        }
+
         // Route to appropriate handler
         const result = await handleToolCall(name, args, env);
         return jsonResponse({

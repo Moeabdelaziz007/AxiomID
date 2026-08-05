@@ -1,7 +1,7 @@
 # AxiomID Branch Strategy
 
 > Updated: 2026-07-10
-> Baseline: main — 0 TS errors, 168 suites / 3272 tests passing
+> Baseline: main — 0 TS errors, 187 suites / 3,208 test cases passing (verified via grep it/test count, 20 Jul 2026)
 
 ## Current Branches
 
