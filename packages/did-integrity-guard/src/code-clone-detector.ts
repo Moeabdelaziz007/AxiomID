@@ -48,11 +48,33 @@ export class CodeCloneDetector {
   }
 
   private tokenize(code: string): string[] {
-    return code
-      .replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '') // strip comments
+    return this.stripComments(code)
       .replace(/[^\w\s]/g, ' ') // strip punctuation
       .toLowerCase()
       .split(/\s+/)
       .filter((t) => t.length > 2);
+  }
+
+  // Linear comment stripper — avoids the polynomial-ReDoS regex pattern
+  // (lazy `[\s\S]*?` + alternation backtracks O(n²) on `/*`-heavy input).
+  private stripComments(code: string): string {
+    let out = '';
+    let i = 0;
+    while (i < code.length) {
+      if (code[i] === '/' && code[i + 1] === '/') {
+        while (i < code.length && code[i] !== '\n') i++;
+      } else if (code[i] === '/' && code[i + 1] === '*') {
+        i += 2;
+        while (i < code.length) {
+          const close = code[i] === '*' && code[i + 1] === '/';
+          i += close ? 2 : 1;
+          if (close) break;
+        }
+      } else {
+        out += code[i];
+        i++;
+      }
+    }
+    return out;
   }
 }
