@@ -19,15 +19,19 @@ export class CodeCloneDetector {
       { pattern: /http:\/\/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/i, threat: 'Hardcoded Raw IP Exfiltration' },
     ];
 
+    // Strip comments first so matches inside comments never false-flag the code.
+    const strippedTargetCode = this.stripComments(targetCode);
+    const strippedReferenceCode = this.stripComments(referenceCode);
+
     for (const item of maliciousPatterns) {
-      if (item.pattern.test(targetCode)) {
+      if (item.pattern.test(strippedTargetCode)) {
         threats.push(item.threat);
       }
     }
 
     // 2. Tokenized Structural Similarity (Jaccard Index)
-    const targetTokens = new Set(this.tokenize(targetCode));
-    const refTokens = new Set(this.tokenize(referenceCode));
+    const targetTokens = new Set(this.tokenize(strippedTargetCode));
+    const refTokens = new Set(this.tokenize(strippedReferenceCode));
 
     let intersectionCount = 0;
     for (const token of targetTokens) {
@@ -48,7 +52,7 @@ export class CodeCloneDetector {
   }
 
   private tokenize(code: string): string[] {
-    return this.stripComments(code)
+    return code
       .replace(/[^\w\s]/g, ' ') // strip punctuation
       .toLowerCase()
       .split(/\s+/)

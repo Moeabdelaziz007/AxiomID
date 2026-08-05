@@ -128,8 +128,18 @@ export class IqraPolicyEngine {
             hostname === blockedHost || hostname.endsWith(`.${blockedHost}`),
         );
       } catch {
-        // If URL parsing fails, retain conservative legacy behavior.
-        isBlocked = blockedHosts.some((blockedHost) => url.includes(blockedHost));
+        // URL without a scheme: parse with a default one so the hostname is
+        // still matched exactly instead of via fragile substring search.
+        try {
+          const parsedUrl = new URL(`http://${url}`);
+          const hostname = parsedUrl.hostname.toLowerCase();
+          isBlocked = blockedHosts.some(
+            (blockedHost) =>
+              hostname === blockedHost || hostname.endsWith(`.${blockedHost}`),
+          );
+        } catch {
+          isBlocked = false;
+        }
       }
 
       if (isBlocked) {
