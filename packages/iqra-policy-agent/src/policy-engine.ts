@@ -120,23 +120,21 @@ export class IqraPolicyEngine {
       const blockedHosts = ['pastebin.com', 'anonfiles.com', 'webhook.site'];
       let isBlocked = false;
 
-      try {
-        const parsedUrl = new URL(url);
-        const hostname = parsedUrl.hostname.toLowerCase();
-        isBlocked = blockedHosts.some(
+      // Parse exactly (scheme-less input falls back to http://) so the hostname
+      // is matched by exact/subdomain equality rather than fragile substring.
+      const parseAndMatch = (raw: string) => {
+        const hostname = new URL(raw).hostname.toLowerCase();
+        return blockedHosts.some(
           (blockedHost) =>
             hostname === blockedHost || hostname.endsWith(`.${blockedHost}`),
         );
+      };
+
+      try {
+        isBlocked = parseAndMatch(url);
       } catch {
-        // URL without a scheme: parse with a default one so the hostname is
-        // still matched exactly instead of via fragile substring search.
         try {
-          const parsedUrl = new URL(`http://${url}`);
-          const hostname = parsedUrl.hostname.toLowerCase();
-          isBlocked = blockedHosts.some(
-            (blockedHost) =>
-              hostname === blockedHost || hostname.endsWith(`.${blockedHost}`),
-          );
+          isBlocked = parseAndMatch(`http://${url}`);
         } catch {
           isBlocked = false;
         }
