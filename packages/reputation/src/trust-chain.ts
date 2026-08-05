@@ -82,7 +82,7 @@ export class TrustChain {
    * Each call waits for the previous one to release before proceeding.
    */
   private async acquire(): Promise<Releaser> {
-    let release: Releaser;
+    let release!: Releaser;
     const next = new Promise<void>((resolve) => {
       release = resolve;
     });
