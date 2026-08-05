@@ -38,7 +38,7 @@
     "theme": "主题",
     "darkMode": "深色模式",
     "lightMode": "浅色模式",
-    "system": "跟随系统"
+    "system": "系统"
   },
   "nav": {
     "home": "首页",
@@ -52,48 +52,59 @@
     "discord": "Discord",
     "twitter": "Twitter"
   },
+  "landing": {
+    "pi_badge": "Pi 网络主网就绪",
+    "headline_en": "代理经济的操作系统",
+    "headline_rules_en": "构建. 部署. 变现. 验证.",
+    "tagline": "无需许可. 一个 DID. 无限代理. 人类意图的加密证明."
+  },
   "hero": {
-    "badge": "PAI = BYE",
-    "title": "代理经济的操作系统",
-    "subtitle": "在 Pi Network 上构建、部署和货币化 AI 代理。6000 万用户。1800 万 KYC。原生支付。可验证身份。",
-    "ctaPrimary": "立即开始 →",
+    "title": "PAI 宇宙",
+    "subtitle": "Pi 网络的代理层",
+    "ctaPrimary": "开始使用 →",
     "ctaSecondary": "查看文档",
-    "stats": {
-      "users": "6000 万+ Pi 用户",
-      "kyc": "1800 万+ KYC 验证",
-      "revenue": "$4/验证 ACP",
-      "skills": "50+ 技能就绪"
-    }
+    "cta_create": "创建我的 AI 代理",
+    "cta_explore": "探索协议"
+  },
+  "stats": {
+    "users": "60M+ Pi 用户",
+    "kyc": "18M+ KYC 已验证",
+    "revenue": "$4/验证 ACP",
+    "skills": "50+ 技能就绪"
   },
   "features": {
     "identity": {
       "title": "通用身份",
-      "description": "did:agent DID + Pi KYC + TrustChain 声誉。可移植、可验证、主权。",
+      "description": "did:agent DID + Pi KYC + TrustChain 声誉. 可移植, 可验证, 主权.",
       "features": ["did:agent DID", "Pi KYC 验证", "TrustChain 声誉", "OpenIdentity 清单"]
     },
     "payments": {
       "title": "原生支付",
-      "description": "ACP 支付 + Pi/USDC 结算。一行代码支付。内置托管。",
+      "description": "ACP 支付 + Pi/USDC 结算. 一行代码支付. 内置托管.",
       "features": ["ACP 协议", "Pi/USDC 支付", "托管和发票", "收入分成 90/10"]
     },
     "skills": {
       "title": "可组合技能",
-      "description": "代理能力的 npm。安装、组合、货币化。内置收入分成。",
+      "description": "代理能力的 npm. 安装, 组合, 变现. 内置收入分成.",
       "features": ["50+ 技能", "收入分成 90/10", "ZK 验证", "沙箱执行"]
     }
   },
   "cta": {
-    "getStarted": "立即开始 →",
+    "getStarted": "开始使用 →",
     "viewDocs": "查看文档",
     "joinDiscord": "加入 Discord",
     "starGitHub": "GitHub 点赞",
     "joinWaitlist": "加入等待列表"
   },
+  "verify_human": "验证人类",
+  "deploy_agent": "部署代理",
+  "pause_auto_play": "暂自动播放",
+  "resume_auto_play": "恢复自动播放",
   "footer": {
     "tagline": "代理经济的操作系统",
-    "copyright": "© 2026 PAI. 以爱、诚实、信任和安全第一构建。",
-    "privacy": "隐私政策",
-    "terms": "服务条款",
-    "contact": "联系我们"
+    "copyright": "© 2026 PAI. 以爱、诚信、信任与安全为本构建.",
+    "privacy": "隐私",
+    "terms": "条款",
+    "contact": "联系"
   }
 }

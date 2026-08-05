@@ -20,7 +20,6 @@
     "previous": "Previous",
     "close": "Close",
     "open": "Open",
-    "close": "Close",
     "yes": "Yes",
     "no": "No",
     "ok": "OK",
@@ -53,18 +52,25 @@
     "discord": "Discord",
     "twitter": "Twitter"
   },
+  "landing": {
+    "pi_badge": "Pi Network Mainnet Ready",
+    "headline_en": "The Agent Economy's Operating System",
+    "headline_rules_en": "Build. Deploy. Monetize. Verify.",
+    "tagline": "No permission needed. One DID. Infinite agents. Cryptographic proof of human intent."
+  },
   "hero": {
-    "badge": "PAI = BYE",
-    "title": "The Agent Economy's Operating System",
-    "subtitle": "Build, deploy, and monetize AI agents on Pi Network. 60M users. 18M KYC. Native payments. Verifiable identity.",
+    "title": "PAI Universe",
+    "subtitle": "The Agentic Layer for Pi Network",
     "ctaPrimary": "Get Started →",
     "ctaSecondary": "View Docs",
-    "stats": {
-      "users": "60M+ Pi Users",
-      "kyc": "18M+ KYC Verified",
-      "revenue": "$4/verification ACP",
-      "skills": "50+ Skills Ready"
-    }
+    "cta_create": "Create My AI Agent",
+    "cta_explore": "Explore the Protocol"
+  },
+  "stats": {
+    "users": "60M+ Pi Users",
+    "kyc": "18M+ KYC Verified",
+    "revenue": "$4/verification ACP",
+    "skills": "50+ Skills Ready"
   },
   "features": {
     "identity": {
@@ -90,6 +96,10 @@
     "starGitHub": "Star on GitHub",
     "joinWaitlist": "Join Waitlist"
   },
+  "verify_human": "Verify Human",
+  "deploy_agent": "Deploy Agent",
+  "pause_auto_play": "Pause Auto-Play",
+  "resume_auto_play": "Resume Auto-Play",
   "footer": {
     "tagline": "The Agent Economy's Operating System",
     "copyright": "© 2026 PAI. Built with Love, Honesty, Trust & Security First.",
