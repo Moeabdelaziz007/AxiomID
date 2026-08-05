@@ -14,6 +14,7 @@ import { Toaster } from "sonner";
 import InstallPWA from "@/components/pwa/InstallPWA";
 import DynamicThemeColor from "@/components/pwa/DynamicThemeColor";
 import SovereignSplash from "@/components/pwa/SovereignSplash";
+import { FontLoader } from "@/components/FontLoader";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Providers } from "./providers";
 
@@ -181,11 +182,12 @@ export default async function RootLayout({
         </a>
         {/* Pi SDK loaded dynamically by loadPiSdk() in pi-sdk.ts — avoids overriding native Pi in Pi Browser */}
         <Script src="/register-sw.js" strategy="afterInteractive" />
-      <ThemeProvider>
-        <DynamicThemeColor />
-        <SovereignSplash />
-        <LanguageProvider>
-          <SandboxProvider>
+<ThemeProvider>
+          <DynamicThemeColor />
+          <SovereignSplash />
+          <LanguageProvider>
+            <FontLoader />
+            <SandboxProvider>
             <WalletProvider>
 
                 <Providers>

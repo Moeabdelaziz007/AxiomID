@@ -6,7 +6,7 @@ import posthog from "posthog-js";
 import { useWallet } from "../context/wallet-context";
 import { OnboardingModal } from "@/components/dashboard/OnboardingModal";
 import { useLanguage } from "../context/language-context";
-import { Fingerprint, Zap, Brain, Wallet, Code2, LayoutDashboard, Settings } from "lucide-react";
+import { Fingerprint, Zap, Brain, Wallet, Code2, LayoutDashboard, Settings, BarChart3 } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 
 import { TabPanel } from "@/components/dashboard/TabPanel";
@@ -21,19 +21,21 @@ import { SkillsTab } from "@/components/dashboard/tabs/SkillsTab";
 import { WalletTab } from "@/components/dashboard/tabs/WalletTab";
 import { MemoryTab } from "@/components/dashboard/tabs/MemoryTab";
 import { SettingsTab } from "@/components/dashboard/tabs/SettingsTab";
+import { RevenueTab } from "@/components/dashboard/tabs/RevenueTab";
 
 const InteractivePassportCard = nextDynamic(() => import("@/components/ui/InteractivePassportCard"), { ssr: false });
 const TerminalOverlay = nextDynamic(() => import("@/components/dashboard/TerminalOverlay").then(m => m.TerminalOverlay), { ssr: false });
 
 export const dynamic = 'force-dynamic';
 
-type TabId = "home" | "identity" | "skills" | "wallet" | "memory" | "settings";
+type TabId = "home" | "identity" | "skills" | "wallet" | "revenue" | "memory" | "settings";
 
 const TABS: { id: TabId; icon: typeof Fingerprint; label: string }[] = [
   { id: "home", icon: LayoutDashboard, label: "Home" },
   { id: "identity", icon: Fingerprint, label: "Identity" },
   { id: "skills", icon: Code2, label: "Skills" },
   { id: "wallet", icon: Wallet, label: "Wallet" },
+  { id: "revenue", icon: BarChart3, label: "Revenue" },
   { id: "memory", icon: Brain, label: "Memory" },
   { id: "settings", icon: Settings, label: "Settings" },
 ];
@@ -201,6 +203,9 @@ export default function Dashboard() {
             </TabPanel>
             <TabPanel id="wallet" activeTab={activeTab}>
               <WalletTab />
+            </TabPanel>
+            <TabPanel id="revenue" activeTab={activeTab}>
+              <RevenueTab user={user} />
             </TabPanel>
             <TabPanel id="memory" activeTab={activeTab}>
               <MemoryTab />
