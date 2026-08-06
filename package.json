@@ -14,9 +14,9 @@
   "bugs": {
     "url": "https://github.com/Moeabdelaziz007/AxiomID/issues"
   },
-  "dependencies": {
-    "@axiomid/crypto": "^0.1.0",
-    "@axiomid/sdk": "^0.1.0",
+"dependencies": {
+    "@axiomid/crypto": "file:packages/crypto",
+    "@axiomid/sdk": "file:packages/sdk",
     "@json-render/core": "^0.19.0",
     "@json-render/react": "^0.19.0",
     "@nostics/unplugin": "^1.1.0",
@@ -118,11 +118,8 @@
     "preview": "next build && next start",
     "prisma:seed-tags": "npx tsx prisma/seed-tags.ts",
     "start": "next start",
-    "test": "NODE_OPTIONS='--no-deprecation' npx --yes jest --runInBand --forceExit",
-    "test:watch": "jest --watch",
-    "type-check": "tsc --noEmit"
-  },
-  "workspaces": [
-    "packages/*"
-  ]
+"test": "NODE_OPTIONS='--no-deprecation' npx --yes jest --runInBand --forceExit",
+  "test:watch": "jest --watch",
+  "type-check": "tsc --noEmit"
+}
 }
