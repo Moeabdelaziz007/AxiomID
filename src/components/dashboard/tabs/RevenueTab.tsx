@@ -194,7 +194,7 @@ const AppRevenueCard = ({ app, environment, onViewDetails }: {
 
 const TransactionRow = ({ tx }: { tx: Transaction }) => {
   const { t } = useLanguage();
-  const isPositive = tx.type === "sale" || tx.type === "refund";
+  const isPositive = tx.type === "sale";
 
   return (
     <motion.tr className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
