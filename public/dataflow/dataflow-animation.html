@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AxiomID Data Flow Animation</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'JetBrains Mono', monospace; background: #020617; color: white; overflow: hidden; }
+    #canvas-container { position: relative; width: 100vw; height: 100vh; }
+    .controls { position: fixed; top: 20px; left: 20px; z-index: 100; background: rgba(15, 23, 42, 0.9); border: 1px solid #1e293b; border-radius: 8px; padding: 16px; display: none; }
+    .controls h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #22d3ee; }
+    .flow-btn { background: rgba(8, 51, 68, 0.4); border: 1px solid #22d3ee; color: white; padding: 8px 16px; margin: 4px; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 12px; transition: all 0.2s; }
+    .flow-btn:hover { background: rgba(34, 211, 238, 0.2); }
+    .flow-btn.active { background: #22d3ee; color: #020617; }
+    .legend { position: fixed; bottom: 20px; left: 20px; z-index: 100; background: rgba(15, 23, 42, 0.9); border: 1px solid #1e293b; border-radius: 8px; padding: 16px; font-size: 11px; display: none; }
+    .legend-item { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .info-panel { position: fixed; top: 20px; right: 20px; z-index: 100; background: rgba(15, 23, 42, 0.9); border: 1px solid #1e293b; border-radius: 8px; padding: 16px; max-width: 300px; font-size: 12px; color: #94a3b8; display: none; }
+    .info-panel h3 { color: #22d3ee; margin-bottom: 8px; font-size: 14px; }
+    .info-panel .step { margin: 8px 0; padding: 8px; background: rgba(30, 41, 59, 0.5); border-radius: 4px; border-left: 3px solid #22d3ee; }
+    .info-panel .step.active { border-left-color: #fbbf24; background: rgba(120, 53, 15, 0.2); }
+    .speed-control { position: fixed; bottom: 20px; right: 20px; z-index: 100; background: rgba(15, 23, 42, 0.9); border: 1px solid #1e293b; border-radius: 8px; padding: 16px; display: none; }
+    .speed-control label { display: block; margin-bottom: 8px; font-size: 12px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  
+  <div class="controls">
+    <h3>Data Flow Views</h3>
+    <button class="flow-btn active" data-flow="browser-api">Browser → API → DB</button>
+    <button class="flow-btn" data-flow="webhook-edge">Webhook → Edge → MCP</button>
+    <button class="flow-btn" data-flow="pi-auth">Pi Auth Flow</button>
+    <button class="flow-btn" data-flow="skill-install">Skill Install</button>
+    <button class="flow-btn" data-flow="full-cycle">Full Cycle</button>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background: #22d3ee;"></div>Frontend / Client</div>
+    <div class="legend-item"><div class="legend-dot" style="background: #34d399;"></div>Backend / API</div>
+    <div class="legend-item"><div class="legend-dot" style="background: #fbbf24;"></div>Cloudflare Worker</div>
+    <div class="legend-item"><div class="legend-dot" style="background: #a78bfa;"></div>Database / Storage</div>
+    <div class="legend-item"><div class="legend-dot" style="background: #fb7185;"></div>Auth / Security</div>
+    <div class="legend-item"><div class="legend-dot" style="background: #94a3b8;"></div>External Service</div>
+  </div>
+
+  <div class="info-panel" id="info-panel">
+    <h3>Flow: Browser → API → Database</h3>
+    <div id="steps"></div>
+  </div>
+
+  <div class="speed-control">
+    <label>Animation Speed: <span id="speed-value">1.0x</span></label>
+    <input type="range" id="speed-slider" min="0.1" max="3" step="0.1" value="1">
+  </div>
+
+<script>
+// ============ CONFIGURATION ============
+const CONFIG = {
+  seed: 42,
+  canvasWidth: 1920,
+  canvasHeight: 1000,
+  animationSpeed: 1.0,
+  particleSize: 6,
+  nodeRadius: 40,
+  flowSpeed: 2
+};
+
+// ============ COLOR PALETTE ============
+const PALETTE = {
+  bg: '#020617',
+  grid: '#0f172a',
+  frontend: '#22d3ee',      // cyan
+  backend: '#34d399',       // emerald
+  edge: '#fbbf24',          // amber
+  storage: '#a78bfa',       // violet
+  auth: '#fb7185',          // rose
+  external: '#94a3b8',      // slate
+  particle: '#fbbf24',      // amber for data packets
+  text: '#e2e8f0',
+  textDim: '#64748b',
+  highlight: '#fbbf24',
+  success: '#34d399',
+  arrow: '#64748b'
+};
+
+// ============ NODE DEFINITIONS ============
+const NODE_TYPES = {
+  BROWSER: { color: PALETTE.frontend, label: 'Browser', sublabel: 'Pi Browser' },
+  NEXTJS: { color: PALETTE.frontend, label: 'Next.js', sublabel: 'App Router' },
+  API_AUTH: { color: PALETTE.backend, label: '/api/auth', sublabel: 'connect, pi' },
+  API_AGENT: { color: PALETTE.backend, label: '/api/agent', sublabel: 'create, manifest' },
+  API_EXPLORER: { color: PALETTE.backend, label: '/api/explorer', sublabel: 'stats, payments' },
+  PRISMA: { color: PALETTE.backend, label: 'Prisma', sublabel: 'Client' },
+  POSTGRES: { color: PALETTE.storage, label: 'PostgreSQL', sublabel: 'Vercel Postgres' },
+  REDIS: { color: PALETTE.storage, label: 'Upstash', sublabel: 'Redis Cache' },
+  WEBHOOK: { color: PALETTE.edge, label: 'Webhook', sublabel: 'From Vercel' },
+  CF_ROUTER: { color: PALETTE.edge, label: 'CF Router', sublabel: 'Worker Entry' },
+  CF_D1: { color: PALETTE.storage, label: 'D1', sublabel: 'Edge SQLite' },
+  CF_KV: { color: PALETTE.storage, label: 'KV', sublabel: 'Edge Cache' },
+  CF_VECTORIZE: { color: PALETTE.storage, label: 'Vectorize', sublabel: 'Semantic Search' },
+  CF_DO: { color: PALETTE.edge, label: 'PresenceDO', sublabel: 'Durable Object' },
+  CF_MCP: { color: PALETTE.auth, label: 'MCP Server', sublabel: 'JSON-RPC /mcp' },
+  PI_NETWORK: { color: PALETTE.auth, label: 'Pi Network', sublabel: 'OAuth/KYC/Pay' },
+  STELLAR: { color: PALETTE.auth, label: 'Stellar', sublabel: 'VC Anchoring' },
+  PERPLEXITY: { color: PALETTE.external, label: 'Perplexity', sublabel: 'Harvest Search' },
+  SUBDOMAIN: { color: PALETTE.edge, label: 'Subdomain', sublabel: '*.axiomid.app' },
+  PASSPORT: { color: PALETTE.frontend, label: 'Passport', sublabel: 'Public Identity' }
+};
+
+// ============ FLOW DEFINITIONS ============
+const FLOWS = {
+  'browser-api': {
+    name: 'Browser → API → Database',
+    description: 'User request flows from browser through Next.js API routes to PostgreSQL via Prisma',
+    nodes: ['BROWSER', 'NEXTJS', 'API_AUTH', 'PRISMA', 'POSTGRES'],
+    edges: [
+      { from: 'BROWSER', to: 'NEXTJS', label: 'HTTPS' },
+      { from: 'NEXTJS', to: 'API_AUTH', label: 'Route' },
+      { from: 'API_AUTH', to: 'PRISMA', label: 'Query' },
+      { from: 'PRISMA', to: 'POSTGRES', label: 'SQL' },
+      { from: 'POSTGRES', to: 'PRISMA', label: 'Rows' },
+      { from: 'PRISMA', to: 'API_AUTH', label: 'Data' },
+      { from: 'API_AUTH', to: 'NEXTJS', label: 'JSON' },
+      { from: 'NEXTJS', to: 'BROWSER', label: 'Response' }
+    ],
+    positions: {
+      BROWSER: { x: 200, y: 500 },
+      NEXTJS: { x: 450, y: 500 },
+      API_AUTH: { x: 700, y: 500 },
+      PRISMA: { x: 950, y: 500 },
+      POSTGRES: { x: 1200, y: 500 }
+    }
+  },
+  'webhook-edge': {
+    name: 'Webhook → Edge → MCP',
+    description: 'Server-to-server webhook triggers Cloudflare Worker processing with D1/KV/Vectorize/MCP',
+    nodes: ['NEXTJS', 'WEBHOOK', 'CF_ROUTER', 'CF_D1', 'CF_KV', 'CF_VECTORIZE', 'CF_MCP', 'CF_DO'],
+    edges: [
+      { from: 'NEXTJS', to: 'WEBHOOK', label: 'POST' },
+      { from: 'WEBHOOK', to: 'CF_ROUTER', label: 'Route' },
+      { from: 'CF_ROUTER', to: 'CF_D1', label: 'Write' },
+      { from: 'CF_ROUTER', to: 'CF_KV', label: 'Cache' },
+      { from: 'CF_ROUTER', to: 'CF_VECTORIZE', label: 'Embed' },
+      { from: 'CF_ROUTER', to: 'CF_DO', label: 'Heartbeat' },
+      { from: 'CF_ROUTER', to: 'CF_MCP', label: 'Tools' }
+    ],
+    positions: {
+      NEXTJS: { x: 200, y: 200 },
+      WEBHOOK: { x: 450, y: 200 },
+      CF_ROUTER: { x: 700, y: 200 },
+      CF_D1: { x: 950, y: 100 },
+      CF_KV: { x: 950, y: 200 },
+      CF_VECTORIZE: { x: 950, y: 300 },
+      CF_DO: { x: 1200, y: 100 },
+      CF_MCP: { x: 1200, y: 300 }
+    }
+  },
+  'pi-auth': {
+    name: 'Pi Network Authentication',
+    description: 'Pi Browser OAuth flow with DID generation, KYC verification, and tier calculation',
+    nodes: ['BROWSER', 'PI_NETWORK', 'NEXTJS', 'API_AUTH', 'PRISMA', 'POSTGRES', 'STELLAR'],
+    edges: [
+      { from: 'BROWSER', to: 'PI_NETWORK', label: 'Pi SDK' },
+      { from: 'PI_NETWORK', to: 'BROWSER', label: 'Access Token' },
+      { from: 'BROWSER', to: 'NEXTJS', label: 'POST /api/auth/pi' },
+      { from: 'NEXTJS', to: 'API_AUTH', label: 'Route' },
+      { from: 'API_AUTH', to: 'PI_NETWORK', label: 'Verify Token' },
+      { from: 'PI_NETWORK', to: 'API_AUTH', label: 'User Data' },
+      { from: 'API_AUTH', to: 'PRISMA', label: 'Upsert User' },
+      { from: 'PRISMA', to: 'POSTGRES', label: 'Write' },
+      { from: 'API_AUTH', to: 'STELLAR', label: 'Anchor DID' }
+    ],
+    positions: {
+      BROWSER: { x: 200, y: 500 },
+      PI_NETWORK: { x: 200, y: 300 },
+      NEXTJS: { x: 450, y: 500 },
+      API_AUTH: { x: 700, y: 500 },
+      PRISMA: { x: 950, y: 500 },
+      POSTGRES: { x: 1200, y: 500 },
+      STELLAR: { x: 950, y: 300 }
+    }
+  },
+  'skill-install': {
+    name: 'Skill Marketplace Install',
+    description: 'User installs skill from marketplace → KV cache → D1 tracking → Agent installation',
+    nodes: ['BROWSER', 'NEXTJS', 'API_AGENT', 'WEBHOOK', 'CF_ROUTER', 'CF_KV', 'CF_D1', 'CF_DO'],
+    edges: [
+      { from: 'BROWSER', to: 'NEXTJS', label: 'Marketplace UI' },
+      { from: 'NEXTJS', to: 'API_AGENT', label: 'Install Request' },
+      { from: 'API_AGENT', to: 'WEBHOOK', label: 'Trigger Edge' },
+      { from: 'WEBHOOK', to: 'CF_ROUTER', label: 'Route' },
+      { from: 'CF_ROUTER', to: 'CF_KV', label: 'Read Catalog' },
+      { from: 'CF_KV', to: 'CF_ROUTER', label: 'Skill Data' },
+      { from: 'CF_ROUTER', to: 'CF_D1', label: 'Record Install' },
+      { from: 'CF_ROUTER', to: 'CF_DO', label: 'Notify Agent' }
+    ],
+    positions: {
+      BROWSER: { x: 200, y: 500 },
+      NEXTJS: { x: 450, y: 500 },
+      API_AGENT: { x: 700, y: 500 },
+      WEBHOOK: { x: 950, y: 500 },
+      CF_ROUTER: { x: 1200, y: 500 },
+      CF_KV: { x: 1200, y: 350 },
+      CF_D1: { x: 1200, y: 650 },
+      CF_DO: { x: 1450, y: 500 }
+    }
+  },
+  'full-cycle': {
+    name: 'Full System Cycle',
+    description: 'Complete flow: User → Frontend → API → DB + Edge Worker → MCP → External',
+    nodes: ['BROWSER', 'NEXTJS', 'API_AUTH', 'PRISMA', 'POSTGRES', 'REDIS', 'WEBHOOK', 'CF_ROUTER', 'CF_D1', 'CF_KV', 'CF_VECTORIZE', 'CF_MCP', 'PI_NETWORK', 'STELLAR', 'PERPLEXITY'],
+    edges: [
+      { from: 'BROWSER', to: 'NEXTJS', label: 'Request' },
+      { from: 'NEXTJS', to: 'API_AUTH', label: 'API Call' },
+      { from: 'API_AUTH', to: 'PRISMA', label: 'Query' },
+      { from: 'PRISMA', to: 'POSTGRES', label: 'SQL' },
+      { from: 'API_AUTH', to: 'REDIS', label: 'Cache' },
+      { from: 'NEXTJS', to: 'WEBHOOK', label: 'Async Event' },
+      { from: 'WEBHOOK', to: 'CF_ROUTER', label: 'Edge Route' },
+      { from: 'CF_ROUTER', to: 'CF_D1', label: 'Persist' },
+      { from: 'CF_ROUTER', to: 'CF_KV', label: 'Cache' },
+      { from: 'CF_ROUTER', to: 'CF_VECTORIZE', label: 'Embed' },
+      { from: 'CF_ROUTER', to: 'CF_MCP', label: 'Tools' },
+      { from: 'API_AUTH', to: 'PI_NETWORK', label: 'Verify' },
+      { from: 'API_AUTH', to: 'STELLAR', label: 'Anchor' },
+      { from: 'CF_ROUTER', to: 'PERPLEXITY', label: 'Harvest' }
+    ],
+    positions: {
+      BROWSER: { x: 150, y: 600 },
+      NEXTJS: { x: 350, y: 600 },
+      API_AUTH: { x: 550, y: 600 },
+      PRISMA: { x: 750, y: 600 },
+      POSTGRES: { x: 950, y: 600 },
+      REDIS: { x: 750, y: 450 },
+      WEBHOOK: { x: 550, y: 350 },
+      CF_ROUTER: { x: 750, y: 350 },
+      CF_D1: { x: 950, y: 250 },
+      CF_KV: { x: 950, y: 350 },
+      CF_VECTORIZE: { x: 950, y: 450 },
+      CF_MCP: { x: 1150, y: 350 },
+      PI_NETWORK: { x: 550, y: 200 },
+      STELLAR: { x: 750, y: 200 },
+      PERPLEXITY: { x: 1150, y: 200 }
+    }
+  }
+};
+
+// ============ GLOBAL STATE ============
+let currentFlow = 'browser-api';
+let flowProgress = 0;
+let particles = [];
+let nodes = {};
+let edges = [];
+let nodeElements = {};
+let stepIndex = 0;
+let lastStepTime = 0;
+let stepDelay = 1500;
+let paused = false;
+
+// ============ P5 SETUP ============
+function setup() {
+  const canvas = createCanvas(windowWidth, windowHeight);
+  canvas.parent('canvas-container');
+  colorMode(HSB, 360, 100, 100, 100);
+  textFont('JetBrains Mono');
+  randomSeed(CONFIG.seed);
+  noiseSeed(CONFIG.seed);
+  
+  initFlow(currentFlow);
+  
+  // UI handlers
+  document.querySelectorAll('.flow-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.flow-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFlow = btn.dataset.flow;
+      initFlow(currentFlow);
+    });
+  });
+  
+  document.getElementById('speed-slider').addEventListener('input', (e) => {
+    CONFIG.animationSpeed = parseFloat(e.target.value);
+    document.getElementById('speed-value').textContent = CONFIG.animationSpeed.toFixed(1) + 'x';
+    stepDelay = 1500 / CONFIG.animationSpeed;
+  });
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  initFlow(currentFlow);
+}
+
+function initFlow(flowKey) {
+  const flow = FLOWS[flowKey];
+  nodes = {};
+  edges = [];
+  particles = [];
+  stepIndex = 0;
+  flowProgress = 0;
+  lastStepTime = millis();
+  
+  // Scale positions to canvas size
+  const scaleX = width / 1400;
+  const scaleY = height / 900;
+  const offsetX = (width - 1400 * scaleX) / 2;
+  const offsetY = (height - 900 * scaleY) / 2;
+  
+  Object.keys(flow.positions).forEach(key => {
+    const pos = flow.positions[key];
+    const type = NODE_TYPES[key];
+    nodes[key] = {
+      id: key,
+      x: pos.x * scaleX + offsetX,
+      y: pos.y * scaleY + offsetY,
+      type: type,
+      label: type.label,
+      sublabel: type.sublabel,
+      active: false,
+      pulse: 0
+    };
+  });
+  
+  flow.edges.forEach((edge, i) => {
+    const from = nodes[edge.from];
+    const to = nodes[edge.to];
+    if (from && to) {
+      edges.push({
+        ...edge,
+        fromNode: from,
+        toNode: to,
+        progress: 0,
+        active: false,
+        particles: [],
+        delay: i * stepDelay
+      });
+    }
+  });
+  
+  updateInfoPanel(flow);
+}
+
+function updateInfoPanel(flow) {
+  const stepsDiv = document.getElementById('steps');
+  stepsDiv.innerHTML = flow.edges.map((edge, i) => 
+    `<div class="step" id="step-${i}">${i + 1}. ${edge.from} → ${edge.to} <span style="color:#64748b">(${edge.label})</span></div>`
+  ).join('');
+  document.querySelector('#info-panel h3').textContent = `Flow: ${flow.name}`;
+}
+
+// ============ PARTICLE CLASS ============
+class DataParticle {
+  constructor(x, y, targetX, targetY, color, size) {
+    this.x = x;
+    this.y = y;
+    this.targetX = targetX;
+    this.targetY = targetY;
+    this.color = color;
+    this.size = size || CONFIG.particleSize;
+    this.progress = 0;
+    this.trail = [];
+    this.maxTrail = 8;
+    this.speed = 0.02 * CONFIG.flowSpeed * CONFIG.animationSpeed;
+    this.alive = true;
+  }
+  
+  update() {
+    this.trail.push({ x: this.x, y: this.y });
+    if (this.trail.length > this.maxTrail) this.trail.shift();
+    
+    this.progress += this.speed;
+    if (this.progress >= 1) {
+      this.progress = 1;
+      this.alive = false;
+    }
+    
+    // Eased movement
+    const eased = this.easeInOutCubic(this.progress);
+    this.x = lerp(this.x, this.targetX, 0.1) + (this.targetX - this.x) * eased * 0.1;
+    this.y = lerp(this.y, this.targetY, 0.1) + (this.targetY - this.y) * eased * 0.1;
+    
+    // Actually just lerp directly for smoother motion
+    this.x = lerp(this.x, this.targetX, this.speed * 5);
+    this.y = lerp(this.y, this.targetY, this.speed * 5);
+    
+    const dx = this.targetX - this.x;
+    const dy = this.targetY - this.y;
+    if (abs(dx) < 2 && abs(dy) < 2) this.alive = false;
+  }
+  
+  easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - pow(-2 * t + 2, 3) / 2;
+  }
+  
+  draw() {
+    // Draw trail
+    noFill();
+    stroke(this.color);
+    strokeWeight(1);
+    beginShape();
+    this.trail.forEach((p, i) => {
+      const alpha = map(i, 0, this.trail.length, 0, 80);
+      stroke(this.color, alpha);
+      strokeWeight(map(i, 0, this.trail.length, 0.5, this.size * 0.8));
+      vertex(p.x, p.y);
+    });
+    endShape();
+    
+    // Draw particle
+    fill(this.color);
+    noStroke();
+    ellipse(this.x, this.y, this.size);
+    
+    // Glow
+    drawingContext.shadowBlur = 10;
+    drawingContext.shadowColor = this.color;
+    ellipse(this.x, this.y, this.size * 1.5);
+    drawingContext.shadowBlur = 0;
+  }
+}
+
+// ============ DRAW LOOP ============
+function draw() {
+  background(PALETTE.bg);
+  drawGrid();
+  
+  // Update flow animation
+  updateFlow();
+  
+  // Draw edges (behind nodes)
+  edges.forEach(edge => drawEdge(edge));
+  
+  // Draw particles
+  particles.forEach(p => {
+    p.update();
+    p.draw();
+  });
+  particles = particles.filter(p => p.alive);
+  
+  // Draw nodes
+  Object.values(nodes).forEach(node => drawNode(node));
+  
+  // Draw edge labels
+  edges.forEach(edge => drawEdgeLabel(edge));
+  
+  // Update step highlighting
+  updateStepHighlight();
+}
+
+function drawGrid() {
+  stroke(PALETTE.grid);
+  strokeWeight(0.5);
+  const gridSize = 60;
+  for (let x = 0; x < width; x += gridSize) {
+    line(x, 0, x, height);
+  }
+  for (let y = 0; y < height; y += gridSize) {
+    line(0, y, width, y);
+  }
+}
+
+function updateFlow() {
+  const now = millis();
+  const flow = FLOWS[currentFlow];
+  
+  edges.forEach((edge, i) => {
+    if (!edge.active && now - lastStepTime > edge.delay) {
+      edge.active = true;
+      // Activate nodes
+      edge.fromNode.active = true;
+      edge.fromNode.pulse = 1;
+      edge.toNode.active = true;
+      
+      // Create initial particle
+      particles.push(new DataParticle(
+        edge.fromNode.x, edge.fromNode.y,
+        edge.toNode.x, edge.toNode.y,
+        PALETTE.particle,
+        CONFIG.particleSize
+      ));
+    }
+    
+    if (edge.active) {
+      edge.progress = min(1, edge.progress + 0.01 * CONFIG.animationSpeed);
+      
+      // Spawn particles along the path
+      if (edge.progress < 0.95 && random() < 0.05 * CONFIG.animationSpeed) {
+        const t = edge.progress;
+        const x = lerp(edge.fromNode.x, edge.toNode.x, t);
+        const y = lerp(edge.fromNode.y, edge.toNode.y, t);
+        const tx = lerp(edge.fromNode.x, edge.toNode.x, t + 0.1);
+        const ty = lerp(edge.fromNode.y, edge.toNode.y, t + 0.1);
+        particles.push(new DataParticle(x, y, tx, ty, PALETTE.particle, CONFIG.particleSize * 0.7));
+      }
+    }
+  });
+  
+  // Decay node pulses
+  Object.values(nodes).forEach(node => {
+    if (node.pulse > 0) node.pulse *= 0.95;
+  });
+}
+
+function drawNode(node) {
+  const r = CONFIG.nodeRadius;
+  const pulse = node.pulse * 10;
+  
+  // Outer glow when active
+  if (node.active) {
+    drawingContext.shadowBlur = 20 + pulse;
+    drawingContext.shadowColor = node.type.color;
+  }
+  
+  // Node background (double rect for opacity)
+  fill(15, 23, 42);
+  noStroke();
+  rect(node.x - r, node.y - r, r * 2, r * 2, 12);
+  
+  fill(hexToHSB(node.type.color).h, hexToHSB(node.type.color).s, hexToHSB(node.type.color).b, 30);
+  stroke(node.type.color);
+  strokeWeight(2);
+  rect(node.x - r, node.y - r, r * 2, r * 2, 12);
+  
+  // Pulse ring
+  if (node.pulse > 0.1) {
+    noFill();
+    stroke(node.type.color, node.pulse * 100);
+    strokeWeight(2);
+    ellipse(node.x, node.y, r * 2 + pulse * 2);
+  }
+  
+  drawingContext.shadowBlur = 0;
+  
+  // Labels
+  fill(PALETTE.text);
+  noStroke();
+  textAlign(CENTER, CENTER);
+  textSize(13);
+  textFont('JetBrains Mono');
+  textStyle(BOLD);
+  text(node.label, node.x, node.y - 8);
+  
+  textSize(10);
+  textStyle(NORMAL);
+  fill(PALETTE.textDim);
+  text(node.sublabel, node.x, node.y + 12);
+}
+
+function drawEdge(edge) {
+  const from = edge.fromNode;
+  const to = edge.toNode;
+  
+  if (!edge.active) return;
+  
+  // Draw path
+  stroke(PALETTE.arrow);
+  strokeWeight(1.5);
+  noFill();
+  
+  // Curved path
+  const midX = (from.x + to.x) / 2;
+  const midY = (from.y + to.y) / 2 - 40;
+  
+  beginShape();
+  vertex(from.x, from.y);
+  quadraticVertex(midX, midY, to.x, to.y);
+  endShape();
+  
+  // Arrowhead
+  drawArrowhead(from, to, midX, midY);
+}
+
+function drawArrowhead(from, to, midX, midY) {
+  // Calculate point near destination
+  const t = 0.85;
+  const x = lerp(lerp(from.x, midX, t), lerp(midX, to.x, t), t);
+  const y = lerp(lerp(from.y, midY, t), lerp(midY, to.y, t), t);
+  
+  // Direction vector
+  const nextT = min(1, t + 0.02);
+  const nx = lerp(lerp(from.x, midX, nextT), lerp(midX, to.x, nextT), nextT);
+  const ny = lerp(lerp(from.y, midY, nextT), lerp(midY, to.y, nextT), nextT);
+  const angle = atan2(ny - y, nx - x);
+  
+  push();
+  translate(x, y);
+  rotate(angle);
+  fill(PALETTE.arrow);
+  noStroke();
+  triangle(0, 0, -10, -5, -10, 5);
+  pop();
+}
+
+function drawEdgeLabel(edge) {
+  if (!edge.active || edge.progress < 0.3) return;
+  
+  const from = edge.fromNode;
+  const to = edge.toNode;
+  const midX = (from.x + to.x) / 2;
+  const midY = (from.y + to.y) / 2 - 55;
+  
+  fill(PALETTE.textDim);
+  noStroke();
+  textAlign(CENTER, CENTER);
+  textSize(9);
+  textFont('JetBrains Mono');
+  text(edge.label, midX, midY);
+}
+
+function updateStepHighlight() {
+  document.querySelectorAll('.step').forEach((el, i) => {
+    el.classList.toggle('active', i === stepIndex);
+  });
+  
+  // Advance step index based on edge progress
+  let activeCount = edges.filter(e => e.active && e.progress > 0.5).length;
+  stepIndex = min(activeCount, edges.length - 1);
+}
+
+function hexToHSB(hex) {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0, v = max;
+  const d = max - min;
+  s = max === 0 ? 0 : d / max;
+  if (max !== min) {
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+  return { h: h * 360, s: s * 100, b: v * 100 };
+}
+
+// ============ INTERACTION ============
+function mousePressed() {
+  // Click on node to highlight its connections
+  Object.values(nodes).forEach(node => {
+    const d = dist(mouseX, mouseY, node.x, node.y);
+    if (d < CONFIG.nodeRadius) {
+      node.pulse = 1;
+      // Highlight connected edges
+      edges.forEach(edge => {
+        if (edge.fromNode === node || edge.toNode === node) {
+          edge.active = true;
+          edge.fromNode.active = true;
+          edge.toNode.active = true;
+        }
+      });
+    }
+  });
+}
+
+function keyPressed() {
+  if (key === ' ') {
+    paused = !paused;
+    if (!paused) lastStepTime = millis();
+  }
+  if (key === 'r' || key === 'R') {
+    initFlow(currentFlow);
+  }
+}
+</script>
+</body>
+</html>

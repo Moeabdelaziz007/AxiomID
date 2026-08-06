@@ -190,7 +190,7 @@
   "score_low": "منخفض",
   "score_new": "جديد",
   "status_verified": "موثق",
-  "status_pending": "قيد المراجعة",
+  "status_pending": "قيد الانتظار",
   "status_unverified": "غير موثق",
   "status_denied": "مرفوض",
   "passport_not_found": "جواز السفر غير موجود",
@@ -579,9 +579,7 @@
   "revenue_dashboard": "لوحة الإيرادات",
   "app_revenue_title": "لوحة إيرادات التطبيقات",
   "app_revenue_desc": "تتبع أرباحك في شبكتي الاختبار والرئيسية عبر جميع التطبيقات المنشورة. بيانات مباشرة من شبكة Pi.",
-  "wallet_address": "عنوان المحفظة",
   "copy_address": "نسخ العنوان",
-  "copied": "تم النسخ!",
   "last_updated": "آخر تحديث",
   "environment": "البيئة",
   "testnet": "شبكة الاختبار",
@@ -623,7 +621,6 @@
   "tx_hash": "هاش المعاملة",
   "no_transactions": "لا توجد معاملات بعد",
   "status_active": "نشط",
-  "status_pending": "قيد الانتظار",
   "status_inactive": "غير نشط",
   "sale": "بيع",
   "fee": "رسوم",
@@ -632,5 +629,6 @@
   "completed": "مكتمل",
   "pending": "قيد الانتظار",
   "failed": "فشل",
-  "close": "إغلاق"
+  "agent_control_center_title": "مجمّع النوايا — مركز التحكم في العملاء",
+  "agent_control_center_desc": "أثبت النية الإنسانية خلف إجراءات الذكاء الاصطناعي. هوية واحدة، عملاء بلا حدود، إثبات تشفيري — حالة شبكة حية."
 }

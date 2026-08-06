@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { getTranslation } from "@/i18n";
 
 export type Language = "en" | "ar" | "zh";
 

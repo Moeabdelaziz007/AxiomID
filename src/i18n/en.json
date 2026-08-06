@@ -171,7 +171,7 @@
   "stamps_collection_desc": "Complete tasks to anchor verifiable credentials",
   "w3c_vc_title": "W3C Verifiable Credential",
   "w3c_vc_subtitle": "Cryptographically signed claim payload",
-  "copied": "COPIED!",
+  "copied": "Copied!",
   "copy_payload": "COPY PAYLOAD",
   "download_json": "DOWNLOAD JSON",
   "verified": "Verified",
@@ -190,7 +190,7 @@
   "score_low": "LOW",
   "score_new": "NEW",
   "status_verified": "VERIFIED",
-  "status_pending": "PENDING",
+  "status_pending": "Pending",
   "status_unverified": "UNVERIFIED",
   "status_denied": "DENIED",
   "passport_not_found": "Passport Not Found",
@@ -579,9 +579,7 @@
   "revenue_dashboard": "Revenue Dashboard",
   "app_revenue_title": "App Revenue Dashboard",
   "app_revenue_desc": "Track your Testnet and Mainnet earnings across all deployed apps. Real-time data from the Pi Network.",
-  "wallet_address": "Wallet Address",
   "copy_address": "Copy Address",
-  "copied": "Copied!",
   "last_updated": "Last Updated",
   "environment": "Environment",
   "testnet": "Testnet",
@@ -623,7 +621,6 @@
   "tx_hash": "Tx Hash",
   "no_transactions": "No transactions yet",
   "status_active": "Active",
-  "status_pending": "Pending",
   "status_inactive": "Inactive",
   "sale": "Sale",
   "fee": "Fee",
@@ -632,5 +629,6 @@
   "completed": "Completed",
   "pending": "Pending",
   "failed": "Failed",
-  "close": "Close"
+  "agent_control_center_title": "AxiomID — Agent Control Center",
+  "agent_control_center_desc": "Prove human intent behind AI actions. One DID, infinite agents, cryptographic proof — live network state."
 }
