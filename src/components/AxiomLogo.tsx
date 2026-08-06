@@ -81,7 +81,7 @@ export function AxiomLogo({
         </defs>
         
         {/* Outer rotating ring */}
-        <circle cx="50" cy="50" r="42" stroke="url(#outerGradient)" strokeWidth="2" strokeDasharray="6 20 32 12" className="animate-spin-slow" style={{ animationDuration: '30s' }} />
+        <circle cx="50" cy="50" r="42" stroke="url(#outerGradient)" strokeWidth="2" strokeDasharray="6 20 32 12" className={animate ? 'animate-spin-slow' : ''} style={{ animationDuration: '30s' }} />
         
         {/* Inner glow */}
         <circle cx="50" cy="50" r="30" fill="url(#innerGlow)" />
