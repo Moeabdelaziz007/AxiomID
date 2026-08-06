@@ -1,0 +1,82 @@
+digraph AxiomID_Topology {
+  rankdir=TB;
+  bgcolor="transparent";
+  node [shape=box, style="rounded,filled", fontname="JetBrains Mono", fontsize=10, color="#1e293b"];
+  edge [color="#64748b", fontsize=9, fontname="JetBrains Mono"];
+
+  subgraph cluster_layer0 {
+    label="Layer 0 — Infrastructure / Runtime";
+    color="#1e293b"; fontcolor="#22d3ee";
+    CF [label="Cloudflare\nWorkers / Pages / R2 / DO", fillcolor="#0f172a", fontcolor="#fbbf24"];
+    VERCEL [label="Vercel\nNext.js 16 Functions", fillcolor="#0f172a", fontcolor="#fbbf24"];
+    GW [label="pai-gateways\n(edge entry, A2A gateway)", fillcolor="#0f172a", fontcolor="#fbbf24"];
+  }
+
+  subgraph cluster_layer1 {
+    label="Layer 1 — Identity & Memory";
+    color="#1e293b"; fontcolor="#22d3ee";
+    AXID [label="AxiomID app\n(Next.js 16, DID issuer, TrustChain)", fillcolor="#052e16", fontcolor="#34d399"];
+    DID [label="@axiomid/crypto + identity-did\n(DID docs, Ed25519)", fillcolor="#052e16", fontcolor="#34d399"];
+    MEM [label="PAI-Memory / AxiomID.Memory\n(semantic memory, ledger)", fillcolor="#052e16", fontcolor="#34d399"];
+  }
+
+  subgraph cluster_layer2 {
+    label="Layer 2 — Auth / Attestation";
+    color="#1e293b"; fontcolor="#22d3ee";
+    KYA [label="axiomid-piverify (PiVerify)\nKYC/KYA, certificates", fillcolor="#1c1917", fontcolor="#fb7185"];
+    PISDK [label="pi-sdk.ts / determineSandboxMode()\n(browser-only, Pi OAuth)", fillcolor="#1c1917", fontcolor="#fb7185"];
+  }
+
+  subgraph cluster_layer3 {
+    label="Layer 3 — Protocols (A2A / PPP)";
+    color="#1e293b"; fontcolor="#22d3ee";
+    MCP [label="pai-mcp / backend/src/mcp\n(JSON-RPC /mcp, A2A)", fillcolor="#0f172a", fontcolor="#a78bfa"];
+    PPP [label="PPP (Portable Profile Protocol)\npai-sam/pai-port — signed memory packs", fillcolor="#0f172a", fontcolor="#a78bfa"];
+  }
+
+  subgraph cluster_layer4 {
+    label="Layer 4 — Runtime Control / Orchestration";
+    color="#1e293b"; fontcolor="#22d3ee";
+    ARC [label="ARC protocol\npai-agent-kit / pai-core / pai-drv", fillcolor="#1e293b", fontcolor="#e2e8f0"];
+  }
+
+  subgraph cluster_layer5 {
+    label="Layer 5 — Discovery + Registry";
+    color="#1e293b"; fontcolor="#22d3ee";
+    ADP [label="ADP (Agent Discovery)\npai-skills registry / pai-atom ABI", fillcolor="#1e293b", fontcolor="#e2e8f0"];
+  }
+
+  subgraph cluster_layer6 {
+    label="Layer 6 — TrustChain / Audit";
+    color="#1e293b"; fontcolor="#22d3ee";
+    TC [label="TrustChain\n(append-only signed ledger, Pi anchoring)", fillcolor="#052e16", fontcolor="#34d399"];
+  }
+
+  subgraph cluster_layer7 {
+    label="Layer 7 — Consumer Products";
+    color="#1e293b"; fontcolor="#22d3ee";
+    GSP [label="PAI-Gspace (Universe UI)\nmarketplace / labor", fillcolor="#172554", fontcolor="#93c5fd"];
+    LAND [label="Agent Control Center (axiomid.app)\n9-section OS: Intent→…→Explorer", fillcolor="#172554", fontcolor="#93c5fd"];
+    SUB [label="*.axiomid.app capabilities\nearn/skills/memory/mcp/agdp", fillcolor="#172554", fontcolor="#93c5fd"];
+  }
+
+  // Repo → package deps (verified by grep)
+  AXID -> PISDK [label="loadPiSdk (browser-only)"];
+  AXID -> DID [label="@axiomid/crypto ×7"];
+  AXID -> KYA [label="/api/pi/kya/register"];
+  AXID -> MEM [label="context, daily-review"];
+  AXID -> TC [label="TrustChain.append"];
+  AXID -> MCP [label="backend/src/mcp"];
+  AXID -> ARC [label="pai-drv, agent landing"];
+  GW -> MCP [label="A2A routing"];
+  LAND -> AXID [label="/api/status, /api/explorer"];
+  LAND -> DID [label="/api/did-document"];
+  GSP -> ADP [label="discovery"];
+  GSP -> MCP [label="A2A calls"];
+  SUB -> GSP [label="capabilities of one OS"];
+  MCP -> ARC [label="runtime control"];
+  ARC -> ADP [label="skill registry"];
+  TC -> CF [label="anchoring (Pi txs)"];
+  TC -> KYA [label="certificate signing"];
+  PISDK -> CF [label="Pi Browser / sandbox"];
+}
