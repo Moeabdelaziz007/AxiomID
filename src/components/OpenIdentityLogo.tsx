@@ -157,12 +157,7 @@ export function OpenIdentityLogo({
 
   return (
     <div className={cn("flex items-center", s.gap, className)}>
-      {variant !== "minimal" && variant !== "icon-only" && showWordmark ? (
-        <div className="flex items-center gap-2">
-          {LogoMark}
-          {Wordmark}
-        </div>
-      ) : showWordmark ? (
+      {variant !== "icon-only" && showWordmark ? (
         <div className="flex items-center gap-2">
           {LogoMark}
           {Wordmark}

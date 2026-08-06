@@ -178,7 +178,7 @@ export async function GET(request: NextRequest) {
   }
 
   const action = await prisma.action.findFirst({
-    where: { userId: agent.userId, type: 'kya_register' },
+    where: { userId: agent.userId, type: 'kya_register', metadata: { contains: agentId } },
     orderBy: { timestamp: 'desc' },
   });
 

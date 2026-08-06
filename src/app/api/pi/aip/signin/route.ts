@@ -161,6 +161,17 @@ export async function GET(request: NextRequest) {
     orderBy: { timestamp: 'desc' },
   });
 
+  const salt = process.env.SOVEREIGN_KEY_SALT;
+  if (!salt) {
+    logger.error('[AIP-SIGNIN] SOVEREIGN_KEY_SALT not set');
+    return apiError('INTERNAL_ERROR', 'Identity service not configured');
+  }
+  if (!user.piUid) {
+    return apiError('NOT_FOUND', 'AIP identity not linked to Pi Network');
+  }
+
+  const keypair = deriveUserRootKey(user.piUid, salt);
+
   return apiSuccess({
     did,
     piUid: user.piUid,
@@ -168,6 +179,8 @@ export async function GET(request: NextRequest) {
     walletAddress: user.walletAddress,
     kycStatus: user.kycStatus,
     hasAgent: !!user.agent,
+    publicKey: keypair.publicKey,
+    verificationMethod: 'Ed25519Signature2020',
     trustAnchor: action?.hash ?? null,
     anchoredAt: action?.timestamp ?? null,
   });
