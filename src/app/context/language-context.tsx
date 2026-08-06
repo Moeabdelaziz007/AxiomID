@@ -167,9 +167,9 @@ export function LanguageProvider({
   }, [language, setLanguage]);
 
   // Translation function
+  // Translation function
   const t = useCallback((key: string) => {
-    // In real app, this would use actual translation bundles
-    return key;
+    return getTranslation(language, key);
   }, [language]);
 
   const config = LANGUAGE_CONFIGS[language];
