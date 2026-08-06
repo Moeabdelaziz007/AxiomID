@@ -204,8 +204,8 @@ if (typeof window !== "undefined") {
   (window as any).axiomid = (window as any).axiomid || {};
   (window as any).axiomid.language = {
     get: () => {
-      const ctx = document.querySelector("[data-language-context]");
-      return ctx?.getAttribute("data-language") || "en";
+      const stored = typeof localStorage !== "undefined" ? (localStorage.getItem("axiomid-language") as Language) : null;
+      return stored || "en";
     },
     set: (lang: Language) => {
       window.dispatchEvent(new CustomEvent("axiomid:agent-set-language", {
