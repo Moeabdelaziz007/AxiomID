@@ -38,6 +38,8 @@ interface RevenueData {
   lastUpdated: string;
 }
 
+type AppRevenue = RevenueData["testnet"]["apps"][0] | RevenueData["mainnet"]["apps"][0];
+
 interface Transaction {
   id: string;
   timestamp: string;
@@ -127,9 +129,9 @@ const StatCard = ({ icon: Icon, label, value, trend, trendLabel, accent = "emera
 };
 
 const AppRevenueCard = ({ app, environment, onViewDetails }: {
-  app: RevenueData["testnet"]["apps"][0] | RevenueData["mainnet"]["apps"][0];
+  app: AppRevenue;
   environment: "testnet" | "mainnet";
-  onViewDetails: (app: typeof app) => void;
+  onViewDetails: (app: AppRevenue) => void;
 }) => {
   const { t } = useLanguage();
   const isMainnet = environment === "mainnet";

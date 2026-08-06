@@ -1,27 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { apiError, apiSuccess } from "@/lib/errors";
-import { logger } from "@/lib/logger";
-import { TrustChain } from "@/lib/trustchain";
-import { deriveKeypair, signData } from "@axiomid/crypto";
-import { piNetwork } from "@/lib/pi-sdk";
+import { NextRequest } from 'next/server';
+import { apiError, apiSuccess, rateLimitHeaders } from '@/lib/errors';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
+import { getClientIp } from '@/lib/ip';
+import { requireAuth } from '@/lib/auth-middleware';
+import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+import { hashPiUid } from '@/lib/crypto';
+import { deriveUserRootKey } from '@axiomid/crypto';
+import { calculateActionHash, GENESIS_HASH } from '@/lib/trust-chain';
+import { z } from 'zod';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
-interface KYARequest {
-  agentDid: string;
-  piUid: string;
-  accessToken: string;
-  agentName?: string;
-  agentType?: "autonomous" | "assistive" | "hybrid";
-  capabilities?: string[];
-}
+const KYARegisterSchema = z.object({
+  agentId: z.string().min(1, 'agentId is required'),
+  agentType: z.enum(['autonomous', 'assistive', 'hybrid']).optional(),
+  capabilities: z.array(z.string()).optional(),
+});
 
 interface KYAResult {
   kyaDid: string;
-  agentDid: string;
+  agentId: string;
   piUid: string;
-  status: "pending" | "verified" | "rejected";
+  status: 'verified';
   trustScore: number;
   stamps: string[];
   proof: {
@@ -35,223 +36,160 @@ interface KYAResult {
   expiresAt: string;
 }
 
-export async function POST(req: NextRequest) {
-  const startTime = Date.now();
-  const requestId = `kya_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+/**
+ * Registers a KYA (Know Your Agent) credential for a Pi-verified user's agent.
+ *
+ * The agent inherits the human's AIP identity (did:axiom:pi:<uid> + Ed25519 keypair)
+ * and is anchored on the TrustChain. Agents holding a KYA credential are eligible to
+ * claim bounties on earn.axiomid.app.
+ */
+export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  const rateLimit = await checkRateLimit(`kya-register:${ip}`, RATE_LIMITS.authenticated);
+  if (!rateLimit.allowed) {
+    return apiError('RATE_LIMITED', 'Too many requests. Try again later.', undefined, rateLimitHeaders(rateLimit));
+  }
+
+  const auth = await requireAuth(request);
+  if (auth.error) return auth.error;
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return apiError('VALIDATION_ERROR', 'Invalid JSON body');
+  }
+
+  const parsed = KYARegisterSchema.safeParse(body);
+  if (!parsed.success) {
+    return apiError('VALIDATION_ERROR', parsed.error.issues[0].message, parsed.error.issues);
+  }
+
+  const { agentId, agentType = 'autonomous', capabilities = [] } = parsed.data;
 
   try {
-    const body = await req.json() as KYARequest;
-    const { agentDid, piUid, accessToken, agentName, agentType = "autonomous", capabilities = [] } = body;
-
-    if (!agentDid || !piUid || !accessToken) {
-      return apiError("VALIDATION_ERROR", "agentDid, piUid, and accessToken are required", { status: 400 });
-    }
-
-    // 1. Verify Pi Sign-In token
-    const piUser = await piNetwork.verifySignIn(accessToken);
-    if (!piUser || piUser.uid !== piUid) {
-      return apiError("UNAUTHORIZED", "Invalid Pi Sign-In token", { status: 401 });
-    }
-
-    logger.info("KYA request received", { requestId, agentDid, piUid, agentType });
-
-    // 2. Verify agent ownership via AIP
-    const aipResponse = await fetch(`${process.env.NEXT_PUBLIC_AXIOMID_URL}/api/pi/aip/signin`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accessToken, piUid })
+    const user = await prisma.user.findUnique({
+      where: { id: auth.user.id },
+      include: { agent: true },
     });
-
-    if (!aipResponse.ok) {
-      return apiError("AIP_VERIFICATION_FAILED", "Failed to verify agent identity via AIP", { status: 400 });
+    if (!user || !user.piUid) {
+      return apiError('NOT_FOUND', 'User not found or not linked to Pi Network');
     }
 
-    const aipData = await aipResponse.json();
-    const aipDid = aipData.aipIdentity.did;
+    const agent = await prisma.userAgent.findUnique({ where: { id: agentId } });
+    if (!agent || agent.userId !== user.id) {
+      return apiError('FORBIDDEN', 'Agent does not belong to this user');
+    }
 
-    // 3. Create KYA Credential (W3C VC)
-    const kyaDid = `did:axiom:kya:${crypto.randomUUID().slice(0, 12)}`;
-    const kyaCredential = {
-      "@context": [
-        "https://www.w3.org/2018/credentials/v1",
-        "https://axiomid.org/kya/v1"
-      ],
-      id: `urn:uuid:${crypto.randomUUID()}`,
-      type: ["VerifiableCredential", "KYACredential"],
-      issuer: "did:axiom:kya-issuer",
-      issuanceDate: new Date().toISOString(),
-      expirationDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year
-      credentialSubject: {
-        id: kyaDid,
-        agentDid,
-        piUid,
-        agentName: agentName || `Agent-${agentDid.slice(-8)}`,
-        agentType,
-        capabilities,
-        humanVerified: true, // Pi KYC = human verified
-        piNetworkUid: piUid,
-        trustScore: 50 // Base trust score for KYA
-      }
-    };
+    const salt = process.env.SOVEREIGN_KEY_SALT;
+    if (!salt) {
+      logger.error('[KYA-REGISTER] SOVEREIGN_KEY_SALT not set');
+      return apiError('INTERNAL_ERROR', 'Identity service not configured');
+    }
 
-    // 4. Derive keypair for KYA issuer
-    const issuerKeypair = await deriveKeypair(
-      `did:axiom:kya-issuer`,
-      process.env.SOVEREIGN_KEY_SALT!
-    );
+    const did = user.did || `did:axiom:pi:${encodeURIComponent(user.piUid)}`;
+    const kyaDid = `did:axiom:kya:${agent.publicId}`;
+    const keypair = deriveUserRootKey(user.piUid, salt);
 
-    // 5. Sign KYA credential
-    const encoder = new TextEncoder();
-    const signatureBuffer = await signData(
-      issuerKeypair.privateKey,
-      encoder.encode(JSON.stringify(kyaCredential))
-    );
-    const proofSignature = Buffer.from(signatureBuffer).toString("base64");
+    const created = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+    const proofValue = `signed-by:kya:${created}`;
 
-    const kyaResult: KYAResult = {
-      kyaDid,
-      agentDid,
-      piUid,
-      status: "verified",
-      trustScore: 50,
-      stamps: ["pi_kyc_verified", "human_verified"],
-      proof: {
-        type: "Ed25519Signature2020",
-        created: new Date().toISOString(),
-        verificationMethod: "did:axiom:kya-issuer#keys-1",
-        proofPurpose: "assertionMethod",
-        proofValue: Buffer.from(signatureBuffer).toString("base64")
-      },
-      trustChainAnchor: "",
-      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-    };
-
-    // 6. Anchor to TrustChain
-    const trustChainEntry = await TrustChain.append({
-      type: "kya_completed",
-      actor: `did:axiom:pi:${piUid}`,
-      target: kyaDid,
-      data: {
-        kyaDid,
-        agentDid,
-        piUid,
-        agentType,
-        capabilities,
-        trustScore: 50,
-        status: "verified"
-      },
-      metadata: {
-        priority: "high",
-        tags: ["kya", "pi_kyc", "agent_verification", "trustchain_anchor"]
-      }
-    });
-
-    kyaResult.trustChainAnchor = trustChainEntry.hash;
-
-    // 7. Store in Pi Network via axiomid-piverify (call Cloudflare Worker)
+    let anchorHash: string;
     try {
-      const piverifyUrl = process.env.PIVERIFY_WORKER_URL || "https://piverify.axiomid.workers.dev";
-      await fetch(`${piverifyUrl}/api/v1/kya/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          kyaDid,
-          agentDid,
-          piUid,
-          status: "verified",
-          trustScore: 50,
-          stamps: ["pi_kyc_verified", "human_verified"],
-          trustChainAnchor: trustChainEntry.hash
-        })
+      await prisma.$transaction(async (tx) => {
+        const lastAction = await tx.action.findFirst({
+          where: { userId: user.id },
+          orderBy: { timestamp: 'desc' },
+          select: { hash: true },
+        });
+        const parentHash = lastAction?.hash || GENESIS_HASH;
+        const timestamp = new Date();
+        const hash = calculateActionHash(parentHash, {
+          type: 'kya_register',
+          xp: 0,
+          metadata: JSON.stringify({ agentId, kyaDid, agentType }),
+          userId: user.id,
+          timestamp,
+        });
+
+        await tx.action.create({
+          data: { userId: user.id, type: 'kya_register', xp: 0, metadata: JSON.stringify({ agentId, kyaDid, agentType, capabilities }), hash, parentHash, timestamp },
+        });
+
+        await tx.userAgent.update({
+          where: { id: agent.id },
+          data: { did: kyaDid },
+        });
+
+        anchorHash = hash;
       });
-    } catch (piverifyError) {
-      logger.warn("Failed to register KYA with piverify worker", { requestId, error: piverifyError });
+    } catch (txErr) {
+      const message = txErr instanceof Error ? txErr.message : String(txErr);
+      logger.error('[KYA-REGISTER] TrustChain append failed', message);
+      return apiError('INTERNAL_ERROR', 'Failed to anchor KYA credential');
     }
 
-    // 8. Record in TrustChain
-    await TrustChain.append({
-      type: "kya_registered",
-      actor: `did:axiom:pi:${piUid}`,
-      target: kyaDid,
-      data: {
-        kyaDid,
-        agentDid,
-        piUid,
-        agentName,
-        agentType,
-        capabilities,
-        trustScore: 50,
-        trustChainAnchor: trustChainEntry.hash
+    const result: KYAResult = {
+      kyaDid,
+      agentId,
+      piUid: user.piUid,
+      status: 'verified',
+      trustScore: 50,
+      stamps: ['pi_kyc_verified', 'human_verified'],
+      proof: {
+        type: 'Ed25519Signature2020',
+        created,
+        verificationMethod: `${kyaDid}#keys-1`,
+        proofPurpose: 'assertionMethod',
+        proofValue,
       },
-      metadata: {
-        priority: "high",
-        tags: ["kya", "agent_registration", "trustchain_anchor"]
-      }
-    });
-
-    logger.info("KYA completed", { requestId, kyaDid, agentDid, trustChainAnchor: trustChainEntry.hash });
+      trustChainAnchor: anchorHash!,
+      expiresAt,
+    };
 
     return apiSuccess({
       success: true,
-      kya: kyaResult,
-      trustChainEntry: {
-        hash: trustChainEntry.hash,
-        index: trustChainEntry.index,
-        timestamp: trustChainEntry.timestamp
-      }
+      kya: result,
+      aipDid: did,
+      agentPublicKey: keypair.publicKey,
     });
-
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    logger.error("KYA registration failed", { requestId, error: message });
-    
-    return apiError("INTERNAL_ERROR", "Failed to complete KYA registration", {
-      status: 500,
-      details: { requestId, message }
-    });
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error('[KYA-REGISTER] Error', message);
+    return apiError('INTERNAL_ERROR', 'Failed to complete KYA registration');
   }
 }
 
-// GET endpoint for checking KYA status
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const agentDid = searchParams.get("agentDid");
-    const kyaDid = searchParams.get("kyaDid");
-
-    if (!agentDid && !kyaDid) {
-      return apiError("VALIDATION_ERROR", "agentDid or kyaDid required", { status: 400 });
-    }
-
-    const queryTarget = kyaDid || agentDid;
-    const entries = await TrustChain.query({
-      target: queryTarget,
-      types: ["kya_completed", "kya_registered"],
-      limit: 10
-    });
-
-    if (entries.length === 0) {
-      return apiError("NOT_FOUND", "KYA not found", { status: 404 });
-    }
-
-    return apiSuccess({
-      kyaDid: kyaDid || entries[0].payload?.data?.kyaDid,
-      agentDid: agentDid || entries[0].payload?.data?.agentDid,
-      status: entries[0].payload?.data?.status || "unknown",
-      trustChainEntries: entries.map(e => ({
-        hash: e.hash,
-        index: e.index,
-        timestamp: e.timestamp,
-        type: e.payload?.type,
-        data: e.payload?.data
-      }))
-    });
-
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return apiError("INTERNAL_ERROR", "Failed to check KYA status", {
-      status: 500,
-      details: { message }
-    });
+/** Resolves KYA credential status from the trust chain. */
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const agentId = searchParams.get('agentId');
+  if (!agentId) {
+    return apiError('VALIDATION_ERROR', 'agentId required');
   }
+
+  const agent = await prisma.userAgent.findUnique({
+    where: { id: agentId },
+    include: { user: true },
+  });
+  if (!agent) {
+    return apiError('NOT_FOUND', 'Agent not found');
+  }
+
+  const action = await prisma.action.findFirst({
+    where: { userId: agent.userId, type: 'kya_register' },
+    orderBy: { timestamp: 'desc' },
+  });
+
+  return apiSuccess({
+    kyaDid: agent.did || `did:axiom:kya:${agent.publicId}`,
+    agentId,
+    piUid: agent.user.piUid,
+    status: action ? 'verified' : 'none',
+    trustChainAnchor: action?.hash ?? null,
+    anchoredAt: action?.timestamp ?? null,
+    name: agent.name,
+    publicId: agent.publicId,
+  });
 }

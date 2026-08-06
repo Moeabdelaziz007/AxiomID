@@ -21,7 +21,7 @@ import { SkillsTab } from "@/components/dashboard/tabs/SkillsTab";
 import { WalletTab } from "@/components/dashboard/tabs/WalletTab";
 import { MemoryTab } from "@/components/dashboard/tabs/MemoryTab";
 import { SettingsTab } from "@/components/dashboard/tabs/SettingsTab";
-import { RevenueTab } from "@/components/dashboard/tabs/RevenueTab";
+import RevenueTab from "@/components/dashboard/tabs/RevenueTab";
 
 const InteractivePassportCard = nextDynamic(() => import("@/components/ui/InteractivePassportCard"), { ssr: false });
 const TerminalOverlay = nextDynamic(() => import("@/components/dashboard/TerminalOverlay").then(m => m.TerminalOverlay), { ssr: false });

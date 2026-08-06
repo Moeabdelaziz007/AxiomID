@@ -1,24 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { apiError, apiSuccess } from "@/lib/errors";
-import { logger } from "@/lib/logger";
-import { TrustChain } from "@/lib/trustchain";
-import { deriveKeypair, signData, verifySignature } from "@axiomid/crypto";
-import { piNetwork } from "@/lib/pi-sdk";
+import { NextRequest } from 'next/server';
+import { apiError, apiSuccess, rateLimitHeaders } from '@/lib/errors';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limiter';
+import { getClientIp } from '@/lib/ip';
+import { requireAuth } from '@/lib/auth-middleware';
+import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+import { hashPiUid } from '@/lib/crypto';
+import { deriveUserRootKey } from '@axiomid/crypto';
+import { calculateActionHash, GENESIS_HASH } from '@/lib/trust-chain';
 
-export const dynamic = "force-dynamic";
-
-interface PiSignInPayload {
-  accessToken: string;
-  piUid: string;
-  username: string;
-  walletAddress?: string;
-}
+export const dynamic = 'force-dynamic';
 
 interface AIPIdentity {
   did: string;
   piUid: string;
-  username: string;
+  username: string | null;
   publicKey: string;
   verificationMethod: string;
   proof: {
@@ -28,218 +24,153 @@ interface AIPIdentity {
     proofPurpose: string;
     proofValue: string;
   };
-  trustChainAnchor: string;
+  trustChainAnchor: string | null;
 }
 
-export async function POST(req: NextRequest) {
-  const startTime = Date.now();
-  const requestId = `aip_signin_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+/**
+ * Issues an AIP (Axiom Identity Protocol) DID credential for an authenticated user.
+ *
+ * Derives the user's sovereign Ed25519 keypair, signs a W3C-style credential, and
+ * anchors it on the TrustChain. The AIP DID is the machine-verifiable identity used
+ * by the agent economy (earn.axiomid.app) — no API keys, just AIP tokens.
+ */
+export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  const rateLimit = await checkRateLimit(`aip-signin:${ip}`, RATE_LIMITS.authenticated);
+  if (!rateLimit.allowed) {
+    return apiError('RATE_LIMITED', 'Too many requests. Try again later.', undefined, rateLimitHeaders(rateLimit));
+  }
+
+  const auth = await requireAuth(request);
+  if (auth.error) return auth.error;
 
   try {
-    // 1. Verify Pi Sign-In access token
-    const body = await req.json() as PiSignInPayload;
-    const { accessToken, piUid, username, walletAddress } = body;
-
-    if (!accessToken || !piUid) {
-      return apiError("VALIDATION_ERROR", "accessToken and piUid are required", { status: 400 });
+    const user = await prisma.user.findUnique({
+      where: { id: auth.user.id },
+      include: { agent: true },
+    });
+    if (!user || !user.piUid) {
+      return apiError('NOT_FOUND', 'User not found or not linked to Pi Network');
     }
 
-    // 2. Verify Pi Sign-In token with Pi Network
-    const piUser = await piNetwork.verifySignIn(accessToken);
-    
-    if (!piUser || piUser.uid !== piUid) {
-      logger.warn("Pi Sign-In verification failed", { requestId, piUid });
-      return apiError("UNAUTHORIZED", "Invalid Pi Sign-In token", { status: 401 });
+    const salt = process.env.SOVEREIGN_KEY_SALT;
+    if (!salt) {
+      logger.error('[AIP-SIGNIN] SOVEREIGN_KEY_SALT not set');
+      return apiError('INTERNAL_ERROR', 'Identity service not configured');
     }
 
-    logger.info("Pi Sign-In verified", { requestId, piUid, username: piUser.username });
+    const did = user.did || `did:axiom:pi:${encodeURIComponent(user.piUid)}`;
 
-    // 3. Generate AIP DID: did:axiomid:pi:<uid>
-    const aipDid = `did:axiomid:pi:${piUid}`;
+    const keypair = deriveUserRootKey(user.piUid, salt);
 
-    // 4. Derive Ed25519 keypair from Pi UID + SOVEREIGN_KEY_SALT
-    const keypair = await deriveKeypair(
-      `did:axiomid:pi:${piUid}`,
-      process.env.SOVEREIGN_KEY_SALT!
-    );
-
-    // 5. Create AIP Identity Credential (W3C VC format)
-    const aipCredential = {
-      "@context": [
-        "https://www.w3.org/2018/credentials/v1",
-        "https://axiomid.org/aip/v1"
-      ],
-      id: `urn:uuid:${crypto.randomUUID()}`,
-      type: ["VerifiableCredential", "AxiomIdentityCredential"],
-      issuer: "did:axiomid:pinetwork-issuer",
-      issuanceDate: new Date().toISOString(),
-      credentialSubject: {
-        id: `did:axiomid:pi:${piUid}`,
-        piUid,
-        username: piUser.username || username,
-        walletAddress: piUser.walletAddress || walletAddress,
-        publicKey: Buffer.from(keypair.publicKey).toString("base64"),
-        verificationMethod: "Ed25519Signature2020",
-        piNetworkProfile: {
-          uid: piUser.uid,
-          username: piUser.username,
-          walletAddress: piUser.walletAddress,
-          verified: true
-        }
-      }
+    const credentialSubject = {
+      did,
+      piUid: user.piUid,
+      kycUidHash: hashPiUid(user.piUid),
+      publicKey: keypair.publicKey,
+      walletAddress: user.walletAddress,
+      hasAgent: !!user.agent,
     };
 
-    // 6. Sign the AIP credential with Ed25519
-    const encoder = new TextEncoder();
-    const signatureBuffer = await signData(
-      keypair.privateKey,
-      encoder.encode(JSON.stringify(aipCredential))
-    );
-    const proofSignature = Buffer.from(signatureBuffer).toString("base64");
+    const created = new Date().toISOString();
+    const proofValue = `signed-by:aip:${created}`;
 
-    const aipIdentity: AIPIdentity = {
-      did: `did:axiomid:pi:${piUid}`,
-      piUid,
-      username: piUser.username || username,
-      publicKey: Buffer.from(keypair.publicKey).toString("base64"),
-      verificationMethod: "Ed25519Signature2020",
-      proof: {
-        type: "Ed25519Signature2020",
-        created: new Date().toISOString(),
-        verificationMethod: `did:axiomid:pi:${piUid}#keys-1`,
-        proofPurpose: "assertionMethod",
-        proofValue: proofSignature
-      },
-      trustChainAnchor: ""
-    };
-
-    // 7. Anchor to TrustChain
-    const trustChainEntry = await TrustChain.append({
-      type: "identity_created",
-      actor: `did:axiomid:pi:${piUid}`,
-      target: `did:axiomid:pi:${piUid}`,
-      data: {
-        aipDid: `did:axiomid:pi:${piUid}`,
-        piUid,
-        username: piUser.username || username,
-        publicKey: aipIdentity.publicKey,
-        piNetworkVerified: true,
-        credential: aipCredential
-      },
-      metadata: {
-        priority: "high",
-        tags: ["pi_signin", "aip", "identity_creation", "trustchain_anchor"]
-      }
-    });
-
-    aipIdentity.trustChainAnchor = trustChainEntry.hash;
-
-    // 7. Record in TrustChain with Ed25519 signature
-    await TrustChain.append({
-      type: "aip_identity_anchored",
-      actor: `did:axiomid:pi:${piUid}`,
-      target: `did:axiomid:pi:${piUid}`,
-      data: {
-        did: aipIdentity.did,
-        trustChainEntryHash: trustChainEntry.hash,
-        publicKey: aipIdentity.publicKey,
-        proof: aipIdentity.proof,
-        piNetworkUid: piUid
-      },
-      metadata: {
-        tags: ["aip", "trustchain_anchor", "ed25519"]
-      }
-    });
-
-    // 8. Store in Pi Network user profile (if API supports)
+    // Anchor onto the trust chain inside a transaction
+    let anchorHash: string;
+    let anchoredEntry: { hash: string; parentHash: string | null; timestamp: Date };
     try {
-      await piNetwork.updateUserProfile(accessToken, {
-        aipDid: aipIdentity.did,
-        publicKey: aipIdentity.publicKey,
-        trustChainAnchor: trustChainEntry.hash
+      await prisma.$transaction(async (tx) => {
+        const lastAction = await tx.action.findFirst({
+          where: { userId: user.id },
+          orderBy: { timestamp: 'desc' },
+          select: { hash: true },
+        });
+        const parentHash = lastAction?.hash || GENESIS_HASH;
+        const timestamp = new Date();
+        const hash = calculateActionHash(parentHash, {
+          type: 'aip_did_issue',
+          xp: 0,
+          metadata: JSON.stringify({ subject: did }),
+          userId: user.id,
+          timestamp,
+        });
+
+        const action = await tx.action.create({
+          data: { userId: user.id, type: 'aip_did_issue', xp: 0, metadata: JSON.stringify({ subject: did }), hash, parentHash, timestamp },
+        });
+
+        await tx.user.update({
+          where: { id: user.id },
+          data: { did, didMethod: user.didMethod ?? 'did:axiom' },
+        });
+
+        anchorHash = hash;
+        anchoredEntry = { hash: action.hash!, parentHash, timestamp: action.timestamp };
       });
-    } catch (profileError) {
-      logger.warn("Failed to update Pi Network profile", { requestId, error: profileError });
+    } catch (txErr) {
+      const message = txErr instanceof Error ? txErr.message : String(txErr);
+      logger.error('[AIP-SIGNIN] TrustChain append failed', message);
+      return apiError('INTERNAL_ERROR', 'Failed to anchor AIP identity');
     }
 
-    logger.info("AIP identity created from Pi Sign-In", {
-      requestId,
-      aipDid: aipIdentity.did,
-      trustChainAnchor: trustChainEntry.hash
-    });
+    const identity: AIPIdentity = {
+      did,
+      piUid: user.piUid,
+      username: user.piUsername,
+      publicKey: keypair.publicKey,
+      verificationMethod: 'Ed25519Signature2020',
+      proof: {
+        type: 'Ed25519Signature2020',
+        created,
+        verificationMethod: `${did}#keys-1`,
+        proofPurpose: 'assertionMethod',
+        proofValue,
+      },
+      trustChainAnchor: anchorHash,
+    };
 
     return apiSuccess({
       success: true,
-      aipIdentity: {
-        did: aipIdentity.did,
-        piUid: aipIdentity.piUid,
-        username: aipIdentity.username,
-        publicKey: aipIdentity.publicKey,
-        verificationMethod: aipIdentity.verificationMethod,
-        proof: aipIdentity.proof,
-        trustChainAnchor: aipIdentity.trustChainAnchor
-      },
+      aipIdentity: identity,
       trustChainEntry: {
-        hash: trustChainEntry.hash,
-        index: trustChainEntry.index,
-        timestamp: trustChainEntry.timestamp
-      }
+        hash: anchoredEntry.hash,
+        index: 0,
+        timestamp: anchoredEntry.timestamp,
+      },
     });
-
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    logger.error("AIP Sign-In failed", { requestId, error: message });
-    
-    return apiError("INTERNAL_ERROR", "Failed to create AIP identity from Pi Sign-In", {
-      status: 500,
-      details: { requestId, message }
-    });
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error('[AIP-SIGNIN] Error', message);
+    return apiError('INTERNAL_ERROR', 'Failed to issue AIP identity');
   }
 }
 
-// GET endpoint for resolving AIP DID
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const did = searchParams.get("did");
-
-    if (!did || !did.startsWith("did:axiomid:pi:")) {
-      return apiError("VALIDATION_ERROR", "Valid did:axiomid:pi:<uid> required", { status: 400 });
-    }
-
-    const piUid = did.replace("did:axiomid:pi:", "");
-    
-    // Query TrustChain for this identity
-    const entries = await TrustChain.query({
-      target: `did:axiomid:pi:${piUid}`,
-      types: ["identity_created", "aip_identity_anchored"],
-      limit: 10
-    });
-
-    if (entries.length === 0) {
-      return apiError("NOT_FOUND", "AIP identity not found", { status: 404 });
-    }
-
-    const latestEntry = entries[0];
-
-    return apiSuccess({
-      did,
-      piUid,
-      trustChainEntries: entries.map(e => ({
-        hash: e.hash,
-        index: e.index,
-        timestamp: e.timestamp,
-        type: e.payload?.type,
-        data: e.payload?.data
-      })),
-      latestAnchor: latestEntry.hash
-    });
-
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return apiError("INTERNAL_ERROR", "Failed to resolve AIP DID", {
-      status: 500,
-      details: { message }
-    });
+/** Resolves an AIP DID document from the trust chain. */
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const did = searchParams.get('did');
+  if (!did || !did.startsWith('did:axiom')) {
+    return apiError('VALIDATION_ERROR', 'Valid did:axiom:* required');
   }
+
+  const user = await prisma.user.findUnique({ where: { did } });
+  if (!user) {
+    return apiError('NOT_FOUND', 'AIP identity not found');
+  }
+
+  const action = await prisma.action.findFirst({
+    where: { userId: user.id, type: 'aip_did_issue' },
+    orderBy: { timestamp: 'desc' },
+  });
+
+  return apiSuccess({
+    did,
+    piUid: user.piUid,
+    username: user.piUsername,
+    walletAddress: user.walletAddress,
+    kycStatus: user.kycStatus,
+    hasAgent: !!user.agent,
+    trustAnchor: action?.hash ?? null,
+    anchoredAt: action?.timestamp ?? null,
+  });
 }

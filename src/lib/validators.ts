@@ -41,6 +41,11 @@ export const PaymentCompleteSchema = z.object({
   txid: z.string().regex(/^[a-zA-Z0-9_-]+$/, 'txid must be alphanumeric, dashes, or underscores').min(1, 'txid is required'),
 });
 
+export const IncompletePaymentSchema = z.object({
+  paymentId: z.string().min(1, 'paymentId is required'),
+  txid: z.string().regex(/^[a-zA-Z0-9_-]+$/, 'txid must be alphanumeric, dashes, or underscores').optional(),
+});
+
 // ── Spend Request Validation ──────────────────────────────────
 
 export const SpendRequestCreateSchema = z.object({

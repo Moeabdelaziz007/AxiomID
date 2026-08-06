@@ -121,13 +121,17 @@ export function useFontStatus(lang?: string) {
   const { language } = useLanguage();
   const targetLang = lang || language;
   const config = FONT_CONFIGS[targetLang as keyof typeof FONT_CONFIGS];
-  
+
   if (!config) return { ready: true, loaded: [], pending: [] };
-  
+
+  const loaded: string[] = typeof window !== "undefined" && (window as any).axiomid?.fonts
+    ? (window as any).axiomid.fonts.getLoaded()
+    : [];
+
   return {
-    ready: config.families.every(f => loadedFonts.has(f.name)),
-    loaded: config.families.filter(f => loadedFonts.has(f.name)).map(f => f.name),
-    pending: config.families.filter(f => !loadedFonts.has(f.name)).map(f => f.name)
+    ready: config.families.every(f => loaded.includes(f.name)),
+    loaded: config.families.filter(f => loaded.includes(f.name)).map(f => f.name),
+    pending: config.families.filter(f => !loaded.includes(f.name)).map(f => f.name)
   };
 }
 
