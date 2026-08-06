@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
         const hash = calculateActionHash(parentHash, {
           type: 'kya_register',
           xp: 0,
-          metadata: JSON.stringify({ agentId, kyaDid, agentType }),
+          metadata: JSON.stringify({ agentId, kyaDid, agentType, capabilities }),
           userId: user.id,
           timestamp,
         });
