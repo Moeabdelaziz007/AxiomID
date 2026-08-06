@@ -1,9 +1,0 @@
-{
-  "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "axiomid-subdomain-redirect",
-  "main": "src/index.ts",
-  "compatibility_date": "2026-07-07",
-  "routes": [
-    { "pattern": "*.axiomid.app/*", "zone_name": "axiomid.app" }
-  ]
-}
