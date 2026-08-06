@@ -76,10 +76,9 @@ export async function POST(request: NextRequest) {
     const proofValue = `signed-by:aip:${created}`;
 
     // Anchor onto the trust chain inside a transaction
-    let anchorHash: string;
-    let anchoredEntry: { hash: string; parentHash: string | null; timestamp: Date };
+    let anchored: { hash: string; parentHash: string | null; timestamp: Date };
     try {
-      await prisma.$transaction(async (tx) => {
+      anchored = await prisma.$transaction(async (tx) => {
         const lastAction = await tx.action.findFirst({
           where: { userId: user.id },
           orderBy: { timestamp: 'desc' },
@@ -104,8 +103,7 @@ export async function POST(request: NextRequest) {
           data: { did, didMethod: user.didMethod ?? 'did:axiom' },
         });
 
-        anchorHash = hash;
-        anchoredEntry = { hash: action.hash!, parentHash, timestamp: action.timestamp };
+        return { hash: action.hash!, parentHash, timestamp: action.timestamp };
       });
     } catch (txErr) {
       const message = txErr instanceof Error ? txErr.message : String(txErr);
@@ -126,16 +124,16 @@ export async function POST(request: NextRequest) {
         proofPurpose: 'assertionMethod',
         proofValue,
       },
-      trustChainAnchor: anchorHash,
+      trustChainAnchor: anchored.hash,
     };
 
     return apiSuccess({
       success: true,
       aipIdentity: identity,
       trustChainEntry: {
-        hash: anchoredEntry.hash,
+        hash: anchored.hash,
         index: 0,
-        timestamp: anchoredEntry.timestamp,
+        timestamp: anchored.timestamp,
       },
     });
   } catch (error) {
@@ -153,7 +151,7 @@ export async function GET(request: NextRequest) {
     return apiError('VALIDATION_ERROR', 'Valid did:axiom:* required');
   }
 
-  const user = await prisma.user.findUnique({ where: { did } });
+  const user = await prisma.user.findUnique({ where: { did }, include: { agent: true } });
   if (!user) {
     return apiError('NOT_FOUND', 'AIP identity not found');
   }
