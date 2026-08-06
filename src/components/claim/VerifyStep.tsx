@@ -1,14 +1,15 @@
 import { motion } from "framer-motion";
-import { Shield, Wallet, Globe, CheckCircle2 } from "lucide-react";
+import { Shield, Wallet, Globe, CheckCircle2, AlertTriangle, RefreshCw } from "lucide-react";
 import type { User } from "@/app/context/wallet-context";
 
 interface VerifyStepProps {
-  t: (en: string, ar: string) => string;
+  t: (en: string, ar: string, zh: string) => string;
   verified: boolean;
   verificationItems: {
     kyc: boolean;
     payment: boolean;
   };
+  kycState: "pending" | "verified" | "failed";
   handleVerify: () => void;
   isVerifying: boolean;
   verifiedTrustScore: number | null;
@@ -23,6 +24,7 @@ export function VerifyStep({
   isVerifying,
   verifiedTrustScore,
   user,
+  kycState,
 }: VerifyStepProps) {
   return (
     <div className="text-center">
@@ -30,12 +32,13 @@ export function VerifyStep({
         <Shield className="w-10 h-10 text-electric-blue" />
       </div>
       <h2 className="text-2xl font-sans font-bold mb-2">
-        {t("Know Your Agent", "اعرف وكيلك")}
+        {t("Know Your Agent", "اعرف وكيلك", "认识您的代理")}
       </h2>
       <p className="text-white/40 font-sans text-sm mb-8 max-w-sm mx-auto">
         {t(
           "Build your trust score through decentralized verification",
-          "ابنِ نقاط ثقتك من خلال التحقق اللامركزي"
+          "ابنِ نقاط ثقتك من خلال التحقق اللامركزي",
+          "通过去中心化验证积累您的信任分数"
         )}
       </p>
 
@@ -47,13 +50,12 @@ export function VerifyStep({
               {
                 key: "kyc" as const,
                 icon: Shield,
-                label: t("Pi KYC", "التحقق من هوية Pi"),
-                status: verificationItems.kyc,
+label: t("Pi KYC", "التحقق من هوية Pi", "Pi 身份验证"),
               },
               {
                 key: "payment" as const,
                 icon: Wallet,
-                label: t("Payment Proof", "إثبات الدفع"),
+                label: t("Payment Proof", "إثبات الدفع", "支付证明"),
                 status: verificationItems.payment,
               },
             ].map((item) => {
@@ -84,17 +86,19 @@ export function VerifyStep({
                        {item.label}
                      </span>
                    </div>
-                   <span
-                     className={`font-mono text-xs transition-colors duration-500 ${
-                       item.status
-                         ? "text-neon-green font-bold"
-                         : "text-white/30"
-                     }`}
-                   >
-                     {item.status
-                       ? t("VERIFIED", "موثق")
-                       : t("PENDING", "قيد الانتظار")}
-                   </span>
+                    <span
+                      className={`font-mono text-xs transition-colors duration-500 ${
+                        item.status
+                          ? "text-neon-green font-bold"
+                          : "text-white/30"
+                      }`}
+                    >
+                      {item.status
+                        ? t("VERIFIED", "موثق", "已验证")
+                        : item.key === "kyc" && kycState === "failed"
+                          ? t("NOT VERIFIED", "غير موثق", "未验证")
+                          : t("PENDING", "قيد الانتظار", "等待中")}
+                    </span>
                  </div>
               );
             })}
@@ -121,7 +125,8 @@ export function VerifyStep({
                 </motion.div>
                 {t(
                   "VERIFYING...",
-                  "جارٍ التحقق..."
+                  "جارٍ التحقق...",
+                  "验证中..."
                 )}
               </>
             ) : (
@@ -129,11 +134,42 @@ export function VerifyStep({
                 <Globe className="w-5 h-5" />
                 {t(
                   "START VERIFICATION",
-                  "بدء التحقق"
+                  "بدء التحقق",
+                  "开始验证"
                 )}
               </>
             )}
           </motion.button>
+
+          {kycState === "failed" && (
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full max-w-sm mx-auto px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-left"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                <p className="text-amber-400 font-mono text-xs font-bold">
+                  {t("Identity not yet verified", "الهوية غير موثقة بعد", "身份尚未验证")}
+                </p>
+              </div>
+              <p className="text-white/50 font-mono text-[10px]">
+                {t(
+                  "Complete KYC inside the Pi app to verify your identity, then retry. This is not a green state — KYC is still required.",
+                  "أكمل التحقق من الهوية (KYC) داخل تطبيق Pi للتوثيق، ثم أعد المحاولة. لن يتم احتسابك موثقًا قبل اكتمال KYC.",
+                  "请在 Pi 应用中完成 KYC 身份验证后重试。这并非通过状态——仍需完成 KYC。"
+                )}
+              </p>
+              <button
+                onClick={handleVerify}
+                disabled={isVerifying}
+                className="mt-2 inline-flex items-center gap-1.5 font-mono text-xs text-amber-300 hover:text-amber-200 transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                {t("Re-check now", "إعادة التحقق الآن", "立即重新检查")}
+              </button>
+            </motion.div>
+          )}
         </div>
       ) : (
         <motion.div
@@ -145,11 +181,16 @@ export function VerifyStep({
           <p className="font-mono text-sm text-neon-green font-bold">
             {t(
               "VERIFICATION COMPLETE",
-              "اكتمل التحقق"
+              "اكتمل التحقق",
+              "验证完成"
             )}
           </p>
           <p className="font-mono text-xs text-white/40 mt-1">
-            {t("Trust Score: ", "نقاط الثقة: ")}{verifiedTrustScore ?? user?.trustScore ?? 0}
+            {t("Trust Score: ", "نقاط الثقة: ", "信任分数：")}
+            <span className="text-neon-green font-bold">
+              {verifiedTrustScore ?? user?.trustScore ?? 0}/100
+            </span>
+            <span className="text-white/30"> · {t("verified on a 0–100 scale", "موثوق على مقياس من 0 إلى 100", "按 0–100 量表验证")}</span>
           </p>
         </motion.div>
       )}

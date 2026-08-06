@@ -8,7 +8,7 @@ import Footer from "@/components/Footer";
 import { DevModeBanner } from "@/components/DevModeBanner";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { determineSandboxMode, checkPiBrowser } from "@/lib/pi-sdk";
+import { determineSandboxMode, checkPiBrowser, createPiPayment, PiSdkError } from "@/lib/pi-sdk";
 import { logger } from "@/lib/logger";
 import { toast } from "sonner";
 import {
@@ -30,6 +30,10 @@ const steps = [
   { id: 2, labelKey: "verify", icon: Shield },
   { id: 3, labelKey: "deploy", icon: Rocket },
 ];
+
+// Activation price in Pi — a real testnet payment powers the Developer
+// Portal's final verification step (10/10).
+const ACTIVATION_PRICE = 1;
 
 const stepVariants = {
   enter: (direction: number) => ({
@@ -63,6 +67,7 @@ export default function ClaimPage() {
     kyc: false,
     payment: false,
   });
+  const [kycState, setKycState] = useState<"pending" | "verified" | "failed">("pending");
   const [verified, setVerified] = useState(false);
   const [verifiedTrustScore, setVerifiedTrustScore] = useState<number | null>(null);
   const [deployed, setDeployed] = useState(false);
@@ -77,7 +82,7 @@ export default function ClaimPage() {
   const { user, connectWallet, isConnecting, isPiBrowser, createAgent, activateAgent, piAccessToken, connectDemo } = useWallet();
   const { language } = useLanguage();
 
-  const t = (en: string, ar: string) => (language === "en" ? en : ar);
+  const t = (en: string, ar: string, zh: string) => (language === "en" ? en : language === "ar" ? ar : zh);
 
 
   const nextStep = () => {
@@ -105,7 +110,7 @@ export default function ClaimPage() {
     if (connected) {
       setWalletConnected(true);
     } else {
-      setConnectError(t("Connection failed", "فشل الاتصال"));
+      setConnectError(t("Connection failed", "فشل الاتصال", "连接失败"));
     }
   };
 
@@ -117,10 +122,12 @@ export default function ClaimPage() {
 
   const handleVerify = async () => {
     setIsVerifying(true);
+    setKycState("pending");
     try {
       if (user?.kycStatus === "VERIFIED") {
         setVerificationItems({ kyc: true, payment: true });
         setVerifiedTrustScore(user.trustScore ?? null);
+        setKycState("verified");
         setVerified(true);
       } else {
         const kyaRes = await fetch("/api/pi/kya/verify", {
@@ -140,17 +147,38 @@ export default function ClaimPage() {
             if (typeof kyaData.computedTrustScore === "number") {
               setVerifiedTrustScore(kyaData.computedTrustScore);
             }
+            setKycState("verified");
             setVerified(true);
           } else {
-            setVerificationItems((prev) => ({ ...prev, kyc: true }));
+            // Honest state: KYC check ran but user is NOT verified yet.
+            setKycState("failed");
           }
+        } else {
+          setKycState("failed");
         }
       }
     } catch (err) {
       logger.error("Verification failed:", err);
-      toast.error(t("Verification failed", "فشل التحقق"));
+      setKycState("failed");
+      toast.error(t("Verification failed", "فشل التحقق", "验证失败"));
     } finally {
       setIsVerifying(false);
+    }
+  };
+
+  const payActivation = async (name: string): Promise<boolean> => {
+    try {
+      await createPiPayment(
+        ACTIVATION_PRICE,
+        name ? `Activate agent: ${name}` : "Activate agent",
+        { purpose: "identity_claim", agentName: name || null }
+      );
+      return true;
+    } catch (err) {
+      const msg = err instanceof PiSdkError ? err.message : "Payment failed";
+      logger.error("[CLAIM] Activation payment failed:", msg);
+      toast.error(msg);
+      return false;
     }
   };
 
@@ -158,15 +186,23 @@ export default function ClaimPage() {
     setIsDeploying(true);
     try {
       const isDemo = user?.id === "demo-user-id";
+
+      // Real activation requires a Pi payment (proves KYC + powers the
+      // Developer Portal's final verification step). Demo mode skips it.
+      if (!isDemo && !(await payActivation(name))) {
+        toast.error(t("Payment failed — agent not activated", "فشل الدفع — لم يتم تفعيل الوكيل", "支付失败 — 代理未激活"));
+        return;
+      }
+
       const created = isDemo || await createAgent(name);
       if (!created) {
-        toast.error(t("Agent creation failed", "فشل إنشاء الوكيل"));
+        toast.error(t("Agent creation failed", "فشل إنشاء الوكيل", "代理创建失败"));
         return;
       }
       const activated = isDemo || await activateAgent();
       if (activated) {
         setDeployed(true);
-        toast.success(t("Agent deployed successfully", "تم نشر وتفعيل الوكيل بنجاح"));
+        toast.success(t("Agent deployed successfully", "تم نشر وتفعيل الوكيل بنجاح", "代理部署成功"));
         confetti({
           particleCount: 150,
           spread: 70,
@@ -175,11 +211,11 @@ export default function ClaimPage() {
           disableForReducedMotion: true,
         });
       } else {
-        toast.error(t("Agent activation failed", "فشل تفعيل الوكيل"));
+        toast.error(t("Agent activation failed", "فشل تفعيل الوكيل", "代理激活失败"));
       }
     } catch (err) {
       logger.error("Deployment failed:", err);
-      toast.error(t("Deployment failed", "فشل عملية النشر"));
+      toast.error(t("Deployment failed", "فشل عملية النشر", "部署失败"));
     } finally {
       setIsDeploying(false);
     }
@@ -217,12 +253,13 @@ export default function ClaimPage() {
             className="text-center mb-12"
           >
             <h1 className="text-4xl sm:text-5xl font-sans font-bold mb-3 bg-gradient-to-r from-white via-electric-blue to-neon-green bg-clip-text text-transparent">
-              {t("Claim Your Identity", "احمل هويتك")}
+              {t("Claim Your Identity", "احمل هويتك", "认领您的身份")}
             </h1>
             <p className="text-white/50 font-sans text-sm">
               {t(
                 "Your sovereign digital passport awaits",
-                "جواز سفرك الرقمي السيادي في انتظارك"
+                "جواز سفرك الرقمي السيادي في انتظارك",
+                "您的主权数字护照已准备就绪"
               )}
             </p>
           </motion.div>
@@ -230,12 +267,12 @@ export default function ClaimPage() {
           {/* Stepper Progress */}
            <div className="mb-4">
              <div className="flex items-center justify-between mb-2">
-               <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest">
-                 {t("Step", "خطوة")} {currentStep}/3
-               </span>
-               <span className="text-[10px] font-mono text-white/40">
-                 {Math.round((currentStep / 3) * 100)}% {t("Complete", "مكتمل")}
-               </span>
+<span className="text-[10px] font-mono text-white/40 uppercase tracking-widest">
+                  {t("Step", "خطوة", "步骤")} {currentStep}/3
+                </span>
+                <span className="text-[10px] font-mono text-white/40">
+                  {Math.round((currentStep / 3) * 100)}% {t("Complete", "مكتمل", "已完成")}
+                </span>
              </div>
              <div className="w-full h-1.5 rounded-full bg-glass overflow-hidden p-[1px] border border-glass">
                <motion.div
@@ -334,6 +371,7 @@ export default function ClaimPage() {
                       t={t}
                       verified={verified}
                       verificationItems={verificationItems}
+                      kycState={kycState}
                       handleVerify={handleVerify}
                       isVerifying={isVerifying}
                       verifiedTrustScore={verifiedTrustScore}
@@ -391,7 +429,7 @@ export default function ClaimPage() {
                 className="flex items-center gap-2 font-sans text-sm text-white/40 hover:text-white/70 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="w-4 h-4" />
-                {t("Back", "رجوع")}
+                {t("Back", "رجوع", "返回")}
               </button>
 
               <motion.button
@@ -401,7 +439,7 @@ export default function ClaimPage() {
                 disabled={!canProceed()}
                 className="flex items-center gap-2 font-mono text-sm font-semibold px-6 py-3 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-white/[0.06] border border-white/[0.1] backdrop-blur-md text-white hover:bg-white/[0.1]"
               >
-                {t("Continue", "متابعة")}
+                {t("Continue", "متابعة", "继续")}
                 <ChevronRight className="w-4 h-4" />
               </motion.button>
             </motion.div>
@@ -435,12 +473,13 @@ export default function ClaimPage() {
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-lg font-bold text-white font-sans">
-                    {t("Pi Browser Required", "يتطلب متصفح Pi")}
+                    {t("Pi Browser Required", "يتطلب متصفح Pi", "需要 Pi 浏览器")}
                   </h3>
                   <p className="text-sm text-faint font-sans">
                     {t(
                       "To authenticate with the sovereign key protocol, you must access this page from inside the official Pi Browser application.",
-                      "للتوثيق بمستندات الهوية السيادية، يجب عليك زيارة هذه الصفحة من داخل تطبيق متصفح Pi الرسمي."
+                      "للتوثيق بمستندات الهوية السيادية، يجب عليك زيارة هذه الصفحة من داخل تطبيق متصفح Pi الرسمي.",
+                      "要通过主权密钥协议进行身份验证，您必须从 Pi 官方浏览器应用内访问此页面。"
                     )}
                   </p>
                 </div>
@@ -464,7 +503,7 @@ export default function ClaimPage() {
                         }
                       }}
                       className="p-1.5 hover:bg-glass rounded-lg text-faint hover:text-white transition-colors"
-                      title={t("Copy link", "نسخ الرابط")}
+                      title={t("Copy link", "نسخ الرابط", "复制链接")}
                     >
                       {copied ? (
                         <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -480,7 +519,7 @@ export default function ClaimPage() {
                     onClick={closeBrowserModal}
                     className="w-full py-3 px-4 rounded-xl bg-glass hover:bg-glass-hover text-white font-semibold text-sm border border-glass-hover transition-colors"
                   >
-                    {t("Got it", "فهمت")}
+                    {t("Got it", "فهمت", "知道了")}
                   </button>
 
                   <button
@@ -490,7 +529,7 @@ export default function ClaimPage() {
                     }}
                     className="w-full py-3 px-4 rounded-xl bg-neon-green/10 hover:bg-neon-green/20 text-neon-green font-semibold text-sm border border-neon-green/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-green focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                   >
-                    {t("Try Demo Mode", "تجربة وضع العرض التوضيحي")}
+                    {t("Try Demo Mode", "تجربة وضع العرض التوضيحي", "尝试演示模式")}
                   </button>
                 </div>
               </div>

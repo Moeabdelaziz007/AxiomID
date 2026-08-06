@@ -3,7 +3,7 @@ import { Wallet, ChevronRight, Lock, CheckCircle2 } from "lucide-react";
 import type { User } from "@/app/context/wallet-context";
 
 interface ConnectStepProps {
-  t: (en: string, ar: string) => string;
+  t: (en: string, ar: string, zh: string) => string;
   walletConnected: boolean;
   user: User | null;
   handleConnect: () => void;
@@ -29,12 +29,13 @@ export function ConnectStep({
         <Wallet className="w-10 h-10 text-electric-blue" />
       </div>
       <h2 className="text-2xl font-sans font-bold mb-2">
-        {t("Connect Wallet", "اتصل بالمحفظة")}
+        {t("Connect Wallet", "اتصل بالمحفظة", "连接钱包")}
       </h2>
       <p className="text-white/40 font-sans text-sm mb-8 max-w-sm mx-auto">
         {t(
           "Link your Pi Network wallet to begin your decentralized identity journey",
-          "اربط محفظة شبكة Pi لبدء رحلة هويتك اللامركزية"
+          "اربط محفظة شبكة Pi لبدء رحلة هويتك اللامركزية",
+          "连接您的 Pi 网络钱包，开始您的去中心化身份之旅"
         )}
       </p>
 
@@ -43,7 +44,7 @@ export function ConnectStep({
           <div className="flex items-center justify-center gap-3">
             <CheckCircle2 className="w-5 h-5 text-neon-green" />
             <span className="font-mono text-sm text-neon-green">
-              {t("Connected", "متصل")}
+              {t("Connected", "متصل", "已连接")}
             </span>
           </div>
           <p className="text-white/40 font-mono text-xs mt-2 text-center">
@@ -63,12 +64,12 @@ export function ConnectStep({
           {isConnecting ? (
             <>
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              {t("CONNECTING...", "جاري الاتصال...")}
+              {t("CONNECTING...", "جاري الاتصال...", "连接中...")}
             </>
           ) : (
             <>
               <Wallet className="w-5 h-5" />
-              {t("CONNECT PI WALLET", "اتصل بمحفظة PI")}
+              {t("CONNECT PI WALLET", "اتصل بمحفظة PI", "连接 PI 钱包")}
               <ChevronRight className="w-4 h-4" />
             </>
           )}
@@ -82,7 +83,7 @@ export function ConnectStep({
             className="w-full max-w-sm mx-auto py-3 px-4 rounded-xl bg-glass border border-glass-hover text-subtle font-mono text-sm hover:bg-glass-hover transition-colors flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-green focus-visible:ring-offset-2 focus-visible:ring-offset-black"
           >
             <span className="w-3 h-3 rounded-full bg-neon-green/60 animate-pulse" />
-            {t("Try Demo Mode", "تجربة وضع العرض التوضيحي")}
+            {t("Try Demo Mode", "تجربة وضع العرض التوضيحي", "试用演示模式")}
           </button>
         </div>
       )}
@@ -90,12 +91,13 @@ export function ConnectStep({
       {!isPiBrowser && !walletConnected && !user?.walletAddress && (
         <div className="mt-4 px-4 py-3 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
           <p className="text-yellow-500 font-mono text-xs font-bold mb-1">
-            {t("Pi Browser Required", "يتطلب Pi Browser")}
+            {t("Pi Browser Required", "يتطلب Pi Browser", "需要 Pi 浏览器")}
           </p>
           <p className="text-white/40 font-mono text-[10px]">
             {t(
               "Open this app inside Pi Browser to connect your wallet and claim your identity.",
-              "افتح هذا التطبيق داخل Pi Browser لربط محفظتك والحصول على هويتك."
+              "افتح هذا التطبيق داخل Pi Browser لربط محفظتك والحصول على هويتك.",
+              "请在 Pi 浏览器中打开此应用以连接钱包并认领您的身份。"
             )}
           </p>
         </div>
@@ -112,7 +114,8 @@ export function ConnectStep({
         <span className="font-mono text-xs">
           {t(
             "Non-custodial · Your keys, your identity",
-            "غير أصيل · مفاتيحك، هويتك"
+            "غير أصيل · مفاتيحك، هويتك",
+            "非托管 · 您的密钥，您的身份"
           )}
         </span>
       </div>

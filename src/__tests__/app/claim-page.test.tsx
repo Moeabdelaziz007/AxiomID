@@ -43,6 +43,18 @@ jest.mock("canvas-confetti", () => ({
   default: (...args: unknown[]) => mockConfetti(...args),
 }));
 
+// Mock only the payment call: jsdom has no Pi SDK, so createPiPayment would
+// throw and block step 3. Keep determineSandboxMode/checkPiBrowser real —
+// hostname-based tests depend on them.
+const mockCreatePiPayment = jest.fn().mockResolvedValue("test-txid");
+jest.mock("@/lib/pi-sdk", () => {
+  const actual = jest.requireActual("@/lib/pi-sdk");
+  return {
+    ...actual,
+    createPiPayment: (...args: unknown[]) => mockCreatePiPayment(...args),
+  };
+});
+
 // Mock fetch for /api/pi/kya/verify
 const mockFetch = jest.fn().mockResolvedValue({
   ok: true,
@@ -508,11 +520,28 @@ describe("ClaimPage — step 3 handleDeploy (agent activation)", () => {
       fireEvent.click(screen.getByText("ACTIVATE AGENT"));
     });
 
+    expect(mockCreatePiPayment).toHaveBeenCalledTimes(1);
     expect(createAgent).toHaveBeenCalledTimes(1);
     expect(activateAgent).toHaveBeenCalledTimes(1);
     expect(screen.getByText("AGENT ACTIVATED")).toBeInTheDocument();
     expect(mockToastSuccess).toHaveBeenCalledWith("Agent deployed successfully");
     expect(mockConfetti).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not create the agent when the activation payment fails", async () => {
+    const createAgent = jest.fn().mockResolvedValue(true);
+    const activateAgent = jest.fn().mockResolvedValue(true);
+    mockCreatePiPayment.mockRejectedValueOnce(new Error("Payment cancelled by user"));
+    await navigateToStep3({ createAgent, activateAgent });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText("ACTIVATE AGENT"));
+    });
+
+    expect(mockCreatePiPayment).toHaveBeenCalledTimes(1);
+    expect(createAgent).not.toHaveBeenCalled();
+    expect(activateAgent).not.toHaveBeenCalled();
+    expect(mockToastSuccess).not.toHaveBeenCalled();
   });
 
   it("renders an ENTER DASHBOARD link to /dashboard after successful deployment", async () => {
