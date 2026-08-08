@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 import { getTranslation } from "@/i18n";
 
-export type Language = "en" | "ar" | "zh";
+export type Language = "en" | "ar" | "zh" | "hi";
 
 interface LanguageContextValue {
   language: Language;
@@ -17,7 +17,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window === "undefined") return "en";
     const saved = localStorage.getItem("aix_language") as Language;
-    return saved === "en" || saved === "ar" ? saved : "en";
+    return saved === "en" || saved === "ar" || saved === "zh" || saved === "hi" ? saved : "en";
   });
   const mountedRef = useRef(false);
 

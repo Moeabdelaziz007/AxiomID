@@ -17,9 +17,9 @@ jest.mock("@/app/context/language-context", () => ({
 import { useLanguage } from "@/app/context/language-context";
 const mockUseLanguage = useLanguage as jest.MockedFunction<typeof useLanguage>;
 
-function makeLanguageCtx(overrides: { language?: "en" | "ar"; setLanguage?: jest.Mock; t?: (key: string) => string } = {}) {
+function makeLanguageCtx(overrides: { language?: "en" | "ar" | "zh" | "hi"; setLanguage?: jest.Mock; t?: (key: string) => string } = {}) {
   return {
-    language: "en" as "en" | "ar",
+    language: "en" as "en" | "ar" | "zh" | "hi",
     setLanguage: jest.fn(),
     t: (key: string) => key,
     ...overrides,
@@ -33,14 +33,8 @@ describe("LanguageToggle — rendering", () => {
     expect(screen.getByRole("button", { name: /toggle language/i })).toBeInTheDocument();
   });
 
-  it("shows 'العربية' label when current language is 'en'", () => {
+  it("shows current language native name ('English') when language is 'en'", () => {
     mockUseLanguage.mockReturnValue(makeLanguageCtx({ language: "en" }));
-    render(<LanguageToggle />);
-    expect(screen.getByText("العربية")).toBeInTheDocument();
-  });
-
-  it("shows 'English' label when current language is 'ar'", () => {
-    mockUseLanguage.mockReturnValue(makeLanguageCtx({ language: "ar" }));
     render(<LanguageToggle />);
     expect(screen.getByText("English")).toBeInTheDocument();
   });
@@ -53,33 +47,32 @@ describe("LanguageToggle — rendering", () => {
 });
 
 describe("LanguageToggle — interaction", () => {
-  it("calls setLanguage with 'ar' when current language is 'en' and button is clicked", () => {
+  it("shows all four languages in the list when opened", () => {
+    mockUseLanguage.mockReturnValue(makeLanguageCtx({ language: "en" }));
+    render(<LanguageToggle />);
+    fireEvent.click(screen.getByRole("button", { name: /toggle language/i }));
+    expect(screen.getByText("العربية")).toBeInTheDocument();
+    expect(screen.getByText("简体中文")).toBeInTheDocument();
+    expect(screen.getByText("हिन्दी")).toBeInTheDocument();
+  });
+
+  it("calls setLanguage with 'hi' when 'हिन्दी' is clicked", () => {
     const setLanguage = jest.fn();
     mockUseLanguage.mockReturnValue(makeLanguageCtx({ language: "en", setLanguage }));
     render(<LanguageToggle />);
     fireEvent.click(screen.getByRole("button", { name: /toggle language/i }));
-    expect(setLanguage).toHaveBeenCalledWith("ar");
+    fireEvent.click(screen.getByText("हिन्दी"));
+    expect(setLanguage).toHaveBeenCalledWith("hi");
     expect(setLanguage).toHaveBeenCalledTimes(1);
   });
 
-  it("calls setLanguage with 'en' when current language is 'ar' and button is clicked", () => {
-    const setLanguage = jest.fn();
-    mockUseLanguage.mockReturnValue(makeLanguageCtx({ language: "ar", setLanguage }));
-    render(<LanguageToggle />);
-    fireEvent.click(screen.getByRole("button", { name: /toggle language/i }));
-    expect(setLanguage).toHaveBeenCalledWith("en");
-    expect(setLanguage).toHaveBeenCalledTimes(1);
-  });
-
-  it("calls setLanguage exactly once per click", () => {
+  it("calls setLanguage with 'zh' when '简体中文' is clicked", () => {
     const setLanguage = jest.fn();
     mockUseLanguage.mockReturnValue(makeLanguageCtx({ language: "en", setLanguage }));
     render(<LanguageToggle />);
-    const btn = screen.getByRole("button", { name: /toggle language/i });
-    fireEvent.click(btn);
-    fireEvent.click(btn);
-    fireEvent.click(btn);
-    expect(setLanguage).toHaveBeenCalledTimes(3);
+    fireEvent.click(screen.getByRole("button", { name: /toggle language/i }));
+    fireEvent.click(screen.getByText("简体中文"));
+    expect(setLanguage).toHaveBeenCalledWith("zh");
   });
 });
 
