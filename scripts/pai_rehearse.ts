@@ -2,7 +2,6 @@ import { DidValidator } from '../packages/did-integrity-guard/src/did-validator.
 import { route, REAL_PROVIDERS, RouterConfig } from '../workers/pai-7loop-router/src/al-mizan-algorithm.js';
 import { AgentAppValidator } from '../packages/agent-app-models/src/validator.js';
 import { IqraPolicyEngine } from '../packages/iqra-policy-agent/src/policy-engine.js';
-import { OssieBridge } from '../packages/sdk/src/ossie-bridge.js';
 
 async function runEmpiricalBenchmark() {
   console.log('================================================================');
