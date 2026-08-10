@@ -630,5 +630,17 @@
   "pending": "Pending",
   "failed": "Failed",
   "agent_control_center_title": "AxiomID — Agent Control Center",
-  "agent_control_center_desc": "Prove human intent behind AI actions. One DID, infinite agents, cryptographic proof — live network state."
+  "agent_control_center_desc": "Prove human intent behind AI actions. One DID, infinite agents, cryptographic proof — live network state.",
+  "aura_os_title": "Aura OS — Sovereign AI Desktop",
+  "aura_os_desc": "Your sovereign AI desktop on the Pi Network. Launch agents, manage identity, explore memory — all from one shell.",
+  "built_on": "Built on",
+  "technology_partners": "Technology Partners",
+  "aura_os": "Aura OS",
+  "live": "LIVE",
+  "earn": "Earn",
+  "skills": "Skills",
+  "memory": "Memory",
+  "identity": "Identity",
+  "control_center": "Control Center",
+  "github": "GitHub"
 }
