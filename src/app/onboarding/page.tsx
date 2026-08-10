@@ -8,6 +8,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Wallet, ShieldCheck, CheckCircle2, ChevronRight, Zap } from "lucide-react";
 import InteractivePassportCard from "@/components/ui/InteractivePassportCard";
+import { GoogleConnectButton, type GoogleIdentity } from "@/components/os/GoogleConnectButton";
+import { emit, BUS_EVENTS } from "@/components/os/agent-bus";
 import { logger } from "@/lib/logger";
 import { toast } from "sonner";
 
@@ -23,10 +25,16 @@ export default function OnboardingPage() {
   const [creatingAgent, setCreatingAgent] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSelfVerified, setIsSelfVerified] = useState(false);
+  const [googleIdentity, setGoogleIdentity] = useState<GoogleIdentity | null>(null);
 
   const verified = user?.kycStatus === "VERIFIED" || isSelfVerified;
 
   const didAutoAdvance = useRef(false);
+
+  const handleGoogleConnected = (identity: GoogleIdentity) => {
+    setGoogleIdentity(identity);
+    toast.success(t("onboarding_google_connected"));
+  };
 
   const handleVerify = async () => {
     setIsVerifying(true);
@@ -224,17 +232,38 @@ export default function OnboardingPage() {
                         </button>
                       </div>
                     ) : (
-                      <button onClick={connectWallet} disabled={isConnecting} className="btn-primary w-full py-3 text-xs font-mono font-bold flex items-center justify-center gap-2">
-                        {isConnecting ? (
-                          <span className="flex items-center gap-2">
-                            <span className="animate-spin">⟳</span>
-                            <span>{t("onboarding_requesting_access")}</span>
-                          </span>
+                      <div className="space-y-4 animate-fadeInUp">
+                        <button onClick={connectWallet} disabled={isConnecting} className="btn-primary w-full py-3 text-xs font-mono font-bold flex items-center justify-center gap-2">
+                          {isConnecting ? (
+                            <span className="flex items-center gap-2">
+                              <span className="animate-spin">⟳</span>
+                              <span>{t("onboarding_requesting_access")}</span>
+                            </span>
+                          ) : (
+                            <>{t("onboarding_connect_wallet_btn")}</>
+                          )}
+                          <Wallet className="w-4 h-4" />
+                        </button>
+
+                        <div className="flex items-center gap-2">
+                          <span className="h-px flex-1 bg-white/10" />
+                          <span className="text-[9px] font-mono uppercase tracking-widest text-faint">{t("onboarding_or_divider")}</span>
+                          <span className="h-px flex-1 bg-white/10" />
+                        </div>
+
+                        {googleIdentity ? (
+                          <div className="flex items-center gap-2 text-emerald-400 text-xs font-mono font-bold bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>{t("onboarding_google_connected")}: {googleIdentity.email}</span>
+                          </div>
                         ) : (
-                          <>{t("onboarding_connect_wallet_btn")}</>
+                          <GoogleConnectButton onConnected={handleGoogleConnected} />
                         )}
-                        <Wallet className="w-4 h-4" />
-                      </button>
+
+                        <p className="text-[9px] font-mono text-faint text-center leading-relaxed">
+                          {t("onboarding_google_optional_note")}
+                        </p>
+                      </div>
                     )}
                   </div>
                 )}

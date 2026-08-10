@@ -574,5 +574,9 @@
   "memory": "记忆",
   "identity": "身份",
   "control_center": "控制中心",
-  "github": "GitHub"
+  "github": "GitHub",
+  "onboarding_google_unavailable": "Google 登录不可用 — 请添加 NEXT_PUBLIC_GOOGLE_CLIENT_ID 以启用。",
+  "onboarding_google_connected": "Google 已连接",
+  "onboarding_or_divider": "或",
+  "onboarding_google_optional_note": "可选：通过 Google 验证额外身份以强化你的 Soul Proof。仍然需要连接 Pi 钱包才能配置你的代理。"
 }

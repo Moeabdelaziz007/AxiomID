@@ -642,5 +642,9 @@
   "memory": "Memory",
   "identity": "Identity",
   "control_center": "Control Center",
-  "github": "GitHub"
+  "github": "GitHub",
+  "onboarding_google_unavailable": "Google Sign-In unavailable — add NEXT_PUBLIC_GOOGLE_CLIENT_ID to enable.",
+  "onboarding_google_connected": "Google connected",
+  "onboarding_or_divider": "or",
+  "onboarding_google_optional_note": "Optional: verify an additional identity with Google to strengthen your Soul Proof. Pi wallet connection is still required to provision your agent."
 }

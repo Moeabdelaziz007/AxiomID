@@ -642,5 +642,9 @@
   "memory": "الذاكرة",
   "identity": "الهوية",
   "control_center": "مركز التحكم",
-  "github": "جيت هاب"
+  "github": "جيت هاب",
+  "onboarding_google_unavailable": "تسجيل الدخول عبر Google غير متاح — أضف NEXT_PUBLIC_GOOGLE_CLIENT_ID لتفعيله.",
+  "onboarding_google_connected": "تم ربط Google",
+  "onboarding_or_divider": "أو",
+  "onboarding_google_optional_note": "اختياري: تحقق من هوية إضافية عبر Google لتقوية إثبات الروح. ربط محفظة Pi لا يزال مطلوبًا لتجهيز وكيلك."
 }
