@@ -23,20 +23,26 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import { headers } from "next/headers";
 import Home, { generateMetadata } from "@/app/page";
+import { useLanguage } from "@/app/context/language-context";
+import { getTranslation } from "@/i18n";
 
 jest.mock("next/headers", () => ({
   headers: jest.fn(),
 }));
 
-// The Agent Control Center landing is a "use client" composition of live
-// agent/intent/memory sections (covered by their own component suites). It
-// is stubbed here so this suite only asserts that page.tsx wires it in.
-jest.mock("@/components/landing/LazyControlCenter", () => ({
-  __esModule: true,
-  LazyControlCenter: () => <div data-testid="lazy-control-center-stub" />,
-}));
-
 const mockHeaders = headers as unknown as jest.Mock;
+
+// The global jest.setup.js mock's t() only knows a hardcoded whitelist and
+// returns raw keys for everything else (other suites rely on that). Scope a
+// real-translation override to THIS suite so Aura OS keys ("aura_os", "live")
+// render actual strings here without touching the global mock.
+function mockUseLanguage(lang: "en" | "ar") {
+  (useLanguage as jest.Mock).mockReturnValue({
+    language: lang,
+    setLanguage: jest.fn(),
+    t: (key: string) => getTranslation(lang, key),
+  });
+}
 
 function mockAcceptLanguage(value: string | null) {
   mockHeaders.mockResolvedValue({
@@ -52,26 +58,26 @@ describe("generateMetadata — language detection from accept-language header", 
   it("builds English metadata when accept-language is absent", async () => {
     mockAcceptLanguage(null);
     const metadata = await generateMetadata();
-    expect(metadata.title).toBe("AxiomID — Agent Control Center");
+    expect(metadata.title).toBe("Aura OS — Sovereign AI Desktop");
   });
 
   it("builds English metadata when accept-language does not start with 'ar'", async () => {
     mockAcceptLanguage("en-US,en;q=0.9");
     const metadata = await generateMetadata();
-    expect(metadata.title).toBe("AxiomID — Agent Control Center");
+    expect(metadata.title).toBe("Aura OS — Sovereign AI Desktop");
   });
 
   it("builds Arabic metadata when accept-language starts with 'ar'", async () => {
     mockAcceptLanguage("ar-EG,ar;q=0.9");
     const metadata = await generateMetadata();
-    expect(metadata.title).toBe("مجمّع النوايا — مركز التحكم في العملاء");
+    expect(metadata.title).toBe("أورا أو إس — سطح المكتب السيادي للذكاء الاصطناعي");
   });
 
   it("includes the tagline in the description", async () => {
     mockAcceptLanguage("en-US");
     const metadata = await generateMetadata();
     expect(metadata.description).toBe(
-      "Prove human intent behind AI actions. One DID, infinite agents, cryptographic proof — live network state."
+      "Your sovereign AI desktop on the Pi Network. Launch agents, manage identity, explore memory — all from one shell."
     );
   });
 
@@ -79,7 +85,7 @@ describe("generateMetadata — language detection from accept-language header", 
     mockAcceptLanguage("ar");
     const metadata = await generateMetadata();
     expect(metadata.description).toBe(
-      "أثبت النية الإنسانية خلف إجراءات الذكاء الاصطناعي. هوية واحدة، عملاء بلا حدود، إثبات تشفيري — حالة شبكة حية."
+      "سطح المكتب السيادي الخاص بك على شبكة باي. أطلق الوكلاء، أدر الهوية، استكشف الذاكرة — كل ذلك من واجهة واحدة."
     );
   });
 });
@@ -88,11 +94,17 @@ describe("Home — rendering with English (default) language", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     mockAcceptLanguage("en-US,en;q=0.9");
+    mockUseLanguage("en");
   });
 
-  it("wires the LazyControlCenter Agent Control Center into the page", async () => {
+  it("wires the WorkspaceGrid icon grid into the page", async () => {
     render(await Home());
-    expect(screen.getByTestId("lazy-control-center-stub")).toBeInTheDocument();
+    expect(screen.getByText(/workspace — capabilities/i)).toBeInTheDocument();
+  });
+
+  it("wires the Aura OS dock into the page", async () => {
+    render(await Home());
+    expect(screen.getByRole("navigation", { name: /aura os/i })).toBeInTheDocument();
   });
 
   it("renders the ambient dataflow animation canvas", async () => {
@@ -107,10 +119,11 @@ describe("Home — rendering with Arabic language", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAcceptLanguage("ar-EG,ar;q=0.9");
+    mockUseLanguage("ar");
   });
 
-  it("wires the Agent Control Center into the Arabic-rendered page", async () => {
+  it("wires the WorkspaceGrid into the Arabic-rendered page", async () => {
     render(await Home());
-    expect(screen.getByTestId("lazy-control-center-stub")).toBeInTheDocument();
+    expect(screen.getByText(/مساحة العمل — القدرات/i)).toBeInTheDocument();
   });
 });
