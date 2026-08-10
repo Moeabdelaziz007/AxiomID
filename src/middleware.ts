@@ -29,6 +29,9 @@ function isAllowedHost(host: string): boolean {
   // Security hardening: .vercel.app hosts are NOT allowed (wildcard removed).
   // Vercel preview deployments remain valid as CORS origins only
   // (see CORS_ALLOWED_ORIGINS), never as request hosts.
+  // Exact exception: the production preview anchor used by the protocol-stubs
+  // worker for /api/og proxying (axiomid-app-axiom-id.vercel.app).
+  if (plain === "axiomid-app-axiom-id.vercel.app") return true;
   return false;
 }
 
