@@ -229,6 +229,23 @@ describe("middleware — isAllowedHost (PR change: removed vercel.app wildcard)"
     const res = middleware(req);
     expect(res.status).toBe(403);
   });
+
+  it("allows the exact production preview anchor used by the protocol-stubs worker for /api/og proxying", () => {
+    // Explicit single-host exception — not a wildcard. See isAllowedHost.
+    const req = makeRequest("https://axiomid-app-axiom-id.vercel.app/api/og", {
+      headers: { host: "axiomid-app-axiom-id.vercel.app" },
+    });
+    const res = middleware(req);
+    expect(res.status).not.toBe(403);
+  });
+
+  it("still rejects other axiomid-named vercel.app deployment hosts", () => {
+    const req = makeRequest("https://axiomid-34uenxj9l-axiom-id.vercel.app/dashboard", {
+      headers: { host: "axiomid-34uenxj9l-axiom-id.vercel.app" },
+    });
+    const res = middleware(req);
+    expect(res.status).toBe(403);
+  });
 });
 
 describe("middleware — request body size limit", () => {

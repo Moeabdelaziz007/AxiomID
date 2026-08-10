@@ -102,6 +102,12 @@ export const metadata: Metadata = {
     siteName: 'AxiomID',
     images: [
       {
+        url: '/api/og?title=AxiomID%20%E2%80%94%20The%20Human%20Authorization%20Protocol&domain=axiomid.app',
+        width: 1200,
+        height: 630,
+        alt: 'AxiomID - Human Authorization Protocol for AI Agents',
+      },
+      {
         url: '/axiomid-banner.jpg',
         width: 1200,
         height: 630,
@@ -228,7 +234,7 @@ export default async function RootLayout({
                 "applicationCategory": "IdentityApplication",
                 "category": "Identity & Verification",
                 "operatingSystem": "Web",
-                "inLanguage": ["en", "ar"],
+                "inLanguage": ["en", "ar", "zh", "hi"],
                 "isAccessibleForFree": true,
                 "offers": {
                   "@type": "AggregateOffer",
@@ -248,11 +254,17 @@ export default async function RootLayout({
                   "name": "Mohamed Abdelaziz",
                   "url": "https://github.com/Moeabdelaziz007"
                 },
-                "publisher": {
-                  "@type": "Organization",
-                  "name": "AxiomID",
-                  "url": "https://axiomid.app"
-                },
+"publisher": {
+  "@type": "Organization",
+  "name": "AxiomID",
+  "url": "https://axiomid.app",
+  "logo": {
+    "@type": "ImageObject",
+    "url": "https://axiomid.app/axiomid-logo.svg",
+    "width": 512,
+    "height": 512
+  }
+},
                 "sameAs": [
                   "https://github.com/Moeabdelaziz007/AxiomID",
                   "https://minepi.com"

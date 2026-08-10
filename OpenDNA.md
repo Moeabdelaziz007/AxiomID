@@ -23,7 +23,7 @@ Like an immune cell reading the body's DNA to know what to protect and what to d
 
 ## 🏗️ Architecture: The 7 Sovereign Pools (J-Space Layer Map)
 
-Inspired by Global Workspace Theory and Tesla's 7-stage mental construction loop, OpenDNA compresses all agent knowledge into exactly **7 sovereign pools**. Empirical benchmarks executed via `scripts/pai_rehearse.ts` verify sub-millisecond execution latencies: Agent App Validation at **~10µs** (97,446 ops/sec), Al-Mizan Routing at **~190µs** (5,209 ops/sec), IQRA Conscience Interceptor at **~2.9ms**, and WebCrypto Ed25519 Cryptographic Verification at **~14.7ms** (68 ops/sec).
+Inspired by Global Workspace Theory and Tesla's 7-stage mental construction loop, OpenDNA compresses all agent knowledge into exactly **7 sovereign pools**. Empirical benchmarks executed via `scripts/pai_rehearse.ts` verify sub-millisecond execution latencies: Agent App Validation at **~10µs** (97,446 ops/sec), IQRA Conscience Interceptor at **~2.9ms**, and WebCrypto Ed25519 Cryptographic Verification at **~14.7ms** (68 ops/sec).
 
 ```
 ╔══════════════════════════════════════════════════════════════════════╗

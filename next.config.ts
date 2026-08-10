@@ -5,6 +5,13 @@ import { withSentryConfig } from "@sentry/nextjs";
 const nextConfig: NextConfig = {
   transpilePackages: ["jose"],
   skipTrailingSlashRedirect: true,
+  async redirects() {
+    return [
+      { source: "/ppp", destination: "/pai/ppp", permanent: true },
+      { source: "/ppp/media", destination: "/pai/ppp/media", permanent: true },
+      { source: "/ppp/topology", destination: "/pai/ppp/topology", permanent: true },
+    ];
+  },
   async rewrites() {
     return [
       {

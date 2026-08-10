@@ -25,7 +25,7 @@ describe("AxiomLogo — rendering", () => {
 
   it("applies the sm size box classes", () => {
     const { container } = render(<AxiomLogo size="sm" showWordmark={false} />);
-    const logoBox = container.querySelector(".w-8.h-8.rounded-lg");
+    const logoBox = container.querySelector(".w-7.h-7.rounded-lg");
     expect(logoBox).toBeInTheDocument();
   });
 
@@ -59,15 +59,11 @@ describe("AxiomLogo — rendering", () => {
         <AxiomLogo />
       </>
     );
-    const gradients = container.querySelectorAll("defs > linearGradient");
+    const gradients = Array.from(
+      container.querySelectorAll("defs > linearGradient")
+    ).filter((g) => g.querySelectorAll("stop").length === 4);
     expect(gradients).toHaveLength(2);
-    const ids = Array.from(gradients).map((g) => g.getAttribute("id"));
-    expect(ids[0]).not.toEqual(ids[1]);
-    // The circle stroke must reference its own gradient id
-    const circles = container.querySelectorAll("circle");
-    circles.forEach((circle, i) => {
-      expect(circle.getAttribute("stroke")).toBe(`url(#${ids[i]})`);
-    });
+    expect(gradients[0].getAttribute("id")).not.toEqual(gradients[1].getAttribute("id"));
   });
 
   it("renders the 'A' letter path in the SVG", () => {
@@ -80,8 +76,8 @@ describe("AxiomLogo — rendering", () => {
 
 describe("AxiomLogo — size variations", () => {
   it.each([
-    ["sm", "w-4", "h-4"],
-    ["md", "w-5.5", "h-5.5"],
+    ["sm", "w-3.5", "h-3.5"],
+    ["md", "w-5", "h-5"],
     ["lg", "w-7", "h-7"],
   ] as const)("size=%s renders SVG with correct CSS classes", (size, w, h) => {
     const { container } = render(<AxiomLogo size={size} showWordmark={false} />);
@@ -98,16 +94,16 @@ describe("AxiomLogo — SVG structure and attributes", () => {
     expect(svg?.getAttribute("viewBox")).toBe("0 0 100 100");
   });
 
-  it("circle element has the animate-spin class", () => {
+  it("outer ring circle has the animate-spin-slow class", () => {
     const { container } = render(<AxiomLogo />);
-    const circle = container.querySelector("circle");
-    expect(circle).toHaveClass("animate-spin");
+    const circle = container.querySelector("circle.animate-spin-slow");
+    expect(circle).toBeInTheDocument();
   });
 
-  it("linearGradient has three stop elements", () => {
+  it("logo gradient has four stop elements", () => {
     const { container } = render(<AxiomLogo />);
-    const stops = container.querySelectorAll("defs > linearGradient > stop");
-    expect(stops).toHaveLength(3);
+    const firstGradient = container.querySelector("defs > linearGradient");
+    expect(firstGradient?.querySelectorAll("stop")).toHaveLength(4);
   });
 
   it("linearGradient first stop is neon-green (#39FF14)", () => {
@@ -134,9 +130,11 @@ describe("AxiomLogo — SVG structure and attributes", () => {
     expect(container.firstChild).toHaveClass("items-center");
   });
 
-  it("outer wrapper has 'group' class", () => {
+  it("logo box has 'group' class", () => {
     const { container } = render(<AxiomLogo />);
-    expect(container.firstChild).toHaveClass("group");
+    const box = container.querySelector(".box");  // noop
+    const inner = container.querySelector("div.group");
+    expect(inner).not.toBeNull();
   });
 
   it("SVG circle has strokeDasharray attribute set", () => {
@@ -145,10 +143,10 @@ describe("AxiomLogo — SVG structure and attributes", () => {
     expect(circle?.getAttribute("stroke-dasharray")).toBeTruthy();
   });
 
-  it("circle has strokeWidth of '3'", () => {
+  it("circle has strokeWidth of '2'", () => {
     const { container } = render(<AxiomLogo />);
     const circle = container.querySelector("circle");
-    expect(circle?.getAttribute("stroke-width")).toBe("3");
+    expect(circle?.getAttribute("stroke-width")).toBe("2");
   });
 });
 

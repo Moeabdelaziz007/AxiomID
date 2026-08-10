@@ -129,30 +129,34 @@ describe("Privacy page — i18n rendering with real translations", () => {
 describe("Privacy page — real translation values (PR change)", () => {
   // Use jest.requireActual to access real translations without unmocking
   it("t('privacy_legal') in real translations.en is 'LEGAL'", () => {
-    const { translations } = jest.requireActual("@/app/context/language-context") as {
-      translations: Record<string, Record<string, string>>;
+    const { getTranslations } = jest.requireActual("@/i18n") as {
+      getTranslations: (lang: string) => Record<string, string>;
     };
+    const translations = { en: getTranslations("en"), ar: getTranslations("ar") };
     expect(translations.en["privacy_legal"]).toBe("LEGAL");
   });
 
   it("t('privacy_title') in real translations.en is 'Privacy'", () => {
-    const { translations } = jest.requireActual("@/app/context/language-context") as {
-      translations: Record<string, Record<string, string>>;
+    const { getTranslations } = jest.requireActual("@/i18n") as {
+      getTranslations: (lang: string) => Record<string, string>;
     };
+    const translations = { en: getTranslations("en"), ar: getTranslations("ar") };
     expect(translations.en["privacy_title"]).toBe("Privacy");
   });
 
   it("t('privacy_info_collect') in real translations.en is 'Information We Collect'", () => {
-    const { translations } = jest.requireActual("@/app/context/language-context") as {
-      translations: Record<string, Record<string, string>>;
+    const { getTranslations } = jest.requireActual("@/i18n") as {
+      getTranslations: (lang: string) => Record<string, string>;
     };
+    const translations = { en: getTranslations("en"), ar: getTranslations("ar") };
     expect(translations.en["privacy_info_collect"]).toBe("Information We Collect");
   });
 
   it("t('privacy_rights') in real translations.en is 'Your Rights'", () => {
-    const { translations } = jest.requireActual("@/app/context/language-context") as {
-      translations: Record<string, Record<string, string>>;
+    const { getTranslations } = jest.requireActual("@/i18n") as {
+      getTranslations: (lang: string) => Record<string, string>;
     };
+    const translations = { en: getTranslations("en"), ar: getTranslations("ar") };
     expect(translations.en["privacy_rights"]).toBe("Your Rights");
   });
 });

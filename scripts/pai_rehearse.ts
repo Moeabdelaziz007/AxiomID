@@ -1,8 +1,6 @@
 import { DidValidator } from '../packages/did-integrity-guard/src/did-validator.js';
-import { route, REAL_PROVIDERS, RouterConfig } from '../workers/pai-7loop-router/src/al-mizan-algorithm.js';
 import { AgentAppValidator } from '../packages/agent-app-models/src/validator.js';
 import { IqraPolicyEngine } from '../packages/iqra-policy-agent/src/policy-engine.js';
-import { OssieBridge } from '../packages/sdk/src/ossie-bridge.js';
 
 async function runEmpiricalBenchmark() {
   console.log('================================================================');
@@ -31,32 +29,8 @@ async function runEmpiricalBenchmark() {
   console.log(`   └─ Average Verification Latency: ${avgCryptoMicroseconds.toFixed(2)}µs`);
   console.log(`   └─ Throughput: ${cryptoOpsPerSec.toLocaleString()} ops/sec\n`);
 
-  // 2. Al-Mizan Multi-Armed Bandit Router Benchmark
-  console.log('2. Measuring Al-Mizan Multi-Armed Bandit Router Engine...');
-  const routerConfig: RouterConfig = {
-    epsilon: 0.1,
-    epsilonDecay: 0.99,
-    learningRate: 0.1,
-    maxBudget: 5.0,
-    preference: 'balanced',
-    prngSeed: 42,
-  };
-  const scoresMap = new Map<string, number>();
-
-  const startRouter = performance.now();
-  for (let i = 0; i < ITERATIONS; i++) {
-    route('Optimize TypeScript code for DeepSeek', REAL_PROVIDERS, routerConfig, scoresMap);
-  }
-  const endRouter = performance.now();
-  const totalRouterMs = endRouter - startRouter;
-  const avgRouterMicroseconds = (totalRouterMs / ITERATIONS) * 1000;
-  const routerOpsPerSec = Math.round((ITERATIONS / totalRouterMs) * 1000);
-
-  console.log(`   └─ Average Routing Decision Latency: ${avgRouterMicroseconds.toFixed(2)}µs`);
-  console.log(`   └─ Throughput: ${routerOpsPerSec.toLocaleString()} ops/sec\n`);
-
-  // 3. IQRA Conscience Substrate Policy Interceptor Benchmark
-  console.log('3. Measuring IQRA Conscience Substrate Policy Engine...');
+  // 2. IQRA Conscience Substrate Policy Interceptor Benchmark
+  console.log('2. Measuring IQRA Conscience Substrate Policy Engine...');
   const policyEngine = new IqraPolicyEngine();
 
   const startPolicy = performance.now();
@@ -75,8 +49,8 @@ async function runEmpiricalBenchmark() {
   console.log(`   └─ Average Policy Evaluation Latency: ${avgPolicyMicroseconds.toFixed(2)}µs`);
   console.log(`   └─ Throughput: ${policyOpsPerSec.toLocaleString()} ops/sec\n`);
 
-  // 4. Agent App Models Manifest Security Validator Benchmark
-  console.log('4. Measuring Agent App Models Security Validator Engine...');
+  // 3. Agent App Models Manifest Security Validator Benchmark
+  console.log('3. Measuring Agent App Models Security Validator Engine...');
   const appValidator = new AgentAppValidator();
   const sampleApp = {
     manifestVersion: '0.1' as const,
@@ -113,7 +87,6 @@ async function runEmpiricalBenchmark() {
   console.log('📊 EMPIRICAL SYSTEM BENCHMARK SUMMARY TABLE');
   console.log('================================================================');
   console.log(`• Ed25519 WebCrypto Verify: ${avgCryptoMicroseconds.toFixed(2)} µs/op (${cryptoOpsPerSec.toLocaleString()} ops/sec)`);
-  console.log(`• Al-Mizan Bandit Router  : ${avgRouterMicroseconds.toFixed(2)} µs/op (${routerOpsPerSec.toLocaleString()} ops/sec)`);
   console.log(`• IQRA Policy Interceptor : ${avgPolicyMicroseconds.toFixed(2)} µs/op (${policyOpsPerSec.toLocaleString()} ops/sec)`);
   console.log(`• Agent App Validator     : ${avgAppValMicroseconds.toFixed(2)} µs/op (${appValOpsPerSec.toLocaleString()} ops/sec)`);
   console.log('================================================================\n');

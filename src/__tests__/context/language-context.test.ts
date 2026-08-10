@@ -10,7 +10,9 @@
 // Import the real module (not the mock from jest.setup.js)
 jest.unmock('@/app/context/language-context');
 
-import { translations } from '@/app/context/language-context';
+import { getTranslations } from "@/i18n";
+
+const translations = { en: getTranslations("en"), ar: getTranslations("ar") } as const;
 
 describe('translations — new keys added in this PR', () => {
   describe('English (en)', () => {

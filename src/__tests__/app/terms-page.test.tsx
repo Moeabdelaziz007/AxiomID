@@ -161,30 +161,34 @@ describe("Terms page — no hardcoded strings (PR change)", () => {
 describe("Terms page — real translation values (PR change)", () => {
   // Use jest.requireActual to access real translations without affecting the mock
   it("t('terms_title') in real translations.en is 'Terms of Service'", () => {
-    const { translations } = jest.requireActual("@/app/context/language-context") as {
-      translations: Record<string, Record<string, string>>;
+    const { getTranslations } = jest.requireActual("@/i18n") as {
+      getTranslations: (lang: string) => Record<string, string>;
     };
+    const translations = { en: getTranslations("en"), ar: getTranslations("ar") };
     expect(translations.en["terms_title"]).toBe("Terms of Service");
   });
 
   it("t('terms_subtitle') in real translations.en mentions AxiomID", () => {
-    const { translations } = jest.requireActual("@/app/context/language-context") as {
-      translations: Record<string, Record<string, string>>;
+    const { getTranslations } = jest.requireActual("@/i18n") as {
+      getTranslations: (lang: string) => Record<string, string>;
     };
+    const translations = { en: getTranslations("en"), ar: getTranslations("ar") };
     expect(translations.en["terms_subtitle"]).toContain("AxiomID");
   });
 
   it("t('terms_use') in real translations.en is 'Use of Service'", () => {
-    const { translations } = jest.requireActual("@/app/context/language-context") as {
-      translations: Record<string, Record<string, string>>;
+    const { getTranslations } = jest.requireActual("@/i18n") as {
+      getTranslations: (lang: string) => Record<string, string>;
     };
+    const translations = { en: getTranslations("en"), ar: getTranslations("ar") };
     expect(translations.en["terms_use"]).toBe("Use of Service");
   });
 
   it("t('terms_wallet') in real translations.en is 'Wallet Connection'", () => {
-    const { translations } = jest.requireActual("@/app/context/language-context") as {
-      translations: Record<string, Record<string, string>>;
+    const { getTranslations } = jest.requireActual("@/i18n") as {
+      getTranslations: (lang: string) => Record<string, string>;
     };
+    const translations = { en: getTranslations("en"), ar: getTranslations("ar") };
     expect(translations.en["terms_wallet"]).toBe("Wallet Connection");
   });
 });

@@ -50,7 +50,7 @@ describe("LanguageProvider — initialization", () => {
   });
 
   it("initializes from a saved 'ar' value in localStorage", () => {
-    localStorage.setItem("aix_language", "ar");
+    localStorage.setItem("axiomid-language", "ar");
     render(
       <LanguageProvider>
         <Consumer />
@@ -75,7 +75,7 @@ describe("LanguageProvider — initialization", () => {
         <Consumer />
       </LanguageProvider>
     );
-    expect(document.documentElement.lang).toBe("en");
+    expect(document.documentElement.lang).toBe("en-US");
     expect(document.documentElement.dir).toBe("ltr");
   });
 });
@@ -93,7 +93,7 @@ describe("LanguageProvider — setLanguage", () => {
     });
 
     expect(screen.getByTestId("language")).toHaveTextContent("ar");
-    expect(localStorage.getItem("aix_language")).toBe("ar");
+    expect(localStorage.getItem("axiomid-language")).toBe("ar");
   });
 
   it("updates document.documentElement.dir to 'rtl' and lang to 'ar' when switching to Arabic", () => {
@@ -108,11 +108,11 @@ describe("LanguageProvider — setLanguage", () => {
     });
 
     expect(document.documentElement.dir).toBe("rtl");
-    expect(document.documentElement.lang).toBe("ar");
+    expect(document.documentElement.lang).toBe("ar-SA");
   });
 
   it("switches back to 'ltr'/'en' when toggling back to English", () => {
-    localStorage.setItem("aix_language", "ar");
+    localStorage.setItem("axiomid-language", "ar");
     render(
       <LanguageProvider>
         <Consumer />
@@ -124,8 +124,8 @@ describe("LanguageProvider — setLanguage", () => {
     });
 
     expect(document.documentElement.dir).toBe("ltr");
-    expect(document.documentElement.lang).toBe("en");
-    expect(localStorage.getItem("aix_language")).toBe("en");
+    expect(document.documentElement.lang).toBe("en-US");
+    expect(localStorage.getItem("axiomid-language")).toBe("en");
   });
 });
 
@@ -140,7 +140,7 @@ describe("LanguageProvider — t() translation delegation", () => {
   });
 
   it("resolves the same key to its Arabic translation after switching language", () => {
-    localStorage.setItem("aix_language", "ar");
+    localStorage.setItem("axiomid-language", "ar");
     render(
       <LanguageProvider>
         <Consumer />
@@ -168,7 +168,7 @@ describe("useLanguage — outside provider", () => {
     const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
     expect(() => render(<Consumer />)).toThrow(
-      "useLanguage must be used within a LanguageProvider"
+      "useLanguage must be used within LanguageProvider"
     );
 
     consoleErrorSpy.mockRestore();
