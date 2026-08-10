@@ -26,7 +26,7 @@ export function AuraDock() {
 
   return (
     <div
-      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-3 py-2 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_-10px_rgba(0,240,255,0.15)]"
+      className="fixed bottom-16 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-3 py-2 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_-10px_rgba(0,240,255,0.15)]"
       role="navigation"
       aria-label={t("aura_os")}
     >
