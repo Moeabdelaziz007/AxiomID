@@ -375,6 +375,28 @@ Built with passion in Cairo, Egypt.
 
 ### Acknowledgments
 
+#### Humans
+
+- **Mohamed Abdelaziz** ([@Moeabdelaziz007](https://github.com/Moeabdelaziz007)) — founder, architect, and guardian of every line in this repo.
+- **Gemini Spark** — for the generous help and guidance along the way.
+
+#### AI Engineering Agents (working inside this repo)
+
+| Agent | Role |
+|-------|------|
+| **Jules** | Staff Engineer agent — architectural review, PR gates, SOUL/AGENTS.md compliance checks |
+| **OpenCode** | Execution agent — Phase A–D implementation, planning, and docs |
+| **Gemini CLI** | Execution agent — PR loops and task runs |
+| **Antigravity IDE** | Google's agentic IDE — code assistance and task execution |
+| **Gemini AI Review** | PR review CI (`.github/workflows/gemini-review.yml`) |
+| **CodeRabbit AI** | Automated correctness review — logic, edge cases, diff analysis (`.coderabbit.yaml`) |
+| **CodeQL** | Security gate (`.github/workflows/codeql.yml`) |
+| **HERMES** | Weekly goals and planning agent (`.github/workflows/hermes-weekly.yml`) |
+| **NotebookLM** | Research partner — artifact mining, source review, and knowledge synthesis |
+| **dependabot / renovate** | Dependency maintenance bots |
+
+#### Platforms
+
 **Pi Network** — For the authentication SDK and the vision of a human-centered web. Learn more at [minepi.com](https://minepi.com).
 
 <div align="center">
