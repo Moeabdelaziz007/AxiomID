@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Wallet, Zap, Database, FileKey, LayoutGrid, ExternalLink, Sparkles } from "lucide-react";
+import { Wallet, Zap, Database, FileKey, LayoutGrid, ExternalLink, Sparkles, Cpu } from "lucide-react";
 import { useLanguage } from "@/app/context/language-context";
 
 const LAUNCHERS = [
@@ -10,6 +10,7 @@ const LAUNCHERS = [
   { label: "Memory", href: "https://memory.axiomid.app", icon: Database },
   { label: "Identity", href: "https://openid.axiomid.app", icon: FileKey },
   { label: "Control Center", href: "/dashboard", icon: LayoutGrid },
+  { label: "Plans", href: "/plans", icon: Cpu },
   { label: "GitHub", href: "https://github.com/pai-list", icon: ExternalLink },
 ];
 
