@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { StatusBar } from "@/components/os/StatusBar";
 import { AuraDock } from "@/components/os/AuraDock";
 import { BrandStrip } from "@/components/os/BrandStrip";
+import { CheckoutButton } from "@/components/plans/CheckoutButton";
 
 export const revalidate = 300;
 
@@ -99,16 +100,16 @@ export default async function PlansPage() {
                   ))}
                 </ul>
 
-                <a
-                  href={tier.id === "hobby" ? "/claim" : `/api/plans/checkout?plan=${tier.id}`}
-                  className={`mt-7 rounded-lg border px-4 py-2.5 text-center font-mono text-sm transition-all duration-200 ${
-                    tier.id === "creator"
-                      ? "border-cyan-400/60 bg-cyan-400/10 text-cyan-200 hover:bg-cyan-400/20 hover:shadow-[0_0_20px_rgba(0,240,255,0.25)]"
-                      : "border-white/15 bg-white/5 text-white hover:border-white/30"
-                  }`}
-                >
-                  {tier.id === "hobby" ? t("cta_free") : t("cta_select")}
-                </a>
+                {tier.id === "hobby" ? (
+                  <a
+                    href="/claim"
+                    className="mt-7 rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-center font-mono text-sm text-white transition-all duration-200 hover:border-white/30"
+                  >
+                    {t("cta_free")}
+                  </a>
+                ) : (
+                  <CheckoutButton plan={tier.id} />
+                )}
               </section>
             ))}
           </div>

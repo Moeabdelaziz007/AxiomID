@@ -628,5 +628,10 @@
   "desktop_settings": "设置",
   "desktop_soon": "即将推出",
   "desktop_no_apps": "无活动应用",
-  "desktop_cpu": "CPU"
+  "desktop_cpu": "CPU",
+  "plan_provision_pending": "正在开通 — 我们将通过邮件发送连接信息",
+  "plan_provisioning": "正在开通…",
+  "plan_provision_started": "已开始开通",
+  "plan_retry": "重试",
+  "plan_provision_failed": "开通失败 — 请重试"
 }

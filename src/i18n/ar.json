@@ -696,5 +696,10 @@
   "desktop_settings": "الإعدادات",
   "desktop_soon": "قريباً",
   "desktop_no_apps": "لا توجد تطبيقات نشطة",
-  "desktop_cpu": "المعالج"
+  "desktop_cpu": "المعالج",
+  "plan_provision_pending": "بدأ التجهيز — سنرسل تفاصيل الاتصال عبر البريد",
+  "plan_provisioning": "جارٍ التجهيز…",
+  "plan_provision_started": "بدأ التجهيز",
+  "plan_retry": "أعد المحاولة",
+  "plan_provision_failed": "فشل التجهيز — حاول مجدداً"
 }

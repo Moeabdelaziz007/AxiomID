@@ -696,5 +696,10 @@
   "desktop_settings": "Settings",
   "desktop_soon": "Soon",
   "desktop_no_apps": "No active apps",
-  "desktop_cpu": "CPU"
+  "desktop_cpu": "CPU",
+  "plan_provision_pending": "Provisioning started — we will email your connection details",
+  "plan_provisioning": "Provisioning…",
+  "plan_provision_started": "Provisioning started",
+  "plan_retry": "Retry",
+  "plan_provision_failed": "Provision failed — try again"
 }
