@@ -56,6 +56,10 @@ const nextConfig: NextConfig = {
     return config;
   },
   serverExternalPackages: ["@mem7ai/mem7"],
+  outputFileTracingIncludes: {
+    "/api/og": ["./node_modules/next/dist/compiled/@vercel/og/**"],
+    "/api/og/passport": ["./node_modules/next/dist/compiled/@vercel/og/**"],
+  },
 };
 
 export default withSentryConfig(nextConfig, {
