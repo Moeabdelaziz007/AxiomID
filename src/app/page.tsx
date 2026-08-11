@@ -32,7 +32,6 @@ export default async function Home() {
         {/* p5 dataflow animation — ambient OS background (dimmed, non-interactive) */}
         <iframe
           src="/dataflow/dataflow-animation.html"
-          title={undefined}
           aria-hidden="true"
           tabIndex={-1}
           className="fixed inset-0 w-full h-full opacity-20 pointer-events-none"
