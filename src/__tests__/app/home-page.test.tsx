@@ -1,26 +1,18 @@
 /**
- * Tests for src/app/page.tsx (PR rewrite)
+ * Tests for src/app/page.tsx (Aura OS Desktop rebuild)
  *
- * The landing page was converted from a "use client" component driven by
- * wallet/language contexts into an async Server Component that:
- * - derives the active language from the `accept-language` request header
- *   (via `headers()` from "next/headers"), defaulting to "en" unless the
- *   header starts with "ar"
- * - exports `generateMetadata()` using the same header-derived language to
- *   build the page title/description via `getTranslation`
- * - delegates header/nav UI to a new `<Header />` component
- * - drops the old "Why AxiomID?" comparison section and inline JSON-LD script
- * - changes hero copy/CTAs to "Create your AI Identity" / "Create My AI Agent"
- *   linking to "/claim"
- *
- * Since `Home` is an async Server Component, it cannot be rendered directly
- * via JSX in a browser-like test — but because it is just an async function
- * returning a React element tree, we can `await` it and pass the resolved
- * element into React Testing Library's `render()`.
+ * The landing is now a full-viewport desktop:
+ * - ambient particle canvas (DesktopCanvas) + blurred orbs + cyan grid
+ * - desktop icon grid (DesktopIcons): AI Agents -> /dashboard,
+ *   AI Notes -> memory.axiomid.app, AI Terminal -> harness.axiomid.app,
+ *   Settings -> /dashboard/settings; the remaining five tiles render
+ *   dimmed with a "Soon" badge
+ * - taskbar (DesktopTaskbar) with logo, status pill and live clock
+ * - brand strip removed from the desktop (taskbar owns the bottom chrome)
  */
 
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import { headers } from "next/headers";
 import Home, { generateMetadata } from "@/app/page";
 import { useLanguage } from "@/app/context/language-context";
@@ -33,10 +25,9 @@ jest.mock("next/headers", () => ({
 const mockHeaders = headers as unknown as jest.Mock;
 
 // The global jest.setup.js mock's t() only knows a hardcoded whitelist and
-// returns raw keys for everything else (other suites rely on that). Scope a
-// real-translation override to THIS suite so Aura OS keys ("aura_os", "live")
-// render actual strings here without touching the global mock.
-function mockUseLanguage(lang: "en" | "ar") {
+// returns raw keys for everything else. Scope a real-translation override to
+// THIS suite so desktop keys render actual strings here.
+function mockUseLanguage(lang: "en" | "ar" | "zh") {
   (useLanguage as jest.Mock).mockReturnValue({
     language: lang,
     setLanguage: jest.fn(),
@@ -48,6 +39,25 @@ function mockAcceptLanguage(value: string | null) {
   mockHeaders.mockResolvedValue({
     get: (name: string) => (name === "accept-language" ? value : null),
   });
+}
+
+// The taskbar fetches live telemetry; keep tests offline and deterministic.
+beforeEach(() => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ globalWorkspace: { attention: 42 } }),
+  }) as unknown as typeof fetch;
+});
+
+// Flush the taskbar's async telemetry state update inside act so no
+// setState lands outside a React act() boundary.
+async function renderHome() {
+  const view = render(await Home());
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+  return view;
 }
 
 describe("generateMetadata — language detection from accept-language header", () => {
@@ -77,7 +87,7 @@ describe("generateMetadata — language detection from accept-language header", 
     mockAcceptLanguage("en-US");
     const metadata = await generateMetadata();
     expect(metadata.description).toBe(
-      "Your sovereign AI desktop on the Pi Network. Launch agents, manage identity, explore memory — all from one shell."
+      "Your sovereign AI desktop on the Pi Network. Launch agents, manage identity, explore memory — all from one shell.",
     );
   });
 
@@ -85,33 +95,60 @@ describe("generateMetadata — language detection from accept-language header", 
     mockAcceptLanguage("ar");
     const metadata = await generateMetadata();
     expect(metadata.description).toBe(
-      "سطح المكتب السيادي الخاص بك على شبكة باي. أطلق الوكلاء، أدر الهوية، استكشف الذاكرة — كل ذلك من واجهة واحدة."
+      "سطح المكتب السيادي الخاص بك على شبكة باي. أطلق الوكلاء، أدر الهوية، استكشف الذاكرة — كل ذلك من واجهة واحدة.",
     );
   });
 });
 
-describe("Home — rendering with English (default) language", () => {
+describe("Home — Aura OS Desktop (English)", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     mockAcceptLanguage("en-US,en;q=0.9");
     mockUseLanguage("en");
   });
 
-  it("wires the WorkspaceGrid icon grid into the page", async () => {
-    render(await Home());
-    expect(screen.getByText(/workspace — capabilities/i)).toBeInTheDocument();
+  it("renders the ambient particle canvas", async () => {
+    await renderHome();
+    expect(document.querySelector("canvas[aria-hidden='true']")).not.toBeNull();
   });
 
-  it("wires the Aura OS dock into the page", async () => {
-    render(await Home());
+  it("renders the taskbar with the Aura OS navigation label", async () => {
+    await renderHome();
     expect(screen.getByRole("navigation", { name: /aura os/i })).toBeInTheDocument();
   });
 
-  it("renders the ambient dataflow animation canvas", async () => {
-    render(await Home());
-    const iframe = document.querySelector("iframe[src='/dataflow/dataflow-animation.html']");
-    expect(iframe).not.toBeNull();
-    expect(iframe).toHaveAttribute("aria-hidden", "true");
+  it("wires AI Agents to the control center", async () => {
+    await renderHome();
+    expect(screen.getByRole("link", { name: "AI Agents" })).toHaveAttribute("href", "/dashboard");
+  });
+
+  it("wires AI Notes to the memory engine", async () => {
+    await renderHome();
+    expect(screen.getByRole("link", { name: "AI Notes" })).toHaveAttribute("href", "https://memory.axiomid.app");
+  });
+
+  it("wires AI Terminal to the harness forge", async () => {
+    await renderHome();
+    expect(screen.getByRole("link", { name: "AI Terminal" })).toHaveAttribute("href", "https://harness.axiomid.app");
+  });
+
+  it("wires Settings to the dashboard settings", async () => {
+    await renderHome();
+    expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute("href", "/dashboard/settings");
+  });
+
+  it("renders the not-yet-live apps dimmed with a Soon badge", async () => {
+    await renderHome();
+    expect(screen.getByText(/AI Code Editor/)).toHaveTextContent("Soon");
+    expect(screen.getByText(/AI File Manager/)).toHaveTextContent("Soon");
+    expect(screen.getByText(/AI Automation/)).toHaveTextContent("Soon");
+    expect(screen.getByText(/AI Autopilot/)).toHaveTextContent("Soon");
+    expect(screen.getByText(/AI Assistant/)).toHaveTextContent("Soon");
+  });
+
+  it("renders the brand strip credit overlay", async () => {
+    await renderHome();
+    expect(screen.getByRole("contentinfo")).toBeInTheDocument();
   });
 });
 
@@ -122,8 +159,21 @@ describe("Home — rendering with Arabic language", () => {
     mockUseLanguage("ar");
   });
 
-  it("wires the WorkspaceGrid into the Arabic-rendered page", async () => {
-    render(await Home());
-    expect(screen.getByText(/مساحة العمل — القدرات/i)).toBeInTheDocument();
+  it("localizes the desktop app labels", async () => {
+    await renderHome();
+    expect(screen.getByRole("link", { name: "وكلاء الذكاء الاصطناعي" })).toHaveAttribute("href", "/dashboard");
+  });
+});
+
+describe("Home — rendering with Chinese language", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockAcceptLanguage("zh-CN,zh;q=0.9");
+    mockUseLanguage("zh");
+  });
+
+  it("localizes the desktop app labels to Chinese", async () => {
+    await renderHome();
+    expect(screen.getByRole("link", { name: "AI 智能体" })).toHaveAttribute("href", "/dashboard");
   });
 });

@@ -684,5 +684,17 @@
   "f_power_shield": "محاكاة حمراء/زرقاء كاملة",
   "cta_select": "اختر الباقة",
   "cta_free": "ابدأ مجانًا",
-  "plans_billing_note": "الفوترة: فواتير Ghost (إصدار أولي) — Pi402 / x402 في خارطة الطريق."
+  "plans_billing_note": "الفوترة: فواتير Ghost (إصدار أولي) — Pi402 / x402 في خارطة الطريق.",
+  "desktop_agents": "وكلاء الذكاء الاصطناعي",
+  "desktop_notes": "ملاحظات الذكاء الاصطناعي",
+  "desktop_code": "محرر الأكواد الذكي",
+  "desktop_files": "مدير الملفات الذكي",
+  "desktop_terminal": "الطرفية الذكية",
+  "desktop_automation": "الأتمتة الذكية",
+  "desktop_autopilot": "الطيار الآلي الذكي",
+  "desktop_assistant": "المساعد الذكي",
+  "desktop_settings": "الإعدادات",
+  "desktop_soon": "قريباً",
+  "desktop_no_apps": "لا توجد تطبيقات نشطة",
+  "desktop_cpu": "المعالج"
 }

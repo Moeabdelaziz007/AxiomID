@@ -616,5 +616,17 @@
   "f_power_shield": "完整红蓝模拟",
   "cta_select": "选择方案",
   "cta_free": "免费开始",
-  "plans_billing_note": "计费：Ghost 发票（MVP）— Pi402 / x402 在路线图中。"
+  "plans_billing_note": "计费：Ghost 发票（MVP）— Pi402 / x402 在路线图中。",
+  "desktop_agents": "AI 智能体",
+  "desktop_notes": "AI 笔记",
+  "desktop_code": "AI 代码编辑器",
+  "desktop_files": "AI 文件管理器",
+  "desktop_terminal": "AI 终端",
+  "desktop_automation": "AI 自动化",
+  "desktop_autopilot": "AI 自动驾驶",
+  "desktop_assistant": "AI 助手",
+  "desktop_settings": "设置",
+  "desktop_soon": "即将推出",
+  "desktop_no_apps": "无活动应用",
+  "desktop_cpu": "CPU"
 }

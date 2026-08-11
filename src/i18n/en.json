@@ -684,5 +684,17 @@
   "f_power_shield": "Full red/blue simulation",
   "cta_select": "Select Plan",
   "cta_free": "Start Free",
-  "plans_billing_note": "Billing: Ghost invoices (MVP) — Pi402 / x402 escrow on the roadmap."
+  "plans_billing_note": "Billing: Ghost invoices (MVP) — Pi402 / x402 escrow on the roadmap.",
+  "desktop_agents": "AI Agents",
+  "desktop_notes": "AI Notes",
+  "desktop_code": "AI Code Editor",
+  "desktop_files": "AI File Manager",
+  "desktop_terminal": "AI Terminal",
+  "desktop_automation": "AI Automation",
+  "desktop_autopilot": "AI Autopilot",
+  "desktop_assistant": "AI Assistant",
+  "desktop_settings": "Settings",
+  "desktop_soon": "Soon",
+  "desktop_no_apps": "No active apps",
+  "desktop_cpu": "CPU"
 }
