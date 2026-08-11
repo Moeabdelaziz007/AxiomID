@@ -4,10 +4,10 @@ import Image from "next/image";
 import { useLanguage } from "@/app/context/language-context";
 
 const PARTNERS = [
-  { name: "Vercel", src: "https://assets.vercel.com/image/upload/v1662131052/front/favicon-32x32.png", alt: "Vercel" },
-  { name: "Cloudflare", src: "https://www.cloudflare.com/favicon.ico", alt: "Cloudflare" },
-  { name: "Google Gemini", src: "https://www.gstatic.com/lamda/images/gemini_favicon_f069958c85030456e93de685c24db4a9363f9a2da1230212310f40d9682e6e38.png", alt: "Google Gemini" },
-  { name: "Pi Network", src: "https://minepi.com/favicon.ico", alt: "Pi Network" },
+  { name: "Vercel", href: "https://vercel.com", src: "https://assets.vercel.com/image/upload/v1580105858/repositories/vercel/logo.png", alt: "Vercel" },
+  { name: "Cloudflare", href: "https://www.cloudflare.com", src: "https://www.cloudflare.com/favicon.ico", alt: "Cloudflare" },
+  { name: "Google Gemini", href: "https://gemini.google.com", src: "https://www.google.com/favicon.ico", alt: "Google Gemini" },
+  { name: "Pi Network", href: "https://minepi.com", src: "https://minepi.com/favicon.ico", alt: "Pi Network" },
 ];
 
 export function BrandStrip() {
@@ -29,7 +29,7 @@ export function BrandStrip() {
           {PARTNERS.map((p) => (
             <a
               key={p.name}
-              href={`https://${p.name.toLowerCase().replace(" ", "")}.com`}
+              href={p.href}
               target="_blank"
               rel="noopener noreferrer"
               className="flex h-6 w-6 items-center justify-center rounded transition-opacity hover:opacity-70 focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"

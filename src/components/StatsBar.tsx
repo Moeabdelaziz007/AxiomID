@@ -17,6 +17,8 @@ interface StatItem {
   suffix: string;
 }
 
+const GATEWAY_HEALTH_URL = "https://skills.axiomid.app/llms.txt";
+
 /**
  * Displays protocol statistics using design system tokens.
  * When values are 0, shows "Early Access" instead of discouraging zero counts.
@@ -24,10 +26,24 @@ interface StatItem {
 export default function StatsBar() {
   const { t, language } = useLanguage();
   const [stats, setStats] = useState<Stats | null>(null);
+  const [gatewayOk, setGatewayOk] = useState(false);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    if (process.env.NODE_ENV === "test") return;
     const controller = new AbortController();
+
+    const probeGateway = async () => {
+      try {
+        const res = await fetch(GATEWAY_HEALTH_URL, { signal: controller.signal });
+        if (!controller.signal.aborted) setGatewayOk(res.ok);
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name !== "AbortError" && !controller.signal.aborted) {
+          setGatewayOk(false);
+        }
+      }
+    };
+    probeGateway();
 
     const fetchStats = async () => {
       try {
@@ -80,13 +96,13 @@ export default function StatsBar() {
       suffix: hasAgents ? "+" : "",
     },
     {
-      label: t("on_chain"),
-      value: "100%",
+      label: t("gateway_status"),
+      value: gatewayOk ? t("live") : t("degraded"),
       icon: Shield,
-      colorClass: "text-axiom-purple",
+      colorClass: gatewayOk ? "text-emerald-400" : "text-amber-400",
       suffix: "",
     },
-  ], [t, language, stats, hasUsers, hasAgents]);
+  ], [t, language, stats, hasUsers, hasAgents, gatewayOk]);
 
   return (
     <div

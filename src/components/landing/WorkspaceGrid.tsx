@@ -1,8 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/app/context/language-context";
 import { motion } from "framer-motion";
-import { Wallet, Zap, Database, Plug, Sparkles, FileKey, Grid3x3 } from "lucide-react";
+import { Wallet, Zap, Database, Plug, Sparkles, FileKey, Grid3x3, X, ExternalLink } from "lucide-react";
 
 interface Capability {
   key: string;
@@ -11,9 +12,22 @@ interface Capability {
   status: "live" | "pending";
 }
 
+const IFRAME_SANDBOX =
+  "allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox";
+
 export function WorkspaceGrid() {
   const { language } = useLanguage();
   const t = (en: string, ar: string) => (language === "en" ? en : ar);
+  const [active, setActive] = useState<Capability | null>(null);
+
+  useEffect(() => {
+    if (!active) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActive(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [active]);
 
   const capabilities: Capability[] = [
     { key: "earn", route: "https://earn.axiomid.app", icon: Wallet, status: "live" },
@@ -49,11 +63,10 @@ export function WorkspaceGrid() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
             >
-              <a
-                href={cap.route}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`flex items-start justify-between rounded-xl bg-glass border border-glass p-4 transition-all hover:bg-glass-hover hover:border-glass-hover ${
+              <button
+                type="button"
+                onClick={() => setActive(cap)}
+                className={`w-full text-left flex items-start justify-between rounded-xl bg-glass border border-glass p-4 transition-all hover:bg-glass-hover hover:border-glass-hover ${
                   cap.status === "pending" ? "opacity-60" : ""
                 } focus-visible:ring-2 focus-visible:ring-electric-blue focus-visible:ring-offset-2 focus-visible:ring-offset-black focus-visible:outline-none`}
               >
@@ -74,11 +87,59 @@ export function WorkspaceGrid() {
                   />
                   {cap.status === "live" ? t("LIVE", "مباشر") : t("PENDING", "قيد الانتظار")}
                 </span>
-              </a>
+              </button>
             </motion.div>
           );
         })}
       </div>
+
+      {active && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label={active.key}
+          onClick={() => setActive(null)}
+        >
+          <div
+            className="flex h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-black/50 backdrop-blur-xl shadow-[0_0_60px_-15px_rgba(0,240,255,0.2)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-2.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <active.icon className="h-4 w-4 shrink-0 text-cyan-400" />
+                <span className="font-mono text-xs font-semibold text-white truncate">{active.key}</span>
+                <span className="text-[10px] font-mono text-white/40 truncate">{active.route.replace("https://", "")}</span>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <a
+                  href={active.route}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+                  aria-label={t("Open in new tab", "افتح في تبويب جديد")}
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setActive(null)}
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+                  aria-label={t("Close window", "إغلاق النافذة")}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <iframe
+              src={active.route}
+              title={active.key}
+              sandbox={IFRAME_SANDBOX}
+              className="h-full w-full flex-1 bg-black/30"
+            />
+          </div>
+        </div>
+      )}
     </section>
   );
 }
