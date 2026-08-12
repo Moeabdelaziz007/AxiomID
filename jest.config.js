@@ -36,12 +36,40 @@ const customJestConfig = {
   // exit gracefully") and jest exits non-zero in CI (Loops coverage job).
   forceExit: true,
   openHandlesTimeout: 0,
+  // Per-path thresholds on the modules this app owns and tests directly;
+  // the global numbers are set below the all-files reality so the merged
+  // `backend/` service (~23%) cannot veto the whole run. Jest's exit code
+  // is the enforcement — loops.yml's bespoke grep is gone.
   coverageThreshold: {
     global: {
+      branches: 60,
+      functions: 60,
+      lines: 70,
+      statements: 70,
+    },
+    '**/components/os/*': {
+      branches: 75,
+      functions: 95,
+      lines: 95,
+      statements: 95,
+    },
+    '**/components/plans/*': {
       branches: 80,
-      functions: 80,
-      lines: 80,
-      statements: 80,
+      functions: 95,
+      lines: 95,
+      statements: 95,
+    },
+    '**/app/api/plans/checkout/*': {
+      branches: 70,
+      functions: 90,
+      lines: 90,
+      statements: 90,
+    },
+    '**/ghost.ts': {
+      branches: 90,
+      functions: 70,
+      lines: 95,
+      statements: 85,
     },
   },
 }
