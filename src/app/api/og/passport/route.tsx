@@ -1,4 +1,4 @@
-import { ImageResponse } from '@vercel/og';
+import { ImageResponse } from "../../../../../node_modules/@vercel/og/dist/index.node.js";
 import { NextRequest } from 'next/server';
 import { logger } from '@/lib/logger';
 import { calculateTier, getTierColor, type Tier } from '@/lib/tiers';
