@@ -31,6 +31,11 @@ const customJestConfig = {
     '<rootDir>/src/__tests__/app/wallet-test-helpers.ts',
     '<rootDir>/src/__tests__/api/emulate-route.test.ts',
   ],
+  // react-dom 19's scheduler keeps a MessagePort open by design; without
+  // forceExit the worker pool force-kills it ("worker process has failed to
+  // exit gracefully") and jest exits non-zero in CI (Loops coverage job).
+  forceExit: true,
+  openHandlesTimeout: 0,
   coverageThreshold: {
     global: {
       branches: 80,
