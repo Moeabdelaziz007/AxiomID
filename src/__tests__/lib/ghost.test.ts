@@ -42,7 +42,7 @@ describe("ghost lib — shared vs dedicated provisioning", () => {
     });
     const result = await provisionGhostDatabase("creator");
     expect(global.fetch).toHaveBeenCalledWith(
-      "https://api.ghost.build/v0/databases/spaces/personal",
+      "https://api.ghost.build/v0/spaces/personal/databases",
       {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${KEY}` },
@@ -59,7 +59,7 @@ describe("ghost lib — shared vs dedicated provisioning", () => {
     });
     const result = await provisionGhostDatabase("power");
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/dedicated/spaces/personal"),
+      expect.stringContaining("/spaces/personal/databases"),
       expect.objectContaining({
         body: expect.stringContaining('"size":"1x"'),
       }),
@@ -72,7 +72,7 @@ describe("ghost lib — shared vs dedicated provisioning", () => {
     (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({}) });
     await provisionGhostDatabase("creator");
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/databases/spaces/team-alpha"),
+      expect.stringContaining("/spaces/team-alpha/databases"),
       expect.anything(),
     );
   });
