@@ -22,17 +22,28 @@ mockUseLanguage.mockReturnValue({
 });
 
 const callLog: string[] = [];
-const fakeCtx = {
-  clearRect: (...a: unknown[]) => callLog.push(`clearRect:${a.join(",")}`),
-  beginPath: () => callLog.push("beginPath"),
-  arc: () => callLog.push("arc"),
-  fill: () => callLog.push("fill"),
-  fillStyle: "",
-} as unknown as CanvasRenderingContext2D;
+const makeFakeCtx = () =>
+  new Proxy({ fillStyle: "" } as Record<string, unknown>, {
+    get: (target, k) => {
+      if (k === "createLinearGradient" || k === "createRadialGradient") {
+        callLog.push(String(k));
+        return () => ({ addColorStop: () => {} });
+      }
+      if (!(k in target)) target[k as string] = () => callLog.push(String(k));
+      return target[k];
+    },
+    set: (target, k, v) => {
+      target[k as string] = v;
+      return true;
+    },
+  }) as unknown as CanvasRenderingContext2D;
+
+let fakeCtx = makeFakeCtx();
 
 describe("DesktopCanvas — ambient particle engine", () => {
   beforeEach(() => {
     callLog.length = 0;
+    fakeCtx = makeFakeCtx();
     jest.useFakeTimers();
     Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
       configurable: true,
@@ -102,6 +113,41 @@ describe("DesktopCanvas — ambient particle engine", () => {
       jest.advanceTimersByTime(50);
     });
     expect(callLog.filter((c) => c === "arc").length).toBeGreaterThanOrEqual(140);
+  });
+
+  it("paints the default aurora wallpaper then overlays particles", () => {
+    const view = render(<DesktopCanvas />);
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+    expect(callLog.some((c) => c.startsWith("createLinearGradient"))).toBe(true);
+    expect(callLog.filter((c) => c === "arc").length).toBeGreaterThanOrEqual(70);
+    view.unmount();
+  });
+
+  it("respects an unknown stored wallpaper by falling back to aurora", () => {
+    localStorage.setItem("aura.wallpaper", "bogus");
+    const view = render(<DesktopCanvas />);
+    act(() => {
+      jest.advanceTimersByTime(50);
+    });
+    expect(callLog.some((c) => c.startsWith("createLinearGradient"))).toBe(true);
+    view.unmount();
+    localStorage.removeItem("aura.wallpaper");
+  });
+
+  it("switches wallpaper live on the aura:wallpaper custom event", () => {
+    const view = render(<DesktopCanvas />);
+    act(() => {
+      jest.advanceTimersByTime(50);
+    });
+    callLog.length = 0;
+    act(() => {
+      window.dispatchEvent(new CustomEvent("aura:wallpaper", { detail: "deep-space" }));
+      jest.advanceTimersByTime(50);
+    });
+    expect(callLog.some((c) => c.startsWith("createRadialGradient"))).toBe(true);
+    view.unmount();
   });
 });
 

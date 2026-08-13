@@ -1,9 +1,28 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { WALLPAPERS, WALLPAPER_STORAGE_KEY, getWallpaper, Wallpaper } from "@/lib/wallpapers";
+
+const PARTICLE_COUNT = 70;
 
 export function DesktopCanvas() {
   const ref = useRef<HTMLCanvasElement>(null);
+  const [wallpaper] = useState<Wallpaper>(() => {
+    try {
+      return getWallpaper(localStorage.getItem(WALLPAPER_STORAGE_KEY));
+    } catch {
+      return getWallpaper();
+    }
+  });
+  const wallpaperRef = useRef(wallpaper);
+
+  useEffect(() => {
+    const onPick = (e: Event) => {
+      wallpaperRef.current = getWallpaper((e as CustomEvent<string>).detail);
+    };
+    window.addEventListener("aura:wallpaper", onPick);
+    return () => window.removeEventListener("aura:wallpaper", onPick);
+  }, []);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -12,8 +31,10 @@ export function DesktopCanvas() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     let w = (canvas.width = window.innerWidth * dpr);
     let h = (canvas.height = window.innerHeight * dpr);
+    const seed = Math.floor(Math.random() * 2 ** 31);
+    const start = performance.now();
 
-    const particles = Array.from({ length: 70 }, () => ({
+    const particles = Array.from({ length: PARTICLE_COUNT }, () => ({
       x: Math.random() * w,
       y: Math.random() * h,
       vx: (Math.random() - 0.5) * 0.4,
@@ -23,7 +44,13 @@ export function DesktopCanvas() {
 
     let raf = 0;
     const tick = () => {
+      const t = (performance.now() - start) / 1000;
       ctx.clearRect(0, 0, w, h);
+      try {
+        wallpaperRef.current.draw(ctx, w, h, t, seed);
+      } catch {
+        WALLPAPERS[0].draw(ctx, w, h, t, seed);
+      }
       ctx.fillStyle = "rgba(0, 240, 255, 0.35)";
       for (const p of particles) {
         p.x += p.vx;
