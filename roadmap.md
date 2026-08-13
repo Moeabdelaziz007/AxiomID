@@ -8,6 +8,8 @@ Ordered by layer dependency. Each issue assignable to an agent; `[Wn]` = WS phas
 - [ ] **A3** `axiomid-piverify`: slice `src/lib/pi-sdk.ts` + `/api/pi/kya/register` + `/api/pi/aip/signin`; approval layers + audit trails; `window.Pi` mock test suite. *(3h)*
 - [ ] **A4** Repo hygiene: delete VitePress `openidentity` duplicate repo (never `openidentity.md`); add `pai-list/AGENTS.md`; subdomain table → pai-docs. *(30m)*
 
+> **Identity architecture (ADR 011):** AxiomID is a **sovereign Identity Provider** — no external auth providers (Google/Apple/Microsoft). We replicate OIDC/OAuth 2.0 + offline TOTP (RFC 6238) patterns in-house; **"Sign in with AxiomID"** is the standard SSO for all surfaces. Pi Network remains root human verification (L1).
+
 ## Phase B — Protocols (Layers 3, 5)
 - [ ] **B1** `pai-ppp` (new): spec + signed memory pack format (Ed25519, Pi tx anchoring), import/export, `agent-memory` as first producer. *(4h)*
 - [ ] **B2** `pai-skills`: move `skills/` registry + `pai-atom` ABI inside; ADP discovery endpoint. *(2h)*
