@@ -128,6 +128,33 @@ describe("WallpaperMenu — right-click picker", () => {
     expect(localStorage.getItem(WALLPAPER_STORAGE_KEY)).toBe("axiom-void");
   });
 
+  it("falls back to aurora selection when localStorage is unavailable", () => {
+    const spy = jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("denied");
+    });
+    render(<WallpaperMenu />);
+    act(() => {
+      fireContext(document.body, 400, 300);
+    });
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+    expect(screen.getByRole("menuitemradio", { name: "Aurora" }).getAttribute("aria-checked")).toBe("true");
+    spy.mockRestore();
+  });
+
+  it("opens centered via Shift+F10 and hover moves the active row", () => {
+    render(<WallpaperMenu />);
+    act(() => {
+      fireEvent.keyDown(document.body, { key: "F10", shiftKey: true });
+    });
+    const menu = screen.getByRole("menu");
+    const style = menu.getAttribute("style") || "";
+    expect(style).toContain("left:");
+    act(() => {
+      fireEvent.mouseEnter(screen.getByRole("menuitemradio", { name: "Deep Space" }));
+    });
+    expect(screen.getByRole("menuitemradio", { name: "Deep Space" }).getAttribute("data-active")).toBe("true");
+  });
+
   it("clamps position so the menu never overflows the viewport", () => {
     Object.defineProperty(window, "innerWidth", { configurable: true, value: 500 });
     Object.defineProperty(window, "innerHeight", { configurable: true, value: 400 });

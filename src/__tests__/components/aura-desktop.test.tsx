@@ -8,6 +8,7 @@ import { act, render, screen } from "@testing-library/react";
 import { DesktopCanvas } from "@/components/os/DesktopCanvas";
 import { DesktopTaskbar } from "@/components/os/DesktopTaskbar";
 import { DesktopIcons } from "@/components/os/DesktopIcons";
+import { WALLPAPERS } from "@/lib/wallpapers";
 import { useLanguage } from "@/app/context/language-context";
 
 jest.mock("@/app/context/language-context", () => ({
@@ -147,6 +148,31 @@ describe("DesktopCanvas — ambient particle engine", () => {
       jest.advanceTimersByTime(50);
     });
     expect(callLog.some((c) => c.startsWith("createRadialGradient"))).toBe(true);
+    view.unmount();
+  });
+
+  it("falls back to aurora when localStorage is unavailable", () => {
+    const spy = jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("denied");
+    });
+    const view = render(<DesktopCanvas />);
+    act(() => {
+      jest.advanceTimersByTime(50);
+    });
+    expect(callLog.some((c) => c.startsWith("createLinearGradient"))).toBe(true);
+    spy.mockRestore();
+    view.unmount();
+  });
+
+  it("falls back to aurora when the selected wallpaper draw throws", () => {
+    jest.spyOn(WALLPAPERS[0], "draw").mockImplementationOnce(() => {
+      throw new Error("paint fail");
+    });
+    const view = render(<DesktopCanvas />);
+    act(() => {
+      jest.advanceTimersByTime(50);
+    });
+    expect(callLog.filter((c) => c === "fillRect").length).toBeGreaterThan(0);
     view.unmount();
   });
 });

@@ -59,7 +59,7 @@ describe("POST /api/plans/checkout", () => {
     expect(JSON.stringify(body)).not.toContain("postgres://secret");
 
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toContain("/databases/spaces/");
+    expect(url).toContain("/spaces/personal/databases");
     expect(init.method).toBe("POST");
     expect(init.body).toContain('"wait":false');
     expect(init.headers.Authorization).toBe("Bearer ghost_test_key");
@@ -69,8 +69,9 @@ describe("POST /api/plans/checkout", () => {
     const res = await POST(makeRequest("power"));
     expect(res.status).toBe(202);
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toContain("/dedicated/spaces/");
+    expect(url).toContain("/spaces/personal/databases");
     expect(init.body).toContain('"size":"1x"');
+    expect(init.body).toContain('"dedicated":true');
   });
 
   it("maps a failed ghost API call to 500 and logs via the standard logger", async () => {
