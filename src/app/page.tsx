@@ -5,6 +5,7 @@ import { DesktopCanvas } from "@/components/os/DesktopCanvas";
 import { DesktopIcons } from "@/components/os/DesktopIcons";
 import { DesktopTaskbar } from "@/components/os/DesktopTaskbar";
 import { BrandStrip } from "@/components/os/BrandStrip";
+import { WallpaperMenu } from "@/components/os/WallpaperMenu";
 
 export const revalidate = 60;
 
@@ -64,6 +65,8 @@ export default async function Home() {
       <DesktopTaskbar />
 
       <BrandStrip />
+
+      <WallpaperMenu />
     </main>
   );
 }
