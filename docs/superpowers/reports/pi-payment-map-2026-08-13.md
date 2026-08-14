@@ -43,15 +43,15 @@ State machine: `PENDING → ESCROWED → RELEASED` (`prisma PiPayment`). Consump
 | IDOR / ownership enforcement | ✅ `user_uid` vs authenticated `piUid` (approve:82) |
 | Validation, rate limits, secret handling, error shape | ✅ zod + `RATE_LIMITS.payment` + `process.env` guard |
 | Escrow + side effects (XP/tier/KYC/ledger/PostHog) | ✅ complete route |
-| Tests | ✅ `pi-sdk.test.ts`, sandbox e2e, payment tests |
-| **`PI_API_KEY` in Production/Preview** | 🔴 **MISSING — only Development has it** (verified via `vercel env ls`, 2026-08-13). All payment routes return `500 "Payment system not configured"` in prod |
+| Tests | ✅ `src/__tests__/lib/pi-sdk.test.ts`, `docs/PI_SANDBOX_TESTING.md` e2e, payment tests under `src/__tests__/api/` |
+| **`PI_API_KEY` in Production/Preview** | 🔴 Audit (2026-08-13) found it only in Development. **Correction (same day):** earlier env listing was truncated at 40 rows and missed a 46-day-old Production row; the founder then supplied the launch key and it was replaced in Production + added to Preview (main branch); new deployments carry it. The `500 "Payment system not configured"` earlier reported is an **inference from the missing environment, not an observed response** |
 | Network mode | 🟡 Production env: `NEXT_PUBLIC_PI_NETWORK=testnet`, `NEXT_PUBLIC_PI_SANDBOX=true` — correct for sandbox testing; must flip to mainnet + a mainnet API key before real payments |
 | i18n for new UI | 🟡 bundles are en/ar/zh (no HI); new keys go in `src/i18n/{en,ar,zh}.json` |
 | Non-Pi-Browser UX | 🟡 `createPayment` requires Pi Browser; gate with existing `PiBrowserBanner` |
 
 ## Verdict
 
-The payment pipeline (SDK init → button → createPayment → server approve/complete → escrow → side effects) is **fully built and exercised by 3 UIs** (DonateWithPiCard, skills install, spend request). Step 10 needs:
+The payment pipeline (SDK init → button → createPayment → server approve/complete → escrow → side effects) is **fully built and exercised by 2 working UI surfaces** — the DonateWithPiCard on Home/Wallet tabs and the skills-install gate (`src/app/api/skills/[slug]/install/route.ts`) — plus the spend-request *design* (`docs/superpowers/specs/2026-07-07-axiomid-spend-request-design.md`) which is **not built**. Step 10 needs:
 
 1. Founder action: add the Pi **sandbox API key** to Vercel Production + Preview (key from developer.minepi.com)
 2. One new dashboard payment card reusing `createPiPayment` (clone `DonateWithPiCard`)
