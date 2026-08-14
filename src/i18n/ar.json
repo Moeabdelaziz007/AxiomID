@@ -701,5 +701,13 @@
   "plan_provisioning": "جارٍ التجهيز…",
   "plan_provision_started": "بدأ التجهيز",
   "plan_retry": "أعد المحاولة",
-  "plan_provision_failed": "فشل التجهيز — حاول مجدداً"
+  "plan_provision_failed": "فشل التجهيز — حاول مجدداً",
+  "payment_test_title": "اختبار دفع App Studio",
+  "payment_test_desc": "أكمل الخطوة 10 عن طريق معالجة معاملة اختبار بقيمة 1 Pi.",
+  "payment_test_button": "دفع 1 Pi",
+  "payment_test_processing": "جاري المعالجة...",
+  "payment_test_success": "تم الدفع بنجاح!",
+  "payment_test_txid": "رقم المعاملة",
+  "payment_test_released": "الحالة: RELEASED",
+  "payment_test_again": "اختبر مرة أخرى"
 }

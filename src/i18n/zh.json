@@ -633,5 +633,13 @@
   "plan_provisioning": "正在开通…",
   "plan_provision_started": "已开始开通",
   "plan_retry": "重试",
-  "plan_provision_failed": "开通失败 — 请重试"
+  "plan_provision_failed": "开通失败 — 请重试",
+  "payment_test_title": "App Studio 支付测试",
+  "payment_test_desc": "通过处理 1 Pi 的测试交易完成第 10 步。",
+  "payment_test_button": "支付 1 Pi",
+  "payment_test_processing": "处理中...",
+  "payment_test_success": "支付成功！",
+  "payment_test_txid": "交易 ID",
+  "payment_test_released": "状态: RELEASED",
+  "payment_test_again": "再次测试"
 }

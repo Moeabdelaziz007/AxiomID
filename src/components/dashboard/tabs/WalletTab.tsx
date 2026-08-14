@@ -1,11 +1,12 @@
 "use client";
 
 import { DonateWithPiCard } from "@/components/dashboard/DonateWithPiCard";
+import { PiPaymentTestCard } from "@/components/dashboard/PiPaymentTestCard";
 import { SpendRequestsPanel } from "@/components/dashboard/SpendRequestsPanel";
 import { useWallet } from "@/app/context/wallet-context";
 
 /**
- * Wallet tab — composes DonateWithPiCard and SpendRequestsPanel.
+ * Wallet tab — composes PiPaymentTestCard, DonateWithPiCard and SpendRequestsPanel.
  * Transaction history placeholder (no tx API yet).
  */
 export function WalletTab() {
@@ -30,6 +31,8 @@ export function WalletTab() {
       </div>
 
       <SpendRequestsPanel />
+
+      <PiPaymentTestCard />
 
       <DonateWithPiCard />
 

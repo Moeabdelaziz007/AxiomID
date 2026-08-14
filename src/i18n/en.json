@@ -701,5 +701,13 @@
   "plan_provisioning": "Provisioning…",
   "plan_provision_started": "Provisioning started",
   "plan_retry": "Retry",
-  "plan_provision_failed": "Provision failed — try again"
+  "plan_provision_failed": "Provision failed — try again",
+  "payment_test_title": "App Studio Payment Test",
+  "payment_test_desc": "Complete Step 10 by processing a 1 Pi test transaction.",
+  "payment_test_button": "Pay 1 Pi",
+  "payment_test_processing": "Processing...",
+  "payment_test_success": "Payment Successful!",
+  "payment_test_txid": "Transaction ID",
+  "payment_test_released": "Status: RELEASED",
+  "payment_test_again": "Test Again"
 }
