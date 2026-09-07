@@ -53,7 +53,7 @@ jobs:
         run: pnpm build
 
       - name: Run Meticulous tests (cloud replay)
-        uses: alwaysmeticulous/report-diffs-action/cloud-compute@v1.74.0
+        uses: alwaysmeticulous/report-diffs-action/cloud-compute@v1.78.0
         with:
           api-token: ${{ secrets.METICULOUS_API_TOKEN }}
           app-command: pnpm start
